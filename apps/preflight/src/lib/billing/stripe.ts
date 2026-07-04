@@ -3,6 +3,11 @@ import { assertPublicHttpUrl } from '$lib/scan/url-guard';
 
 const STRIPE_API = 'https://api.stripe.com/v1';
 
+/** True when the secret key is a live-mode key (`sk_live_…`). */
+export function isStripeLiveMode(secretKey: string): boolean {
+	return secretKey.startsWith('sk_live_');
+}
+
 /** Normalize scan URLs for Stripe metadata and unlock verification. */
 export function canonicalScanUrl(raw: string): string {
 	return assertPublicHttpUrl(raw).href.replace(/\/$/, '');

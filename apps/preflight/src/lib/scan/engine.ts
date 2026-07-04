@@ -1,7 +1,12 @@
 import type { ScanReport } from '$lib/scan/types';
 import { buildContentChecks, type ScanContext } from '$lib/scan/analyze';
 import { buildBlockedHomepageChecks, isBlockedHomepageStatus } from '$lib/scan/coverage';
-import { crawlPages, selectCrawlTargets, selectSitemapCrawlTargets } from '$lib/scan/crawl';
+import {
+	crawlPages,
+	selectCrawlTargets,
+	selectPricingFromSitemap,
+	selectSitemapCrawlTargets
+} from '$lib/scan/crawl';
 import { defaultDeps, type ScanDeps } from '$lib/scan/fetchers';
 import {
 	buildLicenseAudit,
@@ -64,11 +69,22 @@ export async function scanUrl(rawUrl: string, deps: ScanDeps = defaultDeps): Pro
 		]);
 
 		const claimed = new Set([finalUrl.href, ...crawledRolePages.map((p) => p.url)]);
+		const crawledPages = [...crawledRolePages];
+
+		if (!crawledRolePages.some((p) => p.role === 'pricing')) {
+			const pricingTarget = selectPricingFromSitemap(linkResult.sitemapLocs, finalUrl, claimed);
+			if (pricingTarget) {
+				const [pricingPage] = await crawlPages([pricingTarget], deps.fetchHtml);
+				crawledPages.push(pricingPage);
+				claimed.add(pricingPage.url);
+			}
+		}
+
 		const crawledSitemapPages = await crawlPages(
 			selectSitemapCrawlTargets(linkResult.sitemapLocs, finalUrl, claimed),
 			deps.fetchHtml
 		);
-		const crawledPages = [...crawledRolePages, ...crawledSitemapPages];
+		crawledPages.push(...crawledSitemapPages);
 
 		const scriptHtml = [html, ...crawledPages.map((p) => p.html).filter(Boolean)];
 		const { secrets: scriptSecrets, licenseFindings } = await scanScripts(
@@ -149,6 +165,12 @@ export async function scanUrl(rawUrl: string, deps: ScanDeps = defaultDeps): Pro
 }
 
 export type { FetchHtmlResult, ScanDeps } from '$lib/scan/fetchers';
-export { checkHostConsistency, collectSitemapLocs, extractSitemapLocs } from '$lib/scan/probes';
+export {
+	checkHostConsistency,
+	collectSitemapLocs,
+	discoverSitemapLocs,
+	extractRobotsSitemapUrls,
+	extractSitemapLocs
+} from '$lib/scan/probes';
 export { normalizeUrl } from '$lib/scan/parse';
 export { assertPublicHttpUrl, isPublicHttpUrl } from '$lib/scan/url-guard';

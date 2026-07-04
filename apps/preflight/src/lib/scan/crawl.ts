@@ -92,6 +92,32 @@ export function selectCrawlTargets(links: string[], base: URL): CrawlTarget[] {
 	return targets;
 }
 
+const PRICING_PATH = /(^|\/)(pricing|plans)\/?$/;
+
+/**
+ * When homepage links omit pricing, pick a canonical /pricing or /plans URL
+ * from sitemap locs — skips URLs already claimed by the role crawl.
+ */
+export function selectPricingFromSitemap(
+	locs: string[],
+	base: URL,
+	claimed: Set<string>
+): CrawlTarget | null {
+	for (const raw of locs) {
+		try {
+			const url = new URL(raw);
+			if (url.origin !== base.origin) continue;
+			if (!isPublicHttpUrl(url.href)) continue;
+			if (claimed.has(url.href)) continue;
+			if (!PRICING_PATH.test(url.pathname.toLowerCase())) continue;
+			return { role: 'pricing', url: url.href };
+		} catch {
+			// skip malformed entries
+		}
+	}
+	return null;
+}
+
 const ASSET_EXT = /\.(png|jpe?g|gif|webp|svg|ico|pdf|xml|json|css|js|woff2?|ttf|map)(\?|$)/i;
 
 const PREFERRED_SITEMAP_PATHS = [

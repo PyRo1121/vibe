@@ -116,33 +116,13 @@ export async function checkLinks(
 		}
 	};
 
-	const checkSitemap = async (): Promise<{
-		ok: boolean;
-		sample: { checked: number; broken: number } | null;
-		locs: string[];
-	}> => {
-		try {
-			const sitemapUrl = new URL('/sitemap.xml', finalUrl).href;
-			const ok = await head(sitemapUrl);
-			if (!ok) return { ok: false, sample: null, locs: [] };
-			const xml = await fetch(sitemapUrl);
-			const locs = xml ? await collectSitemapLocs(xml, finalUrl, fetch, MAX_SITEMAP_LOCS) : [];
-			if (locs.length === 0) return { ok: true, sample: null, locs: [] };
-			const sampleLocs = locs.slice(0, 3);
-			const results = await mapLimit(sampleLocs, 3, head);
-			const broken = results.filter((r) => !r).length;
-			return { ok: true, sample: { checked: sampleLocs.length, broken }, locs };
-		} catch {
-			return { ok: false, sample: null, locs: [] };
-		}
-	};
-
-	const [linkResults, robots, llmsTxtOk, sitemap] = await Promise.all([
+	const [linkResults, robots, llmsTxtOk] = await Promise.all([
 		mapLimit(sameOriginLinks, 4, head),
 		checkRobots(),
-		checkLlms(),
-		checkSitemap()
+		checkLlms()
 	]);
+
+	const sitemap = await discoverSitemapLocs(finalUrl, robots.text, head, fetch);
 
 	return {
 		brokenCount: linkResults.filter((r) => !r).length,
@@ -154,6 +134,83 @@ export async function checkLinks(
 		sitemapSample: sitemap.sample,
 		sitemapLocs: sitemap.locs
 	};
+}
+
+/** Parse `Sitemap:` directives from robots.txt (case-insensitive, same-origin only). */
+export function extractRobotsSitemapUrls(robotsText: string | null, finalUrl: URL): string[] {
+	if (!robotsText) return [];
+	const urls: string[] = [];
+	const seen = new Set<string>();
+	for (const line of robotsText.split(/\r?\n/)) {
+		const match = line.match(/^\s*sitemap\s*:\s*(.+)\s*$/i);
+		if (!match) continue;
+		try {
+			const url = new URL(match[1].trim(), finalUrl);
+			if (url.origin !== finalUrl.origin) continue;
+			if (seen.has(url.href)) continue;
+			seen.add(url.href);
+			urls.push(url.href);
+		} catch {
+			// skip malformed entries
+		}
+	}
+	return urls;
+}
+
+/**
+ * Discover sitemap URLs from robots.txt plus the default /sitemap.xml, merge
+ * same-origin locs (deduped), and sample a few for reachability.
+ */
+export async function discoverSitemapLocs(
+	finalUrl: URL,
+	robotsText: string | null,
+	head: ScanDeps['headOk'],
+	fetch: ScanDeps['fetchText']
+): Promise<{
+	ok: boolean;
+	sample: { checked: number; broken: number } | null;
+	locs: string[];
+}> {
+	try {
+		const defaultSitemap = new URL('/sitemap.xml', finalUrl).href;
+		const sitemapUrls = [
+			...new Set([defaultSitemap, ...extractRobotsSitemapUrls(robotsText, finalUrl)])
+		];
+
+		const headResults = await Promise.all(sitemapUrls.map((url) => head(url)));
+		if (!headResults.some(Boolean)) return { ok: false, sample: null, locs: [] };
+
+		const allLocs: string[] = [];
+		const seenLocs = new Set<string>();
+
+		for (let i = 0; i < sitemapUrls.length; i += 1) {
+			if (!headResults[i]) continue;
+			const xml = await fetch(sitemapUrls[i]);
+			if (!xml) continue;
+			const locs = await collectSitemapLocs(
+				xml,
+				finalUrl,
+				fetch,
+				MAX_SITEMAP_LOCS - allLocs.length
+			);
+			for (const loc of locs) {
+				if (seenLocs.has(loc)) continue;
+				seenLocs.add(loc);
+				allLocs.push(loc);
+				if (allLocs.length >= MAX_SITEMAP_LOCS) break;
+			}
+			if (allLocs.length >= MAX_SITEMAP_LOCS) break;
+		}
+
+		if (allLocs.length === 0) return { ok: true, sample: null, locs: [] };
+
+		const sampleLocs = allLocs.slice(0, 3);
+		const results = await mapLimit(sampleLocs, 3, head);
+		const broken = results.filter((r) => !r).length;
+		return { ok: true, sample: { checked: sampleLocs.length, broken }, locs: allLocs };
+	} catch {
+		return { ok: false, sample: null, locs: [] };
+	}
 }
 
 /** Resolve urlset locs, following a sitemap index one level deep when needed. */

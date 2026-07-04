@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	crawlPages,
 	selectCrawlTargets,
+	selectPricingFromSitemap,
 	selectSitemapCrawlTargets,
 	visibleWordCount
 } from './crawl';
@@ -85,6 +86,23 @@ describe('selectSitemapCrawlTargets', () => {
 		];
 		const targets = selectSitemapCrawlTargets(locs, base, new Set());
 		expect(targets).toEqual([{ role: 'sitemap', url: 'https://app.test/pricing' }]);
+	});
+});
+
+describe('selectPricingFromSitemap', () => {
+	it('picks /pricing or /plans when not already claimed', () => {
+		const locs = ['https://app.test/about', 'https://app.test/plans', 'https://app.test/pricing'];
+		expect(selectPricingFromSitemap(locs, base, new Set())).toEqual({
+			role: 'pricing',
+			url: 'https://app.test/plans'
+		});
+	});
+
+	it('returns null when pricing is already claimed or absent', () => {
+		const locs = ['https://app.test/about', 'https://app.test/pricing'];
+		const claimed = new Set(['https://app.test/pricing']);
+		expect(selectPricingFromSitemap(locs, base, claimed)).toBeNull();
+		expect(selectPricingFromSitemap(['https://app.test/about'], base, new Set())).toBeNull();
 	});
 });
 

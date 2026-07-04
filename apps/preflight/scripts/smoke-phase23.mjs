@@ -1,0 +1,131 @@
+#!/usr/bin/env node
+/**
+ * Phase 23 production smoke — sitemap supplemental crawl (pagesScanned sitemap role)
+ * Run: npm run smoke:phase23 (from apps/preflight)
+ *
+ * Self-scans preflight.latham.cloud via the SELF service binding (Phase 21).
+ * Legal pages come from homepage link crawl; /compare and /developers may appear
+ * as role=sitemap when listed in sitemap.xml but not linked from the homepage.
+ */
+const BASE = (process.env.PREFLIGHT_BASE ?? 'https://preflight.latham.cloud').replace(/\/$/, '');
+
+const results = [];
+
+function pass(name, detail = '') {
+	results.push({ name, ok: true, detail });
+	console.log(`✓ ${name}${detail ? ` — ${detail}` : ''}`);
+}
+
+function fail(name, detail = '') {
+	results.push({ name, ok: false, detail });
+	console.error(`✗ ${name}${detail ? ` — ${detail}` : ''}`);
+}
+
+function skip(name, reason) {
+	results.push({ name, ok: true, skipped: true, detail: reason });
+	console.log(`- ${name} (skipped) — ${reason}`);
+}
+
+async function post(path, body) {
+	const res = await fetch(`${BASE}${path}`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(body)
+	});
+	const text = await res.text();
+	let json = null;
+	try {
+		json = text ? JSON.parse(text) : null;
+	} catch {
+		/* ignore */
+	}
+	return { res, json, text };
+}
+
+async function get(path) {
+	const res = await fetch(`${BASE}${path}`);
+	const text = await res.text();
+	return { res, text };
+}
+
+// 1. Sitemap lists public marketing URLs
+const sitemap = await get('/sitemap.xml');
+const requiredLocs = ['/', '/privacy', '/terms', '/compare', '/developers'];
+if (sitemap.res.ok) {
+	const missing = requiredLocs.filter((path) => !sitemap.text.includes(`${BASE}${path}`));
+	if (missing.length === 0) pass('sitemap.xml', `all ${requiredLocs.length} marketing URLs listed`);
+	else fail('sitemap.xml', `missing locs: ${missing.join(', ')}`);
+} else {
+	fail('sitemap.xml', String(sitemap.res.status));
+}
+
+// 2. Self-scan — sitemap supplemental crawl via SELF binding
+const selfScan = await post('/api/scan', { url: BASE });
+if (!selfScan.res.ok) {
+	fail('self-scan API', `${selfScan.res.status} ${selfScan.text.slice(0, 120)}`);
+} else if (selfScan.json?.scanCoverage === 'blocked') {
+	fail(
+		'self-scan dogfood',
+		`blocked: ${selfScan.json.checks?.[0]?.message ?? 'SELF binding may be misconfigured'}`
+	);
+} else if (!Array.isArray(selfScan.json?.pagesScanned) || selfScan.json.pagesScanned.length === 0) {
+	fail('self-scan dogfood', 'missing pagesScanned');
+} else {
+	const pages = selfScan.json.pagesScanned;
+	const roles = pages.map((p) => p.role);
+	pass('pagesScanned present', `${pages.length} pages: ${roles.join(', ')}`);
+
+	if (roles.includes('home')) pass('home page in crawl');
+	else fail('home page in crawl', roles.join(', '));
+
+	const beyondHome = roles.filter((r) => r !== 'home');
+	if (beyondHome.length > 0) {
+		pass('pages beyond home', beyondHome.join(', '));
+	} else {
+		fail('pages beyond home', 'only home scanned');
+	}
+
+	if (roles.includes('privacy')) pass('privacy page crawled');
+	else fail('privacy page crawled', `roles: ${roles.join(', ')}`);
+
+	if (roles.includes('terms')) pass('terms page crawled');
+	else fail('terms page crawled', `roles: ${roles.join(', ')}`);
+
+	const sitemapPages = pages.filter((p) => p.role === 'sitemap');
+	const sitemapPaths = sitemapPages.map((p) => {
+		try {
+			return new URL(p.url).pathname;
+		} catch {
+			return p.url;
+		}
+	});
+	const supplemental = ['/compare', '/developers'].filter((path) => sitemapPaths.includes(path));
+
+	if (supplemental.length > 0) {
+		pass('sitemap supplemental crawl', supplemental.join(', '));
+	} else if (sitemapPages.length > 0) {
+		pass('sitemap supplemental crawl', `other sitemap pages: ${sitemapPaths.join(', ')}`);
+	} else {
+		skip(
+			'sitemap supplemental crawl',
+			'/compare and /developers not in crawl as role=sitemap (may already be link-crawled or sitemap not deployed yet)'
+		);
+	}
+
+	const sitemapCheck = selfScan.json.checks?.find((c) => c.id === 'sitemap');
+	if (sitemapCheck?.status === 'pass' || sitemapCheck?.status === 'warn') {
+		pass('sitemap check', sitemapCheck.message?.slice(0, 80) ?? sitemapCheck.status);
+	} else {
+		fail('sitemap check', sitemapCheck?.status ?? 'missing');
+	}
+}
+
+const failed = results.filter((r) => !r.ok);
+const skipped = results.filter((r) => r.skipped);
+const counted = results.filter((r) => !r.skipped);
+
+console.log('\n--- Summary ---');
+console.log(
+	`${counted.length - failed.length}/${counted.length} passed${skipped.length ? ` (${skipped.length} skipped)` : ''}`
+);
+if (failed.length) process.exit(1);

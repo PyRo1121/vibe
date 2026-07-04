@@ -17,6 +17,7 @@
 		"verify": "npm run check && npm run lint && npm run test && npm run build",
 		"cf-typegen": "wrangler types src/cloudflare-env.d.ts --include-runtime false",
 		"setup:stripe": "powershell -ExecutionPolicy Bypass -File scripts/setup-stripe.ps1",
+		"setup:stripe:live": "powershell -ExecutionPolicy Bypass -File scripts/setup-stripe-live.ps1",
 		"stripe": "powershell -ExecutionPolicy Bypass -File scripts/stripe-cli.ps1",
 		"stripe:login": "powershell -ExecutionPolicy Bypass -File scripts/finish-stripe-login.ps1",
 		"stripe:test-webhook": "powershell -ExecutionPolicy Bypass -File scripts/test-webhook.ps1",
@@ -25,7 +26,9 @@
 		"smoke:phase18": "node scripts/smoke-phase18.mjs",
 		"smoke:phase19": "node scripts/smoke-phase19.mjs",
 		"smoke:phase20": "node scripts/smoke-phase20.mjs",
-		"smoke": "npm run smoke:phase18 && npm run smoke:phase19 && npm run smoke:phase20",
+		"smoke:phase23": "node scripts/smoke-phase23.mjs",
+		"smoke:phase24": "node scripts/smoke-phase24.mjs",
+		"smoke": "npm run smoke:phase18 && npm run smoke:phase19 && npm run smoke:phase20 && npm run smoke:phase23 && npm run smoke:phase24",
 		"deploy": "npm run build && wrangler deploy"
 	},
 	"devDependencies": {

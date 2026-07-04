@@ -1,4 +1,6 @@
-# Run after `npm run stripe -- login` — creates webhook + prints wrangler secret commands.
+# TEST MODE — run after `npm run stripe -- login`.
+# Creates a test-mode webhook + prints wrangler secret commands (no real charges).
+# For production live keys, use scripts/setup-stripe-live.ps1 instead.
 $ErrorActionPreference = 'Stop'
 
 $stripe = Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Links\stripe.exe'

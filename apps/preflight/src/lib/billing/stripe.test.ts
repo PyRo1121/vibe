@@ -1,5 +1,10 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
-import { canonicalScanUrl, createCheckoutSession, verifyCheckoutSession } from './stripe';
+import {
+	canonicalScanUrl,
+	createCheckoutSession,
+	isStripeLiveMode,
+	verifyCheckoutSession
+} from './stripe';
 
 afterEach(() => {
 	vi.unstubAllGlobals();
@@ -112,6 +117,21 @@ describe('verifyCheckoutSession', () => {
 		expect(await verifyCheckoutSession('cs_test_abc123', 'https://app.test', 'sk_test_x')).toBe(
 			false
 		);
+	});
+});
+
+describe('isStripeLiveMode', () => {
+	it('returns true for sk_live_ keys', () => {
+		expect(isStripeLiveMode('sk_live_abc123')).toBe(true);
+	});
+
+	it('returns false for sk_test_ keys', () => {
+		expect(isStripeLiveMode('sk_test_abc123')).toBe(false);
+	});
+
+	it('returns false for empty or unknown prefixes', () => {
+		expect(isStripeLiveMode('')).toBe(false);
+		expect(isStripeLiveMode('pk_live_abc')).toBe(false);
 	});
 });
 

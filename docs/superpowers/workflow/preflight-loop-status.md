@@ -1,6 +1,6 @@
 # Preflight ship loop — status
 
-## Overall progress: Phase 22 deeper JS crawl
+## Overall progress: Phase 24 deeper crawl + Stripe live readiness
 
 | Milestone | Status |
 |-----------|--------|
@@ -11,6 +11,8 @@
 | Phase 20 (multi-page legal crawl + pagesScanned) | ✅ |
 | Phase 21 (same-zone self-scan via SELF binding) | ✅ |
 | Phase 22 (deeper JS + source-map secret crawl) | ✅ |
+| Phase 23 (sitemap-driven supplemental crawl) | ✅ |
+| Phase 24 (robots sitemap + pricing from sitemap + Stripe live tooling) | ✅ |
 | World-class baseline (lint, a11y dogfood, SSRF, rate limit, UI) | ✅ |
 | Blocked-scan guard (403/4xx/5xx → skip content checks) | ✅ |
 | P2 (JS secrets, CI gate CLI, MCP) | ✅ |
@@ -20,11 +22,13 @@
 
 ## Verification
 
-- **125+ tests** — `npm run verify:preflight`
+- **465 tests** — `npm run verify:preflight`
 - Phase 18 smoke — `npm run smoke:phase18 -w preflight` (14 checks)
 - Phase 19 smoke — `npm run smoke:phase19 -w preflight` (7 checks)
-- Phase 20 smoke — `npm run smoke:phase20 -w preflight` (multi-page crawl via external URL; self-scan skipped — CF 522)
-- Full smoke — `npm run smoke:preflight` (phases 18–20)
+- Phase 20 smoke — `npm run smoke:phase20 -w preflight` (multi-page crawl)
+- Phase 23 smoke — `npm run smoke:phase23 -w preflight` (sitemap dogfood + self-scan)
+- Phase 24 smoke — `npm run smoke:phase24 -w preflight` (Stripe checkout + webhook probe)
+- Full smoke — `npm run smoke:preflight` (phases 18–24)
 - Gate CLI — `npm run gate:preflight -- https://your-app.com`
 
 ## Roadmap (what to do next)
@@ -89,12 +93,33 @@ Per Phase 3 kill metrics (45 days). **Ops runs in parallel** — engineering con
 | Supplemental crawl up to 2 marketing pages | ✅ |
 | Cross-page placeholder + secrets on sitemap pages | ✅ |
 | `PagesScannedStrip` path labels for sitemap role | ✅ |
+| `static/sitemap.xml` marketing URLs | ✅ |
+| `smoke:phase23` dogfood | ✅ (self-scan via SELF binding) |
 
-### Phase 24+ — Parallel with validation
+### Phase 24 — Deeper crawl + Stripe live readiness (shipped)
+
+| Item | Status |
+|------|--------|
+| `Sitemap:` discovery from robots.txt | ✅ |
+| Merge locs from multiple sitemaps (deduped) | ✅ |
+| Pricing page from sitemap when not homepage-linked | ✅ |
+| `isStripeLiveMode` + `setup-stripe-live.ps1` | ✅ |
+| `smoke:phase24` checkout + webhook probe | ✅ |
+
+**Stripe live checklist** (no secrets in repo):
+
+1. `npm run stripe -- login` (Stripe CLI)
+2. `powershell -ExecutionPolicy Bypass -File scripts/setup-stripe-live.ps1` — creates live webhook at `https://preflight.latham.cloud/api/webhooks/stripe` (real charges)
+3. `npx wrangler secret put STRIPE_SECRET_KEY` — paste `sk_live_…` from [live API keys](https://dashboard.stripe.com/apikeys)
+4. `npx wrangler secret put STRIPE_WEBHOOK_SECRET` — paste `whsec_…` from script output
+5. `npm run deploy` then `npm run smoke:phase24` — checkout skips with message if not configured; webhook GET must return `ok`
+6. Test mode remains `scripts/setup-stripe.ps1` + test keys (`sk_test_…`)
+
+### Phase 25+ — Parallel with validation
 
 | Item | Notes |
 |------|-------|
-| Live Stripe keys + live webhook | Code ready — flip keys when charging |
+| Live Stripe keys on Worker (flip when charging) | Run checklist below |
 | Subscription / accounts | Still non-goal until wedge proven |
 
 ## Product wedge (do not compete with Lighthouse)
@@ -111,8 +136,9 @@ cd apps/preflight
 npm run verify:preflight
 npm run deploy:preflight          # from repo root: npm run deploy:preflight
 npm run gate:preflight -- https://your-app.com
-npm run stripe -- login
-npm run setup:stripe
+npm run smoke:preflight           # phases 18–24
+npm run setup:stripe              # test mode
+# Live: scripts/setup-stripe-live.ps1
 ```
 
 ## MCP

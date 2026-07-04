@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { collectSitemapLocs, extractSitemapLocs, scanUrl } from './engine';
+import {
+	collectSitemapLocs,
+	discoverSitemapLocs,
+	extractRobotsSitemapUrls,
+	extractSitemapLocs,
+	scanUrl
+} from './engine';
 import { GOOD_HTML } from '$lib/test/fixtures/good-html';
 import { LEGAL_PAGE_HTML, STUB_PAGE_HTML } from '$lib/test/fixtures/legal-html';
 import { STRONG_HEADERS } from '$lib/test/fixtures/scan-headers';
@@ -38,6 +44,58 @@ const LEGAL_ROUTES = {
 	'/privacy': { html: LEGAL_PAGE_HTML },
 	'/terms': { html: LEGAL_PAGE_HTML }
 };
+
+describe('extractRobotsSitemapUrls', () => {
+	const origin = new URL('https://app.test/');
+
+	it('parses Sitemap lines case-insensitively and skips cross-origin', () => {
+		const robots = [
+			'User-agent: *',
+			'Sitemap: https://app.test/sitemap-pages.xml',
+			'sitemap: https://evil.test/x',
+			'SITEMAP: https://app.test/sitemap-blog.xml'
+		].join('\n');
+		expect(extractRobotsSitemapUrls(robots, origin)).toEqual([
+			'https://app.test/sitemap-pages.xml',
+			'https://app.test/sitemap-blog.xml'
+		]);
+	});
+
+	it('returns empty for null or missing directives', () => {
+		expect(extractRobotsSitemapUrls(null, origin)).toEqual([]);
+		expect(extractRobotsSitemapUrls('User-agent: *\nDisallow:', origin)).toEqual([]);
+	});
+});
+
+describe('discoverSitemapLocs', () => {
+	const origin = new URL('https://app.test/');
+
+	it('merges locs from robots-declared sitemaps and default /sitemap.xml', async () => {
+		const robots =
+			'User-agent: *\nSitemap: https://app.test/sitemap-pages.xml\nSitemap: https://app.test/sitemap.xml';
+		const pagesXml =
+			'<urlset><url><loc>https://app.test/about</loc></url><url><loc>https://app.test/contact</loc></url></urlset>';
+		const defaultXml = '<urlset><url><loc>https://app.test/pricing</loc></url></urlset>';
+
+		const result = await discoverSitemapLocs(
+			origin,
+			robots,
+			async (url) => url.includes('sitemap'),
+			async (url) => {
+				if (url.endsWith('/sitemap-pages.xml')) return pagesXml;
+				if (url.endsWith('/sitemap.xml')) return defaultXml;
+				return null;
+			}
+		);
+
+		expect(result.ok).toBe(true);
+		expect(result.locs).toEqual([
+			'https://app.test/pricing',
+			'https://app.test/about',
+			'https://app.test/contact'
+		]);
+	});
+});
 
 describe('extractSitemapLocs', () => {
 	const origin = new URL('https://app.test/');
@@ -236,6 +294,47 @@ describe('scanUrl', () => {
 		]);
 		const placeholder = report.checks.find((c) => c.id === 'placeholder-copy');
 		expect(placeholder?.message).toContain('/about');
+	});
+
+	it('crawls pricing from sitemap when homepage links omit it', async () => {
+		const sitemapXml = '<urlset><url><loc>https://app.test/plans</loc></url></urlset>';
+		const report = await scanUrl('https://app.test', {
+			fetchHtml: routedFetchHtml({
+				...LEGAL_ROUTES,
+				'/plans': { html: LEGAL_PAGE_HTML }
+			}),
+			...mockDeps,
+			fetchText: async (url: string) => (url.endsWith('/sitemap.xml') ? sitemapXml : null)
+		});
+		expect(report.pagesScanned?.map((p) => p.role)).toContain('pricing');
+		expect(report.pagesScanned?.find((p) => p.role === 'pricing')?.url).toBe(
+			'https://app.test/plans'
+		);
+	});
+
+	it('discovers alternate sitemaps from robots.txt', async () => {
+		const robots = 'User-agent: *\nSitemap: https://app.test/sitemap-pages.xml';
+		const pagesXml = '<urlset><url><loc>https://app.test/about</loc></url></urlset>';
+		const report = await scanUrl('https://app.test', {
+			fetchHtml: routedFetchHtml({
+				...LEGAL_ROUTES,
+				'/about': { html: LEGAL_PAGE_HTML }
+			}),
+			...mockDeps,
+			fetchText: async (url: string) => {
+				if (url.endsWith('/robots.txt')) return robots;
+				if (url.endsWith('/sitemap-pages.xml')) return pagesXml;
+				return null;
+			},
+			headOk: async (url: string) =>
+				url.endsWith('/robots.txt') ||
+				url.endsWith('/sitemap-pages.xml') ||
+				url.endsWith('/sitemap.xml') ||
+				url.endsWith('/about')
+		});
+		const sitemap = report.checks.find((c) => c.id === 'sitemap');
+		expect(sitemap?.status).toBe('pass');
+		expect(report.pagesScanned?.some((p) => p.url.includes('/about'))).toBe(true);
 	});
 
 	it('fails privacy when the linked page 404s', async () => {
