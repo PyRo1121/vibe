@@ -124,7 +124,9 @@ const PREFERRED_SITEMAP_PATHS = [
 	/^\/about\/?$/i,
 	/^\/contact\/?$/i,
 	/^\/features\/?$/i,
-	/^\/blog\/?$/i
+	/^\/blog\/?$/i,
+	/^\/compare\/?$/i,
+	/^\/developers\/?$/i
 ];
 
 function isCrawlableSitemapUrl(raw: string, base: URL): boolean {

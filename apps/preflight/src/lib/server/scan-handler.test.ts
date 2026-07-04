@@ -18,12 +18,16 @@ vi.mock('$lib/billing/stripe', () => ({
 	verifyCheckoutSession: vi.fn(async () => true)
 }));
 
+vi.mock('$lib/server/resolve-unlock', () => ({
+	resolveUnlock: vi.fn(async () => true)
+}));
+
 vi.mock('$lib/billing/report', () => ({
 	sanitizeReport: vi.fn((report, unlocked) => ({ ...report, unlocked }))
 }));
 
 import { scanUrl } from '$lib/scan/engine';
-import { verifyCheckoutSession } from '$lib/billing/stripe';
+import { resolveUnlock } from '$lib/server/resolve-unlock';
 
 afterEach(() => {
 	vi.clearAllMocks();
@@ -42,7 +46,7 @@ describe('handleScanPost', () => {
 		expect(scanUrl).toHaveBeenCalledWith('https://app.test', expect.any(Object));
 	});
 
-	it('returns 503 when unlock session sent without Stripe key', async () => {
+	it('returns 503 when unlock session sent without Stripe key or KV', async () => {
 		const request = new Request('http://localhost/api/scan', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
@@ -139,7 +143,7 @@ describe('handleScanPost', () => {
 		expect(unlocked.aiCopyReview?.headline).toBe('Better headline');
 	});
 
-	it('verifies unlock when Stripe key is configured', async () => {
+	it('resolves unlock via resolveUnlock when session id is sent', async () => {
 		const request = new Request('http://localhost/api/scan', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
@@ -152,10 +156,11 @@ describe('handleScanPost', () => {
 
 		const res = await handleScanPost(request, { STRIPE_SECRET_KEY: 'sk_test_x' } as Env);
 		expect(res.status).toBe(200);
-		expect(verifyCheckoutSession).toHaveBeenCalledWith(
-			'cs_test_abc123',
-			'https://app.test',
-			'sk_test_x'
-		);
+		expect(resolveUnlock).toHaveBeenCalledWith({
+			kv: undefined,
+			stripeKey: 'sk_test_x',
+			scanUrl: 'https://app.test',
+			sessionId: 'cs_test_abc123'
+		});
 	});
 });

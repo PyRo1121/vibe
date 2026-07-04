@@ -6,6 +6,8 @@ import {
 	parseStripeWebhookEvent,
 	verifyStripeWebhookSignature
 } from '$lib/billing/webhook';
+import { canonicalScanUrl } from '$lib/billing/stripe';
+import { saveUnlock } from '$lib/billing/unlock-store';
 import { requireStripeWebhookSecretKey } from '$lib/server/env';
 import { logFunnelEvent } from '$lib/metrics/funnel';
 
@@ -31,8 +33,14 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 	}
 
 	if (isCheckoutSessionFulfilled(event)) {
+		const session = event.data.object;
+		const scanUrl = session.metadata?.scan_url?.trim();
+		const sessionId = session.id;
+		if (scanUrl && sessionId && platform?.env?.REPORTS) {
+			await saveUnlock(platform.env.REPORTS, canonicalScanUrl(scanUrl), sessionId);
+		}
 		logFunnelEvent('checkout_paid', {});
-		return json({ received: true, sessionId: event.data.object.id ?? null });
+		return json({ received: true, sessionId: sessionId ?? null });
 	}
 
 	return json({ received: true, ignored: event.type });

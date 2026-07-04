@@ -7,7 +7,7 @@ import { parseScanJsonBody, rejectValidation } from '$lib/server/api';
 import { appendHistory, computeScanDiff, issueMap, saveReport } from '$lib/server/report-store';
 import { buildCopyReview } from '$lib/server/copy-review';
 import { sanitizeReport } from '$lib/billing/report';
-import { verifyCheckoutSession } from '$lib/billing/stripe';
+import { resolveUnlock } from '$lib/server/resolve-unlock';
 import { logFunnelEvent } from '$lib/metrics/funnel';
 import { assertScanRateLimit, clientIp } from '$lib/server/rate-limit';
 
@@ -28,13 +28,18 @@ export async function handleScanPost(request: Request, env: Env | undefined) {
 		: await scanUrl(parsed.url, deps);
 	const stripeKey = env?.STRIPE_SECRET_KEY;
 
-	if (parsed.unlockSessionId && !stripeKey) {
+	if (parsed.unlockSessionId && !stripeKey && !env?.REPORTS) {
 		error(503, 'Unlock verification is not configured yet');
 	}
 
 	let unlocked = false;
-	if (parsed.unlockSessionId && stripeKey) {
-		unlocked = await verifyCheckoutSession(parsed.unlockSessionId, parsed.url, stripeKey);
+	if (parsed.unlockSessionId) {
+		unlocked = await resolveUnlock({
+			kv: env?.REPORTS,
+			stripeKey,
+			scanUrl: parsed.url,
+			sessionId: parsed.unlockSessionId
+		});
 	}
 
 	const sanitized = sanitizeReport(report, unlocked, {

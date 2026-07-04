@@ -1,6 +1,6 @@
 # Preflight ship loop — status
 
-## Overall progress: Phase 24 deeper crawl + Stripe live readiness
+## Overall progress: Phase 25 KV unlock persistence
 
 | Milestone | Status |
 |-----------|--------|
@@ -13,6 +13,7 @@
 | Phase 22 (deeper JS + source-map secret crawl) | ✅ |
 | Phase 23 (sitemap-driven supplemental crawl) | ✅ |
 | Phase 24 (robots sitemap + pricing from sitemap + Stripe live tooling) | ✅ |
+| Phase 25 (KV unlock persistence + faster re-scans) | ✅ |
 | World-class baseline (lint, a11y dogfood, SSRF, rate limit, UI) | ✅ |
 | Blocked-scan guard (403/4xx/5xx → skip content checks) | ✅ |
 | P2 (JS secrets, CI gate CLI, MCP) | ✅ |
@@ -22,7 +23,7 @@
 
 ## Verification
 
-- **465 tests** — `npm run verify:preflight`
+- **471 tests** — `npm run verify:preflight`
 - Phase 18 smoke — `npm run smoke:phase18 -w preflight` (14 checks)
 - Phase 19 smoke — `npm run smoke:phase19 -w preflight` (7 checks)
 - Phase 20 smoke — `npm run smoke:phase20 -w preflight` (multi-page crawl)
@@ -115,7 +116,16 @@ Per Phase 3 kill metrics (45 days). **Ops runs in parallel** — engineering con
 5. `npm run deploy` then `npm run smoke:phase24` — checkout skips with message if not configured; webhook GET must return `ok`
 6. Test mode remains `scripts/setup-stripe.ps1` + test keys (`sk_test_…`)
 
-### Phase 25+ — Parallel with validation
+### Phase 25 — KV unlock persistence (shipped)
+
+| Item | Status |
+|------|--------|
+| Webhook writes `unlock:{url}` to KV on paid checkout | ✅ |
+| Re-scans verify via KV cache (skip Stripe API when cached) | ✅ |
+| Write-through cache on first Stripe verify | ✅ |
+| `/compare` + `/developers` preferred sitemap paths | ✅ |
+
+### Phase 26+ — Parallel with validation
 
 | Item | Notes |
 |------|-------|
