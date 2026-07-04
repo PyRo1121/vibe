@@ -127,10 +127,8 @@ function pushSecretsCheck(
 			'Exposed secrets',
 			secretsFound.length === 0 ? 'pass' : 'fail',
 			secretsFound.length === 0
-				? fromJs
-					? 'No obvious secret patterns in HTML or sampled JS'
-					: 'No obvious secret patterns in HTML'
-				: `Possible: ${secretsFound.join(', ')}${fromJs ? ' (includes sampled JS)' : ''}`,
+				? 'No obvious secret patterns in HTML, sampled JS, or source maps'
+				: `Possible: ${secretsFound.join(', ')}${fromJs ? ' (includes sampled JS/source maps)' : ''}`,
 			fixPrompt('secrets', { ...ctx, message: secretsFound.join(', ') })
 		)
 	);

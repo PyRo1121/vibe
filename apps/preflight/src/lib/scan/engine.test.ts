@@ -335,6 +335,50 @@ describe('scanUrl', () => {
 		expect(secrets?.message).toContain('sampled JS');
 	});
 
+	it('flags secrets in source maps linked from bundles', async () => {
+		const html = `${GOOD_HTML}<script src="/app.js"></script>`;
+		const map = JSON.stringify({
+			sources: ['config.ts'],
+			sourcesContent: ['export const key = "sk_live_1234567890123456789012";']
+		});
+		const report = await scanUrl('https://app.test', {
+			fetchHtml: async () => ({
+				html,
+				finalUrl: new URL('https://app.test/'),
+				status: 200,
+				headers: STRONG_HEADERS,
+				redirectHops: 0
+			}),
+			headOk: async () => true,
+			headProbe: mockDeps.headProbe,
+			fetchText: async (url) => {
+				if (url.endsWith('/app.js')) return '//# sourceMappingURL=app.js.map';
+				if (url.endsWith('/app.js.map')) return map;
+				return null;
+			}
+		});
+		const secrets = report.checks.find((c) => c.id === 'secrets');
+		expect(secrets?.status).toBe('fail');
+		expect(secrets?.message).toContain('source maps');
+	});
+
+	it('samples scripts from crawled sub-pages', async () => {
+		const pricingHtml = `${GOOD_HTML}<script src="/pricing-only.js"></script>`;
+		const report = await scanUrl('https://app.test', {
+			fetchHtml: routedFetchHtml({
+				'/': { html: `${GOOD_HTML}<a href="/pricing">Pricing</a>` },
+				'/pricing': { html: pricingHtml }
+			}),
+			headOk: async () => true,
+			headProbe: mockDeps.headProbe,
+			fetchText: async (url) =>
+				url.endsWith('/pricing-only.js') ? 'const key = "sk_live_1234567890123456789012";' : null
+		});
+		const secrets = report.checks.find((c) => c.id === 'secrets');
+		expect(secrets?.status).toBe('fail');
+		expect(secrets?.message).toContain('sampled JS');
+	});
+
 	it('passes 404 handling when missing paths return 404', async () => {
 		const report = await scanUrl('https://app.test', {
 			fetchHtml: routedFetchHtml(LEGAL_ROUTES),

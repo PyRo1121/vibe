@@ -180,6 +180,37 @@ export function extractScriptSrcs(html: string, base: URL): string[] {
 	return [...urls];
 }
 
+/** Resolve a //# or /* sourceMappingURL comment from a fetched bundle. */
+export function extractSourceMapUrl(jsText: string, scriptUrl: string): string | null {
+	const match =
+		jsText.match(/\/\/[#@]\s*sourceMappingURL=([^\s]+)/) ??
+		jsText.match(/\/\*[#@]\s*sourceMappingURL=([^\s*]+)\s*\*\//);
+	if (!match?.[1]) return null;
+	try {
+		return new URL(match[1], scriptUrl).href;
+	} catch {
+		return null;
+	}
+}
+
+/** Pull original source text from a JSON source map for secret scanning. */
+export function searchableSourceMapText(mapJson: string): string {
+	try {
+		const parsed = JSON.parse(mapJson) as {
+			sources?: string[];
+			sourcesContent?: (string | null)[];
+		};
+		const parts: string[] = [];
+		for (const source of parsed.sourcesContent ?? []) {
+			if (source) parts.push(source);
+		}
+		if (parsed.sources?.length) parts.push(...parsed.sources);
+		return parts.join('\n');
+	} catch {
+		return '';
+	}
+}
+
 export function extractLinks(html: string, base: URL): string[] {
 	const links = new Set<string>();
 	for (const m of html.matchAll(/<a\b[^>]+href=["']([^"'#][^"']*)["']/gi)) {

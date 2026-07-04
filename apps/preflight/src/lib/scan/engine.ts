@@ -46,7 +46,6 @@ export async function scanUrl(rawUrl: string, deps: ScanDeps = defaultDeps): Pro
 			crawledPages,
 			linkResult,
 			{ ok: ogImageOk, probe: ogImageProbe },
-			{ secrets: scriptSecrets, licenseFindings },
 			notFoundStatus,
 			emailAuth,
 			hostConsistency
@@ -54,11 +53,17 @@ export async function scanUrl(rawUrl: string, deps: ScanDeps = defaultDeps): Pro
 			crawlPages(selectCrawlTargets(links, finalUrl), deps.fetchHtml),
 			checkLinks(links, finalUrl, deps.headOk, deps.fetchText),
 			checkOgImageLive(html, finalUrl, deps.headProbe),
-			scanScripts(html, finalUrl, deps.fetchText),
 			probeNotFound(finalUrl, deps.fetchHtml),
 			deps.resolveTxt ? checkEmailAuth(finalUrl.hostname, deps.resolveTxt) : Promise.resolve(null),
 			checkHostConsistency(finalUrl, deps.fetchHtml)
 		]);
+
+		const scriptHtml = [html, ...crawledPages.map((p) => p.html).filter(Boolean)];
+		const { secrets: scriptSecrets, licenseFindings } = await scanScripts(
+			scriptHtml,
+			finalUrl,
+			deps.fetchText
+		);
 
 		const licenseAudit = buildLicenseAudit(
 			mergeLibraries(

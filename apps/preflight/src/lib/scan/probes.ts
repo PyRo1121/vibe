@@ -1,8 +1,14 @@
-import { MAX_LINK_CHECKS, MAX_SCRIPT_FETCHES } from '$lib/scan/constants';
+import { MAX_LINK_CHECKS, MAX_SCRIPT_FETCHES, MAX_SOURCEMAP_FETCHES } from '$lib/scan/constants';
 import type { LinkCheckResult, OgImageProbe } from '$lib/scan/checks/context';
 import type { ScanDeps } from '$lib/scan/fetchers';
 import { auditScriptText } from '$lib/scan/license';
-import { extractScriptSrcs, findSecrets, pickMeta } from '$lib/scan/parse';
+import {
+	extractScriptSrcs,
+	extractSourceMapUrl,
+	findSecrets,
+	pickMeta,
+	searchableSourceMapText
+} from '$lib/scan/parse';
 import { llmsTxtLooksValid } from '$lib/scan/signals';
 import { assertPublicHttpUrl } from '$lib/scan/url-guard';
 
@@ -27,14 +33,23 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promis
 	return results;
 }
 
+/**
+ * Bounded same-origin JS + source-map secret scan. Accepts one or more HTML
+ * blobs (homepage + crawled sub-pages) and dedupes script URLs before fetching.
+ */
 export async function scanScripts(
-	html: string,
+	html: string | string[],
 	finalUrl: URL,
 	fetch: ScanDeps['fetchText']
 ): Promise<{ secrets: string[]; licenseFindings: ReturnType<typeof auditScriptText>[] }> {
-	const srcs = extractScriptSrcs(html, finalUrl).slice(0, MAX_SCRIPT_FETCHES);
+	const blobs = Array.isArray(html) ? html : [html];
+	const srcs = [...new Set(blobs.flatMap((h) => extractScriptSrcs(h, finalUrl)))].slice(
+		0,
+		MAX_SCRIPT_FETCHES
+	);
 	const secrets = new Set<string>();
 	const licenseFindings: ReturnType<typeof auditScriptText>[] = [];
+	const sourceMapUrls: string[] = [];
 
 	const texts = await Promise.all(srcs.map((src) => fetch(src)));
 	for (let i = 0; i < srcs.length; i += 1) {
@@ -42,6 +57,16 @@ export async function scanScripts(
 		if (!text) continue;
 		for (const label of findSecrets(text)) secrets.add(label);
 		licenseFindings.push(auditScriptText(text, srcs[i]));
+
+		const mapUrl = extractSourceMapUrl(text, srcs[i]);
+		if (mapUrl) sourceMapUrls.push(mapUrl);
+	}
+
+	const maps = [...new Set(sourceMapUrls)].slice(0, MAX_SOURCEMAP_FETCHES);
+	const mapTexts = await Promise.all(maps.map((url) => fetch(url)));
+	for (const mapText of mapTexts) {
+		if (!mapText) continue;
+		for (const label of findSecrets(searchableSourceMapText(mapText))) secrets.add(label);
 	}
 
 	return { secrets: [...secrets], licenseFindings };

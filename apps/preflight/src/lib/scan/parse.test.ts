@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	extractLinks,
 	extractScriptSrcs,
+	extractSourceMapUrl,
 	findSecrets,
 	countH1s,
 	hasFavicon,
@@ -13,6 +14,7 @@ import {
 	linkHints,
 	normalizeUrl,
 	pickCanonical,
+	searchableSourceMapText,
 	pickMeta,
 	pickTitle,
 	countBlockingHeadScripts,
@@ -148,6 +150,33 @@ describe('extractScriptSrcs', () => {
 			'https://app.test/chunks/main.js',
 			'https://app.test/chunks/vendor.js'
 		]);
+	});
+
+	it('dedupes script URLs across multiple HTML blobs via scanScripts consumer', () => {
+		const base = new URL('https://app.test/');
+		const home = '<script src="/app.js"></script>';
+		const pricing = '<script src="/app.js"></script><script src="/pricing.js"></script>';
+		const all = extractScriptSrcs(home, base).concat(extractScriptSrcs(pricing, base));
+		expect([...new Set(all)]).toEqual(['https://app.test/app.js', 'https://app.test/pricing.js']);
+	});
+});
+
+describe('extractSourceMapUrl', () => {
+	it('resolves relative source map URLs', () => {
+		const js = '(()=>{})();\n//# sourceMappingURL=app.js.map';
+		expect(extractSourceMapUrl(js, 'https://app.test/assets/app.js')).toBe(
+			'https://app.test/assets/app.js.map'
+		);
+	});
+});
+
+describe('searchableSourceMapText', () => {
+	it('joins embedded sourcesContent for scanning', () => {
+		const map = JSON.stringify({
+			sources: ['config.ts'],
+			sourcesContent: ['const key = "sk_live_1234567890123456789012";']
+		});
+		expect(searchableSourceMapText(map)).toContain('sk_live_');
 	});
 });
 

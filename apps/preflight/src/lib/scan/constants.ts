@@ -18,7 +18,8 @@ export const MAX_CRAWL_PAGES = 3;
 /** Below this visible word count a legal page is treated as a stub. */
 export const LEGAL_STUB_MIN_WORDS = 120;
 export const MAX_HTML_BYTES = 2 * 1024 * 1024;
-export const MAX_SCRIPT_FETCHES = 5;
+export const MAX_SCRIPT_FETCHES = 10;
+export const MAX_SOURCEMAP_FETCHES = 5;
 export const MAX_SCRIPT_BYTES = 512 * 1024;
 export const MAX_REDIRECTS = 5;
 /** Warn when HTML payload or script count suggests slow first paint. */

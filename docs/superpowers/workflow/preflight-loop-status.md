@@ -1,6 +1,6 @@
 # Preflight ship loop — status
 
-## Overall progress: Phase 21 same-zone self-scan
+## Overall progress: Phase 22 deeper JS crawl
 
 | Milestone | Status |
 |-----------|--------|
@@ -10,6 +10,7 @@
 | Phase 19 (CI gate product wedge) | ✅ |
 | Phase 20 (multi-page legal crawl + pagesScanned) | ✅ |
 | Phase 21 (same-zone self-scan via SELF binding) | ✅ |
+| Phase 22 (deeper JS + source-map secret crawl) | ✅ |
 | Blocked-scan guard (403/4xx/5xx → skip content checks) | ✅ |
 | P2 (JS secrets, CI gate CLI, MCP) | ✅ |
 | World-class scan depth | ✅ |
@@ -71,13 +72,20 @@ Per Phase 3 kill metrics (45 days). **Ops runs in parallel** — engineering con
 | `createScanDeps` routes same-host fetches via binding | ✅ |
 | Self-scan dogfood in `smoke:phase20` | ✅ after deploy |
 
-### Phase 22+ — Parallel with validation
+### Phase 22 — Deeper JS crawl (shipped)
+
+| Item | Status |
+|------|--------|
+| `MAX_SCRIPT_FETCHES` 5 → 10 | ✅ |
+| Source-map secret sweep (`sourcesContent`) | ✅ |
+| Script scan across crawled sub-pages | ✅ |
+
+### Phase 23+ — Parallel with validation
 
 | Item | Notes |
 |------|-------|
 | Live Stripe keys + live webhook | Code ready — flip keys when charging |
-| Deeper JS bundle crawl | Expand `MAX_SCRIPT_FETCHES` + source maps |
-| Sitemap-driven crawl | Beyond privacy/terms/pricing |
+| Sitemap-driven page crawl | Beyond privacy/terms/pricing |
 | Subscription / accounts | Still non-goal until wedge proven |
 
 ## Product wedge (do not compete with Lighthouse)
