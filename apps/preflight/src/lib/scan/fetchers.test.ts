@@ -3,7 +3,7 @@ import { appHostname, createScanDeps, defaultDeps, wrapSameZoneFetch } from './f
 
 describe('appHostname', () => {
 	it('parses configured app URL', () => {
-		expect(appHostname('https://preflight.latham.cloud/')).toBe('preflight.latham.cloud');
+		expect(appHostname('https://lint.latham.cloud/')).toBe('lint.latham.cloud');
 	});
 
 	it('returns null for invalid URL', () => {

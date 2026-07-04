@@ -19,7 +19,7 @@
 | P2 (JS secrets, CI gate CLI, MCP) | ✅ |
 | World-class scan depth | ✅ |
 
-**Primary URL:** https://preflight.latham.cloud
+**Primary URL:** https://lint.latham.cloud (Deploylint test deploy; was preflight.latham.cloud)
 
 ## Verification
 

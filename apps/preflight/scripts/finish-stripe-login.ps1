@@ -1,4 +1,4 @@
-# Finishes Stripe CLI login after browser approval, then creates Preflight webhook.
+# Finishes Stripe CLI login after browser approval, then creates Deploylint webhook.
 $ErrorActionPreference = 'Stop'
 
 $stripe = Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Links\stripe.exe'

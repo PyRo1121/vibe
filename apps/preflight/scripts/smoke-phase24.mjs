@@ -6,7 +6,11 @@
  * Checkout: 503 when Stripe is not configured (skip, not fail); 200 with checkout URL when configured.
  * Webhook: GET /api/webhooks/stripe must return 200 "ok".
  */
-const BASE = (process.env.PREFLIGHT_BASE ?? 'https://preflight.latham.cloud').replace(/\/$/, '');
+const BASE = (
+	process.env.DEPLOYLINT_BASE ??
+	process.env.PREFLIGHT_BASE ??
+	'https://lint.latham.cloud'
+).replace(/\/$/, '');
 const CHECKOUT_URL = process.env.SMOKE_CHECKOUT_URL ?? 'https://example.com';
 
 const results = [];

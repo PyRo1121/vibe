@@ -50,7 +50,7 @@ export function evaluateGate(report: ScanReport, opts: GateOptions = {}): GateRe
 export function formatGateReport(result: GateResult): string {
 	const { report } = result;
 	const lines = [
-		`Preflight gate: ${result.pass ? 'PASS' : 'FAIL'}`,
+		`Deploylint gate: ${result.pass ? 'PASS' : 'FAIL'}`,
 		`URL: ${report.finalUrl}`,
 		`Score: ${report.score} · Verdict: ${report.verdict.toUpperCase()}`,
 		report.verdictMessage

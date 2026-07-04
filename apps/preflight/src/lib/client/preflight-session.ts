@@ -40,7 +40,7 @@ export function buildMasterPromptPreview(report: ScanReport): string[] {
 		return [
 			`Site: ${report.finalUrl}`,
 			'',
-			'Preflight could not read your homepage — content checks skipped.',
+			'Deploylint could not read your homepage — content checks skipped.',
 			'',
 			'Do NOT fix SEO/meta from this scan. Fix reachability or bot access, then re-scan.'
 		];
@@ -148,7 +148,7 @@ export function buildShareText(report: ScanReport, appUrl: string): string {
 	const verdict =
 		report.verdict === 'go' ? 'GO' : report.verdict === 'conditional' ? 'CONDITIONAL GO' : 'NO-GO';
 
-	return `I ran Preflight before posting my URL — ${report.score}/100 (${verdict}).\nCheck yours before you share publicly: ${appUrl.replace(/\/$/, '')}\n${report.finalUrl}`;
+	return `I ran Deploylint before posting my URL — ${report.score}/100 (${verdict}).\nCheck yours before you share publicly: ${appUrl.replace(/\/$/, '')}\n${report.finalUrl}`;
 }
 
 export function clearCheckoutQuery(): void {

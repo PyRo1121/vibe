@@ -300,7 +300,7 @@ describe('scanRepo', () => {
 		const report = await scanRepo(REF, {
 			fetchers: fakeFetchers({
 				metaError: new RepoScanError(
-					'Repository acme/launchpad not found — check the URL, or the repo is private. Preflight scans public repos only.',
+					'Repository acme/launchpad not found — check the URL, or the repo is private. Deploylint scans public repos only.',
 					404
 				)
 			}),

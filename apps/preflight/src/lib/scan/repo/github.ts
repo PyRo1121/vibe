@@ -60,7 +60,7 @@ async function apiGet(url: string, token?: string): Promise<Response> {
 function throwForStatus(res: Response, ref: RepoRef): never {
 	if (res.status === 404) {
 		throw new RepoScanError(
-			`Repository ${ref.owner}/${ref.repo} not found — check the URL, or the repo is private. Preflight scans public repos only.`,
+			`Repository ${ref.owner}/${ref.repo} not found — check the URL, or the repo is private. Deploylint scans public repos only.`,
 			404
 		);
 	}

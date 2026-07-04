@@ -2,10 +2,10 @@
 export const GOOD_HTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Preflight Launch Checker for Apps</title>
+  <title>Acme Launch Checker for Apps</title>
   <meta name="description" content="Scan your vibe-coded app before launch. Free SEO, legal, security, and ship-readiness checks for Cursor and Lovable builders worldwide.">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta property="og:title" content="Preflight">
+  <meta property="og:title" content="Acme Launch">
   <meta property="og:description" content="Ship-ready scans">
   <meta property="og:image" content="https://app.test/og.png">
   <meta name="twitter:card" content="summary_large_image">

@@ -26,8 +26,8 @@ const baseReport: ScanReport = {
 
 describe('buildShareText', () => {
 	it('uses configured app URL instead of hardcoded domain', () => {
-		const text = buildShareText(baseReport, 'https://preflight.latham.cloud');
-		expect(text).toContain('https://preflight.latham.cloud');
+		const text = buildShareText(baseReport, 'https://lint.latham.cloud');
+		expect(text).toContain('https://lint.latham.cloud');
 		expect(text).toContain('88/100');
 		expect(text).toContain('GO');
 		expect(text).toContain('before posting');

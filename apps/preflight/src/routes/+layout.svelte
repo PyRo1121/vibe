@@ -44,7 +44,7 @@
 				href="/"
 				class="text-lg font-semibold tracking-tight text-white transition-opacity hover:opacity-90"
 			>
-				Preflight
+				Deploylint
 			</a>
 			<nav aria-label="Main navigation" class="flex items-center gap-4 text-xs text-zinc-500">
 				<a href="/compare" class="hover:text-zinc-300">Compare</a>

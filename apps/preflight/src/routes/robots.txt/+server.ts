@@ -3,7 +3,7 @@ import type { RequestHandler } from './$types';
 const BODY = `User-agent: *
 Allow: /
 
-Sitemap: https://preflight.latham.cloud/sitemap.xml
+Sitemap: https://lint.latham.cloud/sitemap.xml
 `;
 
 export const GET: RequestHandler = async () =>

@@ -56,7 +56,7 @@ export const mockScanReport: ScanReport = {
 	samplePromptId: 'privacy',
 	socialPreview: {
 		title: 'Demo App — Ship faster',
-		description: 'A demo app for Preflight E2E tests.',
+		description: 'A demo app for Deploylint E2E tests.',
 		image: 'https://demo-app.test/og.png',
 		imageUrl: 'https://demo-app.test/og.png',
 		twitterCard: 'summary_large_image',

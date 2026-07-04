@@ -208,7 +208,7 @@
 		JSON.stringify({
 			'@context': 'https://schema.org',
 			'@type': 'WebApplication',
-			name: 'Preflight',
+			name: 'Deploylint',
 			url: appOrigin,
 			description:
 				'Launch-readiness audit for vibe-coded apps. GO/NO-GO verdict, embarrassment radar, social preview checks, and Cursor fix prompts.',
@@ -224,12 +224,12 @@
 </script>
 
 <svelte:head>
-	<title>Preflight — Should you post this URL today?</title>
+	<title>Deploylint — Should you post this URL today?</title>
 	<meta
 		name="description"
 		content="60+ launch checks: GO/NO-GO verdict, placeholder copy, broken og:image content-type, secrets in JS, llms.txt, and Cursor fix prompts with re-scan proof."
 	/>
-	<meta property="og:title" content="Preflight — Should you post this URL today?" />
+	<meta property="og:title" content="Deploylint — Should you post this URL today?" />
 	<meta
 		property="og:description"
 		content="Not Lighthouse. Launch judgment — embarrassment radar, social preview validation, and copy-paste Cursor fixes."
@@ -238,7 +238,7 @@
 	<meta property="og:url" content="{appOrigin}/" />
 	<meta property="og:image" content="{appOrigin}/og.svg" />
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="Preflight — Should you post this URL today?" />
+	<meta name="twitter:title" content="Deploylint — Should you post this URL today?" />
 	<meta name="twitter:description" content="60+ launch checks before Product Hunt, Reddit, or X." />
 	<meta name="twitter:image" content="{appOrigin}/og.svg" />
 	<link rel="canonical" href="{appOrigin}/" />
@@ -406,7 +406,7 @@
 			<div>
 				<p class="font-medium text-white">Not Lighthouse. Not an OG debugger.</p>
 				<p class="mt-1 text-sm text-zinc-500">
-					Honest side-by-side — where Preflight wins and where it does not.
+					Honest side-by-side — where Deploylint wins and where it does not.
 				</p>
 			</div>
 			<a

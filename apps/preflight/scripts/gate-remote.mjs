@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Zero-install Preflight deploy gate — calls hosted /api/scan and exits non-zero on blockers.
+ * Zero-install Deploylint deploy gate — calls hosted /api/scan and exits non-zero on blockers.
  *
  * Usage:
  *   node gate-remote.mjs https://your-app.com
@@ -8,7 +8,7 @@
  *
  * Env:
  *   PREFLIGHT_URL       Target URL (or first CLI arg)
- *   PREFLIGHT_API       API base (default https://preflight.latham.cloud)
+ *   PREFLIGHT_API       API base (default https://lint.latham.cloud)
  *   PREFLIGHT_MIN_SCORE Minimum score (default 80)
  *   PREFLIGHT_MODE      "gate" (default, exits 1 on blockers) or "advisory" (report only, always exits 0)
  *
@@ -31,7 +31,11 @@ const P0_IDS = new Set([
 
 const COMMENT_MARKER = '<!-- preflight-gate -->';
 
-const apiBase = (process.env.PREFLIGHT_API ?? 'https://preflight.latham.cloud').replace(/\/$/, '');
+const apiBase = (
+	process.env.DEPLOYLINT_API ??
+	process.env.PREFLIGHT_API ??
+	'https://lint.latham.cloud'
+).replace(/\/$/, '');
 const targetUrl = process.argv[2]?.trim() || process.env.PREFLIGHT_URL?.trim();
 const minScore = Number(process.env.PREFLIGHT_MIN_SCORE ?? '80');
 const advisory = (process.env.PREFLIGHT_MODE ?? 'gate').toLowerCase() === 'advisory';
@@ -65,7 +69,7 @@ function permalink(report) {
 
 function formatReport(report, result) {
 	const lines = [
-		`Preflight ${advisory ? 'advisory' : 'gate'}: ${result.pass ? 'PASS' : 'FAIL'}`,
+		`Deploylint ${advisory ? 'advisory' : 'gate'}: ${result.pass ? 'PASS' : 'FAIL'}`,
 		`URL: ${report.finalUrl}`,
 		`Score: ${report.score} · Verdict: ${String(report.verdict).toUpperCase()}`,
 		report.verdictMessage
@@ -88,7 +92,7 @@ function formatMarkdown(report, result) {
 	const warning = (report.checks ?? []).filter((c) => c.status === 'warn');
 	const lines = [
 		COMMENT_MARKER,
-		`## ${icon} Preflight — ${String(report.verdict).toUpperCase()} · ${report.score}/100`,
+		`## ${icon} Deploylint — ${String(report.verdict).toUpperCase()} · ${report.score}/100`,
 		'',
 		`**${report.finalUrl}** · ${failing.length} failing · ${warning.length} warnings · ${report.summary?.pass ?? '?'} passing`,
 		''
@@ -147,7 +151,7 @@ async function upsertPrComment(ctx, markdown) {
 					headers,
 					body: JSON.stringify({ body: markdown })
 				});
-				console.log('Updated Preflight PR comment.');
+				console.log('Updated Deploylint PR comment.');
 				return;
 			}
 		}
@@ -157,7 +161,7 @@ async function upsertPrComment(ctx, markdown) {
 			body: JSON.stringify({ body: markdown })
 		});
 		console.log(
-			created.ok ? 'Posted Preflight PR comment.' : `PR comment failed (HTTP ${created.status}).`
+			created.ok ? 'Posted Deploylint PR comment.' : `PR comment failed (HTTP ${created.status}).`
 		);
 	} catch (err) {
 		console.log(`PR comment failed: ${err instanceof Error ? err.message : err}`);

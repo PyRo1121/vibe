@@ -1,5 +1,5 @@
 <svelte:head>
-	<title>Terms of Service — Preflight</title>
+	<title>Terms of Service — Deploylint</title>
 </svelte:head>
 
 <div class="mx-auto max-w-3xl px-4 py-12 text-zinc-300">
@@ -7,14 +7,14 @@
 	<p class="mb-8 text-sm text-zinc-500">Last updated: July 2, 2026</p>
 
 	<p class="mb-6">
-		Preflight provides automated site readiness checks and optional AI fix prompts. Results are
+		Deploylint provides automated site readiness checks and optional AI fix prompts. Results are
 		informational — not legal, security, or compliance advice.
 	</p>
 
 	<h2 class="mb-3 text-xl font-semibold text-white">Acceptable use</h2>
 	<ul class="mb-6 list-disc space-y-2 pl-6">
 		<li>Only scan URLs you own or have permission to test</li>
-		<li>Do not use Preflight to attack, overload, or probe third-party systems</li>
+		<li>Do not use Deploylint to attack, overload, or probe third-party systems</li>
 	</ul>
 
 	<h2 class="mb-3 text-xl font-semibold text-white">Payments</h2>
@@ -36,5 +36,5 @@
 		>
 	</p>
 
-	<p><a class="text-sky-400 hover:underline" href="/">← Back to Preflight</a></p>
+	<p><a class="text-sky-400 hover:underline" href="/">← Back to Deploylint</a></p>
 </div>

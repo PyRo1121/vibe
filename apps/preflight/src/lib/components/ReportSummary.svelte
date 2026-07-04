@@ -46,7 +46,7 @@
 	async function copyBadge() {
 		if (!permalink) return;
 		await navigator.clipboard.writeText(
-			`[![Preflight score](${permalink}/badge.svg)](${permalink})`
+			`[![Deploylint score](${permalink}/badge.svg)](${permalink})`
 		);
 		badgeCopied = true;
 		clearTimeout(badgeTimer);

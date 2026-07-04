@@ -3,7 +3,11 @@
  * Phase 19 production smoke — CI deploy gate wedge
  * Run: npm run smoke:phase19 (from apps/preflight)
  */
-const BASE = (process.env.PREFLIGHT_BASE ?? 'https://preflight.latham.cloud').replace(/\/$/, '');
+const BASE = (
+	process.env.DEPLOYLINT_BASE ??
+	process.env.PREFLIGHT_BASE ??
+	'https://lint.latham.cloud'
+).replace(/\/$/, '');
 
 const results = [];
 

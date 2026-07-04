@@ -1,5 +1,5 @@
 <svelte:head>
-	<title>Privacy Policy — Preflight</title>
+	<title>Privacy Policy — Deploylint</title>
 </svelte:head>
 
 <div class="mx-auto max-w-3xl px-4 py-12 text-zinc-300">
@@ -7,7 +7,7 @@
 	<p class="mb-8 text-sm text-zinc-500">Last updated: July 2, 2026</p>
 
 	<p class="mb-6">
-		Preflight scans public URLs you submit. We fetch your page HTML to run readiness checks. We do
+		Deploylint scans public URLs you submit. We fetch your page HTML to run readiness checks. We do
 		not require an account for the free scan.
 	</p>
 
@@ -34,5 +34,5 @@
 		>
 	</p>
 
-	<p><a class="text-sky-400 hover:underline" href="/">← Back to Preflight</a></p>
+	<p><a class="text-sky-400 hover:underline" href="/">← Back to Deploylint</a></p>
 </div>

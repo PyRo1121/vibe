@@ -106,7 +106,7 @@ describe('text-ratio check', () => {
 	});
 
 	it('passes and reports the percentage on text-rich pages', () => {
-		const html = `<html><body>${'<p>Preflight scans your app for launch readiness and reports what to fix fast.</p>'.repeat(400)}</body></html>`;
+		const html = `<html><body>${'<p>Deploylint scans your app for launch readiness and reports what to fix fast.</p>'.repeat(400)}</body></html>`;
 		const check = findCheck(runChecks(html), 'text-ratio');
 		expect(check?.status).toBe('pass');
 		expect(check?.message).toMatch(/~\d+% of HTML is readable text/);
@@ -151,7 +151,7 @@ describe('answer-signals check', () => {
 
 	it('passes when a meta description of 50+ characters exists', () => {
 		const html =
-			'<html><head><meta name="description" content="Preflight checks your vibe-coded app for SEO, legal, and security issues before launch."></head><body></body></html>';
+			'<html><head><meta name="description" content="Deploylint checks your vibe-coded app for SEO, legal, and security issues before launch."></head><body></body></html>';
 		const check = findCheck(runChecks(html), 'answer-signals');
 		expect(check?.status).toBe('pass');
 	});

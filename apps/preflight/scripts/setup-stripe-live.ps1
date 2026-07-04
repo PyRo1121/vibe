@@ -12,7 +12,7 @@ Write-Host ''
 $stripe = Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Links\stripe.exe'
 if (-not (Test-Path $stripe)) { $stripe = 'stripe' }
 
-$WebhookUrl = 'https://preflight.latham.cloud/api/webhooks/stripe'
+$WebhookUrl = 'https://lint.latham.cloud/api/webhooks/stripe'
 $Events = @('checkout.session.completed', 'checkout.session.async_payment_succeeded')
 
 Write-Host "Checking Stripe CLI login..." -ForegroundColor Cyan
@@ -23,7 +23,7 @@ $createArgs = @(
 	'webhook_endpoints', 'create',
 	'--live',
 	'--url', $WebhookUrl,
-	'--description', 'Preflight production (live)',
+	'--description', 'Deploylint production (live)',
 	'-c'
 )
 foreach ($event in $Events) {

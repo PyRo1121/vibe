@@ -40,7 +40,7 @@ export async function createCheckoutSession(opts: {
 		'line_items[0][quantity]': '1',
 		'line_items[0][price_data][currency]': 'usd',
 		'line_items[0][price_data][unit_amount]': '900',
-		'line_items[0][price_data][product_data][name]': 'Preflight fix & verify',
+		'line_items[0][price_data][product_data][name]': 'Deploylint fix & verify',
 		'line_items[0][price_data][product_data][description]':
 			'All AI fix prompts, master repair prompt, and unlimited re-scans for this URL',
 		'metadata[scan_url]': canonicalScanUrl(scanUrl).slice(0, 500)

@@ -157,7 +157,7 @@ describe('scanUrl', () => {
 		expect(report.finalUrl).toBe('https://app.test/');
 		expect(report.score).toBeGreaterThan(80);
 		expect(report.verdict).toBe('go');
-		expect(report.socialPreview?.title).toBe('Preflight');
+		expect(report.socialPreview?.title).toBe('Acme Launch');
 		expect(report.launchBrief?.headline).toBeTruthy();
 	});
 

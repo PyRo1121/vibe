@@ -18,8 +18,8 @@
 				'The homepage returned an error status. SEO, legal, and social checks were not run — any missing-meta warnings would be from an error page, not your real site.'}
 		</p>
 		<p class="mt-3 text-xs text-amber-200/80">
-			Preflight works best on apps you control (Cloudflare Pages, Vercel, Lovable). Enterprise sites
-			that block bots will not scan reliably.
+			Deploylint works best on apps you control (Cloudflare Pages, Vercel, Lovable). Enterprise
+			sites that block bots will not scan reliably.
 		</p>
 	</section>
 {/if}

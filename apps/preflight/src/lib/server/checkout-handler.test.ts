@@ -36,14 +36,14 @@ describe('handleCheckoutPost', () => {
 
 		const res = await handleCheckoutPost(
 			request,
-			{ STRIPE_SECRET_KEY: 'sk_test_x', PUBLIC_APP_URL: 'https://preflight.latham.cloud' } as Env,
+			{ STRIPE_SECRET_KEY: 'sk_test_x', PUBLIC_APP_URL: 'https://lint.latham.cloud' } as Env,
 			'http://evil.test'
 		);
 
 		expect(res.status).toBe(200);
 		expect(createCheckoutSession).toHaveBeenCalledWith({
 			scanUrl: 'https://app.test',
-			appUrl: 'https://preflight.latham.cloud',
+			appUrl: 'https://lint.latham.cloud',
 			secretKey: 'sk_test_x'
 		});
 	});

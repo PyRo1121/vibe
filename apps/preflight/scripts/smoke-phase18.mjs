@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 /**
  * Phase 18 production smoke — run: node scripts/smoke-phase18.mjs
- * Optional: PREFLIGHT_BASE=https://preflight.latham.cloud
+ * Optional: PREFLIGHT_BASE=https://lint.latham.cloud
  */
-const BASE = (process.env.PREFLIGHT_BASE ?? 'https://preflight.latham.cloud').replace(/\/$/, '');
+const BASE = (
+	process.env.DEPLOYLINT_BASE ??
+	process.env.PREFLIGHT_BASE ??
+	'https://lint.latham.cloud'
+).replace(/\/$/, '');
 
 const results = [];
 
@@ -47,7 +51,7 @@ async function get(path) {
 
 // 1. Static / dogfood routes
 const llms = await get('/llms.txt');
-if (llms.res.ok && llms.text.startsWith('# Preflight')) pass('llms.txt', String(llms.res.status));
+if (llms.res.ok && llms.text.startsWith('# Deploylint')) pass('llms.txt', String(llms.res.status));
 else fail('llms.txt', `${llms.res.status} ${llms.text.slice(0, 40)}`);
 
 const robots = await get('/robots.txt');
@@ -60,7 +64,7 @@ if (home.res.ok && home.text.includes('og:image') && home.text.includes('applica
 	pass('homepage meta', 'og + json-ld in HTML');
 } else fail('homepage meta');
 
-if (home.text.includes('plausible.io') && home.text.includes('preflight.latham.cloud')) {
+if (home.text.includes('plausible.io') && home.text.includes('lint.latham.cloud')) {
 	pass('Plausible script', 'PUBLIC_PLAUSIBLE_DOMAIN wired');
 } else fail('Plausible script', 'add domain in Plausible dashboard to collect data');
 

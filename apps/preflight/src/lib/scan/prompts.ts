@@ -11,7 +11,7 @@ export function fixPrompt(id: string, context: { url: string; message?: string }
 
 	const templates: Record<string, string> = {
 		reachable: accessBlocked
-			? `${base}HTTP ${httpStatus} — the host blocked Preflight's scanner or requires auth. If this is YOUR app: allow automated fetches (or whitelist User-Agent Preflight/1.0), verify the homepage returns 200 to curl, then re-scan. Do not "fix" SEO/meta from this scan — we only saw an error page. Large enterprise sites often block scanners; Preflight targets indie launches you control.`
+			? `${base}HTTP ${httpStatus} — the host blocked Deploylint's scanner or requires auth. If this is YOUR app: allow automated fetches (or whitelist User-Agent Deploylint/1.0), verify the homepage returns 200 to curl, then re-scan. Do not "fix" SEO/meta from this scan — we only saw an error page. Large enterprise sites often block scanners; Deploylint targets indie launches you control.`
 			: `${base}The site returned an error or could not be fetched. Check DNS, hosting deploy status, SSL certificate, and that the domain is publicly accessible. Fix any 4xx/5xx on the homepage.`,
 		fetch: `${base}The site returned an error or could not be fetched. Check DNS, hosting deploy status, SSL certificate, and that the domain is publicly accessible. Fix any 4xx/5xx on the homepage.`,
 		https: `${base}Enable HTTPS on the hosting provider, force HTTP→HTTPS redirect, and verify all asset URLs use https://.`,
@@ -125,18 +125,19 @@ export function buildMasterPrompt(
 		return [
 			`Site: ${url}`,
 			'',
-			`Preflight could not read your homepage (${statusLabel}). Content checks were skipped.`,
+			`Deploylint could not read your homepage (${statusLabel}). Content checks were skipped.`,
 			'',
 			'IMPORTANT: Do NOT fix SEO, privacy, OG tags, or analytics from this scan — those results came from an error/block page, not your real site.',
 			'',
 			reachability ? `Reachability: ${reachability.message}` : '',
 			'',
 			'If this is YOUR launch (a site you control):',
-			'- Confirm the homepage returns HTTP 200 in a browser and to: curl -A "Preflight/1.0" ' + url,
+			'- Confirm the homepage returns HTTP 200 in a browser and to: curl -A "Deploylint/1.0" ' +
+				url,
 			'- If using Cloudflare/WAF, allow our scanner or test on a staging URL without bot rules',
-			'- Re-run Preflight after the homepage is reachable',
+			'- Re-run Deploylint after the homepage is reachable',
 			'',
-			'If this is a large third-party site (e.g. doordash.com), stop — Preflight is for auditing apps you ship, not enterprise sites that block scanners.',
+			'If this is a large third-party site (e.g. doordash.com), stop — Deploylint is for auditing apps you ship, not enterprise sites that block scanners.',
 			'',
 			'Rules:',
 			'- Do not change meta tags based on this incomplete scan',
@@ -149,7 +150,7 @@ export function buildMasterPrompt(
 	const issues = sortChecksByPriority(checks);
 
 	if (issues.length === 0) {
-		return `Site: ${url}\n\nAll Preflight checks passed. No fixes needed before sharing publicly.`;
+		return `Site: ${url}\n\nAll Deploylint checks passed. No fixes needed before sharing publicly.`;
 	}
 
 	const lines = issues.map(

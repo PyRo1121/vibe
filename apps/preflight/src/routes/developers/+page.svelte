@@ -5,7 +5,7 @@
 
 	const base = $derived(data.appUrl.replace(/\/$/, ''));
 
-	const hostedGateYaml = $derived(`name: Preflight deploy gate
+	const hostedGateYaml = $derived(`name: Deploylint deploy gate
 
 on:
   push:
@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  preflight:
+  deploylint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -44,10 +44,10 @@ node gate-remote.mjs https://your-app.com`);
 </script>
 
 <svelte:head>
-	<title>Developers — Preflight CI gate</title>
+	<title>Developers — Deploylint CI gate</title>
 	<meta
 		name="description"
-		content="Block bad deploys with Preflight: GitHub Action, zero-install gate script, local CLI, and MCP tools."
+		content="Block bad deploys with Deploylint: GitHub Action, zero-install gate script, local CLI, and MCP tools."
 	/>
 	<link rel="canonical" href="{base}/developers" />
 </svelte:head>
@@ -129,7 +129,7 @@ node gate-remote.mjs https://your-app.com`);
 
 	<section class="mb-10">
 		<h2 class="mb-2 text-xl font-semibold text-white">3. Monorepo CLI</h2>
-		<p class="mb-4 text-sm text-zinc-500">If you fork or clone the Preflight repo:</p>
+		<p class="mb-4 text-sm text-zinc-500">If you fork or clone the Deploylint repo:</p>
 		<pre
 			class="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-xs leading-relaxed text-zinc-300"><code
 				>{localGate}</code
@@ -152,7 +152,7 @@ node gate-remote.mjs https://your-app.com`);
 		<h2 class="mb-2 text-lg font-semibold text-white">The full loop</h2>
 		<ol class="list-decimal space-y-2 pl-6 text-sm text-zinc-400">
 			<li>
-				Scan free at <a class="text-sky-400 hover:underline" href="/">preflight.latham.cloud</a>
+				Scan free at <a class="text-sky-400 hover:underline" href="/">lint.latham.cloud</a>
 			</li>
 			<li>Unlock fix prompts ($9) → paste into Cursor</li>
 			<li>Re-scan to prove score delta</li>

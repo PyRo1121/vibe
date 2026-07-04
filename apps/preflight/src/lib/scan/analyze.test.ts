@@ -9,7 +9,7 @@ describe('clarityScore', () => {
 	it('passes when title, description, and h1 are solid', () => {
 		expect(
 			clarityScore(
-				'Preflight Launch Checker for Apps',
+				'Acme Launch Checker for Apps',
 				'Scan your vibe-coded app before launch. Free SEO, legal, security, and ship-readiness checks for Cursor and Lovable builders worldwide.',
 				true
 			)

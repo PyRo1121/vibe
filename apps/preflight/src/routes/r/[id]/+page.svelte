@@ -37,7 +37,7 @@
 	}
 
 	const pageTitle = $derived(
-		`Preflight report — ${verdictLabels[report.verdict]} ${report.score}/100 — ${report.finalUrl}`
+		`Deploylint report — ${verdictLabels[report.verdict]} ${report.score}/100 — ${report.finalUrl}`
 	);
 </script>
 

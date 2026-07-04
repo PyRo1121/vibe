@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://preflight.latham.cloud/</loc>
+    <loc>https://lint.latham.cloud/</loc>
   </url>
   <url>
-    <loc>https://preflight.latham.cloud/privacy</loc>
+    <loc>https://lint.latham.cloud/privacy</loc>
   </url>
   <url>
-    <loc>https://preflight.latham.cloud/terms</loc>
+    <loc>https://lint.latham.cloud/terms</loc>
   </url>
   <url>
-    <loc>https://preflight.latham.cloud/compare</loc>
+    <loc>https://lint.latham.cloud/compare</loc>
   </url>
   <url>
-    <loc>https://preflight.latham.cloud/developers</loc>
+    <loc>https://lint.latham.cloud/developers</loc>
   </url>
 </urlset>
