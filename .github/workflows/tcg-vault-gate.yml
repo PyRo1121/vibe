@@ -27,5 +27,5 @@ jobs:
       - name: Verify TCG Vault
         run: npm run verify:tcg-vault
 
-      - name: Lint TCG Vault
-        run: npm run lint -w tcg-vault
+      - name: E2E smoke (TCG Vault)
+        run: npm run test:e2e -w tcg-vault

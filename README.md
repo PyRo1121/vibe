@@ -29,3 +29,12 @@ npm run upgrade:stack   # bump deps to latest
 ## Requirements
 
 - Node 22+ (see `.nvmrc`)
+
+## Git remote (first push)
+
+```powershell
+git remote add origin https://github.com/YOUR_ORG/vibe.git
+git push -u origin main
+```
+
+Run `gh auth login` first if using GitHub CLI to create the repo.
