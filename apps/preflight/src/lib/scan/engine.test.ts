@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extractSitemapLocs, scanUrl } from './engine';
+import { collectSitemapLocs, extractSitemapLocs, scanUrl } from './engine';
 import { GOOD_HTML } from '$lib/test/fixtures/good-html';
 import { LEGAL_PAGE_HTML, STUB_PAGE_HTML } from '$lib/test/fixtures/legal-html';
 import { STRONG_HEADERS } from '$lib/test/fixtures/scan-headers';
@@ -58,6 +58,21 @@ describe('extractSitemapLocs', () => {
 		const xml =
 			'<urlset><url><loc>https://evil.test/x</loc></url><url><loc>not a url</loc></url><url><loc>https://app.test/p?a=1&amp;b=2</loc></url></urlset>';
 		expect(extractSitemapLocs(xml, origin)).toEqual(['https://app.test/p?a=1&b=2']);
+	});
+});
+
+describe('collectSitemapLocs', () => {
+	const origin = new URL('https://app.test/');
+
+	it('follows a sitemap index into child urlsets', async () => {
+		const index =
+			'<sitemapindex><sitemap><loc>https://app.test/sitemap-pages.xml</loc></sitemap></sitemapindex>';
+		const child =
+			'<urlset><url><loc>https://app.test/about</loc></url><url><loc>https://app.test/contact</loc></url></urlset>';
+		const locs = await collectSitemapLocs(index, origin, async (url) =>
+			url.endsWith('/sitemap-pages.xml') ? child : null
+		);
+		expect(locs).toEqual(['https://app.test/about', 'https://app.test/contact']);
 	});
 });
 
@@ -197,6 +212,30 @@ describe('scanUrl', () => {
 		expect(privacy?.message).toContain('Verified /privacy');
 		expect(report.pagesScanned?.map((p) => p.role)).toEqual(['home', 'privacy', 'terms']);
 		expect(report.pagesScanned?.[0].status).toBe(200);
+	});
+
+	it('crawls supplemental pages from sitemap.xml and sweeps placeholders', async () => {
+		const placeholderHtml =
+			'<html><head><title>About</title></head><body><p>TODO fix later on about page</p></body></html>';
+		const sitemapXml =
+			'<urlset><url><loc>https://app.test/about</loc></url><url><loc>https://app.test/contact</loc></url></urlset>';
+		const report = await scanUrl('https://app.test', {
+			fetchHtml: routedFetchHtml({
+				...LEGAL_ROUTES,
+				'/about': { html: placeholderHtml }
+			}),
+			...mockDeps,
+			fetchText: async (url: string) => (url.endsWith('/sitemap.xml') ? sitemapXml : null)
+		});
+		expect(report.pagesScanned?.map((p) => p.role)).toEqual([
+			'home',
+			'privacy',
+			'terms',
+			'sitemap',
+			'sitemap'
+		]);
+		const placeholder = report.checks.find((c) => c.id === 'placeholder-copy');
+		expect(placeholder?.message).toContain('/about');
 	});
 
 	it('fails privacy when the linked page 404s', async () => {

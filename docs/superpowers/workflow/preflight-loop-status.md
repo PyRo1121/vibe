@@ -81,12 +81,20 @@ Per Phase 3 kill metrics (45 days). **Ops runs in parallel** — engineering con
 | Source-map secret sweep (`sourcesContent`) | ✅ |
 | Script scan across crawled sub-pages | ✅ |
 
-### Phase 23+ — Parallel with validation
+### Phase 23 — Sitemap-driven crawl (shipped)
+
+| Item | Status |
+|------|--------|
+| Parse sitemap.xml (urlset + index) | ✅ |
+| Supplemental crawl up to 2 marketing pages | ✅ |
+| Cross-page placeholder + secrets on sitemap pages | ✅ |
+| `PagesScannedStrip` path labels for sitemap role | ✅ |
+
+### Phase 24+ — Parallel with validation
 
 | Item | Notes |
 |------|-------|
 | Live Stripe keys + live webhook | Code ready — flip keys when charging |
-| Sitemap-driven page crawl | Beyond privacy/terms/pricing |
 | Subscription / accounts | Still non-goal until wedge proven |
 
 ## Product wedge (do not compete with Lighthouse)

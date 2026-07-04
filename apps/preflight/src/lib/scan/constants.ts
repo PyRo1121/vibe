@@ -14,6 +14,12 @@ export const FETCH_TIMEOUT_MS = 12_000;
 export const MAX_LINK_CHECKS = 12;
 /** Targeted sub-pages fetched per scan (privacy, terms, pricing). */
 export const MAX_CRAWL_PAGES = 3;
+/** Extra marketing pages discovered via sitemap.xml (beyond link-based crawl). */
+export const MAX_SITEMAP_CRAWL_PAGES = 2;
+/** Max URLs parsed from sitemap.xml for crawl selection and link sampling. */
+export const MAX_SITEMAP_LOCS = 20;
+/** Max child sitemaps followed when parsing a sitemap index. */
+export const MAX_SITEMAP_INDEX_CHILDREN = 3;
 /** Below this visible word count a legal page is treated as a stub. */
 export const LEGAL_STUB_MIN_WORDS = 120;
 export const MAX_HTML_BYTES = 2 * 1024 * 1024;

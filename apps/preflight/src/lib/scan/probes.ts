@@ -1,4 +1,10 @@
-import { MAX_LINK_CHECKS, MAX_SCRIPT_FETCHES, MAX_SOURCEMAP_FETCHES } from '$lib/scan/constants';
+import {
+	MAX_LINK_CHECKS,
+	MAX_SCRIPT_FETCHES,
+	MAX_SITEMAP_INDEX_CHILDREN,
+	MAX_SITEMAP_LOCS,
+	MAX_SOURCEMAP_FETCHES
+} from '$lib/scan/constants';
 import type { LinkCheckResult, OgImageProbe } from '$lib/scan/checks/context';
 import type { ScanDeps } from '$lib/scan/fetchers';
 import { auditScriptText } from '$lib/scan/license';
@@ -113,19 +119,21 @@ export async function checkLinks(
 	const checkSitemap = async (): Promise<{
 		ok: boolean;
 		sample: { checked: number; broken: number } | null;
+		locs: string[];
 	}> => {
 		try {
 			const sitemapUrl = new URL('/sitemap.xml', finalUrl).href;
 			const ok = await head(sitemapUrl);
-			if (!ok) return { ok: false, sample: null };
+			if (!ok) return { ok: false, sample: null, locs: [] };
 			const xml = await fetch(sitemapUrl);
-			const locs = xml ? extractSitemapLocs(xml, finalUrl) : [];
-			if (locs.length === 0) return { ok: true, sample: null };
-			const results = await mapLimit(locs, 3, head);
+			const locs = xml ? await collectSitemapLocs(xml, finalUrl, fetch, MAX_SITEMAP_LOCS) : [];
+			if (locs.length === 0) return { ok: true, sample: null, locs: [] };
+			const sampleLocs = locs.slice(0, 3);
+			const results = await mapLimit(sampleLocs, 3, head);
 			const broken = results.filter((r) => !r).length;
-			return { ok: true, sample: { checked: locs.length, broken } };
+			return { ok: true, sample: { checked: sampleLocs.length, broken }, locs };
 		} catch {
-			return { ok: false, sample: null };
+			return { ok: false, sample: null, locs: [] };
 		}
 	};
 
@@ -143,8 +151,45 @@ export async function checkLinks(
 		sitemapOk: sitemap.ok,
 		llmsTxtOk,
 		robotsText: robots.text,
-		sitemapSample: sitemap.sample
+		sitemapSample: sitemap.sample,
+		sitemapLocs: sitemap.locs
 	};
+}
+
+/** Resolve urlset locs, following a sitemap index one level deep when needed. */
+export async function collectSitemapLocs(
+	xml: string,
+	finalUrl: URL,
+	fetch: ScanDeps['fetchText'],
+	max = MAX_SITEMAP_LOCS
+): Promise<string[]> {
+	if (/<sitemapindex/i.test(xml)) {
+		const childSitemaps: string[] = [];
+		for (const match of xml.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/gi)) {
+			const raw = match[1].replace(/&amp;/g, '&');
+			try {
+				const url = new URL(raw);
+				if (url.origin !== finalUrl.origin) continue;
+				childSitemaps.push(url.href);
+				if (childSitemaps.length >= MAX_SITEMAP_INDEX_CHILDREN) break;
+			} catch {
+				// skip malformed entries
+			}
+		}
+
+		const locs: string[] = [];
+		for (const childUrl of childSitemaps) {
+			const childXml = await fetch(childUrl);
+			if (!childXml) continue;
+			for (const loc of extractSitemapLocs(childXml, finalUrl, max - locs.length)) {
+				locs.push(loc);
+				if (locs.length >= max) return locs;
+			}
+		}
+		return locs;
+	}
+
+	return extractSitemapLocs(xml, finalUrl, max);
 }
 
 /** First few same-origin URLs listed in a sitemap (or child sitemaps of an index). */

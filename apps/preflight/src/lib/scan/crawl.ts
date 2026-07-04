@@ -1,4 +1,4 @@
-import { MAX_CRAWL_PAGES } from '$lib/scan/constants';
+import { MAX_CRAWL_PAGES, MAX_SITEMAP_CRAWL_PAGES } from '$lib/scan/constants';
 import { visibleText } from '$lib/scan/signals';
 import { isPublicHttpUrl } from '$lib/scan/url-guard';
 
@@ -8,7 +8,7 @@ import { isPublicHttpUrl } from '$lib/scan/url-guard';
  * future repo adapter (GitHub etc.) can supply file-backed pages instead.
  */
 
-export type PageRole = 'privacy' | 'terms' | 'pricing';
+export type PageRole = 'privacy' | 'terms' | 'pricing' | 'sitemap';
 
 export interface CrawlTarget {
 	role: PageRole;
@@ -87,6 +87,64 @@ export function selectCrawlTargets(links: string[], base: URL): CrawlTarget[] {
 		claimed.add(match.href);
 		targets.push({ role, url: match.href });
 		if (targets.length >= MAX_CRAWL_PAGES) break;
+	}
+
+	return targets;
+}
+
+const ASSET_EXT = /\.(png|jpe?g|gif|webp|svg|ico|pdf|xml|json|css|js|woff2?|ttf|map)(\?|$)/i;
+
+const PREFERRED_SITEMAP_PATHS = [
+	/^\/about\/?$/i,
+	/^\/contact\/?$/i,
+	/^\/features\/?$/i,
+	/^\/blog\/?$/i
+];
+
+function isCrawlableSitemapUrl(raw: string, base: URL): boolean {
+	try {
+		const url = new URL(raw);
+		if (url.origin !== base.origin) return false;
+		if (!isPublicHttpUrl(url.href)) return false;
+		if (url.pathname === '/' || url.pathname === base.pathname) return false;
+		if (ASSET_EXT.test(url.pathname)) return false;
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * Pick supplemental pages from sitemap.xml locs — shallow marketing URLs
+ * not already claimed by the homepage link crawl.
+ */
+export function selectSitemapCrawlTargets(
+	locs: string[],
+	base: URL,
+	claimed: Set<string>
+): CrawlTarget[] {
+	const candidates = locs
+		.filter((url) => isCrawlableSitemapUrl(url, base) && !claimed.has(url))
+		.map((url) => ({ url, path: new URL(url).pathname }));
+
+	const targets: CrawlTarget[] = [];
+	const used = new Set<string>();
+
+	for (const pattern of PREFERRED_SITEMAP_PATHS) {
+		const match = candidates.find((c) => pattern.test(c.path) && !used.has(c.url));
+		if (!match) continue;
+		targets.push({ role: 'sitemap', url: match.url });
+		used.add(match.url);
+		if (targets.length >= MAX_SITEMAP_CRAWL_PAGES) return targets;
+	}
+
+	for (const candidate of candidates) {
+		if (used.has(candidate.url)) continue;
+		const depth = candidate.path.split('/').filter(Boolean).length;
+		if (depth > 2) continue;
+		targets.push({ role: 'sitemap', url: candidate.url });
+		used.add(candidate.url);
+		if (targets.length >= MAX_SITEMAP_CRAWL_PAGES) break;
 	}
 
 	return targets;

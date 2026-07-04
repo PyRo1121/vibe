@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { crawlPages, selectCrawlTargets, visibleWordCount } from './crawl';
+import {
+	crawlPages,
+	selectCrawlTargets,
+	selectSitemapCrawlTargets,
+	visibleWordCount
+} from './crawl';
 import { LEGAL_PAGE_HTML, STUB_PAGE_HTML } from '$lib/test/fixtures/legal-html';
 
 const base = new URL('https://app.test/');
@@ -52,6 +57,34 @@ describe('selectCrawlTargets', () => {
 		expect(targets).toEqual([
 			{ role: 'privacy', url: 'https://app.test/legal/privacy-notice-2024' }
 		]);
+	});
+});
+
+describe('selectSitemapCrawlTargets', () => {
+	it('prefers marketing paths and skips already-claimed URLs', () => {
+		const locs = [
+			'https://app.test/',
+			'https://app.test/privacy',
+			'https://app.test/about',
+			'https://app.test/contact',
+			'https://app.test/deep/nested/page'
+		];
+		const claimed = new Set(['https://app.test/', 'https://app.test/privacy']);
+		const targets = selectSitemapCrawlTargets(locs, base, claimed);
+		expect(targets).toEqual([
+			{ role: 'sitemap', url: 'https://app.test/about' },
+			{ role: 'sitemap', url: 'https://app.test/contact' }
+		]);
+	});
+
+	it('skips asset URLs and cross-origin entries', () => {
+		const locs = [
+			'https://app.test/logo.png',
+			'https://other.test/about',
+			'https://app.test/pricing'
+		];
+		const targets = selectSitemapCrawlTargets(locs, base, new Set());
+		expect(targets).toEqual([{ role: 'sitemap', url: 'https://app.test/pricing' }]);
 	});
 });
 

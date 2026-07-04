@@ -61,7 +61,7 @@ export interface ScanReport {
 
 export interface ScannedPage {
 	url: string;
-	role: 'home' | 'privacy' | 'terms' | 'pricing';
+	role: 'home' | 'privacy' | 'terms' | 'pricing' | 'sitemap';
 	/** HTTP status, or null when the fetch failed. */
 	status: number | null;
 }

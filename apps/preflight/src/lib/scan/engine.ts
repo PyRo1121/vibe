@@ -1,7 +1,7 @@
 import type { ScanReport } from '$lib/scan/types';
 import { buildContentChecks, type ScanContext } from '$lib/scan/analyze';
 import { buildBlockedHomepageChecks, isBlockedHomepageStatus } from '$lib/scan/coverage';
-import { crawlPages, selectCrawlTargets } from '$lib/scan/crawl';
+import { crawlPages, selectCrawlTargets, selectSitemapCrawlTargets } from '$lib/scan/crawl';
 import { defaultDeps, type ScanDeps } from '$lib/scan/fetchers';
 import {
 	buildLicenseAudit,
@@ -48,7 +48,7 @@ export async function scanUrl(rawUrl: string, deps: ScanDeps = defaultDeps): Pro
 		// One parallel fan-out — wall time is the slowest branch, not the sum.
 		// Workers queues fetches past its connection limit, so this is safe.
 		const [
-			crawledPages,
+			crawledRolePages,
 			linkResult,
 			{ ok: ogImageOk, probe: ogImageProbe },
 			notFoundStatus,
@@ -62,6 +62,13 @@ export async function scanUrl(rawUrl: string, deps: ScanDeps = defaultDeps): Pro
 			deps.resolveTxt ? checkEmailAuth(finalUrl.hostname, deps.resolveTxt) : Promise.resolve(null),
 			checkHostConsistency(finalUrl, deps.fetchHtml)
 		]);
+
+		const claimed = new Set([finalUrl.href, ...crawledRolePages.map((p) => p.url)]);
+		const crawledSitemapPages = await crawlPages(
+			selectSitemapCrawlTargets(linkResult.sitemapLocs, finalUrl, claimed),
+			deps.fetchHtml
+		);
+		const crawledPages = [...crawledRolePages, ...crawledSitemapPages];
 
 		const scriptHtml = [html, ...crawledPages.map((p) => p.html).filter(Boolean)];
 		const { secrets: scriptSecrets, licenseFindings } = await scanScripts(
@@ -142,6 +149,6 @@ export async function scanUrl(rawUrl: string, deps: ScanDeps = defaultDeps): Pro
 }
 
 export type { FetchHtmlResult, ScanDeps } from '$lib/scan/fetchers';
-export { checkHostConsistency, extractSitemapLocs } from '$lib/scan/probes';
+export { checkHostConsistency, collectSitemapLocs, extractSitemapLocs } from '$lib/scan/probes';
 export { normalizeUrl } from '$lib/scan/parse';
 export { assertPublicHttpUrl, isPublicHttpUrl } from '$lib/scan/url-guard';

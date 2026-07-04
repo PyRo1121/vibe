@@ -9,8 +9,17 @@
 		home: 'Home',
 		privacy: 'Privacy',
 		terms: 'Terms',
-		pricing: 'Pricing'
+		pricing: 'Pricing',
+		sitemap: 'Page'
 	};
+
+	function displayLabel(page: ScannedPage): string {
+		if (page.role === 'sitemap') {
+			const path = pathOf(page.url);
+			return path === '/' ? ROLE_LABELS.sitemap : path;
+		}
+		return ROLE_LABELS[page.role];
+	}
 
 	function pathOf(url: string): string {
 		try {
@@ -46,7 +55,7 @@
 					class="h-1.5 w-1.5 rounded-full {statusOk(page) ? 'bg-emerald-400' : 'bg-red-400'}"
 					aria-hidden="true"
 				></span>
-				<span class="text-zinc-300">{ROLE_LABELS[page.role]}</span>
+				<span class="text-zinc-300">{displayLabel(page)}</span>
 				<span class="text-zinc-600">{pathOf(page.url)}</span>
 			</span>
 		{/each}

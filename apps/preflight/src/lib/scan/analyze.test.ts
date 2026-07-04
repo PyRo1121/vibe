@@ -50,7 +50,8 @@ describe('buildContentChecks', () => {
 				robotsOk: true,
 				sitemapOk: true,
 				llmsTxtOk: false,
-				robotsText: 'User-agent: *\nAllow: /'
+				robotsText: 'User-agent: *\nAllow: /',
+				sitemapLocs: []
 			},
 			links,
 			[],
@@ -75,7 +76,8 @@ describe('buildContentChecks', () => {
 				robotsOk: false,
 				sitemapOk: false,
 				llmsTxtOk: false,
-				robotsText: null
+				robotsText: null,
+				sitemapLocs: []
 			},
 			[]
 		);
@@ -98,7 +100,8 @@ describe('buildContentChecks', () => {
 				robotsOk: false,
 				sitemapOk: false,
 				llmsTxtOk: false,
-				robotsText: null
+				robotsText: null,
+				sitemapLocs: []
 			},
 			links
 		);
