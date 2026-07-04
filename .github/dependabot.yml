@@ -1,0 +1,25 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    groups:
+      svelte-stack:
+        patterns:
+          - svelte
+          - '@sveltejs/*'
+      cloudflare:
+        patterns:
+          - wrangler
+          - '@cloudflare/*'
+      vite-stack:
+        patterns:
+          - vite
+          - vitest
+          - '@vitest/*'
+    labels:
+      - dependencies
+      - bleeding-edge

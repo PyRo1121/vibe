@@ -1,0 +1,33 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+
+:root {
+	color-scheme: dark;
+}
+
+body {
+	@apply min-h-screen bg-zinc-950 text-zinc-100 antialiased;
+}
+
+/* Print / save-as-PDF: flip the dark theme to readable black-on-white. */
+@media print {
+	:root {
+		color-scheme: light;
+	}
+	* {
+		background: transparent !important;
+		color: #18181b !important;
+		border-color: #d4d4d8 !important;
+		box-shadow: none !important;
+		text-shadow: none !important;
+	}
+	body {
+		background: #fff !important;
+	}
+	a {
+		text-decoration: none;
+	}
+	button {
+		display: none !important;
+	}
+}

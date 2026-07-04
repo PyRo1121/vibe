@@ -1,0 +1,45 @@
+{
+	"name": "vibe",
+	"private": true,
+	"workspaces": [
+		"apps/*"
+	],
+	"engines": {
+		"node": ">=22"
+	},
+	"scripts": {
+		"build": "turbo run build",
+		"dev": "turbo run dev",
+		"check": "turbo run check",
+		"test": "turbo run test",
+		"verify": "turbo run verify",
+		"lint": "turbo run lint",
+		"deploy": "turbo run deploy",
+		"dev:preflight": "turbo run dev --filter=preflight",
+		"dev:tcg-vault": "turbo run dev --filter=tcg-vault",
+		"verify:preflight": "turbo run verify --filter=preflight",
+		"verify:tcg-vault": "turbo run verify --filter=tcg-vault",
+		"deploy:preflight": "turbo run deploy --filter=preflight",
+		"deploy:tcg-vault": "turbo run deploy --filter=tcg-vault",
+		"gate:preflight": "npm run gate -w preflight",
+		"smoke:preflight": "npm run smoke -w preflight",
+		"upgrade:stack": "npm update -w tcg-vault -w preflight && npm update"
+	},
+	"devDependencies": {
+		"turbo": "^2.10.3"
+	},
+	"packageManager": "npm@11.4.2",
+	"overrides": {
+		"svelte": "^5.56.4",
+		"@sveltejs/kit": "^2.69.1",
+		"@sveltejs/vite-plugin-svelte": "^7.1.2",
+		"@sveltejs/adapter-cloudflare": "^7.2.9",
+		"vite": "^8.1.3",
+		"typescript": "^6.0.3",
+		"tailwindcss": "^4.3.2",
+		"@tailwindcss/vite": "^4.3.2",
+		"wrangler": "^4.107.0",
+		"vitest": "^4.1.9",
+		"@cloudflare/workers-types": "^5.20260704.1"
+	}
+}

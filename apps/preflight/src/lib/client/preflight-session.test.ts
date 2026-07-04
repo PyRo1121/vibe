@@ -1,0 +1,92 @@
+import { describe, expect, it } from 'vitest';
+import { buildShareText, buildUnlockOffer } from './preflight-session';
+import type { ScanCheck, ScanReport } from '$lib/scan/types';
+
+function check(id: string, status: ScanCheck['status']): ScanCheck {
+	return {
+		id,
+		category: 'seo',
+		title: id,
+		status,
+		message: 'msg',
+		fixPrompt: ''
+	};
+}
+
+const baseReport: ScanReport = {
+	url: 'https://app.test',
+	finalUrl: 'https://app.test/',
+	scannedAt: '2026-07-02T00:00:00.000Z',
+	score: 88,
+	verdict: 'go',
+	verdictMessage: 'Ready to ship',
+	checks: [],
+	summary: { pass: 10, warn: 1, fail: 0 }
+};
+
+describe('buildShareText', () => {
+	it('uses configured app URL instead of hardcoded domain', () => {
+		const text = buildShareText(baseReport, 'https://preflight.latham.cloud');
+		expect(text).toContain('https://preflight.latham.cloud');
+		expect(text).toContain('88/100');
+		expect(text).toContain('GO');
+		expect(text).toContain('before posting');
+	});
+});
+
+describe('buildUnlockOffer', () => {
+	it('returns null when already unlocked', () => {
+		expect(buildUnlockOffer({ ...baseReport, unlocked: true })).toBeNull();
+	});
+
+	it('counts locked prompts excluding free sample', () => {
+		const offer = buildUnlockOffer({
+			...baseReport,
+			verdict: 'conditional',
+			checks: [check('privacy', 'fail'), check('title', 'warn')],
+			samplePromptId: 'privacy'
+		});
+		expect(offer?.issueCount).toBe(2);
+		expect(offer?.lockedPromptCount).toBe(1);
+	});
+
+	it('urgent headline for no-go', () => {
+		const offer = buildUnlockOffer({
+			...baseReport,
+			verdict: 'no-go',
+			checks: [check('privacy', 'fail')]
+		});
+		expect(offer?.headline).toContain("Don't post");
+	});
+
+	it('includes concrete value pitch and projected score', () => {
+		const offer = buildUnlockOffer({
+			...baseReport,
+			score: 62,
+			verdict: 'no-go',
+			summary: { pass: 8, warn: 2, fail: 3 },
+			checks: [
+				check('privacy', 'fail'),
+				check('open-graph', 'fail'),
+				check('title', 'warn')
+			],
+			samplePromptId: 'privacy'
+		});
+		expect(offer?.valuePitch).toContain('Cursor prompt');
+		expect(offer?.masterPreviewLines.length).toBeGreaterThan(2);
+		expect(offer?.projectedScore).toBeGreaterThan(62);
+	});
+
+	it('warns on blocked scans instead of selling SEO fixes', () => {
+		const offer = buildUnlockOffer({
+			...baseReport,
+			scanCoverage: 'blocked',
+			verdict: 'no-go',
+			checks: [check('reachable', 'fail')],
+			samplePromptId: 'reachable'
+		});
+		expect(offer?.headline).toContain('blocked');
+		expect(offer?.projectedScore).toBeNull();
+		expect(offer?.masterPreviewLines.join('\n')).toContain('Do NOT fix SEO');
+	});
+});

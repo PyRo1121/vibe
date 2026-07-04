@@ -1,0 +1,31 @@
+name: TCG Vault gate
+
+on:
+  pull_request:
+    paths:
+      - 'apps/tcg-vault/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'turbo.json'
+      - '.github/workflows/tcg-vault-gate.yml'
+  workflow_dispatch:
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify TCG Vault
+        run: npm run verify:tcg-vault
+
+      - name: Lint TCG Vault
+        run: npm run lint -w tcg-vault

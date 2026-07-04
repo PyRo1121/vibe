@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "preflight": {
+      "command": "node",
+      "args": ["apps/preflight-mcp/dist/index.js"],
+      "env": {
+        "PREFLIGHT_API": "https://preflight.latham.cloud"
+      }
+    }
+  }
+}

@@ -1,0 +1,47 @@
+name: Preflight gate
+
+on:
+  pull_request:
+    paths:
+      - 'apps/preflight/**'
+      - '.github/workflows/preflight-gate.yml'
+  workflow_dispatch:
+    inputs:
+      url:
+        description: URL to scan (overrides secret)
+        required: false
+        type: string
+      min_score:
+        description: Minimum launch score
+        required: false
+        default: '80'
+        type: string
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Preflight package
+        run: npm run verify:preflight
+
+      - name: Scan production URL (optional)
+        env:
+          PREFLIGHT_URL: ${{ github.event.inputs.url || secrets.PREFLIGHT_GATE_URL }}
+          PREFLIGHT_MIN_SCORE: ${{ github.event.inputs.min_score || '80' }}
+          PREFLIGHT_API: https://preflight.latham.cloud
+        run: |
+          if [ -z "$PREFLIGHT_URL" ]; then
+            echo "Skipping URL gate — set repository secret PREFLIGHT_GATE_URL or run workflow_dispatch with url."
+            exit 0
+          fi
+          npm run gate -w preflight -- "$PREFLIGHT_URL"
