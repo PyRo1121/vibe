@@ -45,7 +45,11 @@ if (dev.text.includes('preflight_scan') && dev.text.includes('preflight_gate')) 
 
 // 2. Hosted gate script
 const gateScript = await get('/gate-remote.mjs');
-if (gateScript.res.ok && gateScript.text.includes('evaluateGate') && gateScript.text.startsWith('#!/')) {
+if (
+	gateScript.res.ok &&
+	gateScript.text.includes('evaluateGate') &&
+	gateScript.text.startsWith('#!/')
+) {
 	pass('hosted gate-remote.mjs', String(gateScript.res.status));
 } else {
 	fail('hosted gate-remote.mjs', String(gateScript.res.status));
@@ -99,4 +103,6 @@ console.log(`${passed}/${total} passed`);
 
 if (passed < total) process.exit(1);
 
-console.log('\nManual: add PREFLIGHT_GATE_URL secret to a repo and run the GitHub Action from /developers');
+console.log(
+	'\nManual: add PREFLIGHT_GATE_URL secret to a repo and run the GitHub Action from /developers'
+);

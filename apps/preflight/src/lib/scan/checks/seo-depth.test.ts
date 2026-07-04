@@ -108,7 +108,11 @@ describe('hreflang', () => {
 	});
 
 	it('passes a single valid en-US alternate', () => {
-		const html = doc('Acme', undefined, '<link rel="alternate" hreflang="en-US" href="https://app.test/en">');
+		const html = doc(
+			'Acme',
+			undefined,
+			'<link rel="alternate" hreflang="en-US" href="https://app.test/en">'
+		);
 		expect(get(run(html), 'hreflang')?.status).toBe('pass');
 	});
 
@@ -151,18 +155,30 @@ describe('og-url-match', () => {
 	});
 
 	it('passes when og:url matches apart from a trailing slash', () => {
-		const html = doc('Acme', undefined, '<meta property="og:url" content="https://app.test/pricing/">');
+		const html = doc(
+			'Acme',
+			undefined,
+			'<meta property="og:url" content="https://app.test/pricing/">'
+		);
 		const check = get(run(html, { finalUrl: 'https://app.test/pricing' }), 'og-url-match');
 		expect(check?.status).toBe('pass');
 	});
 
 	it('ignores query strings and host casing', () => {
-		const html = doc('Acme', undefined, '<meta property="og:url" content="https://APP.TEST/?ref=home">');
+		const html = doc(
+			'Acme',
+			undefined,
+			'<meta property="og:url" content="https://APP.TEST/?ref=home">'
+		);
 		expect(get(run(html), 'og-url-match')?.status).toBe('pass');
 	});
 
 	it('warns when og:url points at a different page', () => {
-		const html = doc('Acme', undefined, '<meta property="og:url" content="https://elsewhere.test/page">');
+		const html = doc(
+			'Acme',
+			undefined,
+			'<meta property="og:url" content="https://elsewhere.test/page">'
+		);
 		const check = get(run(html), 'og-url-match');
 		expect(check?.status).toBe('warn');
 		expect(check?.message).toContain('og:url points to https://elsewhere.test/page');
@@ -198,7 +214,9 @@ describe('title-brand-dupe', () => {
 	});
 
 	it('emits nothing when there is no title', () => {
-		expect(get(run('<html><head></head><body><h1>A</h1></body></html>'), 'title-brand-dupe')).toBeUndefined();
+		expect(
+			get(run('<html><head></head><body><h1>A</h1></body></html>'), 'title-brand-dupe')
+		).toBeUndefined();
 	});
 });
 

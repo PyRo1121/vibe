@@ -149,7 +149,11 @@ describe('scanRepo', () => {
 
 	it('flags AGPL repo license as a sell-rights failure', async () => {
 		const report = await scanRepo(REF, {
-			fetchers: fakeFetchers({ meta: { licenseSpdx: 'AGPL-3.0' }, entries: CLEAN_ENTRIES, files: CLEAN_FILES }),
+			fetchers: fakeFetchers({
+				meta: { licenseSpdx: 'AGPL-3.0' },
+				entries: CLEAN_ENTRIES,
+				files: CLEAN_FILES
+			}),
 			npmLicense: async () => 'MIT'
 		});
 		const license = report.checks.find((c) => c.id === 'repo-license');
@@ -193,7 +197,10 @@ describe('scanRepo', () => {
 		expect(report.repo?.depCount).toBeNull();
 	});
 
-	const LOCK_ENTRIES: RepoTreeEntry[] = [...CLEAN_ENTRIES, { path: 'package-lock.json', type: 'blob' }];
+	const LOCK_ENTRIES: RepoTreeEntry[] = [
+		...CLEAN_ENTRIES,
+		{ path: 'package-lock.json', type: 'blob' }
+	];
 	const LOCKFILE = JSON.stringify({
 		lockfileVersion: 3,
 		packages: {
@@ -292,7 +299,10 @@ describe('scanRepo', () => {
 	it('returns an honest blocked report when the repo is missing', async () => {
 		const report = await scanRepo(REF, {
 			fetchers: fakeFetchers({
-				metaError: new RepoScanError('Repository acme/launchpad not found — check the URL, or the repo is private. Preflight scans public repos only.', 404)
+				metaError: new RepoScanError(
+					'Repository acme/launchpad not found — check the URL, or the repo is private. Preflight scans public repos only.',
+					404
+				)
 			}),
 			npmLicense: async () => null
 		});
@@ -321,7 +331,8 @@ describe('scanRepo', () => {
 		}),
 		'package-lock.json': LOCKFILE,
 		'.github/workflows/ci.yml': 'name: CI\n',
-		'src/index.test.ts': 'import { expect, it } from "vitest";\nit("works", () => expect(1).toBe(1));',
+		'src/index.test.ts':
+			'import { expect, it } from "vitest";\nit("works", () => expect(1).toBe(1));',
 		'.nvmrc': '20\n',
 		'tsconfig.json': JSON.stringify({ compilerOptions: { strict: true } })
 	};
@@ -370,7 +381,9 @@ describe('scanRepo', () => {
 
 		const tsStrict = report.checks.find((c) => c.id === 'ts-strict');
 		expect(tsStrict?.status).toBe('warn');
-		expect(report.checks.filter((c) => c.id === 'ts-strict' && c.status === 'fail')).toHaveLength(0);
+		expect(report.checks.filter((c) => c.id === 'ts-strict' && c.status === 'fail')).toHaveLength(
+			0
+		);
 		expect(report.verdict).not.toBe('no-go');
 	});
 });

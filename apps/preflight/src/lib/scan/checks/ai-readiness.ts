@@ -12,14 +12,6 @@ const AI_CRAWLERS = [
 	'CCBot'
 ] as const;
 
-function canonicalAgent(name: string): string | null {
-	const lower = name.toLowerCase();
-	for (const bot of AI_CRAWLERS) {
-		if (bot.toLowerCase() === lower) return bot;
-	}
-	return null;
-}
-
 interface RobotsGroup {
 	agents: string[];
 	disallows: string[];
@@ -56,8 +48,7 @@ function agentBlocked(agent: string, groups: RobotsGroup[]): boolean {
 
 	for (const group of groups) {
 		const applies =
-			group.agents.some((a) => a === '*') ||
-			group.agents.some((a) => a.toLowerCase() === lower);
+			group.agents.some((a) => a === '*') || group.agents.some((a) => a.toLowerCase() === lower);
 		if (!applies) continue;
 
 		if (group.disallows.some((d) => d === '/')) {
@@ -111,7 +102,7 @@ function pushAiCrawlersCheck(
 ): void {
 	if (robotsText == null) return;
 
-	const { blocked, allowed } = aiCrawlerAccess(robotsText);
+	const { blocked } = aiCrawlerAccess(robotsText);
 	if (blocked.length === AI_CRAWLERS.length) {
 		checks.push(
 			makeCheck(
@@ -265,9 +256,15 @@ function pushAnswerSignalsCheck(checks: ScanCheck[], html: string, ctx: { url: s
 
 	const h1Match = html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i);
 	if (h1Match) {
-		const afterH1 = html.slice(html.indexOf(h1Match[0]) + h1Match[0].length, html.indexOf(h1Match[0]) + h1Match[0].length + 5000);
+		const afterH1 = html.slice(
+			html.indexOf(h1Match[0]) + h1Match[0].length,
+			html.indexOf(h1Match[0]) + h1Match[0].length + 5000
+		);
 		for (const m of afterH1.matchAll(/<(?:p|div)\b[^>]*>([\s\S]*?)<\/(?:p|div)>/gi)) {
-			const text = m[1].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+			const text = m[1]
+				.replace(/<[^>]+>/g, '')
+				.replace(/\s+/g, ' ')
+				.trim();
 			if (text.length >= 40 && text.length <= 300) {
 				checks.push(
 					makeCheck(

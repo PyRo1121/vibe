@@ -11,6 +11,7 @@
 | Phase 20 (multi-page legal crawl + pagesScanned) | ✅ |
 | Phase 21 (same-zone self-scan via SELF binding) | ✅ |
 | Phase 22 (deeper JS + source-map secret crawl) | ✅ |
+| World-class baseline (lint, a11y dogfood, SSRF, rate limit, UI) | ✅ |
 | Blocked-scan guard (403/4xx/5xx → skip content checks) | ✅ |
 | P2 (JS secrets, CI gate CLI, MCP) | ✅ |
 | World-class scan depth | ✅ |

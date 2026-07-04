@@ -77,7 +77,10 @@ export function computeVerdict(
 	const p1Warns = checks.filter((c) => c.status === 'warn' && resolvePriority(c) === 'p1');
 
 	if (p0Fails.length > 0) {
-		const names = p0Fails.map((c) => c.title).slice(0, 3).join(', ');
+		const names = p0Fails
+			.map((c) => c.title)
+			.slice(0, 3)
+			.join(', ');
 		return {
 			verdict: 'no-go',
 			verdictMessage: `Do not share publicly — ${p0Fails.length} blocker(s): ${names}`

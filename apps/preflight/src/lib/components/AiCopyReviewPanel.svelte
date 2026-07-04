@@ -22,7 +22,9 @@
 	<section class="mb-6 rounded-2xl border border-violet-500/30 bg-violet-500/5 p-5 sm:p-6">
 		<div class="flex flex-wrap items-baseline gap-2">
 			<h2 class="font-semibold text-white">AI copy review</h2>
-			<span class="rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] font-semibold tracking-wider text-violet-300 uppercase">
+			<span
+				class="rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] font-semibold tracking-wider text-violet-300 uppercase"
+			>
 				Included with unlock
 			</span>
 		</div>

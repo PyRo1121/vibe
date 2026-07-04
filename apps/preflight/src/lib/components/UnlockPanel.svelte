@@ -16,7 +16,9 @@
 </script>
 
 {#if offer}
-	<section class="rounded-2xl border border-sky-500/40 bg-gradient-to-br from-sky-500/10 via-zinc-900/80 to-zinc-950 p-8">
+	<section
+		class="rounded-2xl border border-sky-500/40 bg-gradient-to-br from-sky-500/10 via-zinc-900/80 to-zinc-950 p-8"
+	>
 		<p class="text-xs font-semibold tracking-widest text-sky-400 uppercase">
 			Not Lighthouse — launch fixes
 		</p>
@@ -44,7 +46,8 @@
 				</span>
 				{#if offer.lockedPromptCount > 0}
 					<span class="rounded-full bg-sky-500/20 px-3 py-1 font-medium text-sky-300">
-						{offer.lockedPromptCount} locked{#if offer.hasSample} · 1 free sample{/if}
+						{offer.lockedPromptCount} locked{#if offer.hasSample}
+							· 1 free sample{/if}
 					</span>
 				{/if}
 			</div>

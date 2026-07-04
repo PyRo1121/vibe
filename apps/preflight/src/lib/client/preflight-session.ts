@@ -27,7 +27,8 @@ export function estimateScoreAfterFixes(report: ScanReport): number | null {
 	if (report.summary.fail === 0 && report.summary.warn === 0) return null;
 	const optimistic = report.checks.map((c) => {
 		if (c.status === 'fail') return { ...c, status: 'pass' as const };
-		if (c.status === 'warn' && resolvePriority(c) !== 'p2') return { ...c, status: 'pass' as const };
+		if (c.status === 'warn' && resolvePriority(c) !== 'p2')
+			return { ...c, status: 'pass' as const };
 		return c;
 	});
 	const projected = scoreChecks(optimistic);
@@ -49,10 +50,15 @@ export function buildMasterPromptPreview(report: ScanReport): string[] {
 	const header = `You are fixing launch readiness for ${report.finalUrl}.`;
 	const intro = 'Fix these issues in order (P0 blockers first):';
 	const lines = issues.map(
-		(c) => `- [${(c.priority ?? 'p2').toUpperCase()}] ${c.title} (${c.status}): ${c.message.slice(0, 72)}`
+		(c) =>
+			`- [${(c.priority ?? 'p2').toUpperCase()}] ${c.title} (${c.status}): ${c.message.slice(0, 72)}`
 	);
-	const remaining = Math.max(0, report.checks.filter((c) => c.status !== 'pass').length - lines.length);
-	if (remaining > 0) lines.push(`… +${remaining} more issue${remaining === 1 ? '' : 's'} with copy-paste prompts`);
+	const remaining = Math.max(
+		0,
+		report.checks.filter((c) => c.status !== 'pass').length - lines.length
+	);
+	if (remaining > 0)
+		lines.push(`… +${remaining} more issue${remaining === 1 ? '' : 's'} with copy-paste prompts`);
 	return [header, '', intro, ...lines];
 }
 
@@ -94,9 +100,7 @@ export function buildUnlockOffer(report: ScanReport): UnlockOffer | null {
 			? `${lockedPromptCount} Cursor prompt${lockedPromptCount === 1 ? '' : 's'}`
 			: 're-scan proof';
 	const deltaPart =
-		projectedScore != null
-			? ` · re-scan could show ${report.score} → ${projectedScore}`
-			: '';
+		projectedScore != null ? ` · re-scan could show ${report.score} → ${projectedScore}` : '';
 
 	if (report.verdict === 'no-go') {
 		headline =
@@ -121,8 +125,7 @@ export function buildUnlockOffer(report: ScanReport): UnlockOffer | null {
 		ctaLabel = 'Unlock polish & proof — $9';
 	} else {
 		headline = 'Unlock re-scan proof for your launch post';
-		subhead =
-			'Everything passed. Unlock unlimited re-scans on this URL after last-minute edits.';
+		subhead = 'Everything passed. Unlock unlimited re-scans on this URL after last-minute edits.';
 		valuePitch = 'Unlimited re-scans with score delta on this URL';
 		ctaLabel = 'Unlock re-scans — $9';
 	}
@@ -143,11 +146,7 @@ export function buildUnlockOffer(report: ScanReport): UnlockOffer | null {
 
 export function buildShareText(report: ScanReport, appUrl: string): string {
 	const verdict =
-		report.verdict === 'go'
-			? 'GO'
-			: report.verdict === 'conditional'
-				? 'CONDITIONAL GO'
-				: 'NO-GO';
+		report.verdict === 'go' ? 'GO' : report.verdict === 'conditional' ? 'CONDITIONAL GO' : 'NO-GO';
 
 	return `I ran Preflight before posting my URL — ${report.score}/100 (${verdict}).\nCheck yours before you share publicly: ${appUrl.replace(/\/$/, '')}\n${report.finalUrl}`;
 }

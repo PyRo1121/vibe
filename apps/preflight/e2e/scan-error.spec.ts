@@ -9,6 +9,8 @@ test.describe('scan error', () => {
 		await page.getByRole('button', { name: 'Scan free' }).click();
 
 		await expect(page.getByRole('alert')).toContainText(/Could not reach that URL/i);
-		await expect(page.getByRole('heading', { name: /Should you post this URL today/i })).toBeVisible();
+		await expect(
+			page.getByRole('heading', { name: /Should you post this URL today/i })
+		).toBeVisible();
 	});
 });

@@ -65,11 +65,7 @@ describe('buildUnlockOffer', () => {
 			score: 62,
 			verdict: 'no-go',
 			summary: { pass: 8, warn: 2, fail: 3 },
-			checks: [
-				check('privacy', 'fail'),
-				check('open-graph', 'fail'),
-				check('title', 'warn')
-			],
+			checks: [check('privacy', 'fail'), check('open-graph', 'fail'), check('title', 'warn')],
 			samplePromptId: 'privacy'
 		});
 		expect(offer?.valuePitch).toContain('Cursor prompt');

@@ -9,15 +9,15 @@ describe('createCheckoutSession', () => {
 	it('returns session url from Stripe', async () => {
 		vi.stubGlobal(
 			'fetch',
-		vi.fn(async (_url: string, init?: RequestInit) => {
-			expect(init?.headers).toMatchObject({
-				'Idempotency-Key': expect.any(String)
-			});
-			return {
-				ok: true,
-				json: async () => ({ id: 'cs_test_abc', url: 'https://checkout.stripe.com/x' })
-			};
-		})
+			vi.fn(async (_url: string, init?: RequestInit) => {
+				expect(init?.headers).toMatchObject({
+					'Idempotency-Key': expect.any(String)
+				});
+				return {
+					ok: true,
+					json: async () => ({ id: 'cs_test_abc', url: 'https://checkout.stripe.com/x' })
+				};
+			})
 		);
 
 		const session = await createCheckoutSession({

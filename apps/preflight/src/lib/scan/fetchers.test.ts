@@ -18,10 +18,7 @@ describe('wrapSameZoneFetch', () => {
 		const siteFetch = wrapSameZoneFetch(self as unknown as Fetcher, 'app.test', external);
 
 		await siteFetch('https://app.test/privacy');
-		expect(self.fetch).toHaveBeenCalledWith(
-			'https://preflight.internal/privacy',
-			undefined
-		);
+		expect(self.fetch).toHaveBeenCalledWith('https://preflight.internal/privacy', undefined);
 
 		await siteFetch('https://other.test/page');
 		expect(external).toHaveBeenCalled();

@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { buildLaunchBrief, embarrassmentLine } from './brief';
 import type { ScanCheck, ScanReport } from '$lib/scan/types';
 
-function check(id: string, status: ScanCheck['status'], category: ScanCheck['category'] = 'seo'): ScanCheck {
+function check(
+	id: string,
+	status: ScanCheck['status'],
+	category: ScanCheck['category'] = 'seo'
+): ScanCheck {
 	return {
 		id,
 		category,
@@ -23,7 +27,15 @@ function report(overrides: Partial<ScanReport> = {}): ScanReport {
 		verdictMessage: 'Clear to share',
 		checks: [check('title', 'pass'), { ...check('privacy', 'pass'), category: 'legal' }],
 		summary: { pass: 20, warn: 0, fail: 0 },
-		socialPreview: { title: 'T', description: 'D', image: 'i', imageUrl: 'u', twitterCard: 'summary', issues: [], ready: true },
+		socialPreview: {
+			title: 'T',
+			description: 'D',
+			image: 'i',
+			imageUrl: 'u',
+			twitterCard: 'summary',
+			issues: [],
+			ready: true
+		},
 		...overrides
 	};
 }

@@ -35,8 +35,7 @@ export function pushLaunchSignalChecks(
 	if (meta.canonical) {
 		try {
 			const canonicalUrl = new URL(meta.canonical, finalUrl);
-			canonicalStatus =
-				normalizePath(canonicalUrl) === normalizePath(finalUrl) ? 'pass' : 'warn';
+			canonicalStatus = normalizePath(canonicalUrl) === normalizePath(finalUrl) ? 'pass' : 'warn';
 			canonicalMessage =
 				canonicalStatus === 'pass'
 					? `Canonical matches this page (${canonicalUrl.href})`

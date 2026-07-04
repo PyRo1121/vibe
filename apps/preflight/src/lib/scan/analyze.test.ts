@@ -44,7 +44,14 @@ describe('buildContentChecks', () => {
 			GOOD_HTML,
 			finalUrl,
 			200,
-			{ brokenCount: 0, checkedCount: 3, robotsOk: true, sitemapOk: true, llmsTxtOk: false, robotsText: 'User-agent: *\nAllow: /' },
+			{
+				brokenCount: 0,
+				checkedCount: 3,
+				robotsOk: true,
+				sitemapOk: true,
+				llmsTxtOk: false,
+				robotsText: 'User-agent: *\nAllow: /'
+			},
 			links,
 			[],
 			STRONG_HEADERS
@@ -62,7 +69,14 @@ describe('buildContentChecks', () => {
 			html,
 			finalUrl,
 			200,
-			{ brokenCount: 0, checkedCount: 0, robotsOk: false, sitemapOk: false, llmsTxtOk: false, robotsText: null },
+			{
+				brokenCount: 0,
+				checkedCount: 0,
+				robotsOk: false,
+				sitemapOk: false,
+				llmsTxtOk: false,
+				robotsText: null
+			},
 			[]
 		);
 		expect(checks.find((c) => c.id === 'https')?.status).toBe('fail');
@@ -78,7 +92,14 @@ describe('buildContentChecks', () => {
 			html,
 			finalUrl,
 			200,
-			{ brokenCount: 0, checkedCount: 0, robotsOk: false, sitemapOk: false, llmsTxtOk: false, robotsText: null },
+			{
+				brokenCount: 0,
+				checkedCount: 0,
+				robotsOk: false,
+				sitemapOk: false,
+				llmsTxtOk: false,
+				robotsText: null
+			},
 			links
 		);
 		expect(checks.find((c) => c.id === 'secrets')?.status).toBe('fail');

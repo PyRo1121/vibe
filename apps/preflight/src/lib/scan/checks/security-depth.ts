@@ -200,9 +200,10 @@ function pushWpExposureCheck(checks: ScanCheck[], html: string, ctx: { url: stri
 	if (!isWordPress(html)) return;
 
 	const hasXmlrpc = /xmlrpc\.php/i.test(html);
-	const hasVersion = /<meta\b[^>]*\bname\s*=\s*(["'])generator\1[^>]*\bcontent\s*=\s*(["'])WordPress\s+\d+\.\d+/i.test(
-		html
-	);
+	const hasVersion =
+		/<meta\b[^>]*\bname\s*=\s*(["'])generator\1[^>]*\bcontent\s*=\s*(["'])WordPress\s+\d+\.\d+/i.test(
+			html
+		);
 
 	if (hasXmlrpc || hasVersion) {
 		checks.push(

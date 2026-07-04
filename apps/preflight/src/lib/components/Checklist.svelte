@@ -59,7 +59,9 @@
 	{#if issues.length === 0}
 		<div class="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-6 text-center">
 			<p class="font-medium text-emerald-300">Every check passed.</p>
-			<p class="mt-1 text-sm text-zinc-400">Re-scan after any last-minute changes before you post.</p>
+			<p class="mt-1 text-sm text-zinc-400">
+				Re-scan after any last-minute changes before you post.
+			</p>
 		</div>
 	{/if}
 
@@ -67,7 +69,9 @@
 		<div class="mb-6">
 			<div class="mb-3 flex items-baseline gap-3">
 				<span
-					class="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase {priorityClass(group.priority)}"
+					class="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase {priorityClass(
+						group.priority
+					)}"
 				>
 					{group.priority}
 				</span>
@@ -84,14 +88,18 @@
 					<div class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
 						<div class="flex items-start gap-3">
 							<span
-								class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs font-bold {statusClass(item.status)}"
+								class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs font-bold {statusClass(
+									item.status
+								)}"
 							>
 								{statusIcon(item.status)}
 							</span>
 							<div class="min-w-0 flex-1">
 								<div class="flex flex-wrap items-center gap-2">
 									<span class="font-medium text-white">{item.title}</span>
-									<span class="rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] uppercase text-zinc-400">
+									<span
+										class="rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] uppercase text-zinc-400"
+									>
 										{categoryLabels[item.category] ?? item.category}
 									</span>
 								</div>
@@ -122,7 +130,9 @@
 										</button>
 									</div>
 								{:else}
-									<div class="relative mt-3 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950 p-3">
+									<div
+										class="relative mt-3 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950 p-3"
+									>
 										<p class="blur-sm select-none text-xs text-zinc-500">
 											Cursor-ready fix prompt for {item.title.toLowerCase()}…
 										</p>
@@ -158,7 +168,9 @@
 			{#if showPassing}
 				<ul class="border-t border-zinc-800/70 px-4 py-2">
 					{#each passing as item (item.id)}
-						<li class="flex items-baseline gap-3 border-b border-zinc-800/40 py-2 text-sm last:border-b-0">
+						<li
+							class="flex items-baseline gap-3 border-b border-zinc-800/40 py-2 text-sm last:border-b-0"
+						>
 							<span class="shrink-0 text-emerald-400">✓</span>
 							<span class="shrink-0 font-medium text-zinc-300">{item.title}</span>
 							<span class="min-w-0 truncate text-xs text-zinc-500">{item.message}</span>

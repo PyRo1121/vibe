@@ -34,12 +34,16 @@ const EMBARRASSMENT: Record<string, string> = {
 	readme: 'An empty README makes the project look abandoned to anyone who finds it.',
 	'img-alt': 'Accessibility callouts spread fast on launch threads.',
 	'response-time': 'A slow first load is the first thing Product Hunt commenters mention.',
-	'not-found-page': 'Every broken link silently shows your homepage — you will never know what is dead.',
+	'not-found-page':
+		'Every broken link silently shows your homepage — you will never know what is dead.',
 	'email-auth': 'Password resets landing in spam means signups you paid for never activate.',
-	'form-security': 'A form posts over plain HTTP — browsers flag it and credentials transit unencrypted.',
+	'form-security':
+		'A form posts over plain HTTP — browsers flag it and credentials transit unencrypted.',
 	'dead-social-links': 'Placeholder social icons (twitter.com with no handle) scream "template".',
-	'default-favicon-title': 'A "Vite App" tab title is the #1 screenshot on launch-day mockery threads.',
-	'broken-anchor-nav': 'Nav links that scroll nowhere make the site feel broken in the first 10 seconds.',
+	'default-favicon-title':
+		'A "Vite App" tab title is the #1 screenshot on launch-day mockery threads.',
+	'broken-anchor-nav':
+		'Nav links that scroll nowhere make the site feel broken in the first 10 seconds.',
 	'copyright-year': 'A stale footer year reads as an abandoned project.',
 	'ai-crawlers': 'robots.txt blocks GPTBot/ClaudeBot — your product cannot appear in AI answers.',
 	'primary-cta': 'Visitors have no obvious next step — launch traffic bounces in seconds.',

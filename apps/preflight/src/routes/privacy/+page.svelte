@@ -15,7 +15,9 @@
 	<ul class="mb-6 list-disc space-y-2 pl-6">
 		<li>The URL you submit for scanning</li>
 		<li>Basic request metadata (timestamp, IP) via our hosting provider</li>
-		<li>Payment status from Stripe if you purchase a fix-prompt unlock (no card data on our servers)</li>
+		<li>
+			Payment status from Stripe if you purchase a fix-prompt unlock (no card data on our servers)
+		</li>
 	</ul>
 
 	<h2 class="mb-3 text-xl font-semibold text-white">What we do not do</h2>
@@ -27,7 +29,9 @@
 
 	<h2 class="mb-3 text-xl font-semibold text-white">Contact</h2>
 	<p class="mb-8">
-		Questions: <a class="text-sky-400 hover:underline" href="mailto:support@latham.cloud">support@latham.cloud</a>
+		Questions: <a class="text-sky-400 hover:underline" href="mailto:support@latham.cloud"
+			>support@latham.cloud</a
+		>
 	</p>
 
 	<p><a class="text-sky-400 hover:underline" href="/">← Back to Preflight</a></p>

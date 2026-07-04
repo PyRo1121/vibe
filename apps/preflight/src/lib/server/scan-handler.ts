@@ -9,8 +9,11 @@ import { buildCopyReview } from '$lib/server/copy-review';
 import { sanitizeReport } from '$lib/billing/report';
 import { verifyCheckoutSession } from '$lib/billing/stripe';
 import { logFunnelEvent } from '$lib/metrics/funnel';
+import { assertScanRateLimit, clientIp } from '$lib/server/rate-limit';
 
 export async function handleScanPost(request: Request, env: Env | undefined) {
+	await assertScanRateLimit(env?.REPORTS, clientIp(request));
+
 	let parsed;
 	try {
 		parsed = await parseScanJsonBody(request);

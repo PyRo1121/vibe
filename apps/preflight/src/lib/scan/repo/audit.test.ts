@@ -110,9 +110,7 @@ describe('auditNpmDependencies', () => {
 	});
 
 	it('caps registry lookups at the budget', async () => {
-		const deps = Object.fromEntries(
-			Array.from({ length: 30 }, (_, i) => [`pkg-${i}`, '1.0.0'])
-		);
+		const deps = Object.fromEntries(Array.from({ length: 30 }, (_, i) => [`pkg-${i}`, '1.0.0']));
 		const { audited, total } = await auditNpmDependencies(deps, async () => 'MIT');
 		expect(total).toBe(30);
 		expect(audited).toBe(20);

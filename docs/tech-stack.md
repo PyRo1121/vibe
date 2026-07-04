@@ -23,7 +23,7 @@ npm run upgrade:stack    # bump workspace deps
 npm run verify           # all apps must pass
 ```
 
-CI gates: `preflight-gate.yml`, `tcg-vault-gate.yml` on every PR.
+CI gates: `preflight-gate.yml`, `tcg-vault-gate.yml` on every PR. Both apps run `check + lint + test + build` via `verify`.
 
 ## Pre-release adoption criteria
 

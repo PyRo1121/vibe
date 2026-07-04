@@ -5,7 +5,9 @@
 </script>
 
 {#if report.launchBrief}
-	<section class="mb-10 rounded-2xl border border-sky-500/20 bg-gradient-to-br from-sky-500/10 to-zinc-900/60 p-8">
+	<section
+		class="mb-10 rounded-2xl border border-sky-500/20 bg-gradient-to-br from-sky-500/10 to-zinc-900/60 p-8"
+	>
 		<div class="flex flex-wrap items-start justify-between gap-4">
 			<div class="max-w-2xl">
 				<p class="text-xs font-semibold tracking-widest text-sky-400 uppercase">
@@ -35,8 +37,8 @@
 				</ul>
 				{#if !report.unlocked}
 					<p class="mt-4 text-sm text-sky-300/90">
-						Free scan shows the problems. Unlock gives you Cursor prompts to fix them — then re-scan to
-						prove it.
+						Free scan shows the problems. Unlock gives you Cursor prompts to fix them — then re-scan
+						to prove it.
 					</p>
 				{/if}
 			</div>

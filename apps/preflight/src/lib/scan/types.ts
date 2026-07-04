@@ -5,7 +5,8 @@ import type { SocialPreview } from '$lib/scan/social';
 export type ScanCoverage = 'full' | 'blocked';
 
 export type CheckStatus = 'pass' | 'warn' | 'fail';
-export type CheckCategory = 'seo' | 'legal' | 'security' | 'a11y' | 'mobile' | 'launch' | 'payments';
+export type CheckCategory =
+	'seo' | 'legal' | 'security' | 'a11y' | 'mobile' | 'launch' | 'payments';
 
 export interface ScanCheck {
 	id: string;

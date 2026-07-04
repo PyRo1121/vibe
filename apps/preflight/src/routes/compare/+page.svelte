@@ -113,18 +113,21 @@
 </svelte:head>
 
 <div class="mx-auto max-w-5xl px-4 py-12 text-zinc-300">
-	<p class="mb-3 text-sm font-medium tracking-widest text-sky-400 uppercase">Not another audit score</p>
+	<p class="mb-3 text-sm font-medium tracking-widest text-sky-400 uppercase">
+		Not another audit score
+	</p>
 	<h1 class="mb-4 text-3xl font-bold text-white sm:text-4xl">How Preflight compares</h1>
 	<p class="mb-8 max-w-3xl text-lg text-zinc-400">
-		<strong class="font-medium text-zinc-200">60+ checks</strong> aimed at one question: should you post this
-		URL publicly today? Lighthouse, OG debuggers, and generic scanners answer different questions — we are
-		honest about where each tool wins.
+		<strong class="font-medium text-zinc-200">60+ checks</strong> aimed at one question: should you post
+		this URL publicly today? Lighthouse, OG debuggers, and generic scanners answer different questions
+		— we are honest about where each tool wins.
 	</p>
 
 	<div class="overflow-x-auto rounded-2xl border border-zinc-800">
 		<table class="w-full min-w-[720px] border-collapse text-left text-sm">
 			<caption class="sr-only">
-				Feature comparison between Preflight, Lighthouse, OG preview tools, and generic launch checkers
+				Feature comparison between Preflight, Lighthouse, OG preview tools, and generic launch
+				checkers
 			</caption>
 			<thead>
 				<tr class="border-b border-zinc-800 bg-zinc-900/60">
@@ -158,16 +161,16 @@
 		<h2 class="text-lg font-semibold text-white">When to use what</h2>
 		<ul class="mt-3 list-disc space-y-2 pl-6 text-sm text-zinc-400">
 			<li>
-				<strong class="text-zinc-300">Preflight</strong> — night before Product Hunt, Reddit, or X:
-				embarrassment radar, legal/social blockers, fix prompts, re-scan proof.
+				<strong class="text-zinc-300">Preflight</strong> — night before Product Hunt, Reddit, or X: embarrassment
+				radar, legal/social blockers, fix prompts, re-scan proof.
 			</li>
 			<li>
-				<strong class="text-zinc-300">Lighthouse</strong> — performance budgets, accessibility lab
-				audits, SEO technical scorecards.
+				<strong class="text-zinc-300">Lighthouse</strong> — performance budgets, accessibility lab audits,
+				SEO technical scorecards.
 			</li>
 			<li>
-				<strong class="text-zinc-300">OG debuggers</strong> — quick card preview after you already
-				fixed meta tags.
+				<strong class="text-zinc-300">OG debuggers</strong> — quick card preview after you already fixed
+				meta tags.
 			</li>
 		</ul>
 	</section>

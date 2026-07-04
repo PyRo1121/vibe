@@ -14,7 +14,13 @@ const mockDeps = {
 function routedFetchHtml(routes: Record<string, { html: string; status?: number }>) {
 	return async (url: URL) => {
 		if (url.pathname.startsWith('/preflight-missing-')) {
-			return { html: 'not found', finalUrl: url, status: 404, headers: STRONG_HEADERS, redirectHops: 0 };
+			return {
+				html: 'not found',
+				finalUrl: url,
+				status: 404,
+				headers: STRONG_HEADERS,
+				redirectHops: 0
+			};
 		}
 		const route = routes[url.pathname] ?? routes['/'];
 		return {
@@ -226,7 +232,9 @@ describe('scanUrl', () => {
 			fetchHtml: routedFetchHtml({
 				'/': { html: GOOD_HTML },
 				'/privacy': { html: LEGAL_PAGE_HTML },
-				'/terms': { html: `${LEGAL_PAGE_HTML.replace('</body>', '<p>Lorem ipsum dolor</p></body>')}` }
+				'/terms': {
+					html: `${LEGAL_PAGE_HTML.replace('</body>', '<p>Lorem ipsum dolor</p></body>')}`
+				}
 			}),
 			...mockDeps
 		});
@@ -420,9 +428,7 @@ describe('scanUrl', () => {
 			fetchHtml: routedFetchHtml(LEGAL_ROUTES),
 			...mockDeps,
 			resolveTxt: async (name: string) =>
-				name === 'app.test'
-					? ['v=spf1 include:_spf.example.com ~all']
-					: []
+				name === 'app.test' ? ['v=spf1 include:_spf.example.com ~all'] : []
 		});
 		const email = report.checks.find((c) => c.id === 'email-auth');
 		expect(email?.status).toBe('warn');

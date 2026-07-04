@@ -124,8 +124,7 @@ export function pickCanonical(html: string): string | null {
 export function hasRobotsNoindex(html: string): boolean {
 	const tags = [...html.matchAll(/<meta\b[^>]+name=["']robots["'][^>]*>/gi)];
 	for (const tag of tags) {
-		const content =
-			tag[0].match(/content=["']([^"']*)["']/i)?.[1]?.toLowerCase() ?? '';
+		const content = tag[0].match(/content=["']([^"']*)["']/i)?.[1]?.toLowerCase() ?? '';
 		if (content.includes('noindex')) return true;
 	}
 	return false;
@@ -232,7 +231,11 @@ export function linkHints(links: string[]): { privacy: boolean; terms: boolean; 
 	};
 }
 
-export function mentionsStack(html: string): { stripe: boolean; supabase: boolean; firebase: boolean } {
+export function mentionsStack(html: string): {
+	stripe: boolean;
+	supabase: boolean;
+	firebase: boolean;
+} {
 	const lower = html.toLowerCase();
 	return {
 		stripe: /stripe\.com|js\.stripe\.com|pk_live_|pk_test_/.test(lower),
@@ -252,7 +255,10 @@ export const SECRET_PATTERNS: { pattern: RegExp; label: string }[] = [
 	{ pattern: /gho_[a-zA-Z0-9]{20,}/, label: 'GitHub OAuth token' },
 	{ pattern: /xox[baprs]-[a-zA-Z0-9-]{10,}/, label: 'Slack token' },
 	{ pattern: /npm_[a-zA-Z0-9]{30,}/, label: 'npm access token' },
-	{ pattern: /discord(?:app)?\.com\/api\/webhooks\/\d+\/[A-Za-z0-9_-]+/, label: 'Discord webhook URL' }
+	{
+		pattern: /discord(?:app)?\.com\/api\/webhooks\/\d+\/[A-Za-z0-9_-]+/,
+		label: 'Discord webhook URL'
+	}
 ];
 
 const PLACEHOLDER_VALUES =
@@ -264,7 +270,8 @@ export function findSecrets(html: string): string[] {
 		if (pattern.test(html)) found.push(label);
 	}
 
-	const generic = html.match(/(?:api[_-]?key|secret|password)\s*[:=]\s*['"]([^'"]{8,})['"]/gi) ?? [];
+	const generic =
+		html.match(/(?:api[_-]?key|secret|password)\s*[:=]\s*['"]([^'"]{8,})['"]/gi) ?? [];
 	for (const match of generic) {
 		const value = match.split(/['"]/)[1] ?? '';
 		if (!PLACEHOLDER_VALUES.test(value) && !/^x+$/i.test(value)) {

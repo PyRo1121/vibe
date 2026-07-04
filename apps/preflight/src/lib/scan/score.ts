@@ -111,11 +111,7 @@ export function buildReport(
 	if (html) {
 		let preview = buildSocialPreview(html, finalUrl);
 		if (opts?.ogImageOk !== undefined) {
-			preview = applyOgImageReachability(
-				preview,
-				opts.ogImageOk,
-				opts.ogImageProbe?.contentType
-			);
+			preview = applyOgImageReachability(preview, opts.ogImageOk, opts.ogImageProbe?.contentType);
 		}
 		report.socialPreview = preview;
 	}

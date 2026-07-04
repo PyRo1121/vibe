@@ -19,7 +19,11 @@ import { assertPublicHttpUrl } from '$lib/scan/url-guard';
  */
 
 /** Bounded-concurrency map — keeps us polite to the target and inside Workers' connection queue. */
-async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+async function mapLimit<T, R>(
+	items: T[],
+	limit: number,
+	fn: (item: T) => Promise<R>
+): Promise<R[]> {
 	const results: R[] = new Array(items.length);
 	let next = 0;
 	const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
@@ -248,7 +252,8 @@ export async function checkOgImageLive(
 	probe: ScanDeps['headProbe']
 ): Promise<{ ok: boolean | null; probe: OgImageProbe }> {
 	const raw = pickMeta(html, 'og:image');
-	if (!raw?.trim()) return { ok: null, probe: { reachable: null, isImage: null, contentType: null } };
+	if (!raw?.trim())
+		return { ok: null, probe: { reachable: null, isImage: null, contentType: null } };
 	try {
 		const imageUrl = assertPublicHttpUrl(new URL(raw, finalUrl).href);
 		const result = await probe(imageUrl.href);

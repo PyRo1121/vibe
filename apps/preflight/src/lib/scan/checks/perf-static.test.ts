@@ -20,7 +20,9 @@ function page(body: string, head = ''): string {
 
 describe('img-dimensions', () => {
 	it('skips when fewer than 3 images', () => {
-		expect(get(run(page('<img src="/a.png"><img src="/b.png">')), 'img-dimensions')).toBeUndefined();
+		expect(
+			get(run(page('<img src="/a.png"><img src="/b.png">')), 'img-dimensions')
+		).toBeUndefined();
 	});
 
 	it('passes when all images declare dimensions', () => {
@@ -56,17 +58,12 @@ describe('img-dimensions', () => {
 describe('img-lazy', () => {
 	it('skips under 4 images', () => {
 		expect(
-			get(
-				run(page('<img src="/a.png"><img src="/b.png"><img src="/c.png">')),
-				'img-lazy'
-			)
+			get(run(page('<img src="/a.png"><img src="/b.png"><img src="/c.png">')), 'img-lazy')
 		).toBeUndefined();
 	});
 
 	it('warns when none lazy-load', () => {
-		const html = page(
-			'<img src="/1.png"><img src="/2.png"><img src="/3.png"><img src="/4.png">'
-		);
+		const html = page('<img src="/1.png"><img src="/2.png"><img src="/3.png"><img src="/4.png">');
 		const check = get(run(html), 'img-lazy');
 		expect(check?.status).toBe('warn');
 		expect(check?.message).toContain('none lazy-load');
@@ -158,11 +155,16 @@ describe('preconnect', () => {
 
 describe('blocking-css', () => {
 	it('skips when no head exists', () => {
-		expect(get(run('<div><link rel="stylesheet" href="/a.css"></div>'), 'blocking-css')).toBeUndefined();
+		expect(
+			get(run('<div><link rel="stylesheet" href="/a.css"></div>'), 'blocking-css')
+		).toBeUndefined();
 	});
 
 	it('passes with a modest number of stylesheets', () => {
-		const html = page('', '<link rel="stylesheet" href="/a.css"><link rel="stylesheet" href="/b.css">');
+		const html = page(
+			'',
+			'<link rel="stylesheet" href="/a.css"><link rel="stylesheet" href="/b.css">'
+		);
 		expect(get(run(html), 'blocking-css')?.status).toBe('pass');
 	});
 

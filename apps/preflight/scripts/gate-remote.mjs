@@ -104,7 +104,8 @@ function formatMarkdown(report, result) {
 		lines.push('', '</details>', '');
 	}
 	const link = permalink(report);
-	if (link) lines.push(`[Full report](${link})${advisory ? ' · advisory mode (non-blocking)' : ''}`);
+	if (link)
+		lines.push(`[Full report](${link})${advisory ? ' · advisory mode (non-blocking)' : ''}`);
 	return lines.join('\n');
 }
 
@@ -137,7 +138,9 @@ async function upsertPrComment(ctx, markdown) {
 		const list = await fetch(`${base}?per_page=100`, { headers });
 		if (list.ok) {
 			const comments = await list.json();
-			const existing = comments.find((c) => typeof c.body === 'string' && c.body.includes(COMMENT_MARKER));
+			const existing = comments.find(
+				(c) => typeof c.body === 'string' && c.body.includes(COMMENT_MARKER)
+			);
 			if (existing) {
 				await fetch(`https://api.github.com/repos/${ctx.repo}/issues/comments/${existing.id}`, {
 					method: 'PATCH',
@@ -153,7 +156,9 @@ async function upsertPrComment(ctx, markdown) {
 			headers,
 			body: JSON.stringify({ body: markdown })
 		});
-		console.log(created.ok ? 'Posted Preflight PR comment.' : `PR comment failed (HTTP ${created.status}).`);
+		console.log(
+			created.ok ? 'Posted Preflight PR comment.' : `PR comment failed (HTTP ${created.status}).`
+		);
 	} catch (err) {
 		console.log(`PR comment failed: ${err instanceof Error ? err.message : err}`);
 	}

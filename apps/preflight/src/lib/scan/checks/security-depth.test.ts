@@ -19,7 +19,10 @@ function page(body: string): string {
 
 describe('form-security', () => {
 	it('fails when an HTTPS page posts a form to HTTP', () => {
-		const check = get(run(page('<form action="http://legacy.oldhost.com/submit"></form>')), 'form-security');
+		const check = get(
+			run(page('<form action="http://legacy.oldhost.com/submit"></form>')),
+			'form-security'
+		);
 		expect(check?.status).toBe('fail');
 		expect(check?.message).toContain('legacy.oldhost.com');
 	});
@@ -81,7 +84,9 @@ describe('sri', () => {
 	});
 
 	it('does not count same-origin scripts as third-party', () => {
-		expect(get(run(page('<script src="https://app.test/app.js"></script>')), 'sri')).toBeUndefined();
+		expect(
+			get(run(page('<script src="https://app.test/app.js"></script>')), 'sri')
+		).toBeUndefined();
 	});
 });
 
@@ -153,18 +158,14 @@ describe('mailto-exposure', () => {
 	});
 
 	it('warns for 3+ distinct emails', () => {
-		const html = page(
-			'<p>a@app.test b@b.app.test c@c.app.test d@d.app.test</p>'
-		);
+		const html = page('<p>a@app.test b@b.app.test c@c.app.test d@d.app.test</p>');
 		const check = get(run(html), 'mailto-exposure');
 		expect(check?.status).toBe('warn');
 		expect(check?.message).toContain('4 email addresses');
 	});
 
 	it('excludes example.com and @2x.png false positives', () => {
-		const html = page(
-			'<img src="logo@2x.png"><p>hello@example.com and real@app.test</p>'
-		);
+		const html = page('<img src="logo@2x.png"><p>hello@example.com and real@app.test</p>');
 		const check = get(run(html), 'mailto-exposure');
 		expect(check?.status).toBe('pass');
 	});

@@ -29,9 +29,9 @@ describe('findPlaceholderHints subpage context', () => {
 
 describe('detectConsentTool', () => {
 	it('detects common consent managers', () => {
-		expect(
-			detectConsentTool('<script src="https://consent.cookiebot.com/uc.js"></script>')
-		).toBe('Cookiebot');
+		expect(detectConsentTool('<script src="https://consent.cookiebot.com/uc.js"></script>')).toBe(
+			'Cookiebot'
+		);
 		expect(
 			detectConsentTool('<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js">')
 		).toBe('OneTrust');

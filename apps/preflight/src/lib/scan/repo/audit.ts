@@ -48,7 +48,9 @@ export function selectSourceSamples(entries: RepoTreeEntry[]): string[] {
 }
 
 export function findRootFile(entries: RepoTreeEntry[], pattern: RegExp): string | null {
-	const match = entries.find((e) => e.type === 'blob' && !e.path.includes('/') && pattern.test(e.path));
+	const match = entries.find(
+		(e) => e.type === 'blob' && !e.path.includes('/') && pattern.test(e.path)
+	);
 	return match?.path ?? null;
 }
 

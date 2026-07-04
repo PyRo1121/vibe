@@ -15,7 +15,12 @@ describe('detectLibraries', () => {
 		const html = `<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>`;
 		const libs = detectLibraries(html, base);
 		expect(libs).toHaveLength(1);
-		expect(libs[0]).toMatchObject({ name: 'chart.js', version: '4.4.0', spdx: 'MIT', sellable: 'yes' });
+		expect(libs[0]).toMatchObject({
+			name: 'chart.js',
+			version: '4.4.0',
+			spdx: 'MIT',
+			sellable: 'yes'
+		});
 	});
 
 	it('parses cdnjs and canonicalizes aliases', () => {

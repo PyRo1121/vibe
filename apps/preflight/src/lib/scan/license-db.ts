@@ -14,7 +14,11 @@ export interface KnownLib {
 	note: string;
 }
 
-const PERMISSIVE = (license: string, spdx: string, note = 'Keep the license notice in your bundle.'): KnownLib => ({
+const PERMISSIVE = (
+	license: string,
+	spdx: string,
+	note = 'Keep the license notice in your bundle.'
+): KnownLib => ({
 	license,
 	spdx,
 	category: 'permissive',
@@ -34,7 +38,11 @@ export const KNOWN: Record<string, KnownLib> = {
 	angular: MIT,
 	svelte: MIT,
 	bootstrap: MIT,
-	tailwindcss: PERMISSIVE('MIT', 'MIT', 'Play CDN is for prototyping — compile Tailwind for production builds.'),
+	tailwindcss: PERMISSIVE(
+		'MIT',
+		'MIT',
+		'Play CDN is for prototyping — compile Tailwind for production builds.'
+	),
 	alpinejs: MIT,
 	'htmx.org': PERMISSIVE('BSD 2-Clause', 'BSD-2-Clause'),
 	lodash: MIT,
@@ -78,7 +86,11 @@ export const KNOWN: Record<string, KnownLib> = {
 	hammerjs: MIT,
 	'@popperjs/core': MIT,
 	'tippy.js': MIT,
-	fullcalendar: PERMISSIVE('MIT (core)', 'MIT', 'Core is MIT; FullCalendar Premium plugins require a paid license.'),
+	fullcalendar: PERMISSIVE(
+		'MIT (core)',
+		'MIT',
+		'Core is MIT; FullCalendar Premium plugins require a paid license.'
+	),
 	'ag-grid-community': MIT,
 	'animate.css': {
 		license: 'Hippocratic 2.1',
@@ -226,13 +238,21 @@ export const HOST_RULES: Array<{ pattern: RegExp; name: string }> = [
 	{ pattern: /(^|\.)kit\.fontawesome\.com$|(^|\.)use\.fontawesome\.com$/, name: 'font-awesome' },
 	{ pattern: /^js\.stripe\.com$/, name: 'stripe-js' },
 	{ pattern: /^maps\.googleapis\.com$/, name: 'google-maps' },
-	{ pattern: /(^|\.)googletagmanager\.com$|(^|\.)google-analytics\.com$/, name: 'google-analytics' },
+	{
+		pattern: /(^|\.)googletagmanager\.com$|(^|\.)google-analytics\.com$/,
+		name: 'google-analytics'
+	},
 	{ pattern: /^plausible\.io$/, name: 'plausible' },
 	{ pattern: /(^|\.)polyfill\.io$/, name: 'polyfill-io' },
 	{ pattern: /^cdn\.tailwindcss\.com$/, name: 'tailwindcss' }
 ];
 
-export const SPDX_FAMILIES: Array<{ pattern: RegExp; category: LicenseCategory; sellable: Sellability; note: string }> = [
+export const SPDX_FAMILIES: Array<{
+	pattern: RegExp;
+	category: LicenseCategory;
+	sellable: Sellability;
+	note: string;
+}> = [
 	{
 		pattern: /^AGPL/i,
 		category: 'strong-copyleft',

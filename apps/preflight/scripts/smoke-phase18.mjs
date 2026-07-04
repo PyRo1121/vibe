@@ -51,7 +51,8 @@ if (llms.res.ok && llms.text.startsWith('# Preflight')) pass('llms.txt', String(
 else fail('llms.txt', `${llms.res.status} ${llms.text.slice(0, 40)}`);
 
 const robots = await get('/robots.txt');
-if (robots.res.ok && robots.text.includes('Allow: /')) pass('robots.txt', String(robots.res.status));
+if (robots.res.ok && robots.text.includes('Allow: /'))
+	pass('robots.txt', String(robots.res.status));
 else fail('robots.txt', String(robots.res.status));
 
 const home = await get('/');
@@ -69,12 +70,13 @@ if (!scan.res.ok) {
 	fail('scan example.com', `${scan.res.status} ${scan.text.slice(0, 120)}`);
 } else {
 	const r = scan.json;
-	if (r.launchBrief?.embarrassmentRisks?.length > 0) pass('embarrassment brief', `${r.launchBrief.embarrassmentRisks.length} risks`);
+	if (r.launchBrief?.embarrassmentRisks?.length > 0)
+		pass('embarrassment brief', `${r.launchBrief.embarrassmentRisks.length} risks`);
 	else fail('embarrassment brief', 'empty');
 
-	const locked = r.checks?.filter((c) => c.status !== 'pass' && !c.fixPrompt).length ?? 0;
 	const issues = r.checks?.filter((c) => c.status !== 'pass').length ?? 0;
-	if (issues > 0 && r.samplePromptId) pass('locked prompts UX', `${issues} issues, sample=${r.samplePromptId}`);
+	if (issues > 0 && r.samplePromptId)
+		pass('locked prompts UX', `${issues} issues, sample=${r.samplePromptId}`);
 	else fail('locked prompts UX', `issues=${issues} sample=${r.samplePromptId}`);
 
 	if (r.verdict && typeof r.score === 'number') pass('verdict + score', `${r.verdict} ${r.score}`);
@@ -82,7 +84,10 @@ if (!scan.res.ok) {
 
 	const licCheck = r.checks?.find((c) => c.id === 'license-risk');
 	if (r.licenseAudit && licCheck && r.licenseAudit.summary) {
-		pass('license audit', `${r.licenseAudit.libraries.length} libs, sellable=${r.licenseAudit.sellable}`);
+		pass(
+			'license audit',
+			`${r.licenseAudit.libraries.length} libs, sellable=${r.licenseAudit.sellable}`
+		);
 	} else {
 		fail('license audit', `audit=${Boolean(r.licenseAudit)} check=${licCheck?.status}`);
 	}
@@ -101,7 +106,10 @@ const badOgScan = await post('/api/scan', { url: `${BASE}/fixtures/bad-og` });
 if (badOgScan.res.ok) {
 	const r = badOgScan.json;
 	if (r.scanCoverage === 'blocked') {
-		skip('broken og:image', 'worker cannot fetch its own zone (CF 522); covered by engine unit tests');
+		skip(
+			'broken og:image',
+			'worker cannot fetch its own zone (CF 522); covered by engine unit tests'
+		);
 	} else {
 		const ogLive = r.checks?.find((c) => c.id === 'og-image-live');
 		const previewIssues = r.socialPreview?.issues ?? [];
@@ -170,7 +178,12 @@ else if (ext.res.ok) pass('external social preview', 'scan ok');
 else fail('external social preview', String(ext.res.status));
 
 // 4. Funnel events endpoint
-const evt = await post('/api/events', { event: 'scan_completed', verdict: 'conditional', score: 70, issueCount: 5 });
+const evt = await post('/api/events', {
+	event: 'scan_completed',
+	verdict: 'conditional',
+	score: 70,
+	issueCount: 5
+});
 if (evt.res.ok && evt.json?.ok) pass('funnel /api/events', 'scan_completed accepted');
 else fail('funnel /api/events', `${evt.res.status} ${evt.text.slice(0, 80)}`);
 
@@ -179,7 +192,10 @@ const checkout = await post('/api/checkout', { url: 'https://example.com' });
 if (checkout.res.ok && checkout.json?.url?.includes('checkout.stripe.com')) {
 	pass('checkout session', checkout.json.sessionId ?? 'session created');
 } else if (checkout.res.status === 503) {
-	fail('checkout session', 'Stripe not configured on Worker — run wrangler secret put STRIPE_SECRET_KEY');
+	fail(
+		'checkout session',
+		'Stripe not configured on Worker — run wrangler secret put STRIPE_SECRET_KEY'
+	);
 } else {
 	fail('checkout session', `${checkout.res.status} ${checkout.text.slice(0, 120)}`);
 }
@@ -202,5 +218,9 @@ if (failed.length) {
 	process.exit(1);
 }
 
-console.log('\nManual (human): complete one Stripe test checkout with card 4242… then re-scan for unlock delta.');
-console.log('Optional: stripe trigger checkout.session.completed (npm run stripe:test-webhook) → check CF logs for checkout_paid');
+console.log(
+	'\nManual (human): complete one Stripe test checkout with card 4242… then re-scan for unlock delta.'
+);
+console.log(
+	'Optional: stripe trigger checkout.session.completed (npm run stripe:test-webhook) → check CF logs for checkout_paid'
+);

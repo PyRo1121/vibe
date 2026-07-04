@@ -97,22 +97,17 @@ describe('report store', () => {
 	});
 
 	it('computes fixed and regressed checks between scans', () => {
-		const diff = computeScanDiff(
-			{ 'meta-description': 'fail', 'og-image-live': 'warn' },
-			[
-				{ id: 'meta-description', status: 'pass', title: 'Meta description' },
-				{ id: 'og-image-live', status: 'warn', title: 'OG image reachable' },
-				{ id: 'privacy-policy', status: 'fail', title: 'Privacy policy link' },
-				{ id: 'canonical', status: 'pass', title: 'Canonical URL' }
-			]
-		);
+		const diff = computeScanDiff({ 'meta-description': 'fail', 'og-image-live': 'warn' }, [
+			{ id: 'meta-description', status: 'pass', title: 'Meta description' },
+			{ id: 'og-image-live', status: 'warn', title: 'OG image reachable' },
+			{ id: 'privacy-policy', status: 'fail', title: 'Privacy policy link' },
+			{ id: 'canonical', status: 'pass', title: 'Canonical URL' }
+		]);
 		expect(diff).toEqual({ fixed: ['Meta description'], regressed: ['Privacy policy link'] });
 	});
 
 	it('returns null diff when nothing changed', () => {
-		expect(
-			computeScanDiff({ a: 'fail' }, [{ id: 'a', status: 'fail', title: 'A' }])
-		).toBeNull();
+		expect(computeScanDiff({ a: 'fail' }, [{ id: 'a', status: 'fail', title: 'A' }])).toBeNull();
 	});
 
 	it('returns null when KV throws instead of breaking the scan', async () => {

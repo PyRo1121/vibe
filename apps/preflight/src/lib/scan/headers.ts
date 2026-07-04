@@ -22,7 +22,10 @@ export function hasClickjackProtection(headers: ResponseSecurityHeaders): boolea
 	return csp.includes('frame-ancestors');
 }
 
-export function hstsStatus(headers: ResponseSecurityHeaders, https: boolean): 'pass' | 'warn' | 'fail' {
+export function hstsStatus(
+	headers: ResponseSecurityHeaders,
+	https: boolean
+): 'pass' | 'warn' | 'fail' {
 	if (!https) return 'fail';
 	return headers.hsts?.trim() ? 'pass' : 'warn';
 }

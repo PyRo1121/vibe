@@ -62,7 +62,9 @@ function parseCdnUrl(url: URL): { name: string; version: string | null } | null 
 /** Self-hosted copies of known libraries, e.g. /assets/jquery-3.6.0.min.js */
 function parseFilename(url: URL): { name: string; version: string | null } | null {
 	const file = url.pathname.split('/').pop() ?? '';
-	const m = file.match(/^([a-z@][\w.-]*?)(?:[.-](\d+(?:\.\d+)+))?(?:\.slim|\.umd|\.esm|\.bundle)?(?:\.min)?\.(?:js|css)$/i);
+	const m = file.match(
+		/^([a-z@][\w.-]*?)(?:[.-](\d+(?:\.\d+)+))?(?:\.slim|\.umd|\.esm|\.bundle)?(?:\.min)?\.(?:js|css)$/i
+	);
 	if (!m) return null;
 	const name = canonicalName(m[1]);
 	if (!(name in KNOWN)) return null;
@@ -106,7 +108,11 @@ export function detectLibraries(html: string, base: URL): DetectedLibrary[] {
 	return [...found.values()];
 }
 
-export function classifySpdx(spdx: string): { category: LicenseCategory; sellable: Sellability; note: string } {
+export function classifySpdx(spdx: string): {
+	category: LicenseCategory;
+	sellable: Sellability;
+	note: string;
+} {
 	for (const family of SPDX_FAMILIES) {
 		if (family.pattern.test(spdx)) return family;
 	}
@@ -186,7 +192,8 @@ export function buildLicenseAudit(libraries: DetectedLibrary[]): LicenseAudit {
 		return {
 			libraries,
 			sellable: 'yes',
-			summary: 'No third-party libraries detected in page assets — no external license obligations found.'
+			summary:
+				'No third-party libraries detected in page assets — no external license obligations found.'
 		};
 	}
 

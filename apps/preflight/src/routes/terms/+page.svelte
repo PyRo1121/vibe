@@ -19,8 +19,8 @@
 
 	<h2 class="mb-3 text-xl font-semibold text-white">Payments</h2>
 	<p class="mb-6">
-		Fix-prompt unlocks are a one-time purchase per checkout session. Refunds are handled case by case
-		via support.
+		Fix-prompt unlocks are a one-time purchase per checkout session. Refunds are handled case by
+		case via support.
 	</p>
 
 	<h2 class="mb-3 text-xl font-semibold text-white">Disclaimer</h2>
@@ -31,7 +31,9 @@
 
 	<h2 class="mb-3 text-xl font-semibold text-white">Contact</h2>
 	<p class="mb-8">
-		Questions: <a class="text-sky-400 hover:underline" href="mailto:support@latham.cloud">support@latham.cloud</a>
+		Questions: <a class="text-sky-400 hover:underline" href="mailto:support@latham.cloud"
+			>support@latham.cloud</a
+		>
 	</p>
 
 	<p><a class="text-sky-400 hover:underline" href="/">← Back to Preflight</a></p>

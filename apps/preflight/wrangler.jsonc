@@ -10,6 +10,7 @@
 		"run_worker_first": ["/api/*"]
 	},
 	"observability": { "enabled": true },
+	"upload_source_maps": true,
 	"kv_namespaces": [
 		{
 			"binding": "REPORTS",
@@ -17,7 +18,8 @@
 		}
 	],
 	"ai": {
-		"binding": "AI"
+		"binding": "AI",
+		"remote": true
 	},
 	"services": [
 		{

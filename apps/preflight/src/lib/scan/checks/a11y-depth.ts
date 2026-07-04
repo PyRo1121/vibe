@@ -77,7 +77,10 @@ function pushFormLabelsCheck(checks: ScanCheck[], html: string, ctx: { url: stri
 }
 
 function visibleText(tag: string): string {
-	return tag.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+	return tag
+		.replace(/<[^>]+>/g, '')
+		.replace(/\s+/g, ' ')
+		.trim();
 }
 
 function hasAccessibleName(tag: string, innerHtml: string): boolean {
@@ -182,11 +185,7 @@ function pushSkipLinkCheck(checks: ScanCheck[], html: string, ctx: { url: string
 	);
 }
 
-export function pushA11yDepthChecks(
-	checks: ScanCheck[],
-	html: string,
-	ctx: { url: string }
-): void {
+export function pushA11yDepthChecks(checks: ScanCheck[], html: string, ctx: { url: string }): void {
 	pushFormLabelsCheck(checks, html, ctx);
 	pushAccessibleNamesCheck(checks, html, ctx);
 	pushLandmarksCheck(checks, html, ctx);

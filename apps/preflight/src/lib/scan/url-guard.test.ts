@@ -39,4 +39,14 @@ describe('assertPublicHttpUrl', () => {
 	it('rejects credentials in URL', () => {
 		expect(isPublicHttpUrl('https://user:pass@example.com')).toBe(false);
 	});
+
+	it('rejects CGNAT and benchmark ranges', () => {
+		expect(isPublicHttpUrl('https://100.64.0.1')).toBe(false);
+		expect(isPublicHttpUrl('https://198.18.0.1')).toBe(false);
+	});
+
+	it('rejects internal TLD suffixes', () => {
+		expect(isPublicHttpUrl('https://app.internal')).toBe(false);
+		expect(isPublicHttpUrl('https://db.local')).toBe(false);
+	});
 });

@@ -1,5 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
-import { mockScanReport } from './fixtures';
+import { expect, type Page } from '@playwright/test';
 import type { ScanReport } from '../src/lib/scan/types';
 
 export async function mockScanApi(page: Page, report: ScanReport | 'error', status = 200) {
@@ -12,7 +11,9 @@ export async function mockScanApi(page: Page, report: ScanReport | 'error', stat
 			await route.fulfill({
 				status,
 				contentType: 'application/json',
-				body: JSON.stringify({ message: 'Could not reach that URL — check the spelling or try again later.' })
+				body: JSON.stringify({
+					message: 'Could not reach that URL — check the spelling or try again later.'
+				})
 			});
 			return;
 		}

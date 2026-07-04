@@ -146,7 +146,14 @@ function pushHreflangCheck(checks: ScanCheck[], html: string, ctx: CheckCtx): vo
 	}
 
 	checks.push(
-		makeCheck('hreflang', 'seo', 'hreflang annotations', status, message, fixPrompt('hreflang', ctx))
+		makeCheck(
+			'hreflang',
+			'seo',
+			'hreflang annotations',
+			status,
+			message,
+			fixPrompt('hreflang', ctx)
+		)
 	);
 }
 

@@ -44,7 +44,14 @@ function legalCheck(
 	ctx: CheckCtx
 ): ScanCheck {
 	if (!linkFound) {
-		return makeCheck(def.id, 'legal', def.title, def.missingStatus, def.missingMessage, fixPrompt(def.id, ctx));
+		return makeCheck(
+			def.id,
+			'legal',
+			def.title,
+			def.missingStatus,
+			def.missingMessage,
+			fixPrompt(def.id, ctx)
+		);
 	}
 	if (!page) {
 		return makeCheck(def.id, 'legal', def.title, 'pass', def.foundMessage, fixPrompt(def.id, ctx));
@@ -53,15 +60,36 @@ function legalCheck(
 	const path = pagePath(page.url);
 	if (page.status === 404 || page.status === 410) {
 		const message = `Link points to a missing page — HTTP ${page.status} at ${path}`;
-		return makeCheck(def.id, 'legal', def.title, 'fail', message, fixPrompt(def.id, { ...ctx, message }));
+		return makeCheck(
+			def.id,
+			'legal',
+			def.title,
+			'fail',
+			message,
+			fixPrompt(def.id, { ...ctx, message })
+		);
 	}
 	if (page.status === null || page.status >= 400) {
 		const message = `Found ${path} but could not verify it${page.status ? ` (HTTP ${page.status})` : ''}`;
-		return makeCheck(def.id, 'legal', def.title, 'warn', message, fixPrompt(def.id, { ...ctx, message }));
+		return makeCheck(
+			def.id,
+			'legal',
+			def.title,
+			'warn',
+			message,
+			fixPrompt(def.id, { ...ctx, message })
+		);
 	}
 	if (page.wordCount < LEGAL_STUB_MIN_WORDS) {
 		const message = `${path} looks like a stub — only ${page.wordCount} words of visible text`;
-		return makeCheck(def.id, 'legal', def.title, 'warn', message, fixPrompt(def.id, { ...ctx, message }));
+		return makeCheck(
+			def.id,
+			'legal',
+			def.title,
+			'warn',
+			message,
+			fixPrompt(def.id, { ...ctx, message })
+		);
 	}
 	return makeCheck(
 		def.id,
@@ -84,9 +112,7 @@ export function pushMetaChecks(
 			'title',
 			'seo',
 			'Page title',
-			meta.resolvedTitle
-				? lengthStatus(meta.resolvedTitle.length, SEO_LIMITS.titlePass)
-				: 'fail',
+			meta.resolvedTitle ? lengthStatus(meta.resolvedTitle.length, SEO_LIMITS.titlePass) : 'fail',
 			meta.resolvedTitle ? `"${meta.resolvedTitle.slice(0, 80)}"` : 'Missing <title> tag',
 			fixPrompt('title', ctx)
 		),
@@ -94,9 +120,7 @@ export function pushMetaChecks(
 			'description',
 			'seo',
 			'Meta description',
-			meta.description
-				? lengthStatus(meta.description.length, SEO_LIMITS.descriptionPass)
-				: 'fail',
+			meta.description ? lengthStatus(meta.description.length, SEO_LIMITS.descriptionPass) : 'fail',
 			meta.description ? `${meta.description.slice(0, 120)}…` : 'Missing meta description',
 			fixPrompt('description', ctx)
 		)

@@ -60,12 +60,12 @@
 			<p class="mt-4 text-xs text-zinc-500">
 				{#if report.repo}
 					Audited from package.json production dependencies via the npm registry. Transitive
-					dependencies are not resolved — run <code>npx license-checker</code> locally before a
-					commercial launch.
+					dependencies are not resolved — run <code>npx license-checker</code> locally before a commercial
+					launch.
 				{:else}
 					Detected from public page assets (CDN scripts, fonts, recognizable filenames). Server-side
-					and bundled dependencies are not visible to this scan — run a full dependency audit before a
-					commercial launch.
+					and bundled dependencies are not visible to this scan — run a full dependency audit before
+					a commercial launch.
 				{/if}
 			</p>
 		{/if}

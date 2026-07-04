@@ -133,9 +133,7 @@ describe('accessible-names', () => {
 describe('landmarks', () => {
 	it('passes with a <main> element or role=main', () => {
 		expect(byId(run(page('<main><h1>Hi</h1></main>')), 'landmarks')?.status).toBe('pass');
-		expect(byId(run(page('<div role="main"><h1>Hi</h1></div>')), 'landmarks')?.status).toBe(
-			'pass'
-		);
+		expect(byId(run(page('<div role="main"><h1>Hi</h1></div>')), 'landmarks')?.status).toBe('pass');
 	});
 
 	it('warns when no main landmark exists', () => {

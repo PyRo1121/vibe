@@ -93,4 +93,6 @@ export const mockUnlockedReport: ScanReport = {
 	masterPrompt: 'Fix all launch blockers for https://demo-app.test in one pass.'
 };
 
-export const mockScanError = { message: 'Could not reach that URL — check the spelling or try again later.' };
+export const mockScanError = {
+	message: 'Could not reach that URL — check the spelling or try again later.'
+};

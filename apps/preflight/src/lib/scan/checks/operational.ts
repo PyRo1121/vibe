@@ -5,7 +5,11 @@ import { fixPrompt } from '$lib/scan/prompts';
 import { makeCheck } from '$lib/scan/score';
 
 /** Response time, soft-404 handling, and email deliverability — parity with dedicated launch checkers. */
-export function pushOperationalChecks(checks: ScanCheck[], scanCtx: ScanContext, ctx: CheckCtx): void {
+export function pushOperationalChecks(
+	checks: ScanCheck[],
+	scanCtx: ScanContext,
+	ctx: CheckCtx
+): void {
 	const ms = scanCtx.responseTimeMs;
 	if (ms != null) {
 		const seconds = (ms / 1000).toFixed(1);
@@ -54,7 +58,12 @@ export function pushOperationalChecks(checks: ScanCheck[], scanCtx: ScanContext,
 					? `SPF found but no DMARC on ${email.domain} — Gmail and Outlook increasingly require both`
 					: `No SPF or DMARC on ${email.domain} — password resets and receipts will land in spam`;
 		checks.push(
-			makeCheck('email-auth', 'launch', 'Email deliverability (SPF/DMARC)', status, message,
+			makeCheck(
+				'email-auth',
+				'launch',
+				'Email deliverability (SPF/DMARC)',
+				status,
+				message,
 				fixPrompt('email-auth', { ...ctx, message })
 			)
 		);
@@ -74,7 +83,12 @@ export function pushOperationalChecks(checks: ScanCheck[], scanCtx: ScanContext,
 			message = `${host.altHost} reaches this site`;
 		}
 		checks.push(
-			makeCheck('host-consistency', 'seo', 'www / apex domain', status, message,
+			makeCheck(
+				'host-consistency',
+				'seo',
+				'www / apex domain',
+				status,
+				message,
 				fixPrompt('host-consistency', { ...ctx, message })
 			)
 		);

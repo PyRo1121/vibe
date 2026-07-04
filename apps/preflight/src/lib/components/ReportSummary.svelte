@@ -83,7 +83,9 @@
 					{#each report.history as h (h.id)}
 						<a
 							href="/r/{h.id}"
-							class="rounded bg-zinc-800/70 px-1.5 py-0.5 tabular-nums {scoreColor(h.score)} hover:bg-zinc-700"
+							class="rounded bg-zinc-800/70 px-1.5 py-0.5 tabular-nums {scoreColor(
+								h.score
+							)} hover:bg-zinc-700"
 							title={new Date(h.at).toLocaleString()}
 						>
 							{h.score}
@@ -98,8 +100,8 @@
 				<div class="mt-2 space-y-0.5 text-xs">
 					{#if report.scanDiff.fixed.length > 0}
 						<p class="text-emerald-400" title={report.scanDiff.fixed.join(', ')}>
-							✓ Fixed since last scan: {report.scanDiff.fixed.slice(0, 3).join(', ')}{report.scanDiff
-								.fixed.length > 3
+							✓ Fixed since last scan: {report.scanDiff.fixed.slice(0, 3).join(', ')}{report
+								.scanDiff.fixed.length > 3
 								? ` +${report.scanDiff.fixed.length - 3} more`
 								: ''}
 						</p>
@@ -126,7 +128,9 @@
 					{report.summary.fail} failing
 				</span>
 				{#if report.unlocked}
-					<span class="rounded-full bg-sky-500/15 px-2.5 py-1 text-sky-300">Fix & verify unlocked</span>
+					<span class="rounded-full bg-sky-500/15 px-2.5 py-1 text-sky-300"
+						>Fix & verify unlocked</span
+					>
 				{/if}
 			</div>
 
@@ -136,7 +140,8 @@
 
 			{#if report.stack?.length}
 				<div class="mt-3 flex flex-wrap items-center gap-1.5">
-					<span class="text-[10px] font-semibold tracking-wider text-zinc-600 uppercase">Stack</span>
+					<span class="text-[10px] font-semibold tracking-wider text-zinc-600 uppercase">Stack</span
+					>
 					{#each report.stack as tech (tech)}
 						<span
 							class="rounded-full border border-zinc-700/80 bg-zinc-800/60 px-2 py-0.5 text-[11px] text-zinc-300"
@@ -213,9 +218,12 @@
 										>{#if row.warn > 0}<span> · </span>{/if}{/if}{#if row.warn > 0}<span
 											class="text-amber-400">{row.warn} warn</span
 										>{/if}
-									{#if row.fail === 0 && row.warn === 0}<span class="text-emerald-400">all clear</span
+									{#if row.fail === 0 && row.warn === 0}<span class="text-emerald-400"
+											>all clear</span
 										>{/if}
-									<span class="ml-2 font-bold tabular-nums {scoreColor(row.score)}">{row.score}</span>
+									<span class="ml-2 font-bold tabular-nums {scoreColor(row.score)}"
+										>{row.score}</span
+									>
 								</span>
 							</div>
 							<div class="h-1.5 overflow-hidden rounded-full bg-zinc-800">

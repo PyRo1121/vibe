@@ -76,7 +76,10 @@ export function nodeVersionPinned(
 	}
 }
 
-export function parseTsconfigStrict(text: string | null): { valid: boolean; strict: boolean | null } {
+export function parseTsconfigStrict(text: string | null): {
+	valid: boolean;
+	strict: boolean | null;
+} {
 	if (!text) return { valid: false, strict: null };
 	try {
 		const parsed = JSON.parse(text) as { compilerOptions?: { strict?: boolean } };

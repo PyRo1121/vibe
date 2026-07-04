@@ -71,9 +71,7 @@ describe('nodeVersionPinned', () => {
 	});
 
 	it('returns false when nothing pins Node', () => {
-		expect(nodeVersionPinned([blob('src/index.ts')], JSON.stringify({ name: 'app' }))).toBe(
-			false
-		);
+		expect(nodeVersionPinned([blob('src/index.ts')], JSON.stringify({ name: 'app' }))).toBe(false);
 	});
 });
 

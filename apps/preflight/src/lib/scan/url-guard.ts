@@ -1,10 +1,6 @@
 import { normalizeUrl } from '$lib/scan/parse';
 
-const BLOCKED_HOSTS = new Set([
-	'localhost',
-	'metadata.google.internal',
-	'metadata.goog'
-]);
+const BLOCKED_HOSTS = new Set(['localhost', 'metadata.google.internal', 'metadata.goog']);
 
 export class UrlValidationError extends Error {
 	constructor(message: string) {
@@ -29,6 +25,10 @@ function isPrivateIpv4(octets: number[]): boolean {
 	if (a === 169 && b === 254) return true;
 	if (a === 192 && b === 168) return true;
 	if (a === 172 && b >= 16 && b <= 31) return true;
+	// CGNAT / shared address space (RFC 6598)
+	if (a === 100 && b >= 64 && b <= 127) return true;
+	// Benchmarking (RFC 2544)
+	if (a === 198 && b >= 18 && b <= 19) return true;
 	return false;
 }
 
@@ -44,6 +44,9 @@ function isBlockedHost(host: string): boolean {
 	const lower = host.toLowerCase().replace(/\.$/, '');
 	if (BLOCKED_HOSTS.has(lower)) return true;
 	if (lower.endsWith('.localhost')) return true;
+	if (lower.endsWith('.local')) return true;
+	if (lower.endsWith('.internal')) return true;
+	if (lower.endsWith('.intranet')) return true;
 
 	const ipv4 = parseIpv4(lower);
 	if (ipv4) return isPrivateIpv4(ipv4);

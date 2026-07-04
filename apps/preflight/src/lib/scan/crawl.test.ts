@@ -43,9 +43,7 @@ describe('selectCrawlTargets', () => {
 		];
 		const targets = selectCrawlTargets(links, base);
 		expect(targets.find((t) => t.role === 'privacy')?.url).toBe('https://app.test/privacy');
-		expect(targets.find((t) => t.role === 'terms')?.url).toBe(
-			'https://app.test/terms-of-service'
-		);
+		expect(targets.find((t) => t.role === 'terms')?.url).toBe('https://app.test/terms-of-service');
 	});
 
 	it('falls back to loose matches when no canonical path exists', () => {

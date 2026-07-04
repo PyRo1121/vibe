@@ -23,7 +23,10 @@ function stripForScan(html: string): string {
 }
 
 function elementText(inner: string): string {
-	return inner.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+	return inner
+		.replace(/<[^>]+>/g, ' ')
+		.replace(/\s+/g, ' ')
+		.trim();
 }
 
 function truncateQuote(text: string, max = 60): string {
@@ -46,8 +49,7 @@ interface CtaMatch {
 
 function findCtas(markup: string): CtaMatch[] {
 	const ctas: CtaMatch[] = [];
-	const re =
-		/<(?:button|a)\b[^>]*>([\s\S]*?)<\/(?:button|a)>/gi;
+	const re = /<(?:button|a)\b[^>]*>([\s\S]*?)<\/(?:button|a)>/gi;
 	for (const m of markup.matchAll(re)) {
 		const text = elementText(m[1]);
 		if (text && CTA_VERB.test(text)) {

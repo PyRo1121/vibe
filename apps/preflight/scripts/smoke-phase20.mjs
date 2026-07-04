@@ -8,8 +8,7 @@
  */
 const BASE = (process.env.PREFLIGHT_BASE ?? 'https://preflight.latham.cloud').replace(/\/$/, '');
 /** Stable public site with /privacy and /terms linked from the homepage. */
-const MULTIPAGE_URL =
-	process.env.SMOKE_MULTIPAGE_URL ?? 'https://plausible.io';
+const MULTIPAGE_URL = process.env.SMOKE_MULTIPAGE_URL ?? 'https://plausible.io';
 
 const results = [];
 

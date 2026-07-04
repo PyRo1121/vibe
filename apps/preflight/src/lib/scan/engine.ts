@@ -3,7 +3,12 @@ import { buildContentChecks, type ScanContext } from '$lib/scan/analyze';
 import { buildBlockedHomepageChecks, isBlockedHomepageStatus } from '$lib/scan/coverage';
 import { crawlPages, selectCrawlTargets } from '$lib/scan/crawl';
 import { defaultDeps, type ScanDeps } from '$lib/scan/fetchers';
-import { buildLicenseAudit, detectLibraries, licenseCheckStatus, mergeLibraries } from '$lib/scan/license';
+import {
+	buildLicenseAudit,
+	detectLibraries,
+	licenseCheckStatus,
+	mergeLibraries
+} from '$lib/scan/license';
 import { extractLinks } from '$lib/scan/parse';
 import {
 	checkEmailAuth,

@@ -50,7 +50,7 @@ export function fixPrompt(id: string, context: { url: string; message?: string }
 		'placeholder-copy': `${base}Replace placeholder copy (Lorem ipsum, TODO, example.com, "Coming soon") with real product copy on the homepage and hero.`,
 		'json-ld': `${base}Add JSON-LD structured data in the head — start with WebSite or SoftwareApplication schema describing name, URL, and description.`,
 		'llms-txt': `${base}Add /llms.txt at the site root with a short markdown summary of your product, docs links, and what the site does for AI crawlers.`,
-		'analytics': `${base}Add analytics before launch — GA4 via gtag/GTM, or privacy-friendly Plausible/Fathom. Verify events fire on the homepage.`,
+		analytics: `${base}Add analytics before launch — GA4 via gtag/GTM, or privacy-friendly Plausible/Fathom. Verify events fire on the homepage.`,
 		'env-committed': `${base}A .env file is committed to this repository. (1) Remove it: git rm --cached <file> and commit. (2) Add .env* to .gitignore. (3) Rotate EVERY key that was in the file — treat them all as leaked, since git history keeps old commits. (4) If the repo is public, rotate immediately; scanners index GitHub within minutes. Use .env.example with placeholder values for documentation.`,
 		'gitignore-env': `${base}Add a .gitignore entry excluding env files (.env, .env.*, !.env.example) plus node_modules/ and build output. Without it, one accidental "git add ." commits every secret.`,
 		'dependency-vulns': `${base}Fix the known-vulnerable dependencies listed in the check message. (1) Run "npm audit" locally to see the full list with advisories. (2) Run "npm audit fix" for compatible upgrades. (3) For majors, bump the affected package manually and run your tests. (4) If a fix doesn't exist yet, check the advisory (osv.dev/<id>) for workarounds or replace the package. Re-scan to verify the vulnerabilities are gone.`,
@@ -108,7 +108,9 @@ export function fixPrompt(id: string, context: { url: string; message?: string }
 		'ts-strict': `${base}Enable strict mode in tsconfig.json: "compilerOptions": { "strict": true }. Fix the resulting errors incrementally (start with strictNullChecks). Without strict, TypeScript misses the null/undefined bugs it exists to catch.`
 	};
 
-	return templates[id] ?? `${base}Fix this launch readiness issue before sharing the site publicly.`;
+	return (
+		templates[id] ?? `${base}Fix this launch readiness issue before sharing the site publicly.`
+	);
 }
 
 /** One paste for Cursor/Claude — fixes all failing checks in priority order. */
@@ -151,8 +153,7 @@ export function buildMasterPrompt(
 	}
 
 	const lines = issues.map(
-		(c) =>
-			`- [${resolvePriorityLabel(c)}] ${c.title} (${c.status}): ${c.message}`
+		(c) => `- [${resolvePriorityLabel(c)}] ${c.title} (${c.status}): ${c.message}`
 	);
 
 	return [

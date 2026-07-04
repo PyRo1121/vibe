@@ -35,7 +35,9 @@
 					{repo.branch}
 				</span>
 				{#if repo.stars !== null}
-					<span class="rounded-full border border-zinc-700 bg-zinc-800/80 px-2.5 py-1 text-zinc-300">
+					<span
+						class="rounded-full border border-zinc-700 bg-zinc-800/80 px-2.5 py-1 text-zinc-300"
+					>
 						★ {formatStars(repo.stars)}
 					</span>
 				{/if}

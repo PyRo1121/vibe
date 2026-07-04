@@ -8,8 +8,7 @@ export const SEO_LIMITS = {
 	clarityDescriptionMin: 50
 } as const;
 
-export const USER_AGENT =
-	'Preflight/1.0 (+https://preflight.latham.cloud; site-readiness-audit)';
+export const USER_AGENT = 'Preflight/1.0 (+https://preflight.latham.cloud; site-readiness-audit)';
 
 export const FETCH_TIMEOUT_MS = 12_000;
 export const MAX_LINK_CHECKS = 12;

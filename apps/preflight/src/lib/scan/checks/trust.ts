@@ -119,8 +119,10 @@ function pushDeadSocialLinksCheck(checks: ScanCheck[], html: string, ctx: { url:
 
 function anchorTargetExists(html: string, id: string): boolean {
 	const escaped = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-	return new RegExp(`\\bid\\s*=\\s*(["'])${escaped}\\1`, 'i').test(html) ||
-		new RegExp(`\\bname\\s*=\\s*(["'])${escaped}\\1`, 'i').test(html);
+	return (
+		new RegExp(`\\bid\\s*=\\s*(["'])${escaped}\\1`, 'i').test(html) ||
+		new RegExp(`\\bname\\s*=\\s*(["'])${escaped}\\1`, 'i').test(html)
+	);
 }
 
 function pushBrokenAnchorNavCheck(checks: ScanCheck[], html: string, ctx: { url: string }): void {
@@ -174,7 +176,11 @@ function pushBrokenAnchorNavCheck(checks: ScanCheck[], html: string, ctx: { url:
 	);
 }
 
-function pushDefaultFaviconTitleCheck(checks: ScanCheck[], html: string, ctx: { url: string }): void {
+function pushDefaultFaviconTitleCheck(
+	checks: ScanCheck[],
+	html: string,
+	ctx: { url: string }
+): void {
 	const title = extractTitle(html);
 	const titleHit = title !== null && TEMPLATE_TITLES.has(title.trim().toLowerCase());
 	const faviconHit =

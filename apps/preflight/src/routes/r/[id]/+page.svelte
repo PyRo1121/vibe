@@ -45,13 +45,15 @@
 	<title>{pageTitle}</title>
 	<meta
 		name="description"
-		content="Launch readiness report: {report.summary.fail} failing, {report.summary.warn} warnings, {report.summary.pass} passing."
+		content="Launch readiness report: {report.summary.fail} failing, {report.summary
+			.warn} warnings, {report.summary.pass} passing."
 	/>
 	<meta name="robots" content="noindex" />
 	<meta property="og:title" content={pageTitle} />
 	<meta
 		property="og:description"
-		content="Verdict: {verdictLabels[report.verdict]} · score {report.score}/100 · {report.summary.fail} failing checks."
+		content="Verdict: {verdictLabels[report.verdict]} · score {report.score}/100 · {report.summary
+			.fail} failing checks."
 	/>
 </svelte:head>
 

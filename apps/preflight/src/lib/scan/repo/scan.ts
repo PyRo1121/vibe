@@ -83,16 +83,23 @@ export async function scanRepo(
 	const getFile = (path: string | null, maxBytes?: number) =>
 		path ? fetchers.getFile(ref, meta.branch, path, maxBytes) : Promise.resolve(null);
 
-	const [packageJsonText, readmeText, gitignoreText, lockfileText, tsconfigText, envTexts, sampleTexts] =
-		await Promise.all([
-			getFile(packageJsonPath),
-			getFile(readmePath),
-			getFile(gitignorePath),
-			getFile(lockfilePath, MAX_LOCKFILE_BYTES),
-			getFile(tsconfigPath),
-			Promise.all(envFiles.slice(0, 2).map((p) => getFile(p))),
-			Promise.all(sampleFiles.map((p) => getFile(p)))
-		]);
+	const [
+		packageJsonText,
+		readmeText,
+		gitignoreText,
+		lockfileText,
+		tsconfigText,
+		envTexts,
+		sampleTexts
+	] = await Promise.all([
+		getFile(packageJsonPath),
+		getFile(readmePath),
+		getFile(gitignorePath),
+		getFile(lockfilePath, MAX_LOCKFILE_BYTES),
+		getFile(tsconfigPath),
+		Promise.all(envFiles.slice(0, 2).map((p) => getFile(p))),
+		Promise.all(sampleFiles.map((p) => getFile(p)))
+	]);
 
 	const { dependencies, valid: hasPackageJson } = parsePackageJson(packageJsonText);
 	const lockPackages = parsePackageLock(lockfileText);
@@ -114,7 +121,8 @@ export async function scanRepo(
 		title: string,
 		status: ScanCheck['status'],
 		message: string
-	) => checks.push(makeCheck(id, category, title, status, message, fixPrompt(id, { url, message })));
+	) =>
+		checks.push(makeCheck(id, category, title, status, message, fixPrompt(id, { url, message })));
 
 	// --- Committed env files (P0) ---
 	if (envFiles.length > 0) {
@@ -165,7 +173,13 @@ export async function scanRepo(
 			'No .gitignore found — env files and build output can be committed by accident.'
 		);
 	} else if (gitignoreText && /(^|\n)\s*\*?\.env/.test(gitignoreText)) {
-		check('gitignore-env', 'security', '.gitignore covers .env', 'pass', '.gitignore excludes .env files.');
+		check(
+			'gitignore-env',
+			'security',
+			'.gitignore covers .env',
+			'pass',
+			'.gitignore excludes .env files.'
+		);
 	} else {
 		check(
 			'gitignore-env',
@@ -191,8 +205,7 @@ export async function scanRepo(
 				.slice(0, 3)
 				.map((f) => `${f.package}@${f.version} (${f.vulnIds[0]})`)
 				.join(', ');
-			const extra =
-				vulnAudit.findings.length > 3 ? ` +${vulnAudit.findings.length - 3} more` : '';
+			const extra = vulnAudit.findings.length > 3 ? ` +${vulnAudit.findings.length - 3} more` : '';
 			const severe = vulnAudit.worstSeverity === 'critical' || vulnAudit.worstSeverity === 'high';
 			check(
 				'dependency-vulns',
