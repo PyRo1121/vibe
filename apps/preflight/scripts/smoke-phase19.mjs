@@ -41,7 +41,11 @@ if (dev.text.includes('PREFLIGHT_GATE_URL') && dev.text.includes('gate-remote.mj
 	fail('developers setup docs');
 }
 
-if (dev.text.includes('preflight_scan') && dev.text.includes('preflight_gate')) {
+if (
+	dev.text.includes('deploylint_scan') &&
+	dev.text.includes('deploylint_gate') &&
+	dev.text.includes('gate-remote.mjs')
+) {
 	pass('developers MCP docs');
 } else {
 	fail('developers MCP docs');

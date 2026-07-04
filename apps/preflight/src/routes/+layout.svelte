@@ -49,7 +49,7 @@
 			<nav aria-label="Main navigation" class="flex items-center gap-4 text-xs text-zinc-500">
 				<a href="/compare" class="hover:text-zinc-300">Compare</a>
 				<a href="/developers" class="hover:text-zinc-300">CI gate</a>
-				<span class="hidden sm:inline">60+ launch checks · fix & re-scan</span>
+				<span class="hidden sm:inline">90+ launch checks · fix & re-scan</span>
 			</nav>
 		</div>
 	</header>

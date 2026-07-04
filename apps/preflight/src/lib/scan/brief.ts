@@ -39,6 +39,9 @@ const EMBARRASSMENT: Record<string, string> = {
 	'email-auth': 'Password resets landing in spam means signups you paid for never activate.',
 	'form-security':
 		'A form posts over plain HTTP — browsers flag it and credentials transit unencrypted.',
+	'exposed-env': 'A public /.env download hands live credentials to anyone with curl.',
+	'exposed-git': 'Exposed .git lets attackers download your entire source history.',
+	'exposed-backup': 'A public backup.zip is a gift-wrapped data breach waiting to happen.',
 	'dead-social-links': 'Placeholder social icons (twitter.com with no handle) scream "template".',
 	'default-favicon-title':
 		'A "Vite App" tab title is the #1 screenshot on launch-day mockery threads.',

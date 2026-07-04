@@ -26,7 +26,10 @@ const P0_IDS = new Set([
 	'secrets',
 	'privacy',
 	'noindex',
-	'robots-block'
+	'robots-block',
+	'form-security',
+	'exposed-env',
+	'exposed-git'
 ]);
 
 const COMMENT_MARKER = '<!-- preflight-gate -->';
@@ -183,6 +186,19 @@ async function main() {
 	}
 
 	const result = evaluateGate(body);
+	if (process.argv.includes('--json')) {
+		console.log(
+			JSON.stringify({
+				pass: result.pass,
+				score: body.score,
+				verdict: body.verdict,
+				reasons: result.reasons,
+				reportId: body.reportId ?? null,
+				finalUrl: body.finalUrl
+			})
+		);
+		process.exit(result.pass || advisory ? 0 : 1);
+	}
 	console.log(formatReport(body, result));
 
 	const markdown = formatMarkdown(body, result);

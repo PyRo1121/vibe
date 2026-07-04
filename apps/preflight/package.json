@@ -18,6 +18,7 @@
 		"cf-typegen": "wrangler types src/cloudflare-env.d.ts --include-runtime false",
 		"setup:stripe": "powershell -ExecutionPolicy Bypass -File scripts/setup-stripe.ps1",
 		"setup:stripe:live": "powershell -ExecutionPolicy Bypass -File scripts/setup-stripe-live.ps1",
+		"setup:deploylint-store:live": "powershell -ExecutionPolicy Bypass -File scripts/setup-deploylint-store-live.ps1",
 		"stripe": "powershell -ExecutionPolicy Bypass -File scripts/stripe-cli.ps1",
 		"stripe:login": "powershell -ExecutionPolicy Bypass -File scripts/finish-stripe-login.ps1",
 		"stripe:test-webhook": "powershell -ExecutionPolicy Bypass -File scripts/test-webhook.ps1",

@@ -3,7 +3,9 @@ import {
 	MAX_SCRIPT_FETCHES,
 	MAX_SITEMAP_INDEX_CHILDREN,
 	MAX_SITEMAP_LOCS,
-	MAX_SOURCEMAP_FETCHES
+	MAX_SOURCEMAP_FETCHES,
+	EXPOSED_PATH_PROBE_PATHS,
+	HEALTH_PROBE_PATHS
 } from '$lib/scan/constants';
 import type { LinkCheckResult, OgImageProbe } from '$lib/scan/checks/context';
 import type { ScanDeps } from '$lib/scan/fetchers';
@@ -51,7 +53,11 @@ export async function scanScripts(
 	html: string | string[],
 	finalUrl: URL,
 	fetch: ScanDeps['fetchText']
-): Promise<{ secrets: string[]; licenseFindings: ReturnType<typeof auditScriptText>[] }> {
+): Promise<{
+	secrets: string[];
+	licenseFindings: ReturnType<typeof auditScriptText>[];
+	debugSignals: DebugSignals;
+}> {
 	const blobs = Array.isArray(html) ? html : [html];
 	const srcs = [...new Set(blobs.flatMap((h) => extractScriptSrcs(h, finalUrl)))].slice(
 		0,
@@ -60,6 +66,9 @@ export async function scanScripts(
 	const secrets = new Set<string>();
 	const licenseFindings: ReturnType<typeof auditScriptText>[] = [];
 	const sourceMapUrls: string[] = [];
+	let consoleLogCount = 0;
+	let debuggerCount = 0;
+	let testIdCount = 0;
 
 	const texts = await Promise.all(srcs.map((src) => fetch(src)));
 	for (let i = 0; i < srcs.length; i += 1) {
@@ -67,6 +76,9 @@ export async function scanScripts(
 		if (!text) continue;
 		for (const label of findSecrets(text)) secrets.add(label);
 		licenseFindings.push(auditScriptText(text, srcs[i]));
+		consoleLogCount += (text.match(/\bconsole\.log\s*\(/g) ?? []).length;
+		debuggerCount += (text.match(/\bdebugger\b/g) ?? []).length;
+		testIdCount += (text.match(/data-testid\s*=/gi) ?? []).length;
 
 		const mapUrl = extractSourceMapUrl(text, srcs[i]);
 		if (mapUrl) sourceMapUrls.push(mapUrl);
@@ -79,7 +91,11 @@ export async function scanScripts(
 		for (const label of findSecrets(searchableSourceMapText(mapText))) secrets.add(label);
 	}
 
-	return { secrets: [...secrets], licenseFindings };
+	return {
+		secrets: [...secrets],
+		licenseFindings,
+		debugSignals: { consoleLogCount, debuggerCount, testIdCount }
+	};
 }
 
 export async function checkLinks(
@@ -364,4 +380,90 @@ export async function checkOgImageLive(
 	} catch {
 		return { ok: false, probe: { reachable: false, isImage: null, contentType: null } };
 	}
+}
+
+export interface DebugSignals {
+	consoleLogCount: number;
+	debuggerCount: number;
+	testIdCount: number;
+}
+
+export interface ExposedPathResult {
+	env: { exposed: boolean; url?: string };
+	git: { exposed: boolean; url?: string };
+	backup: { exposed: boolean; url?: string };
+	packageJson: { exposed: boolean; url?: string };
+}
+
+const ENV_BODY_PATTERNS = [/^[A-Z][A-Z0-9_]*\s*=/m, /SECRET/i, /PASSWORD/i];
+const GIT_HEAD_PATTERN = /^ref:\s+/m;
+const PACKAGE_JSON_PATTERN = /"name"\s*:/;
+
+async function probeSensitivePath(
+	finalUrl: URL,
+	path: string,
+	headOk: ScanDeps['headOk'],
+	fetchText: ScanDeps['fetchText'],
+	bodyPatterns: RegExp[]
+): Promise<{ exposed: boolean; url?: string }> {
+	try {
+		const url = new URL(path, finalUrl).href;
+		if (!(await headOk(url))) return { exposed: false };
+		const body = await fetchText(url);
+		if (!body?.trim()) return { exposed: false };
+		if (bodyPatterns.length === 0) {
+			if (path.endsWith('.zip') && body.length > 64) return { exposed: true, url };
+			return { exposed: false };
+		}
+		if (bodyPatterns.some((p) => p.test(body))) return { exposed: true, url };
+		return { exposed: false };
+	} catch {
+		return { exposed: false };
+	}
+}
+
+/** Read-only same-origin probes for publicly exposed sensitive paths. */
+export async function probeExposedPaths(
+	finalUrl: URL,
+	headOk: ScanDeps['headOk'],
+	fetchText: ScanDeps['fetchText']
+): Promise<ExposedPathResult> {
+	const paths = EXPOSED_PATH_PROBE_PATHS;
+	const [env, git, backupZip, envBak, packageJson] = await Promise.all([
+		probeSensitivePath(finalUrl, paths[0], headOk, fetchText, ENV_BODY_PATTERNS),
+		probeSensitivePath(finalUrl, paths[1], headOk, fetchText, [GIT_HEAD_PATTERN]),
+		probeSensitivePath(finalUrl, paths[2], headOk, fetchText, []),
+		probeSensitivePath(finalUrl, paths[3], headOk, fetchText, ENV_BODY_PATTERNS),
+		probeSensitivePath(finalUrl, paths[4], headOk, fetchText, [PACKAGE_JSON_PATTERN])
+	]);
+	return {
+		env,
+		git,
+		backup: {
+			exposed: backupZip.exposed || envBak.exposed,
+			url: backupZip.url ?? envBak.url
+		},
+		packageJson
+	};
+}
+
+export interface HealthEndpointResult {
+	found: boolean;
+	path?: string;
+}
+
+/** Probe common health/status paths; stop at first 2xx HEAD. */
+export async function probeHealthEndpoints(
+	finalUrl: URL,
+	headOk: ScanDeps['headOk']
+): Promise<HealthEndpointResult> {
+	for (const path of HEALTH_PROBE_PATHS) {
+		try {
+			const url = new URL(path, finalUrl).href;
+			if (await headOk(url)) return { found: true, path };
+		} catch {
+			/* try next */
+		}
+	}
+	return { found: false };
 }

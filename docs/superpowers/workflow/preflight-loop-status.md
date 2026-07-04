@@ -1,19 +1,12 @@
 # Preflight ship loop — status
 
-## Overall progress: Phase 25 KV unlock persistence
+## Overall progress: Phase 29–31 developer wedge (C+B shipped)
 
 | Milestone | Status |
 |-----------|--------|
-| MVP (scan + deploy) | ✅ |
-| Phase 13–17 (verdict, re-scan, prompts, social, share) | ✅ |
-| Phase 18 (validation funnel + conversion UX) | ✅ shipped — watch metrics in parallel |
-| Phase 19 (CI gate product wedge) | ✅ |
-| Phase 20 (multi-page legal crawl + pagesScanned) | ✅ |
-| Phase 21 (same-zone self-scan via SELF binding) | ✅ |
-| Phase 22 (deeper JS + source-map secret crawl) | ✅ |
-| Phase 23 (sitemap-driven supplemental crawl) | ✅ |
-| Phase 24 (robots sitemap + pricing from sitemap + Stripe live tooling) | ✅ |
-| Phase 25 (KV unlock persistence + faster re-scans) | ✅ |
+| Phase 26–28 (check depth: exposed paths, health, manifest, debug) | ✅ |
+| Phase 29–31 (MCP deploylint_*, agent skill, gate P0 sync, --json) | ✅ |
+| Phase 32–34 (founder conversion UX) | 🔜 next |
 | World-class baseline (lint, a11y dogfood, SSRF, rate limit, UI) | ✅ |
 | Blocked-scan guard (403/4xx/5xx → skip content checks) | ✅ |
 | P2 (JS secrets, CI gate CLI, MCP) | ✅ |
@@ -23,7 +16,7 @@
 
 ## Verification
 
-- **471 tests** — `npm run verify:preflight`
+- **478 tests** — `npm run verify:preflight`
 - Phase 18 smoke — `npm run smoke:phase18 -w preflight` (14 checks)
 - Phase 19 smoke — `npm run smoke:phase19 -w preflight` (7 checks)
 - Phase 20 smoke — `npm run smoke:phase20 -w preflight` (multi-page crawl)

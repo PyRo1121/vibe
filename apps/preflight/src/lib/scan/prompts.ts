@@ -105,7 +105,14 @@ export function fixPrompt(id: string, context: { url: string; message?: string }
 		'tests-present': `${base}Add at least smoke tests before launch: one test that the app builds and the critical path works (signup, checkout, core action). Without tests you cannot refactor or accept AI-generated changes safely. Start with Vitest/Jest for logic and one Playwright test for the happy path.`,
 		'lockfile-committed': `${base}Commit the lockfile (package-lock.json / pnpm-lock.yaml / yarn.lock). Without it every install may resolve different versions — builds are unreproducible and supply-chain attacks via new releases go unnoticed. Remove the lockfile from .gitignore if it is listed, run npm install, commit the generated file.`,
 		'node-version-pinned': `${base}Pin the Node version: add "engines": { "node": ">=20" } to package.json AND an .nvmrc file with the version (e.g. 20). Deploys and collaborators then fail fast on version mismatch instead of hitting mysterious runtime errors.`,
-		'ts-strict': `${base}Enable strict mode in tsconfig.json: "compilerOptions": { "strict": true }. Fix the resulting errors incrementally (start with strictNullChecks). Without strict, TypeScript misses the null/undefined bugs it exists to catch.`
+		'ts-strict': `${base}Enable strict mode in tsconfig.json: "compilerOptions": { "strict": true }. Fix the resulting errors incrementally (start with strictNullChecks). Without strict, TypeScript misses the null/undefined bugs it exists to catch.`,
+		'exposed-env': `${base}Your /.env file is publicly downloadable. Remove it from static hosting immediately, rotate every secret that was in the file, and inject env vars at runtime only (Wrangler secrets, Vercel env, etc.). Never serve dotenv files as public assets.`,
+		'exposed-git': `${base}The .git directory is exposed at /.git/HEAD. Block /.git in your CDN or reverse proxy (Cloudflare WAF, nginx deny), redeploy, and rotate any secrets ever committed to git history.`,
+		'exposed-backup': `${base}A backup artifact (backup.zip or .env.bak) is publicly reachable. Delete it from the web root, block backup extensions in your CDN, and rotate credentials if the archive contained secrets.`,
+		'exposed-package': `${base}Root package.json is publicly downloadable — it reveals dependency names and scripts to attackers. Serve the app from a build output directory that excludes package.json, or block direct access at the edge.`,
+		'health-endpoint': `${base}Add a lightweight health endpoint: GET /health returning 200 and {"ok":true}. Wire it to uptime monitoring and your deploy gate so broken deploys are caught before users.`,
+		'web-manifest': `${base}Add public/manifest.webmanifest and <link rel="manifest" href="/manifest.webmanifest"> with name, icons, and theme_color for PWA polish and mobile home-screen bookmarks.`,
+		'debug-in-bundle': `${base}Remove console.log and debugger from production bundles. Enable build stripping (esbuild drop:['console','debugger']) or ensure NODE_ENV=production removes dev noise.`
 	};
 
 	return (

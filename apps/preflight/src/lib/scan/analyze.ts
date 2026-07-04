@@ -15,6 +15,7 @@ import { pushSecurityDepthChecks } from '$lib/scan/checks/security-depth';
 import { pushAiReadinessChecks } from '$lib/scan/checks/ai-readiness';
 import { pushConversionChecks } from '$lib/scan/checks/conversion';
 import { pushTrustChecks } from '$lib/scan/checks/trust';
+import { pushDeploymentHygieneChecks } from '$lib/scan/checks/deployment-hygiene';
 import { hasMixedContent, parsePageMeta, findSecrets } from '$lib/scan/parse';
 import type { ResponseSecurityHeaders } from '$lib/scan/headers';
 import { fixPrompt } from '$lib/scan/prompts';
@@ -104,6 +105,17 @@ export function buildContentChecks(
 	pushAiReadinessChecks(checks, html, scanCtx.robotsText, ctx);
 	pushConversionChecks(checks, html, ctx);
 	pushTrustChecks(checks, html, ctx);
+	if (scanCtx.exposedPaths && scanCtx.healthEndpoint && scanCtx.debugSignals) {
+		pushDeploymentHygieneChecks(
+			checks,
+			html,
+			meta,
+			scanCtx.exposedPaths,
+			scanCtx.healthEndpoint,
+			scanCtx.debugSignals,
+			ctx
+		);
+	}
 	pushLinkHealthChecks(checks, linkResult, ctx);
 
 	return checks;

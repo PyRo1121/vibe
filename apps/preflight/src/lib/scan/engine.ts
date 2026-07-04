@@ -20,6 +20,8 @@ import {
 	checkHostConsistency,
 	checkLinks,
 	checkOgImageLive,
+	probeExposedPaths,
+	probeHealthEndpoints,
 	probeNotFound,
 	scanScripts
 } from '$lib/scan/probes';
@@ -58,14 +60,18 @@ export async function scanUrl(rawUrl: string, deps: ScanDeps = defaultDeps): Pro
 			{ ok: ogImageOk, probe: ogImageProbe },
 			notFoundStatus,
 			emailAuth,
-			hostConsistency
+			hostConsistency,
+			exposedPaths,
+			healthEndpoint
 		] = await Promise.all([
 			crawlPages(selectCrawlTargets(links, finalUrl), deps.fetchHtml),
 			checkLinks(links, finalUrl, deps.headOk, deps.fetchText),
 			checkOgImageLive(html, finalUrl, deps.headProbe),
 			probeNotFound(finalUrl, deps.fetchHtml),
 			deps.resolveTxt ? checkEmailAuth(finalUrl.hostname, deps.resolveTxt) : Promise.resolve(null),
-			checkHostConsistency(finalUrl, deps.fetchHtml)
+			checkHostConsistency(finalUrl, deps.fetchHtml),
+			probeExposedPaths(finalUrl, deps.headOk, deps.fetchText),
+			probeHealthEndpoints(finalUrl, deps.headOk)
 		]);
 
 		const claimed = new Set([finalUrl.href, ...crawledRolePages.map((p) => p.url)]);
@@ -87,11 +93,11 @@ export async function scanUrl(rawUrl: string, deps: ScanDeps = defaultDeps): Pro
 		crawledPages.push(...crawledSitemapPages);
 
 		const scriptHtml = [html, ...crawledPages.map((p) => p.html).filter(Boolean)];
-		const { secrets: scriptSecrets, licenseFindings } = await scanScripts(
-			scriptHtml,
-			finalUrl,
-			deps.fetchText
-		);
+		const {
+			secrets: scriptSecrets,
+			licenseFindings,
+			debugSignals
+		} = await scanScripts(scriptHtml, finalUrl, deps.fetchText);
 
 		const licenseAudit = buildLicenseAudit(
 			mergeLibraries(
@@ -107,7 +113,10 @@ export async function scanUrl(rawUrl: string, deps: ScanDeps = defaultDeps): Pro
 			responseTimeMs,
 			notFoundStatus,
 			emailAuth,
-			hostConsistency
+			hostConsistency,
+			exposedPaths,
+			healthEndpoint,
+			debugSignals
 		};
 		const checks = buildContentChecks(
 			html,

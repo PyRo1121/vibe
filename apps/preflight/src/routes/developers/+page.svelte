@@ -137,15 +137,28 @@ node gate-remote.mjs https://your-app.com`);
 	</section>
 
 	<section class="mb-10">
-		<h2 class="mb-2 text-xl font-semibold text-white">4. Cursor MCP</h2>
+		<h2 class="mb-2 text-xl font-semibold text-white">4. Cursor MCP + agent skill</h2>
 		<p class="mb-4 text-sm text-zinc-500">
 			Add <code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">preflight-mcp</code> to
 			<code class="rounded bg-zinc-800 px-1.5 py-0.5">.cursor/mcp.json</code> for agent tools:
 		</p>
 		<ul class="list-disc space-y-2 pl-6 text-sm text-zinc-400">
-			<li><code class="text-sky-300">preflight_scan</code> — full audit summary</li>
-			<li><code class="text-sky-300">preflight_gate</code> — PASS/FAIL for launch readiness</li>
+			<li><code class="text-sky-300">deploylint_scan</code> — full audit summary</li>
+			<li><code class="text-sky-300">deploylint_gate</code> — PASS/FAIL for launch readiness</li>
+			<li>
+				Legacy aliases <code class="text-sky-300">preflight_scan</code> /
+				<code class="text-sky-300">preflight_gate</code> still work
+			</li>
 		</ul>
+		<p class="mt-4 text-sm text-zinc-500">
+			Agent skill for skills.sh:
+			<code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">skills/deploylint/SKILL.md</code>
+			in the repo — copy into your agent skills folder.
+		</p>
+		<p class="mt-2 text-sm text-zinc-500">
+			API base: <code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">DEPLOYLINT_API</code>
+			(default <code class="text-sky-300">{base}</code>)
+		</p>
 	</section>
 
 	<section class="mb-10 rounded-2xl border border-sky-900/40 bg-sky-950/20 p-6">

@@ -27,6 +27,16 @@ export const MAX_SCRIPT_FETCHES = 10;
 export const MAX_SOURCEMAP_FETCHES = 5;
 export const MAX_SCRIPT_BYTES = 512 * 1024;
 export const MAX_REDIRECTS = 5;
+/** Same-origin sensitive path probes (Preflyt-style, read-only). */
+export const MAX_EXPOSED_PATH_PROBES = 8;
+export const EXPOSED_PATH_PROBE_PATHS = [
+	'/.env',
+	'/.git/HEAD',
+	'/backup.zip',
+	'/.env.bak',
+	'/package.json'
+] as const;
+export const HEALTH_PROBE_PATHS = ['/health', '/healthz', '/api/health', '/status'] as const;
 /** Warn when HTML payload or script count suggests slow first paint. */
 export const WEIGHT_LIMITS = {
 	htmlWarnBytes: 400 * 1024,

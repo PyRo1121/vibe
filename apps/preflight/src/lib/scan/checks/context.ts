@@ -31,4 +31,8 @@ export interface ScanContext {
 	emailAuth?: { spf: boolean; dmarc: boolean; domain: string } | null;
 	/** www ↔ apex sibling probe; null/undefined = not applicable. */
 	hostConsistency?: { altHost: string; resolves: boolean; sameSite: boolean } | null;
+	/** Same-origin sensitive path probes. */
+	exposedPaths?: import('$lib/scan/probes').ExposedPathResult;
+	healthEndpoint?: import('$lib/scan/probes').HealthEndpointResult;
+	debugSignals?: import('$lib/scan/probes').DebugSignals;
 }

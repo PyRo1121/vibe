@@ -42,7 +42,7 @@
 		'Verifying social preview image…',
 		'Scanning JS bundles for secrets & licenses…',
 		'Probing 404 handling & DNS records…',
-		'Scoring 60+ launch signals…'
+		'Scoring 90+ launch signals…'
 	];
 	let progressIdx = $state(0);
 
@@ -227,7 +227,7 @@
 	<title>Deploylint — Should you post this URL today?</title>
 	<meta
 		name="description"
-		content="60+ launch checks: GO/NO-GO verdict, placeholder copy, broken og:image content-type, secrets in JS, llms.txt, and Cursor fix prompts with re-scan proof."
+		content="90+ launch checks: GO/NO-GO verdict, placeholder copy, broken og:image content-type, secrets in JS, llms.txt, and Cursor fix prompts with re-scan proof."
 	/>
 	<meta property="og:title" content="Deploylint — Should you post this URL today?" />
 	<meta
@@ -239,7 +239,7 @@
 	<meta property="og:image" content="{appOrigin}/og.svg" />
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:title" content="Deploylint — Should you post this URL today?" />
-	<meta name="twitter:description" content="60+ launch checks before Product Hunt, Reddit, or X." />
+	<meta name="twitter:description" content="90+ launch checks before Product Hunt, Reddit, or X." />
 	<meta name="twitter:image" content="{appOrigin}/og.svg" />
 	<link rel="canonical" href="{appOrigin}/" />
 	<link rel="icon" href="/og.svg" type="image/svg+xml" />
@@ -255,7 +255,7 @@
 			Should you post this URL today?
 		</h1>
 		<p class="mx-auto max-w-2xl text-lg text-zinc-400">
-			<strong class="font-medium text-zinc-300">60+ checks in seconds</strong> — placeholders,
+			<strong class="font-medium text-zinc-300">90+ checks in seconds</strong> — placeholders,
 			broken share images, exposed secrets, robots blocking Google, and more. Paste a live URL or a
 			public
 			<strong class="font-medium text-zinc-300">GitHub repo</strong> (committed .env files,
@@ -396,7 +396,7 @@
 			<div class="rounded-xl border border-zinc-800 p-5">
 				<p class="font-medium text-white">CI deploy gate</p>
 				<p class="mt-1 text-sm text-zinc-500">
-					Same GO/NO-GO in GitHub Actions — block bad deploys before users see them
+					Block bad deploys in CI — same GO/NO-GO in GitHub Actions before users see them
 				</p>
 			</div>
 		</section>

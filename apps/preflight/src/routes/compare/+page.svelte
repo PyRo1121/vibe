@@ -53,6 +53,21 @@
 			generic: 'no'
 		},
 		{
+			feature: 'Exposed .env / .git path probes',
+			deploylint: 'yes',
+			lighthouse: 'no',
+			ogTools: 'no',
+			generic: 'partial',
+			note: 'Read-only same-origin checks — catches Preflyt-class deployment mistakes'
+		},
+		{
+			feature: 'Health endpoint + web manifest',
+			deploylint: 'yes',
+			lighthouse: 'no',
+			ogTools: 'no',
+			generic: 'partial'
+		},
+		{
 			feature: 'Cursor fix prompts + re-scan proof',
 			deploylint: 'yes',
 			lighthouse: 'no',
@@ -118,7 +133,7 @@
 	</p>
 	<h1 class="mb-4 text-3xl font-bold text-white sm:text-4xl">How Deploylint compares</h1>
 	<p class="mb-8 max-w-3xl text-lg text-zinc-400">
-		<strong class="font-medium text-zinc-200">60+ checks</strong> aimed at one question: should you post
+		<strong class="font-medium text-zinc-200">90+ checks</strong> aimed at one question: should you post
 		this URL publicly today? Lighthouse, OG debuggers, and generic scanners answer different questions
 		— we are honest about where each tool wins.
 	</p>

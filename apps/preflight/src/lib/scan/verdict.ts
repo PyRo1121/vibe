@@ -14,7 +14,9 @@ const P0_IDS = new Set([
 	'env-committed',
 	// Only fails when a form posts over plain HTTP or a password field sits on
 	// an http page — unambiguously a launch blocker.
-	'form-security'
+	'form-security',
+	'exposed-env',
+	'exposed-git'
 ]);
 const P1_IDS = new Set([
 	'viewport',
@@ -33,6 +35,7 @@ const P1_IDS = new Set([
 	'license-risk',
 	'repo-license',
 	'gitignore-env',
+	'exposed-backup',
 	// Template leftovers ("Vite App" title) are as embarrassing as placeholder copy.
 	'default-favicon-title'
 ]);
