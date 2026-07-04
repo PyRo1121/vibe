@@ -1,4 +1,5 @@
 import { json, error } from '@sveltejs/kit';
+import { createScanDeps } from '$lib/scan/fetchers';
 import { scanUrl } from '$lib/scan/engine';
 import { parseRepoUrl } from '$lib/scan/repo/parse';
 import { scanRepo } from '$lib/scan/repo/scan';
@@ -18,9 +19,10 @@ export async function handleScanPost(request: Request, env: Env | undefined) {
 	}
 
 	const repoRef = parseRepoUrl(parsed.url);
+	const deps = createScanDeps(env);
 	const report = repoRef
 		? await scanRepo(repoRef, { token: env?.GITHUB_TOKEN })
-		: await scanUrl(parsed.url);
+		: await scanUrl(parsed.url, deps);
 	const stripeKey = env?.STRIPE_SECRET_KEY;
 
 	if (parsed.unlockSessionId && !stripeKey) {

@@ -39,7 +39,7 @@ describe('handleScanPost', () => {
 
 		const res = await handleScanPost(request, undefined);
 		expect(res.status).toBe(200);
-		expect(scanUrl).toHaveBeenCalledWith('https://app.test');
+		expect(scanUrl).toHaveBeenCalledWith('https://app.test', expect.any(Object));
 	});
 
 	it('returns 503 when unlock session sent without Stripe key', async () => {

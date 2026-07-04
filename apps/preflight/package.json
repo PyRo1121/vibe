@@ -23,7 +23,8 @@
 		"gate:remote": "node scripts/gate-remote.mjs",
 		"smoke:phase18": "node scripts/smoke-phase18.mjs",
 		"smoke:phase19": "node scripts/smoke-phase19.mjs",
-		"smoke": "npm run smoke:phase18 && npm run smoke:phase19",
+		"smoke:phase20": "node scripts/smoke-phase20.mjs",
+		"smoke": "npm run smoke:phase18 && npm run smoke:phase19 && npm run smoke:phase20",
 		"deploy": "npm run build && wrangler deploy"
 	},
 	"devDependencies": {

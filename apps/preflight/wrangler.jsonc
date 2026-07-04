@@ -19,6 +19,12 @@
 	"ai": {
 		"binding": "AI"
 	},
+	"services": [
+		{
+			"binding": "SELF",
+			"service": "preflight"
+		}
+	],
 	"workers_dev": false,
 	"routes": [
 		{

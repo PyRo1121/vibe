@@ -1,13 +1,15 @@
 # Preflight ship loop — status
 
-## Overall progress: Phase 19 + blocked-scan guard
+## Overall progress: Phase 21 same-zone self-scan
 
 | Milestone | Status |
 |-----------|--------|
 | MVP (scan + deploy) | ✅ |
 | Phase 13–17 (verdict, re-scan, prompts, social, share) | ✅ |
-| Phase 18 (validation funnel + conversion UX) | ✅ shipped — watch metrics |
+| Phase 18 (validation funnel + conversion UX) | ✅ shipped — watch metrics in parallel |
 | Phase 19 (CI gate product wedge) | ✅ |
+| Phase 20 (multi-page legal crawl + pagesScanned) | ✅ |
+| Phase 21 (same-zone self-scan via SELF binding) | ✅ |
 | Blocked-scan guard (403/4xx/5xx → skip content checks) | ✅ |
 | P2 (JS secrets, CI gate CLI, MCP) | ✅ |
 | World-class scan depth | ✅ |
@@ -19,14 +21,15 @@
 - **125+ tests** — `npm run verify:preflight`
 - Phase 18 smoke — `npm run smoke:phase18 -w preflight` (14 checks)
 - Phase 19 smoke — `npm run smoke:phase19 -w preflight` (7 checks)
-- Full smoke — `npm run smoke:preflight` (both)
+- Phase 20 smoke — `npm run smoke:phase20 -w preflight` (multi-page crawl via external URL; self-scan skipped — CF 522)
+- Full smoke — `npm run smoke:preflight` (phases 18–20)
 - Gate CLI — `npm run gate:preflight -- https://your-app.com`
 
 ## Roadmap (what to do next)
 
 ### Phase 18 — Validation (parallel)
 
-Per Phase 3 kill metrics (45 days). **No new scan checks** until data:
+Per Phase 3 kill metrics (45 days). **Ops runs in parallel** — engineering continues on Phase 21+.
 
 | Signal (30–45 days) | Action |
 |---------------------|--------|
@@ -50,13 +53,32 @@ Per Phase 3 kill metrics (45 days). **No new scan checks** until data:
 | Homepage + nav links | ✅ |
 | `smoke:phase19` | ✅ |
 
-### Phase 20+ — Only if validation passes
+### Phase 20 — Multi-page scan (shipped)
 
-| Item | When |
-|------|------|
-| Live Stripe keys + live webhook | Ready for real charges |
-| Deeper JS bundle crawl | P2 backlog |
-| Subscription / accounts | Explicit non-goal until wedge proven |
+| Item | Status |
+|------|--------|
+| Crawl privacy / terms / pricing from homepage links | ✅ |
+| Legal checks verify content (not link-only) | ✅ |
+| Cross-page placeholder + secrets sweep | ✅ |
+| `PagesScannedStrip` UI | ✅ |
+| `smoke:phase20` dogfood | ✅ (plausible.io; self-scan skipped — CF same-zone) |
+
+### Phase 21 — Same-zone self-scan (shipped)
+
+| Item | Status |
+|------|--------|
+| SELF service binding in wrangler | ✅ |
+| `createScanDeps` routes same-host fetches via binding | ✅ |
+| Self-scan dogfood in `smoke:phase20` | ✅ after deploy |
+
+### Phase 22+ — Parallel with validation
+
+| Item | Notes |
+|------|-------|
+| Live Stripe keys + live webhook | Code ready — flip keys when charging |
+| Deeper JS bundle crawl | Expand `MAX_SCRIPT_FETCHES` + source maps |
+| Sitemap-driven crawl | Beyond privacy/terms/pricing |
+| Subscription / accounts | Still non-goal until wedge proven |
 
 ## Product wedge (do not compete with Lighthouse)
 

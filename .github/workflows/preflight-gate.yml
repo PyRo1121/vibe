@@ -37,6 +37,9 @@ jobs:
       - name: Verify Preflight package
         run: npm run verify:preflight
 
+      - name: E2E smoke (Preflight)
+        run: npm run test:e2e -w preflight
+
       - name: Scan production URL (optional)
         env:
           PREFLIGHT_URL: ${{ github.event.inputs.url || secrets.PREFLIGHT_GATE_URL }}

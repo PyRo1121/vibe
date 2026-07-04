@@ -32,122 +32,194 @@ export interface ScanDeps {
 	resolveTxt?: (name: string) => Promise<string[]>;
 }
 
-async function followRedirects(
-	startUrl: URL,
-	init: RequestInit
-): Promise<{ res: Response; finalUrl: URL; redirectHops: number } | null> {
-	let current = assertPublicHttpUrl(startUrl.href);
-	let redirectHops = 0;
+type SiteFetch = typeof fetch;
 
-	for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
-		const res = await fetch(current.href, { ...init, redirect: 'manual' });
-
-		if (res.status >= 300 && res.status < 400) {
-			const location = res.headers.get('location');
-			if (!location) return null;
-			current = assertPublicHttpUrl(new URL(location, current).href);
-			redirectHops += 1;
-			continue;
-		}
-
-		return { res, finalUrl: current, redirectHops };
-	}
-
-	return null;
-}
-
-async function fetchHtml(startUrl: URL): Promise<FetchHtmlResult> {
-	const controller = new AbortController();
-	const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-
+/** Hostname of PUBLIC_APP_URL — used to route same-zone fetches through the SELF binding. */
+export function appHostname(appUrl: string | undefined): string | null {
+	if (!appUrl?.trim()) return null;
 	try {
-		const result = await followRedirects(startUrl, {
-			signal: controller.signal,
-			headers: {
-				Accept: 'text/html,application/xhtml+xml',
-				'User-Agent': USER_AGENT
-			}
-		});
-
-		if (!result) throw new Error('Too many redirects');
-
-		const { res, finalUrl } = result;
-		const buf = await res.arrayBuffer();
-		// Huge marketing pages (linear.app ships >2MB of HTML) still deserve a
-		// scan: analyze the first MAX_HTML_BYTES instead of refusing outright.
-		// The page-weight check flags the size on its own.
-		const capped = buf.byteLength > MAX_HTML_BYTES ? buf.slice(0, MAX_HTML_BYTES) : buf;
-
-		return {
-			html: new TextDecoder('utf-8').decode(capped),
-			finalUrl,
-			status: res.status,
-			headers: pickSecurityHeaders(res),
-			redirectHops: result.redirectHops
-		};
-	} finally {
-		clearTimeout(timer);
-	}
-}
-
-async function headOk(rawUrl: string): Promise<boolean> {
-	try {
-		const url = assertPublicHttpUrl(rawUrl);
-		const result = await followRedirects(url, {
-			method: 'HEAD',
-			signal: AbortSignal.timeout(8000),
-			headers: { 'User-Agent': USER_AGENT }
-		});
-		const status = result?.res.status ?? 0;
-		if (status >= 200 && status < 400) return true;
-		if (status === 404 || status === 410) return false;
-
-		// Some servers reject HEAD (405) or bot-filter it (HN returns 4xx) —
-		// confirm with GET before declaring the link dead.
-		const getResult = await followRedirects(url, {
-			method: 'GET',
-			signal: AbortSignal.timeout(8000),
-			headers: { 'User-Agent': USER_AGENT }
-		});
-		if (!getResult) return false;
-		try {
-			await getResult.res.body?.cancel();
-		} catch {
-			/* body already consumed or closed */
-		}
-		const getStatus = getResult.res.status;
-		if (getStatus >= 200 && getStatus < 400) return true;
-		// Auth walls and rate limiters rejecting the scanner — the URL exists,
-		// it just refuses bots. Only real not-found/server-error statuses count
-		// as broken, otherwise we report phantom dead links on guarded sites.
-		return getStatus === 401 || getStatus === 403 || getStatus === 429 || getStatus === 503;
+		return new URL(appUrl.trim()).hostname;
 	} catch {
-		return false;
+		return null;
 	}
 }
 
-async function headProbe(rawUrl: string): Promise<OgImageProbe> {
+function toAbsoluteUrl(input: RequestInfo | URL): URL | null {
 	try {
-		const result = await followRedirects(assertPublicHttpUrl(rawUrl), {
-			method: 'HEAD',
-			signal: AbortSignal.timeout(8000),
-			headers: { 'User-Agent': USER_AGENT }
-		});
-		if (!result || result.res.status >= 400) {
+		if (input instanceof Request) return new URL(input.url);
+		if (input instanceof URL) return input;
+		return new URL(input);
+	} catch {
+		return null;
+	}
+}
+
+/**
+ * Cloudflare Workers return 522 when a worker fetches its own custom domain.
+ * Service-binding fetches bypass the edge loop — pathname + query are enough.
+ */
+export function wrapSameZoneFetch(
+	self: Fetcher,
+	appHost: string,
+	externalFetch: SiteFetch = fetch
+): SiteFetch {
+	const internalOrigin = 'https://preflight.internal';
+
+	return (input, init) => {
+		const url = toAbsoluteUrl(input);
+		if (url?.hostname === appHost) {
+			const path = url.pathname + url.search;
+			const internalUrl = `${internalOrigin}${path}`;
+			if (input instanceof Request) {
+				return self.fetch(
+					new Request(internalUrl, {
+						method: input.method,
+						headers: input.headers,
+						body: input.method === 'GET' || input.method === 'HEAD' ? undefined : input.body,
+						redirect: init?.redirect ?? input.redirect,
+						signal: init?.signal ?? input.signal
+					})
+				);
+			}
+			return self.fetch(internalUrl, init);
+		}
+		return externalFetch(input, init);
+	};
+}
+
+function buildScanDeps(siteFetch: SiteFetch): ScanDeps {
+	async function followRedirects(
+		startUrl: URL,
+		init: RequestInit
+	): Promise<{ res: Response; finalUrl: URL; redirectHops: number } | null> {
+		let current = assertPublicHttpUrl(startUrl.href);
+		let redirectHops = 0;
+
+		for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
+			const res = await siteFetch(current.href, { ...init, redirect: 'manual' });
+
+			if (res.status >= 300 && res.status < 400) {
+				const location = res.headers.get('location');
+				if (!location) return null;
+				current = assertPublicHttpUrl(new URL(location, current).href);
+				redirectHops += 1;
+				continue;
+			}
+
+			return { res, finalUrl: current, redirectHops };
+		}
+
+		return null;
+	}
+
+	async function fetchHtml(startUrl: URL): Promise<FetchHtmlResult> {
+		const controller = new AbortController();
+		const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+		try {
+			const result = await followRedirects(startUrl, {
+				signal: controller.signal,
+				headers: {
+					Accept: 'text/html,application/xhtml+xml',
+					'User-Agent': USER_AGENT
+				}
+			});
+
+			if (!result) throw new Error('Too many redirects');
+
+			const { res, finalUrl } = result;
+			const buf = await res.arrayBuffer();
+			const capped = buf.byteLength > MAX_HTML_BYTES ? buf.slice(0, MAX_HTML_BYTES) : buf;
+
+			return {
+				html: new TextDecoder('utf-8').decode(capped),
+				finalUrl,
+				status: res.status,
+				headers: pickSecurityHeaders(res),
+				redirectHops: result.redirectHops
+			};
+		} finally {
+			clearTimeout(timer);
+		}
+	}
+
+	async function headOk(rawUrl: string): Promise<boolean> {
+		try {
+			const url = assertPublicHttpUrl(rawUrl);
+			const result = await followRedirects(url, {
+				method: 'HEAD',
+				signal: AbortSignal.timeout(8000),
+				headers: { 'User-Agent': USER_AGENT }
+			});
+			const status = result?.res.status ?? 0;
+			if (status >= 200 && status < 400) return true;
+			if (status === 404 || status === 410) return false;
+
+			const getResult = await followRedirects(url, {
+				method: 'GET',
+				signal: AbortSignal.timeout(8000),
+				headers: { 'User-Agent': USER_AGENT }
+			});
+			if (!getResult) return false;
+			try {
+				await getResult.res.body?.cancel();
+			} catch {
+				/* body already consumed or closed */
+			}
+			const getStatus = getResult.res.status;
+			if (getStatus >= 200 && getStatus < 400) return true;
+			return getStatus === 401 || getStatus === 403 || getStatus === 429 || getStatus === 503;
+		} catch {
+			return false;
+		}
+	}
+
+	async function headProbe(rawUrl: string): Promise<OgImageProbe> {
+		try {
+			const result = await followRedirects(assertPublicHttpUrl(rawUrl), {
+				method: 'HEAD',
+				signal: AbortSignal.timeout(8000),
+				headers: { 'User-Agent': USER_AGENT }
+			});
+			if (!result || result.res.status >= 400) {
+				return { reachable: false, isImage: null, contentType: null };
+			}
+			const contentType = result.res.headers.get('content-type');
+			return {
+				reachable: true,
+				contentType,
+				isImage: isImageContentType(contentType)
+			};
+		} catch {
 			return { reachable: false, isImage: null, contentType: null };
 		}
-		const contentType = result.res.headers.get('content-type');
-		return {
-			reachable: true,
-			contentType,
-			isImage: isImageContentType(contentType)
-		};
-	} catch {
-		return { reachable: false, isImage: null, contentType: null };
 	}
+
+	async function fetchText(rawUrl: string): Promise<string | null> {
+		try {
+			const result = await followRedirects(assertPublicHttpUrl(rawUrl), {
+				signal: AbortSignal.timeout(8000),
+				headers: {
+					Accept: 'text/plain,text/html,application/javascript,text/javascript,*/*',
+					'User-Agent': USER_AGENT
+				}
+			});
+
+			if (!result || result.res.status >= 400) return null;
+
+			const buf = await result.res.arrayBuffer();
+			if (buf.byteLength > MAX_SCRIPT_BYTES) return null;
+
+			return new TextDecoder('utf-8').decode(buf);
+		} catch {
+			return null;
+		}
+	}
+
+	return { fetchHtml, headOk, headProbe, fetchText, resolveTxt };
 }
 
-/** TXT lookup via Cloudflare DNS-over-HTTPS — works inside Workers without sockets. */
+/** TXT lookup via Cloudflare DNS-over-HTTPS — always external, never same-zone. */
 async function resolveTxt(name: string): Promise<string[]> {
 	try {
 		const res = await fetch(
@@ -164,31 +236,11 @@ async function resolveTxt(name: string): Promise<string[]> {
 	}
 }
 
-async function fetchText(rawUrl: string): Promise<string | null> {
-	try {
-		const result = await followRedirects(assertPublicHttpUrl(rawUrl), {
-			signal: AbortSignal.timeout(8000),
-			headers: {
-				Accept: 'text/plain,text/html,application/javascript,text/javascript,*/*',
-				'User-Agent': USER_AGENT
-			}
-		});
+export const defaultDeps: ScanDeps = buildScanDeps(fetch);
 
-		if (!result || result.res.status >= 400) return null;
-
-		const buf = await result.res.arrayBuffer();
-		if (buf.byteLength > MAX_SCRIPT_BYTES) return null;
-
-		return new TextDecoder('utf-8').decode(buf);
-	} catch {
-		return null;
-	}
+/** Production deps — routes same-zone fetches through the SELF service binding when configured. */
+export function createScanDeps(env?: Env): ScanDeps {
+	const host = appHostname(env?.PUBLIC_APP_URL);
+	if (!env?.SELF || !host) return defaultDeps;
+	return buildScanDeps(wrapSameZoneFetch(env.SELF, host));
 }
-
-export const defaultDeps: ScanDeps = {
-	fetchHtml,
-	headOk,
-	headProbe,
-	fetchText,
-	resolveTxt
-};

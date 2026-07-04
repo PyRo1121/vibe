@@ -3,6 +3,8 @@
 
 interface Env {
 	ASSETS: Fetcher;
+	/** Service binding — same-zone fetches bypass Cloudflare 522 loop. */
+	SELF?: Fetcher;
 	/** Stored scan reports for shareable permalinks. */
 	REPORTS?: KVNamespace;
 	/** Workers AI — used for the paid copy-review extra. */
@@ -19,6 +21,7 @@ interface Env {
 declare namespace Cloudflare {
 	interface Env {
 		ASSETS: Fetcher;
+		SELF?: Fetcher;
 		REPORTS?: KVNamespace;
 		AI?: { run(model: string, options: Record<string, unknown>): Promise<unknown> };
 		PUBLIC_SITE_NAME: string;

@@ -31,7 +31,11 @@
 </script>
 
 {#if pages.length > 1}
-	<div class="mb-6 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
+	<div
+		class="mb-6 flex flex-wrap items-center gap-2 text-xs text-zinc-500"
+		role="status"
+		aria-label="Pages scanned"
+	>
 		<span class="font-medium text-zinc-400">Scanned {pages.length} pages:</span>
 		{#each pages as page (page.url)}
 			<span
@@ -40,6 +44,7 @@
 			>
 				<span
 					class="h-1.5 w-1.5 rounded-full {statusOk(page) ? 'bg-emerald-400' : 'bg-red-400'}"
+					aria-hidden="true"
 				></span>
 				<span class="text-zinc-300">{ROLE_LABELS[page.role]}</span>
 				<span class="text-zinc-600">{pathOf(page.url)}</span>
