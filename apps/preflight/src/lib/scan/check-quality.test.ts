@@ -87,6 +87,27 @@ describe('check quality guardrails', () => {
 		}
 	});
 
+	it('catalogs payment readiness checks with complete guidance', () => {
+		const ids = [
+			'checkout-server-owned',
+			'entitlement-fulfillment',
+			'payment-env-safety',
+			'webhook-event-coverage'
+		];
+
+		for (const id of ids) {
+			const entry = catalogById[id];
+			expect(entry, `${id} needs a catalog entry`).toBeDefined();
+			if (!entry) continue;
+			expect(entry.why.length, `${id} needs launch/business rationale`).toBeGreaterThan(40);
+			expect(entry.detectedBy.length, `${id} needs detection rationale`).toBeGreaterThan(30);
+			expect(
+				entry.falsePositive?.length ?? 0,
+				`${id} needs false-positive guidance`
+			).toBeGreaterThan(30);
+		}
+	});
+
 	it('keeps every emitted static check id anchored to behavioral tests', () => {
 		const references = behavioralTestReferences();
 		const untested = emittedCheckIds().filter((id) => !references.has(id));

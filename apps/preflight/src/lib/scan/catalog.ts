@@ -636,6 +636,14 @@ const ADDITIONAL_CHECK_CATALOG = {
 		falsePositive:
 			'Billing management may live in a private service or provider-hosted dashboard not visible in the scanned repository.'
 	},
+	'checkout-server-owned': {
+		id: 'checkout-server-owned',
+		why: 'Checkout creation must stay behind a server boundary so prices, customer identity, coupons, and payment intent parameters cannot be changed from the browser.',
+		detectedBy:
+			'Scans repository payment code for server-side checkout session or payment intent creation and flags client-only Stripe checkout initialization.',
+		falsePositive:
+			'Checkout may be owned by another backend service, but the scanned app should not imply that the browser creates or controls paid checkout directly.'
+	},
 	'blocking-css': {
 		id: 'blocking-css',
 		why: 'Too many render-blocking stylesheets delay first paint and make a launch page feel slow before users can evaluate it.',
@@ -763,6 +771,14 @@ const ADDITIONAL_CHECK_CATALOG = {
 		falsePositive:
 			'Multi-stage Dockerfiles and broad COPY patterns need manual review; this check catches the explicit high-risk case.'
 	},
+	'entitlement-fulfillment': {
+		id: 'entitlement-fulfillment',
+		why: 'Taking payment without a reliable grant and revoke path creates paid users who cannot access the product or unpaid users who keep access after cancellation.',
+		detectedBy:
+			'Scans payment lifecycle handling for fulfillment, entitlement, access grant, access revoke, or subscription state update signals.',
+		falsePositive:
+			'Access may be fulfilled in another worker or queue, but the repository should leave a clear payment-to-entitlement handoff for launch review.'
+	},
 	'format-script': {
 		id: 'format-script',
 		why: 'A reliable format command reduces noisy diffs and makes automated or agent-generated changes easier to review.',
@@ -833,6 +849,14 @@ const ADDITIONAL_CHECK_CATALOG = {
 			'Reads root or primary package.json scripts and rejects missing or placeholder lint, test, and build commands.',
 		falsePositive:
 			'Nested workspace apps can own the real scripts; root scripts should delegate to them so the quality gate is discoverable.'
+	},
+	'payment-env-safety': {
+		id: 'payment-env-safety',
+		why: 'Live payment secrets in source code can be copied from git history or bundles and used to create charges, read customers, or alter subscriptions.',
+		detectedBy:
+			'Scans payment-related repository files for live secret-key literals and checks whether payment secrets appear to come from environment bindings.',
+		falsePositive:
+			'Some sampled code may be a documentation fixture, but real payment secrets should always live in provider-managed secrets or environment bindings.'
 	},
 	readme: {
 		id: 'readme',
@@ -984,6 +1008,14 @@ const ADDITIONAL_CHECK_CATALOG = {
 			'Parses workflow uses references and warns on third-party actions pinned to main, master, latest, or other floating refs.',
 		falsePositive:
 			'First-party actions and carefully monitored tags may be acceptable, but high-security repositories often require SHA pinning.'
+	},
+	'webhook-event-coverage': {
+		id: 'webhook-event-coverage',
+		why: 'Payment webhooks must cover success, asynchronous completion, failed payments, and cancellation so access matches the real subscription state.',
+		detectedBy:
+			'Scans Stripe-like webhook handlers for checkout completion, async payment success or failure, invoice failure, and subscription deletion events.',
+		falsePositive:
+			'Some products use polling or provider-hosted fulfillment, but launch-critical subscription state changes still need a visible recovery path.'
 	},
 	'workflow-permissions': {
 		id: 'workflow-permissions',

@@ -34,6 +34,22 @@ describe('computeVerdict', () => {
 		expect(result.verdict).toBe('no-go');
 	});
 
+	it('tags failing server-owned checkout as p0 and returns no-go', () => {
+		const checks = tagCheckPriorities([
+			makeCheck(
+				'checkout-server-owned',
+				'payments',
+				'Checkout is server-owned',
+				'fail',
+				'Client creates checkout',
+				'fix'
+			)
+		]);
+
+		expect(checks[0].priority).toBe('p0');
+		expect(computeVerdict(checks, 90).verdict).toBe('no-go');
+	});
+
 	it('returns go for clean high score', () => {
 		const checks = tagCheckPriorities([
 			makeCheck('privacy', 'legal', 'Privacy', 'pass', 'ok', 'fix'),

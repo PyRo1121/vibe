@@ -98,7 +98,11 @@ describe('fixPrompt coverage for new check ids', () => {
 		'tests-present',
 		'lockfile-committed',
 		'node-version-pinned',
-		'ts-strict'
+		'ts-strict',
+		'checkout-server-owned',
+		'webhook-event-coverage',
+		'entitlement-fulfillment',
+		'payment-env-safety'
 	];
 
 	it('every new check id has a real template, not the generic fallback', () => {
@@ -139,6 +143,16 @@ describe('fixPrompt coverage for new check ids', () => {
 				'Fix this launch readiness issue before sharing the site publicly.'
 			);
 		}
+	});
+});
+
+describe('fixPrompt payment readiness guidance', () => {
+	it('covers failed subscription events and idempotent webhook fulfillment', () => {
+		const prompt = fixPrompt('webhook-event-coverage', { url: 'https://a.test' });
+
+		expect(prompt).toContain('checkout.session.async_payment_failed');
+		expect(prompt).toContain('customer.subscription.deleted');
+		expect(prompt).toContain('idempotent fulfillment');
 	});
 });
 

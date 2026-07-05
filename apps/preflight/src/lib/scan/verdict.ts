@@ -21,6 +21,9 @@ const P1_IDS = new Set([
 	'license-risk',
 	'repo-license',
 	'gitignore-env',
+	'billing-portal',
+	'entitlement-fulfillment',
+	'webhook-event-coverage',
 	'exposed-backup',
 	// Template leftovers ("Vite App" title) are as embarrassing as placeholder copy.
 	'default-favicon-title'
