@@ -27,6 +27,14 @@
 		<li>We do not store scan history long-term in the MVP</li>
 	</ul>
 
+	<h2 class="mb-3 text-xl font-semibold text-white">Analytics</h2>
+	<p class="mb-6">
+		We use <a class="text-sky-400 hover:underline" href="https://plausible.io">Plausible</a> on lint.latham.cloud
+		for privacy-friendly, cookieless traffic analytics and conversion goals (free scans, unlock clicks,
+		re-scans). Analytics uses Plausible’s official browser library; funnel events send only aggregate
+		fields (verdict, score) — no personal data.
+	</p>
+
 	<h2 class="mb-3 text-xl font-semibold text-white">Contact</h2>
 	<p class="mb-8">
 		Questions: <a class="text-sky-400 hover:underline" href="mailto:support@latham.cloud"

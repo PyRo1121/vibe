@@ -28,8 +28,13 @@
 		<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Why pay $9?</p>
 
 		<h2 id="unlock-compare-heading" class="mt-2 text-xl font-bold text-white">
-			Free tells you what's wrong. Paid helps you fix it and prove it.
+			Fix everything in one Cursor paste
 		</h2>
+
+		<p class="mt-2 text-sm text-zinc-400">
+			Free tells you what's wrong. Paid gives you every fix prompt plus one master repair prompt you
+			paste once.
+		</p>
 
 		<p class="mt-2 text-sm text-sky-300">{offer.valuePitch}</p>
 
@@ -64,7 +69,10 @@
 					</li>
 
 					<li>
-						✓ <strong class="text-white">1 master paste</strong> — fixes all issues in priority order
+						✓ <strong class="text-white">Fix all issues in one Cursor paste</strong>
+						{#if offer.masterPromptLineCount > 0}
+							— {offer.masterPromptLineCount}-line repair prompt
+						{/if}
 					</li>
 
 					<li>
@@ -85,6 +93,9 @@
 		<div class="mt-6 rounded-xl border border-zinc-800 bg-zinc-950 p-4">
 			<p class="mb-2 text-[10px] font-semibold tracking-wider text-zinc-500 uppercase">
 				Preview — master repair prompt (locked)
+				{#if offer.masterPromptLineCount > 0}
+					· {offer.masterPromptLineCount} lines
+				{/if}
 			</p>
 
 			<div

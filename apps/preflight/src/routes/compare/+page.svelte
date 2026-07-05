@@ -10,98 +10,92 @@
 	const rows: Array<{
 		feature: string;
 		deploylint: Cell;
-		lighthouse: Cell;
-		ogTools: Cell;
-		generic: Cell;
+		shipReady: Cell;
+		websiteReady: Cell;
+		pageLens: Cell;
 		note?: string;
 	}> = [
 		{
 			feature: 'GO / NO-GO launch verdict',
 			deploylint: 'yes',
-			lighthouse: 'no',
-			ogTools: 'no',
-			generic: 'partial',
+			shipReady: 'partial',
+			websiteReady: 'partial',
+			pageLens: 'no',
 			note: 'Deploylint answers “safe to post today?” — not “how fast is it?”'
 		},
 		{
-			feature: 'Embarrassment radar (public failure mode)',
+			feature: 'Embarrassment brief (public failure modes)',
 			deploylint: 'yes',
-			lighthouse: 'no',
-			ogTools: 'no',
-			generic: 'partial'
+			shipReady: 'no',
+			websiteReady: 'no',
+			pageLens: 'no'
 		},
 		{
-			feature: 'og:image content-type validation',
+			feature: 'Re-scan score proof (before/after delta)',
 			deploylint: 'yes',
-			lighthouse: 'no',
-			ogTools: 'partial',
-			generic: 'no',
-			note: 'Catches SPA routes returning HTML instead of a real image'
+			shipReady: 'partial',
+			websiteReady: 'partial',
+			pageLens: 'yes'
 		},
 		{
-			feature: 'Secrets in live JS bundles',
+			feature: 'Cursor fix prompts + master paste',
 			deploylint: 'yes',
-			lighthouse: 'no',
-			ogTools: 'no',
-			generic: 'partial'
-		},
-		{
-			feature: 'GitHub repo scan (.env, licenses, OSV vulns)',
-			deploylint: 'yes',
-			lighthouse: 'no',
-			ogTools: 'no',
-			generic: 'no'
+			shipReady: 'no',
+			websiteReady: 'no',
+			pageLens: 'no'
 		},
 		{
 			feature: 'Exposed .env / .git path probes',
 			deploylint: 'yes',
-			lighthouse: 'no',
-			ogTools: 'no',
-			generic: 'partial',
-			note: 'Read-only same-origin checks — catches Preflyt-class deployment mistakes'
+			shipReady: 'partial',
+			websiteReady: 'no',
+			pageLens: 'no',
+			note: 'Read-only same-origin checks — catches deployment mistakes before launch day'
 		},
 		{
-			feature: 'Health endpoint + web manifest',
+			feature: 'Secrets in live JS bundles',
 			deploylint: 'yes',
-			lighthouse: 'no',
-			ogTools: 'no',
-			generic: 'partial'
+			shipReady: 'partial',
+			websiteReady: 'no',
+			pageLens: 'no'
 		},
 		{
-			feature: 'Cursor fix prompts + re-scan proof',
+			feature: 'CI deploy gate + MCP for agents',
 			deploylint: 'yes',
-			lighthouse: 'no',
-			ogTools: 'no',
-			generic: 'no'
+			shipReady: 'no',
+			websiteReady: 'no',
+			pageLens: 'no'
 		},
 		{
-			feature: 'CI deploy gate (block merges on blockers)',
+			feature: 'GitHub repo scan (licenses, OSV vulns)',
 			deploylint: 'yes',
-			lighthouse: 'partial',
-			ogTools: 'no',
-			generic: 'no'
+			shipReady: 'no',
+			websiteReady: 'no',
+			pageLens: 'no'
 		},
 		{
-			feature: 'Core Web Vitals / performance lab',
+			feature: 'Visual screenshots / page capture',
+			deploylint: 'no',
+			shipReady: 'partial',
+			websiteReady: 'no',
+			pageLens: 'yes',
+			note: 'Deploylint is honest: we do not ship screenshots yet — depth is in checks, not pixels'
+		},
+		{
+			feature: 'og:image content-type validation',
+			deploylint: 'yes',
+			shipReady: 'partial',
+			websiteReady: 'partial',
+			pageLens: 'partial',
+			note: 'Catches SPA routes returning HTML instead of a real image'
+		},
+		{
+			feature: 'Core Web Vitals / Lighthouse-style perf lab',
 			deploylint: 'partial',
-			lighthouse: 'yes',
-			ogTools: 'no',
-			generic: 'partial',
+			shipReady: 'partial',
+			websiteReady: 'yes',
+			pageLens: 'no',
 			note: 'Deploylint links PageSpeed on demand — we do not clone Lighthouse'
-		},
-		{
-			feature: 'Deep accessibility audit (contrast, ARIA tree)',
-			deploylint: 'partial',
-			lighthouse: 'yes',
-			ogTools: 'no',
-			generic: 'partial'
-		},
-		{
-			feature: 'OG tag preview only',
-			deploylint: 'partial',
-			lighthouse: 'no',
-			ogTools: 'yes',
-			generic: 'partial'
 		}
 	];
 
@@ -119,10 +113,10 @@
 </script>
 
 <svelte:head>
-	<title>Compare — Deploylint vs Lighthouse & OG checkers</title>
+	<title>Compare — Deploylint vs ShipReady, WebsiteReady & PageLens</title>
 	<meta
 		name="description"
-		content="Honest comparison: Deploylint is launch judgment and embarrassment prevention, not a Lighthouse clone or OG debugger."
+		content="Honest comparison: Deploylint is launch judgment and embarrassment prevention vs ShipReady, WebsiteReady, and PageLens."
 	/>
 	<link rel="canonical" href="{base}/compare" />
 </svelte:head>
@@ -134,23 +128,22 @@
 	<h1 class="mb-4 text-3xl font-bold text-white sm:text-4xl">How Deploylint compares</h1>
 	<p class="mb-8 max-w-3xl text-lg text-zinc-400">
 		<strong class="font-medium text-zinc-200">90+ checks</strong> aimed at one question: should you post
-		this URL publicly today? Lighthouse, OG debuggers, and generic scanners answer different questions
-		— we are honest about where each tool wins.
+		this URL publicly today? We name real alternatives and mark partial honestly — including where we
+		do not have screenshots yet.
 	</p>
 
 	<div class="overflow-x-auto rounded-2xl border border-zinc-800">
-		<table class="w-full min-w-[720px] border-collapse text-left text-sm">
+		<table class="w-full min-w-[800px] border-collapse text-left text-sm">
 			<caption class="sr-only">
-				Feature comparison between Deploylint, Lighthouse, OG preview tools, and generic launch
-				checkers
+				Feature comparison between Deploylint, ShipReady, WebsiteReady, and PageLens
 			</caption>
 			<thead>
 				<tr class="border-b border-zinc-800 bg-zinc-900/60">
 					<th scope="col" class="px-4 py-3 font-semibold text-white">What you need</th>
 					<th scope="col" class="px-4 py-3 font-semibold text-sky-300">Deploylint</th>
-					<th scope="col" class="px-4 py-3 font-semibold text-zinc-400">Lighthouse</th>
-					<th scope="col" class="px-4 py-3 font-semibold text-zinc-400">OG debuggers</th>
-					<th scope="col" class="px-4 py-3 font-semibold text-zinc-400">Generic scanners</th>
+					<th scope="col" class="px-4 py-3 font-semibold text-zinc-400">ShipReady</th>
+					<th scope="col" class="px-4 py-3 font-semibold text-zinc-400">WebsiteReady</th>
+					<th scope="col" class="px-4 py-3 font-semibold text-zinc-400">PageLens</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -163,9 +156,9 @@
 							{/if}
 						</th>
 						<td class="px-4 py-3 {cellClass[row.deploylint]}">{cellLabel[row.deploylint]}</td>
-						<td class="px-4 py-3 {cellClass[row.lighthouse]}">{cellLabel[row.lighthouse]}</td>
-						<td class="px-4 py-3 {cellClass[row.ogTools]}">{cellLabel[row.ogTools]}</td>
-						<td class="px-4 py-3 {cellClass[row.generic]}">{cellLabel[row.generic]}</td>
+						<td class="px-4 py-3 {cellClass[row.shipReady]}">{cellLabel[row.shipReady]}</td>
+						<td class="px-4 py-3 {cellClass[row.websiteReady]}">{cellLabel[row.websiteReady]}</td>
+						<td class="px-4 py-3 {cellClass[row.pageLens]}">{cellLabel[row.pageLens]}</td>
 					</tr>
 				{/each}
 			</tbody>
@@ -180,12 +173,16 @@
 				radar, legal/social blockers, fix prompts, re-scan proof.
 			</li>
 			<li>
-				<strong class="text-zinc-300">Lighthouse</strong> — performance budgets, accessibility lab audits,
-				SEO technical scorecards.
+				<strong class="text-zinc-300">ShipReady / WebsiteReady</strong> — broader site health or checklist-style
+				audits; weaker on agent-native fix loops and deployment probes.
 			</li>
 			<li>
-				<strong class="text-zinc-300">OG debuggers</strong> — quick card preview after you already fixed
-				meta tags.
+				<strong class="text-zinc-300">PageLens</strong> — visual page review and shareable captures; different
+				question than launch blockers.
+			</li>
+			<li>
+				<strong class="text-zinc-300">Lighthouse</strong> (not in table) — performance budgets and deep
+				accessibility lab audits; use alongside Deploylint, not instead of it.
 			</li>
 		</ul>
 	</section>

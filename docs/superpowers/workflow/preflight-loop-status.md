@@ -1,12 +1,12 @@
 # Preflight ship loop — status
 
-## Overall progress: Phase 29–31 developer wedge (C+B shipped)
+## Overall progress: Phase 32–34 founder conversion (A shipped)
 
 | Milestone | Status |
 |-----------|--------|
 | Phase 26–28 (check depth: exposed paths, health, manifest, debug) | ✅ |
 | Phase 29–31 (MCP deploylint_*, agent skill, gate P0 sync, --json) | ✅ |
-| Phase 32–34 (founder conversion UX) | 🔜 next |
+| Phase 32–34 (founder conversion UX) | ✅ |
 | World-class baseline (lint, a11y dogfood, SSRF, rate limit, UI) | ✅ |
 | Blocked-scan guard (403/4xx/5xx → skip content checks) | ✅ |
 | P2 (JS secrets, CI gate CLI, MCP) | ✅ |
@@ -16,7 +16,7 @@
 
 ## Verification
 
-- **478 tests** — `npm run verify:preflight`
+- **480 tests** — `npm run verify:preflight`
 - Phase 18 smoke — `npm run smoke:phase18 -w preflight` (14 checks)
 - Phase 19 smoke — `npm run smoke:phase19 -w preflight` (7 checks)
 - Phase 20 smoke — `npm run smoke:phase20 -w preflight` (multi-page crawl)
@@ -39,9 +39,9 @@ Per Phase 3 kill metrics (45 days). **Ops runs in parallel** — engineering con
 
 **Ops checklist:**
 
-1. Register Plausible for `preflight.latham.cloud`
-2. One test checkout (`4242…`) → unlock → re-scan delta
-3. Add `PREFLIGHT_GATE_URL` secret → run GitHub Action from `/developers`
+1. ~~Register Plausible for `lint.latham.cloud`~~ ✅ — add custom goals in Plausible dashboard (see below)
+2. One live checkout ($9) → unlock → re-scan delta (blocked until Stripe enables charges)
+3. ~~Add `PREFLIGHT_GATE_URL` secret~~ → set `PREFLIGHT_GATE_URL` or `DEPLOYLINT_GATE_URL` to `https://lint.latham.cloud` on vibe repo; workflow uses `lint.latham.cloud` API
 4. Watch funnel events 30–45 days
 
 ### Phase 19 — CI deploy gate (now)
@@ -103,7 +103,7 @@ Per Phase 3 kill metrics (45 days). **Ops runs in parallel** — engineering con
 **Stripe live checklist** (no secrets in repo):
 
 1. `npm run stripe -- login` (Stripe CLI)
-2. `powershell -ExecutionPolicy Bypass -File scripts/setup-stripe-live.ps1` — creates live webhook at `https://preflight.latham.cloud/api/webhooks/stripe` (real charges)
+2. `powershell -ExecutionPolicy Bypass -File scripts/setup-stripe-live.ps1` — creates live webhook at `https://lint.latham.cloud/api/webhooks/stripe` (real charges)
 3. `npx wrangler secret put STRIPE_SECRET_KEY` — paste `sk_live_…` from [live API keys](https://dashboard.stripe.com/apikeys)
 4. `npx wrangler secret put STRIPE_WEBHOOK_SECRET` — paste `whsec_…` from script output
 5. `npm run deploy` then `npm run smoke:phase24` — checkout skips with message if not configured; webhook GET must return `ok`
@@ -117,6 +117,46 @@ Per Phase 3 kill metrics (45 days). **Ops runs in parallel** — engineering con
 | Re-scans verify via KV cache (skip Stripe API when cached) | ✅ |
 | Write-through cache on first Stripe verify | ✅ |
 | `/compare` + `/developers` preferred sitemap paths | ✅ |
+
+### Phase 32–34 — Founder conversion (Phase A, shipped)
+
+| Item | Status |
+|------|--------|
+| Score delta badge + fixed blocker diff (`ScoreDeltaBadge`, `computeFixProgress`) | ✅ |
+| Baseline checks in sessionStorage on first scan | ✅ |
+| `PostUnlockGuide` progress ring after re-scan | ✅ |
+| `/compare` — ShipReady, WebsiteReady, PageLens columns | ✅ |
+| Unlock panels — master prompt line count + Fix All headline | ✅ |
+| Plausible on `lint.latham.cloud` | ✅ official `@plausible-analytics/tracker` (client `init`, SPA pageviews) |
+| Funnel: `rescan_completed` with `scoreDelta` | ✅ (existing `trackFunnel`) |
+
+**Plausible custom goals** (Settings → Goals → Add goal → Custom event):
+
+| Event name | When fired |
+|------------|------------|
+| `scan_completed` | Free scan finishes |
+| `unlock_click` | User clicks $9 unlock |
+| `checkout_started` | Redirect to Stripe |
+| `checkout_paid` | Webhook fulfillment (server) |
+| `rescan_completed` | Unlocked re-scan with score delta |
+
+Props (`verdict`, `score`, `scoreDelta`, etc.) appear on Business/trial plans.
+
+**Stripe live status** (DeployLint acct `acct_1TpcWPPI6tkdUQSc`, Jul 4 2026):
+
+| Check | Status |
+|-------|--------|
+| Worker `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` | ✅ |
+| Live webhook → `lint.latham.cloud/api/webhooks/stripe` | ✅ `we_1TpctGPI6tkdUQScHy1GREWi` |
+| Checkout session creation (`cs_live_…`) | ✅ smoke:phase24 |
+| `charges_enabled` / `card_payments` | ⏳ **pending** — Stripe reviewing `business_profile.url` |
+| Prior blocker | `invalid_url_website_inaccessible` — resolved once `https://lint.latham.cloud` is set in [Business settings](https://dashboard.stripe.com/settings/business-details) |
+
+When `charges_enabled` flips true: run one $9 checkout → confirm webhook → re-scan for delta proof.
+
+**Optional cleanup:** Delete test-mode webhook `we_1TpcxEPI6tkdUQSc7Zupn4ZH` (same URL, wrong signing secret) from Stripe Dashboard → Webhooks (test mode).
+
+**Manual unlock→re-scan path:** Scan URL → checkout $9 → return with `?checkout=success` → copy master prompt → fix → **Re-scan to verify** → delta badge + progress ring.
 
 ### Phase 26+ — Parallel with validation
 

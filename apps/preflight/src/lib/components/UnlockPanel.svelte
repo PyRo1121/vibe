@@ -60,7 +60,10 @@
 			</li>
 			<li class="flex gap-2 text-sm text-zinc-300">
 				<span class="text-sky-400">✓</span>
-				One master prompt that fixes all issues in order
+				One master paste — fix everything in Cursor
+				{#if offer.masterPromptLineCount > 0}
+					<span class="text-zinc-500">({offer.masterPromptLineCount} lines)</span>
+				{/if}
 			</li>
 			<li class="flex gap-2 text-sm text-zinc-300">
 				<span class="text-sky-400">✓</span>

@@ -1,12 +1,29 @@
-import type { ScanReport } from '$lib/scan/types';
-import { resolvePriority, sortChecksByPriority } from '$lib/scan/verdict';
+import type { ScanCheck, ScanReport } from '$lib/scan/types';
+import type { CheckPriority } from '$lib/scan/verdict';
+import { checkPriority, resolvePriority, sortChecksByPriority } from '$lib/scan/verdict';
 import { scoreChecks } from '$lib/scan/score';
+import { buildMasterPrompt } from '$lib/scan/prompts';
 
 export const STORAGE = {
 	scanUrl: 'preflight_scan_url',
 	unlockSession: 'preflight_unlock_session',
-	baselineScore: 'preflight_baseline_score'
+	baselineScore: 'preflight_baseline_score',
+	baselineChecks: 'preflight_baseline_checks'
 } as const;
+
+export type CheckSnapshot = {
+	id: string;
+	status: ScanCheck['status'];
+	priority?: CheckPriority;
+};
+
+export interface FixProgress {
+	totalIssues: number;
+	fixedCount: number;
+	fixedBlockerCount: number;
+	fixed: string[];
+	regressed: string[];
+}
 
 export interface UnlockOffer {
 	issueCount: number;
@@ -20,6 +37,77 @@ export interface UnlockOffer {
 	ctaLabel: string;
 	projectedScore: number | null;
 	masterPreviewLines: string[];
+	/** Full master prompt line count — shown pre-unlock as social proof */
+	masterPromptLineCount: number;
+}
+
+export function toCheckSnapshots(checks: ScanCheck[]): CheckSnapshot[] {
+	return checks.map((c) => ({
+		id: c.id,
+		status: c.status,
+		priority: c.priority
+	}));
+}
+
+export function saveBaselineChecks(snapshots: CheckSnapshot[]): void {
+	if (typeof sessionStorage === 'undefined') return;
+	sessionStorage.setItem(STORAGE.baselineChecks, JSON.stringify(snapshots));
+}
+
+export function loadBaselineChecks(): CheckSnapshot[] | null {
+	if (typeof sessionStorage === 'undefined') return null;
+	const raw = sessionStorage.getItem(STORAGE.baselineChecks);
+	if (!raw) return null;
+	try {
+		return JSON.parse(raw) as CheckSnapshot[];
+	} catch {
+		return null;
+	}
+}
+
+function wasBlocker(snapshot: CheckSnapshot): boolean {
+	const priority = snapshot.priority ?? checkPriority(snapshot.id);
+	if (snapshot.status === 'fail' && priority === 'p0') return true;
+	return snapshot.status === 'warn' && priority === 'p0';
+}
+
+/** Check-level delta vs sessionStorage baseline from the first scan of this URL. */
+export function computeFixProgress(baseline: CheckSnapshot[], current: ScanCheck[]): FixProgress {
+	const prevIssues = new Map<string, CheckSnapshot>();
+	for (const snapshot of baseline) {
+		if (snapshot.status === 'fail' || snapshot.status === 'warn') {
+			prevIssues.set(snapshot.id, snapshot);
+		}
+	}
+
+	const fixed: string[] = [];
+	const regressed: string[] = [];
+	let fixedBlockerCount = 0;
+
+	for (const check of current) {
+		const was = prevIssues.get(check.id);
+		const isIssue = check.status === 'fail' || check.status === 'warn';
+		if (was && !isIssue) {
+			fixed.push(check.title);
+			if (wasBlocker(was)) fixedBlockerCount++;
+		}
+		if (!was && isIssue) regressed.push(check.title);
+	}
+
+	return {
+		totalIssues: prevIssues.size,
+		fixedCount: fixed.length,
+		fixedBlockerCount,
+		fixed,
+		regressed
+	};
+}
+
+export function estimateMasterPromptLineCount(report: ScanReport): number {
+	const text = buildMasterPrompt(report.checks, report.finalUrl, {
+		scanCoverage: report.scanCoverage
+	});
+	return text.split('\n').length;
 }
 
 /** Optimistic score if user fixes fails and P1 warns — for re-scan preview only. */
@@ -78,7 +166,8 @@ export function buildUnlockOffer(report: ScanReport): UnlockOffer | null {
 			valuePitch: 'Full audit unlock after a successful scan — not for bot-blocked error pages',
 			ctaLabel: 'Unlock reachability guide — $9',
 			projectedScore: null,
-			masterPreviewLines: buildMasterPromptPreview(report)
+			masterPreviewLines: buildMasterPromptPreview(report),
+			masterPromptLineCount: estimateMasterPromptLineCount(report)
 		};
 	}
 
@@ -89,6 +178,7 @@ export function buildUnlockOffer(report: ScanReport): UnlockOffer | null {
 	).length;
 	const projectedScore = estimateScoreAfterFixes(report);
 	const masterPreviewLines = buildMasterPromptPreview(report);
+	const masterPromptLineCount = estimateMasterPromptLineCount(report);
 
 	let headline: string;
 	let subhead: string;
@@ -140,7 +230,8 @@ export function buildUnlockOffer(report: ScanReport): UnlockOffer | null {
 		valuePitch,
 		ctaLabel,
 		projectedScore,
-		masterPreviewLines
+		masterPreviewLines,
+		masterPromptLineCount
 	};
 }
 

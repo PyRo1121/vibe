@@ -64,9 +64,9 @@ if (home.res.ok && home.text.includes('og:image') && home.text.includes('applica
 	pass('homepage meta', 'og + json-ld in HTML');
 } else fail('homepage meta');
 
-if (home.text.includes('plausible.io') && home.text.includes('lint.latham.cloud')) {
-	pass('Plausible script', 'PUBLIC_PLAUSIBLE_DOMAIN wired');
-} else fail('Plausible script', 'add domain in Plausible dashboard to collect data');
+if (home.text.includes('plausible-domain') && home.text.includes('lint.latham.cloud')) {
+	pass('Plausible', '@plausible-analytics/tracker domain wired (NPM, client init)');
+} else fail('Plausible', 'set PUBLIC_PLAUSIBLE_DOMAIN and init @plausible-analytics/tracker');
 
 // 2. Exit criterion 1 — scan with issues shows embarrassment + locked prompts
 const scan = await post('/api/scan', { url: 'https://example.com' });

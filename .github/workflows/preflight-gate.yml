@@ -1,4 +1,4 @@
-name: Preflight gate
+name: Deploylint gate
 
 on:
   pull_request:
@@ -42,12 +42,12 @@ jobs:
 
       - name: Scan production URL (optional)
         env:
-          PREFLIGHT_URL: ${{ github.event.inputs.url || secrets.PREFLIGHT_GATE_URL }}
+          PREFLIGHT_URL: ${{ github.event.inputs.url || secrets.PREFLIGHT_GATE_URL || secrets.DEPLOYLINT_GATE_URL }}
           PREFLIGHT_MIN_SCORE: ${{ github.event.inputs.min_score || '80' }}
-          PREFLIGHT_API: https://preflight.latham.cloud
+          PREFLIGHT_API: https://lint.latham.cloud
         run: |
           if [ -z "$PREFLIGHT_URL" ]; then
-            echo "Skipping URL gate — set repository secret PREFLIGHT_GATE_URL or run workflow_dispatch with url."
+            echo "Skipping URL gate — set PREFLIGHT_GATE_URL (or DEPLOYLINT_GATE_URL) or workflow_dispatch with url."
             exit 0
           fi
           npm run gate -w preflight -- "$PREFLIGHT_URL"

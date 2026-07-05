@@ -1,7 +1,13 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import type { ScanReport } from '$lib/scan/types';
-	import { buildShareText, clearCheckoutQuery, STORAGE } from '$lib/client/preflight-session';
+	import {
+		buildShareText,
+		clearCheckoutQuery,
+		saveBaselineChecks,
+		STORAGE,
+		toCheckSnapshots
+	} from '$lib/client/preflight-session';
 	import { trackFunnel } from '$lib/client/track';
 	import VerdictBanner from '$lib/components/VerdictBanner.svelte';
 	import ScanIncompleteBanner from '$lib/components/ScanIncompleteBanner.svelte';
@@ -122,6 +128,7 @@
 
 			if (!rescan) {
 				sessionStorage.setItem(STORAGE.baselineScore, String(report.score));
+				saveBaselineChecks(toCheckSnapshots(report.checks));
 			}
 			if (report.unlocked && unlockSessionId) {
 				sessionStorage.setItem(STORAGE.unlockSession, unlockSessionId);
@@ -276,6 +283,7 @@
 				unlockSessionId = null;
 				sessionStorage.removeItem(STORAGE.unlockSession);
 				sessionStorage.removeItem(STORAGE.baselineScore);
+				sessionStorage.removeItem(STORAGE.baselineChecks);
 			}
 			runScan(false);
 		}}

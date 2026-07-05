@@ -1,11 +1,17 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { onNavigate } from '$app/navigation';
+	import { startPlausible } from '$lib/client/plausible';
 	import './layout.css';
 
 	let {
 		children,
 		data
 	}: { children: import('svelte').Snippet; data: { plausibleDomain?: string | null } } = $props();
+
+	onMount(() => {
+		if (data.plausibleDomain) void startPlausible(data.plausibleDomain);
+	});
 
 	onNavigate((navigation) => {
 		if (!document.startViewTransition) return;
@@ -20,11 +26,7 @@
 
 <svelte:head>
 	{#if data.plausibleDomain}
-		<script
-			defer
-			data-domain={data.plausibleDomain}
-			src="https://plausible.io/js/script.js"
-		></script>
+		<meta name="plausible-domain" content={data.plausibleDomain} />
 	{/if}
 </svelte:head>
 

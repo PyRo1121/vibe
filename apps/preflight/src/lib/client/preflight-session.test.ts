@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { buildShareText, buildUnlockOffer } from './preflight-session';
+import {
+	buildShareText,
+	buildUnlockOffer,
+	computeFixProgress,
+	toCheckSnapshots
+} from './preflight-session';
 import type { ScanCheck, ScanReport } from '$lib/scan/types';
 
 function check(id: string, status: ScanCheck['status']): ScanCheck {
@@ -84,5 +89,35 @@ describe('buildUnlockOffer', () => {
 		expect(offer?.headline).toContain('blocked');
 		expect(offer?.projectedScore).toBeNull();
 		expect(offer?.masterPreviewLines.join('\n')).toContain('Do NOT fix SEO');
+	});
+
+	it('includes master prompt line count', () => {
+		const offer = buildUnlockOffer({
+			...baseReport,
+			verdict: 'no-go',
+			checks: [check('privacy', 'fail'), check('open-graph', 'fail')]
+		});
+		expect(offer?.masterPromptLineCount).toBeGreaterThan(5);
+	});
+});
+
+describe('computeFixProgress', () => {
+	it('counts fixed issues and P0 blockers from baseline', () => {
+		const baseline = toCheckSnapshots([
+			{ ...check('privacy', 'fail'), priority: 'p0', title: 'Privacy policy' },
+			{ ...check('title', 'warn'), priority: 'p2', title: 'Page title' },
+			{ ...check('og-image', 'pass'), title: 'OG image' }
+		]);
+		const current: ScanCheck[] = [
+			{ ...check('privacy', 'pass'), priority: 'p0', title: 'Privacy policy' },
+			{ ...check('title', 'warn'), priority: 'p2', title: 'Page title' },
+			{ ...check('meta', 'fail'), title: 'Meta description' }
+		];
+		const progress = computeFixProgress(baseline, current);
+		expect(progress.totalIssues).toBe(2);
+		expect(progress.fixedCount).toBe(1);
+		expect(progress.fixedBlockerCount).toBe(1);
+		expect(progress.fixed).toEqual(['Privacy policy']);
+		expect(progress.regressed).toEqual(['Meta description']);
 	});
 });

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { ScanReport } from '$lib/scan/types';
 	import { scoreColor } from '$lib/ui/scan-styles';
+	import ScoreDeltaBadge from '$lib/components/ScoreDeltaBadge.svelte';
+	import { computeFixProgress, loadBaselineChecks } from '$lib/client/preflight-session';
 
 	let {
 		report,
@@ -19,6 +21,12 @@
 	} = $props();
 
 	const categories = $derived(report.launchBrief?.categoryScores ?? []);
+
+	const fixProgress = $derived.by(() => {
+		const baseline = loadBaselineChecks();
+		if (baseline?.length) return computeFixProgress(baseline, report.checks);
+		return null;
+	});
 
 	let linkCopied = $state(false);
 	let linkTimer: ReturnType<typeof setTimeout> | undefined;
@@ -69,10 +77,16 @@
 				<p class="text-lg text-zinc-600">/100</p>
 			</div>
 			{#if report.scoreDelta != null && report.previousScore != null}
-				<p class="mt-1 text-sm font-medium text-emerald-400">
-					{report.previousScore} → {report.score}
-					({report.scoreDelta >= 0 ? '+' : ''}{report.scoreDelta} verified)
-				</p>
+				<div class="mt-2">
+					<ScoreDeltaBadge
+						previousScore={report.previousScore}
+						score={report.score}
+						scoreDelta={report.scoreDelta}
+						fixedCount={report.scanDiff?.fixed.length ?? fixProgress?.fixedCount ?? null}
+						fixedBlockerCount={fixProgress?.fixedBlockerCount ?? null}
+						compact
+					/>
+				</div>
 			{/if}
 
 			{#if report.history?.length}
