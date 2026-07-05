@@ -54,25 +54,41 @@ export function findRootFile(entries: RepoTreeEntry[], pattern: RegExp): string 
 	return match?.path ?? null;
 }
 
-export function parsePackageJson(text: string | null): {
+export interface ParsedPackageJson {
 	dependencies: Record<string, string>;
 	valid: boolean;
-} {
+	raw?: {
+		scripts?: Record<string, string>;
+		dependencies?: Record<string, string>;
+		devDependencies?: Record<string, string>;
+		optionalDependencies?: Record<string, string>;
+		peerDependencies?: Record<string, string>;
+		engines?: { node?: string };
+		packageManager?: string;
+		devEngines?: {
+			packageManager?:
+				| string
+				| {
+						name?: string;
+						version?: string;
+						onFail?: string;
+				  };
+		};
+	};
+}
+
+export function parsePackageJson(text: string | null): ParsedPackageJson {
 	if (!text) return { dependencies: {}, valid: false };
 	try {
-		const parsed = JSON.parse(text) as {
-			dependencies?: Record<string, string>;
-			devDependencies?: Record<string, string>;
-			optionalDependencies?: Record<string, string>;
-			peerDependencies?: Record<string, string>;
-		};
+		const parsed = JSON.parse(text) as ParsedPackageJson['raw'];
 		return {
 			dependencies: {
-				...(parsed.dependencies ?? {}),
-				...(parsed.devDependencies ?? {}),
-				...(parsed.optionalDependencies ?? {}),
-				...(parsed.peerDependencies ?? {})
+				...(parsed?.dependencies ?? {}),
+				...(parsed?.devDependencies ?? {}),
+				...(parsed?.optionalDependencies ?? {}),
+				...(parsed?.peerDependencies ?? {})
 			},
+			raw: parsed,
 			valid: true
 		};
 	} catch {

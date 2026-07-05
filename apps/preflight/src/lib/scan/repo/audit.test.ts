@@ -89,6 +89,21 @@ describe('parsePackageJson', () => {
 		expect(parsePackageJson(null).valid).toBe(false);
 		expect(parsePackageJson('{oops').valid).toBe(false);
 	});
+
+	it('keeps parsed package metadata for static repo analyzers', () => {
+		const parsed = parsePackageJson(
+			JSON.stringify({
+				scripts: { build: 'vite build' },
+				packageManager: 'pnpm@10.0.0',
+				devDependencies: { eslint: '^9.0.0' }
+			})
+		);
+
+		expect(parsed.valid).toBe(true);
+		expect(parsed.raw?.scripts?.build).toBe('vite build');
+		expect(parsed.raw?.packageManager).toBe('pnpm@10.0.0');
+		expect(parsed.raw?.devDependencies?.eslint).toBe('^9.0.0');
+	});
 });
 
 describe('auditNpmDependencies', () => {

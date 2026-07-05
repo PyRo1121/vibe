@@ -33,6 +33,17 @@ import {
 	nodeVersionPinned,
 	parseTsconfigStrict
 } from '$lib/scan/repo/quality';
+import {
+	analyzeCiWorkflows,
+	analyzeDeployConfig,
+	analyzeLintSetup,
+	analyzePackageManager,
+	analyzePackageScripts,
+	analyzeTypescriptSetup,
+	type PackageManifestEvidence,
+	type RepoFileEvidence,
+	type RepoReadinessFinding
+} from '$lib/scan/repo/readiness';
 
 /**
  * Repository scan: audits a public GitHub repo pre-deploy — committed env
@@ -54,6 +65,7 @@ const MAX_LOCKFILE_BYTES = 3 * 1024 * 1024;
 const README_MIN_WORDS = 60;
 const MAX_PACKAGE_MANIFESTS = 5;
 const MAX_PACKAGE_LOCKFILES = 3;
+const STATIC_CONFIG_LIMIT = 48;
 
 function isVendoredPath(path: string): boolean {
 	return /(^|\/)(node_modules|dist|build|out|vendor|\.next|\.svelte-kit|coverage)\//.test(path);
@@ -82,6 +94,57 @@ function findPackageLockPaths(entries: RepoTreeEntry[]): string[] {
 		...paths.filter((path) => path === 'package-lock.json'),
 		...paths.filter((path) => path !== 'package-lock.json')
 	].slice(0, MAX_PACKAGE_LOCKFILES);
+}
+
+function findStaticConfigPaths(entries: RepoTreeEntry[]): string[] {
+	const patterns = [
+		/(^|\/)eslint\.config\.(js|mjs|cjs|ts|mts|cts)$/,
+		/(^|\/)\.eslintrc(\.(json|js|cjs|yml|yaml))?$/,
+		/(^|\/)biome\.jsonc?$/,
+		/(^|\/)\.prettierrc(\.(json|js|cjs|mjs|yml|yaml))?$/,
+		/(^|\/)prettier\.config\.(js|cjs|mjs|ts)$/,
+		/(^|\/)tsconfig\.json$/,
+		/^\.github\/workflows\/[^/]+\.(ya?ml)$/,
+		/(^|\/)wrangler\.(jsonc?|toml)$/,
+		/(^|\/)vercel\.json$/,
+		/(^|\/)netlify\.toml$/,
+		/(^|\/)Dockerfile$/,
+		/(^|\/)docker-compose\.ya?ml$/,
+		/^package-lock\.json$/,
+		/^npm-shrinkwrap\.json$/,
+		/^pnpm-lock\.yaml$/,
+		/^yarn\.lock$/,
+		/^bun\.lockb?$/
+	];
+
+	return entries
+		.filter((entry) => entry.type === 'blob' && !isVendoredPath(entry.path))
+		.map((entry) => entry.path)
+		.filter((path) => patterns.some((pattern) => pattern.test(path)))
+		.slice(0, STATIC_CONFIG_LIMIT);
+}
+
+function manifestEvidence(paths: string[], texts: (string | null)[]): PackageManifestEvidence[] {
+	return paths.flatMap((path, index) => {
+		const parsed = parsePackageJson(texts[index]);
+		return parsed.valid && parsed.raw ? [{ path, json: parsed.raw }] : [];
+	});
+}
+
+function repoReadinessChecks(url: string, findings: RepoReadinessFinding[]): ScanCheck[] {
+	return findings.map((item) =>
+		makeCheck(
+			item.id,
+			item.category,
+			item.title,
+			item.status,
+			item.message,
+			fixPrompt(item.id, {
+				url,
+				message: item.message
+			})
+		)
+	);
 }
 
 function uniqueLockPackages(packages: LockPackage[]): LockPackage[] {
@@ -120,6 +183,7 @@ export async function scanRepo(
 	const gitignorePath = findRootFile(entries, /^\.gitignore$/);
 	const lockfilePaths = findPackageLockPaths(entries);
 	const tsconfigPath = findRootFile(entries, /^tsconfig\.json$/);
+	const staticConfigPaths = findStaticConfigPaths(entries);
 
 	const getFile = (path: string | null, maxBytes?: number) =>
 		path ? fetchers.getFile(ref, meta.branch, path, maxBytes) : Promise.resolve(null);
@@ -131,7 +195,8 @@ export async function scanRepo(
 		lockfileTexts,
 		tsconfigText,
 		envTexts,
-		sampleTexts
+		sampleTexts,
+		staticConfigTexts
 	] = await Promise.all([
 		Promise.all(packageJsonPaths.map((path) => getFile(path))),
 		getFile(readmePath),
@@ -139,10 +204,16 @@ export async function scanRepo(
 		Promise.all(lockfilePaths.map((path) => getFile(path, MAX_LOCKFILE_BYTES))),
 		getFile(tsconfigPath),
 		Promise.all(envFiles.slice(0, 2).map((p) => getFile(p))),
-		Promise.all(sampleFiles.map((p) => getFile(p)))
+		Promise.all(sampleFiles.map((p) => getFile(p))),
+		Promise.all(staticConfigPaths.map((path) => getFile(path, MAX_LOCKFILE_BYTES)))
 	]);
 
 	const parsedManifests = packageJsonTexts.map((text) => parsePackageJson(text));
+	const packageEvidence = manifestEvidence(packageJsonPaths, packageJsonTexts);
+	const staticFiles: RepoFileEvidence[] = staticConfigPaths.map((path, index) => ({
+		path,
+		text: staticConfigTexts[index] ?? null
+	}));
 	const rootPackageJsonText =
 		packageJsonPath == null
 			? null
@@ -378,6 +449,20 @@ export async function scanRepo(
 		}
 	}
 
+	const readinessFindings = [
+		...(packageEvidence.length > 0
+			? [
+					...analyzePackageScripts(packageEvidence),
+					...analyzeLintSetup(packageEvidence, staticFiles),
+					...analyzePackageManager(packageEvidence, staticFiles)
+				]
+			: []),
+		...analyzeTypescriptSetup(packageEvidence, staticFiles),
+		...analyzeCiWorkflows(staticFiles),
+		...analyzeDeployConfig(packageEvidence, staticFiles)
+	];
+	checks.push(...repoReadinessChecks(url, readinessFindings));
+
 	const repo: RepoInfo = {
 		owner: ref.owner,
 		repo: ref.repo,
@@ -393,6 +478,7 @@ export async function scanRepo(
 				...(gitignorePath ? [gitignorePath] : []),
 				...(tsconfigPath ? [tsconfigPath] : []),
 				...(ciPath ? [ciPath] : []),
+				...staticConfigPaths,
 				...(committedLockfile && !lockfilePaths.includes(committedLockfile)
 					? [committedLockfile]
 					: []),

@@ -50,9 +50,71 @@ const CLEAN_FILES: Record<string, string> = {
 
 describe('scanRepo', () => {
 	it('produces a clean report for a healthy repo', async () => {
+		const healthyEntries: RepoTreeEntry[] = [
+			...CLEAN_ENTRIES,
+			{ path: 'package-lock.json', type: 'blob' },
+			{ path: '.github/workflows/ci.yml', type: 'blob' },
+			{ path: 'src/index.test.ts', type: 'blob' },
+			{ path: '.nvmrc', type: 'blob' },
+			{ path: 'tsconfig.json', type: 'blob' },
+			{ path: 'eslint.config.js', type: 'blob' },
+			{ path: '.prettierrc', type: 'blob' },
+			{ path: 'wrangler.jsonc', type: 'blob' }
+		];
+		const healthyFiles: Record<string, string> = {
+			...CLEAN_FILES,
+			'package.json': JSON.stringify({
+				packageManager: 'npm@11.0.0',
+				dependencies: { react: '^18.0.0' },
+				devDependencies: { eslint: '^9.0.0', prettier: '^3.0.0', typescript: '^5.0.0' },
+				engines: { node: '>=22' },
+				scripts: {
+					lint: 'eslint .',
+					format: 'prettier --write .',
+					typecheck: 'tsc --noEmit',
+					test: 'vitest run',
+					build: 'vite build'
+				}
+			}),
+			'package-lock.json': JSON.stringify({
+				lockfileVersion: 3,
+				packages: {
+					'': { name: 'launchpad' },
+					'node_modules/react': { version: '18.2.0' }
+				}
+			}),
+			'.github/workflows/ci.yml': `
+name: CI
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+`,
+			'src/index.test.ts':
+				'import { expect, it } from "vitest";\nit("works", () => expect(1).toBe(1));',
+			'.nvmrc': '22\n',
+			'tsconfig.json': JSON.stringify({ compilerOptions: { strict: true } }),
+			'eslint.config.js': 'export default [];',
+			'.prettierrc': '{}',
+			'wrangler.jsonc': '{ "compatibility_date": "2026-07-05" }'
+		};
 		const report = await scanRepo(REF, {
-			fetchers: fakeFetchers({ entries: CLEAN_ENTRIES, files: CLEAN_FILES }),
-			npmLicense: async () => 'MIT'
+			fetchers: fakeFetchers({ entries: healthyEntries, files: healthyFiles }),
+			npmLicense: async () => 'MIT',
+			vulnAuditor: async (packages) => ({
+				checked: packages.length,
+				findings: [],
+				worstSeverity: null
+			})
 		});
 
 		expect(report.repo).toMatchObject({
@@ -60,7 +122,7 @@ describe('scanRepo', () => {
 			repo: 'launchpad',
 			branch: 'main',
 			license: 'MIT',
-			depCount: 1
+			depCount: 4
 		});
 		expect(report.url).toBe('https://github.com/acme/launchpad');
 		expect(report.scanCoverage).toBe('full');
@@ -72,6 +134,9 @@ describe('scanRepo', () => {
 		expect(byId['repo-license'].status).toBe('pass');
 		expect(byId['license-risk'].status).toBe('pass');
 		expect(byId.readme.status).toBe('pass');
+		expect(byId['package-scripts'].status).toBe('pass');
+		expect(byId['ci-runs-quality-gates'].status).toBe('pass');
+		expect(byId['deploy-config'].status).toBe('pass');
 		expect(report.licenseAudit?.sellable).toBe('yes');
 		expect(report.verdict).toBe('go');
 	});
@@ -193,6 +258,7 @@ describe('scanRepo', () => {
 		});
 
 		expect(report.checks.find((c) => c.id === 'license-risk')).toBeUndefined();
+		expect(report.checks.find((c) => c.id === 'package-scripts')).toBeUndefined();
 		expect(report.licenseAudit).toBeUndefined();
 		expect(report.repo?.depCount).toBeNull();
 	});
@@ -407,6 +473,71 @@ describe('scanRepo', () => {
 		expect(byId['node-version-pinned'].status).toBe('pass');
 		expect(byId['ts-strict'].status).toBe('pass');
 		expect(report.repo?.filesSampled).toContain('tsconfig.json');
+	});
+
+	it('surfaces static repo readiness findings in the scan report', async () => {
+		const report = await scanRepo(REF, {
+			fetchers: fakeFetchers({
+				entries: [
+					...QUALITY_ENTRIES,
+					{ path: 'eslint.config.js', type: 'blob' },
+					{ path: 'biome.json', type: 'blob' },
+					{ path: 'wrangler.jsonc', type: 'blob' }
+				],
+				files: {
+					...QUALITY_FILES,
+					'package.json': JSON.stringify({
+						packageManager: 'npm@11.0.0',
+						dependencies: { react: '^18.0.0' },
+						devDependencies: {
+							eslint: '^9.0.0',
+							'@sveltejs/kit': '^2.0.0',
+							'svelte-check': '^4.0.0',
+							typescript: '^5.0.0'
+						},
+						engines: { node: '>=22' },
+						scripts: {
+							lint: 'eslint .',
+							check: 'svelte-kit sync && svelte-check --tsconfig ./tsconfig.json',
+							test: 'vitest run',
+							build: 'vite build'
+						}
+					}),
+					'.github/workflows/ci.yml': `
+name: CI
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
+`,
+					'eslint.config.js': 'export default [];',
+					'biome.json': '{}',
+					'wrangler.jsonc': '{ "compatibility_date": "2026-07-05" }'
+				}
+			}),
+			npmLicense: async () => 'MIT',
+			vulnAuditor: async () => null
+		});
+
+		const byId = Object.fromEntries(report.checks.map((check) => [check.id, check]));
+		expect(byId['package-scripts'].status).toBe('pass');
+		expect(byId['lint-script'].status).toBe('pass');
+		expect(byId['typecheck-script'].status).toBe('pass');
+		expect(byId['svelte-check'].status).toBe('pass');
+		expect(byId['package-manager-pinned'].status).toBe('pass');
+		expect(byId['ci-runs-quality-gates'].status).toBe('pass');
+		expect(byId['workflow-permissions'].status).toBe('pass');
+		expect(byId['deploy-config'].status).toBe('pass');
+		expect(report.repo?.filesSampled).toContain('wrangler.jsonc');
 	});
 
 	it('warns on missing repo quality signals for a minimal repo', async () => {

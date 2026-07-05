@@ -107,6 +107,38 @@ describe('fixPrompt coverage for new check ids', () => {
 			expect(prompt).toContain(`Check: ${id}`);
 		}
 	});
+
+	it('has targeted prompts for repo readiness checks', () => {
+		const ids = [
+			'package-scripts',
+			'lint-script',
+			'format-script',
+			'typecheck-script',
+			'build-script',
+			'package-manager-pinned',
+			'mixed-lockfiles',
+			'ci-runs-quality-gates',
+			'workflow-permissions',
+			'workflow-pull-request-target',
+			'workflow-action-pinning',
+			'svelte-check',
+			'deploy-config',
+			'wrangler-compat-date',
+			'docker-env-copy'
+		];
+
+		for (const id of ids) {
+			const prompt = fixPrompt(id, {
+				url: 'https://github.com/acme/app',
+				message: 'Evidence line'
+			});
+			expect(prompt).toContain(`Check: ${id}`);
+			expect(prompt).toContain('Evidence: Evidence line');
+			expect(prompt).not.toContain(
+				'Fix this launch readiness issue before sharing the site publicly.'
+			);
+		}
+	});
 });
 
 describe('pickSamplePromptCheck', () => {
