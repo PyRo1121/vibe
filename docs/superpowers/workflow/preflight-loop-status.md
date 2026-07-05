@@ -182,6 +182,8 @@ npm run verify:preflight
 npm run deploy:preflight          # from repo root: npm run deploy:preflight
 npm run gate:preflight -- https://your-app.com
 npm run smoke:preflight           # phases 18–24
+npm run changelog:draft -w preflight   # draft bullets from conventional commits
+# Release: docs/superpowers/workflow/changelog-and-releases.md
 npm run setup:stripe              # test mode
 # Live: scripts/setup-stripe-live.ps1
 ```

@@ -30,6 +30,8 @@
 		"smoke:phase23": "node scripts/smoke-phase23.mjs",
 		"smoke:phase24": "node scripts/smoke-phase24.mjs",
 		"smoke": "npm run smoke:phase18 && npm run smoke:phase19 && npm run smoke:phase20 && npm run smoke:phase23 && npm run smoke:phase24",
+		"changelog:draft": "node scripts/changelog-draft.mjs",
+		"changelog:release": "node scripts/changelog-release.mjs",
 		"deploy": "npm run build && wrangler deploy"
 	},
 	"devDependencies": {
