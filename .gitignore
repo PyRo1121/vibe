@@ -17,3 +17,4 @@ playwright-report
 blob-report
 .DS_Store
 .codex/
+tmp/
