@@ -1,7 +1,7 @@
 import type { ScanReport } from '$lib/scan/types';
 import { describe, expect, it } from 'vitest';
 
-import { evaluateGate } from './evaluate';
+import { evaluateGate, formatGateReport } from './evaluate';
 
 function report(overrides: Partial<ScanReport> = {}): ScanReport {
 	return {
@@ -71,5 +71,55 @@ describe('evaluateGate', () => {
 			})
 		);
 		expect(result.pass).toBe(false);
+	});
+
+	it('can ignore P0 checks when configured for advisory scoring only', () => {
+		const result = evaluateGate(
+			report({
+				score: 90,
+				checks: [
+					{
+						id: 'privacy',
+						category: 'legal',
+						title: 'Privacy policy',
+						status: 'fail',
+						message: 'Missing privacy page',
+						fixPrompt: ''
+					}
+				]
+			}),
+			{ failOnP0: false }
+		);
+
+		expect(result.pass).toBe(true);
+		expect(result.reasons).toEqual([]);
+	});
+
+	it('supports custom blocking verdicts', () => {
+		const result = evaluateGate(report({ verdict: 'conditional' }), {
+			blockVerdicts: ['conditional']
+		});
+
+		expect(result.pass).toBe(false);
+		expect(result.reasons[0]).toContain('Verdict CONDITIONAL');
+	});
+});
+
+describe('formatGateReport', () => {
+	it('renders pass reports without a failure section', () => {
+		const text = formatGateReport(evaluateGate(report()));
+
+		expect(text).toContain('Deploylint gate: PASS');
+		expect(text).toContain('URL: https://app.test/');
+		expect(text).not.toContain('Failures:');
+	});
+
+	it('renders all failure reasons for local and CI output', () => {
+		const text = formatGateReport(evaluateGate(report({ verdict: 'no-go', score: 40 })));
+
+		expect(text).toContain('Deploylint gate: FAIL');
+		expect(text).toContain('Failures:');
+		expect(text).toContain('Verdict NO-GO');
+		expect(text).toContain('Score 40 is below minimum 80');
 	});
 });

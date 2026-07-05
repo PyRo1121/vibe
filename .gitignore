@@ -15,6 +15,7 @@ scan-test.json
 test-results
 playwright-report
 blob-report
+coverage
 .DS_Store
 .codex/
 .worktrees/

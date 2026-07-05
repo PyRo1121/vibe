@@ -11,6 +11,27 @@ export default defineConfig({
 	},
 	test: {
 		include: ['src/**/*.{test,spec}.{js,ts}'],
-		environment: 'node'
+		environment: 'node',
+		passWithNoTests: false,
+		coverage: {
+			provider: 'v8',
+			reporter: ['text', 'json', 'html'],
+			reportsDirectory: 'coverage',
+			include: ['src/lib/**/*.{ts,js}', 'src/hooks.server.ts'],
+			exclude: [
+				'src/**/*.{test,spec}.{ts,js}',
+				'src/**/*.d.ts',
+				'src/lib/test/**',
+				'src/lib/ui/**',
+				'src/lib/client/plausible.ts',
+				'src/lib/client/track.ts'
+			],
+			thresholds: {
+				lines: 92,
+				functions: 95,
+				branches: 81,
+				statements: 90
+			}
+		}
 	}
 });

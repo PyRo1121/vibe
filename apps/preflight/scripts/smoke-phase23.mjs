@@ -52,13 +52,54 @@ async function get(path) {
 	return { res, text };
 }
 
-// 1. Sitemap lists public marketing URLs
+function sitemapLocs(xml) {
+	return [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
+}
+
+function pathname(loc) {
+	try {
+		return new URL(loc).pathname;
+	} catch {
+		return loc;
+	}
+}
+
+// 1. Sitemap lists and serves the public URL set
 const sitemap = await get('/sitemap.xml');
-const requiredLocs = ['/', '/privacy', '/terms', '/compare', '/developers'];
 if (sitemap.res.ok) {
-	const missing = requiredLocs.filter((path) => !sitemap.text.includes(`${BASE}${path}`));
-	if (missing.length === 0) pass('sitemap.xml', `all ${requiredLocs.length} marketing URLs listed`);
-	else fail('sitemap.xml', `missing locs: ${missing.join(', ')}`);
+	const locs = sitemapLocs(sitemap.text);
+	const paths = locs.map(pathname);
+	const missingCore = ['/', '/checks', '/privacy', '/terms', '/compare', '/developers'].filter(
+		(path) => !paths.includes(path)
+	);
+	const guideCount = paths.filter((path) => path.startsWith('/guides/')).length;
+	if (missingCore.length === 0 && guideCount > 0) {
+		pass('sitemap.xml', `${locs.length} URLs listed, including ${guideCount} guides`);
+	} else {
+		fail(
+			'sitemap.xml',
+			`missing core locs: ${missingCore.join(', ') || 'none'}; guideCount=${guideCount}`
+		);
+	}
+
+	const unreachable = [];
+	for (const loc of locs) {
+		let url;
+		try {
+			url = new URL(loc);
+		} catch {
+			unreachable.push(`${loc} (invalid URL)`);
+			continue;
+		}
+		if (url.origin !== BASE) {
+			unreachable.push(`${loc} (wrong origin)`);
+			continue;
+		}
+		const page = await fetch(loc);
+		if (!page.ok) unreachable.push(`${url.pathname} (${page.status})`);
+	}
+	if (unreachable.length === 0) pass('sitemap loc reachability', `${locs.length} URLs reachable`);
+	else fail('sitemap loc reachability', unreachable.join(', '));
 } else {
 	fail('sitemap.xml', String(sitemap.res.status));
 }

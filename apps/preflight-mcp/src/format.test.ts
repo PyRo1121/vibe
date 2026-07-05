@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildAgentScanPayload, formatScanMarkdown } from './format.js';
+import {
+	buildAgentGatePayload,
+	buildAgentScanPayload,
+	encodeOutput,
+	formatGateMarkdown,
+	formatScanMarkdown
+} from './format.js';
 import type { ScanReport } from './types.js';
 
 function report(overrides: Partial<ScanReport> = {}): ScanReport {
@@ -74,6 +80,45 @@ describe('buildAgentScanPayload', () => {
 		);
 		expect(payload.unlockHint).toContain('unlock');
 	});
+
+	it('sorts non-passing issues by priority and honors max_issues', () => {
+		const payload = buildAgentScanPayload(
+			report({
+				checks: [
+					{
+						id: 'p2-warning',
+						title: 'P2 warning',
+						status: 'warn',
+						message: 'later',
+						priority: 'p2'
+					},
+					{
+						id: 'p0-failure',
+						title: 'P0 failure',
+						status: 'fail',
+						message: 'now',
+						priority: 'p0'
+					},
+					{
+						id: 'p1-warning',
+						title: 'P1 warning',
+						status: 'warn',
+						message: 'soon',
+						priority: 'p1'
+					},
+					{
+						id: 'passing',
+						title: 'Passing',
+						status: 'pass',
+						message: 'ok'
+					}
+				]
+			}),
+			2
+		);
+
+		expect(payload.issues.map((issue) => issue.id)).toEqual(['p0-failure', 'p1-warning']);
+	});
 });
 
 describe('formatScanMarkdown', () => {
@@ -81,5 +126,69 @@ describe('formatScanMarkdown', () => {
 		const md = formatScanMarkdown(report());
 		expect(md).toContain('Embarrassment radar');
 		expect(md).toContain('Add a /privacy page');
+	});
+
+	it('renders optional repo, page, delta, and master prompt context', () => {
+		const md = formatScanMarkdown(
+			report({
+				score: 88,
+				previousScore: 72,
+				scoreDelta: 16,
+				pagesScanned: [
+					{ url: 'https://app.test/', role: 'home' },
+					{ url: 'https://app.test/pricing', role: 'pricing' }
+				],
+				repo: { owner: 'acme', repo: 'site', branch: 'main' },
+				masterPrompt: 'Fix every issue.'
+			})
+		);
+
+		expect(md).toContain('72');
+		expect(md).toContain('+16');
+		expect(md).toContain('acme/site@main');
+		expect(md).toContain('home, pricing');
+		expect(md).toContain('Master repair prompt');
+	});
+});
+
+describe('gate output', () => {
+	it('keeps advisory payloads non-blocking without dropping failure reasons', () => {
+		const payload = buildAgentGatePayload(
+			report(),
+			{ pass: false, reasons: ['P0: Privacy policy - No privacy link'] },
+			80,
+			true
+		);
+
+		expect(payload.pass).toBe(true);
+		expect(payload.advisory).toBe(true);
+		expect(payload.reasons).toEqual(['P0: Privacy policy - No privacy link']);
+	});
+
+	it('renders blocking gate failures in markdown', () => {
+		const md = formatGateMarkdown(
+			report(),
+			{ pass: false, reasons: ['Score 72 below minimum 80'] },
+			80,
+			false
+		);
+
+		expect(md).toContain('FAIL');
+		expect(md).toContain('Gate failures');
+		expect(md).toContain('Score 72 below minimum 80');
+	});
+
+	it('renders pass and clear advisory headers', () => {
+		expect(formatGateMarkdown(report(), { pass: true, reasons: [] }, 80, false)).toContain('PASS');
+		expect(formatGateMarkdown(report(), { pass: true, reasons: [] }, 80, true)).toContain(
+			'ADVISORY'
+		);
+	});
+});
+
+describe('encodeOutput', () => {
+	it('encodes JSON output and rejects markdown misuse', () => {
+		expect(encodeOutput('json', { pass: true })).toContain('"pass": true');
+		expect(() => encodeOutput('markdown', { pass: true })).toThrow('markdown handler');
 	});
 });
