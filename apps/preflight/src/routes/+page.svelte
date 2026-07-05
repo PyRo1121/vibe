@@ -23,6 +23,7 @@
 	import UnlockComparePanel from '$lib/components/UnlockComparePanel.svelte';
 	import UnlockStickyBar from '$lib/components/UnlockStickyBar.svelte';
 	import DeepDivesSection from '$lib/components/DeepDivesSection.svelte';
+	import SeoHead from '$lib/components/SeoHead.svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -211,14 +212,16 @@
 	}
 
 	const appOrigin = $derived(data.appUrl.replace(/\/$/, ''));
-	const jsonLd = $derived(
-		JSON.stringify({
+	const title = 'Deploylint - Launch readiness checker for vibe-coded apps';
+	const description =
+		'Run 90+ launch checks before you share a URL. Deploylint finds broken previews, exposed secrets, SEO blockers, legal gaps, and gives Cursor-ready fix prompts.';
+	const jsonLd = $derived([
+		{
 			'@context': 'https://schema.org',
 			'@type': 'WebApplication',
 			name: 'Deploylint',
 			url: appOrigin,
-			description:
-				'Launch-readiness audit for vibe-coded apps. GO/NO-GO verdict, embarrassment radar, social preview checks, and Cursor fix prompts.',
+			description,
 			applicationCategory: 'DeveloperApplication',
 			offers: {
 				'@type': 'Offer',
@@ -226,32 +229,18 @@
 				priceCurrency: 'USD',
 				description: 'Unlock all fix prompts and re-scan proof for one URL'
 			}
-		})
-	);
+		},
+		{
+			'@context': 'https://schema.org',
+			'@type': 'Organization',
+			name: 'Deploylint',
+			url: appOrigin,
+			logo: `${appOrigin}/og.png`
+		}
+	]);
 </script>
 
-<svelte:head>
-	<title>Deploylint — Should you post this URL today?</title>
-	<meta
-		name="description"
-		content="90+ launch checks: GO/NO-GO verdict, placeholder copy, broken og:image content-type, secrets in JS, llms.txt, and Cursor fix prompts with re-scan proof."
-	/>
-	<meta property="og:title" content="Deploylint — Should you post this URL today?" />
-	<meta
-		property="og:description"
-		content="Not Lighthouse. Launch judgment — embarrassment radar, social preview validation, and copy-paste Cursor fixes."
-	/>
-	<meta property="og:type" content="website" />
-	<meta property="og:url" content="{appOrigin}/" />
-	<meta property="og:image" content="{appOrigin}/og.svg" />
-	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="Deploylint — Should you post this URL today?" />
-	<meta name="twitter:description" content="90+ launch checks before Product Hunt, Reddit, or X." />
-	<meta name="twitter:image" content="{appOrigin}/og.svg" />
-	<link rel="canonical" href="{appOrigin}/" />
-	<link rel="icon" href="/og.svg" type="image/svg+xml" />
-	<svelte:element this={"script"} type="application/ld+json">{jsonLd}</svelte:element>
-</svelte:head>
+<SeoHead {title} {description} canonical={`${appOrigin}/`} image={`${appOrigin}/og.png`} {jsonLd} />
 
 <div class="mx-auto max-w-5xl px-4 py-12">
 	<section class="mb-12 text-center print:hidden">

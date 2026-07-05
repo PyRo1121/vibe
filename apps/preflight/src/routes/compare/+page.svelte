@@ -1,9 +1,28 @@
 <script lang="ts">
+	import SeoHead from '$lib/components/SeoHead.svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
 	const base = $derived(data.appUrl.replace(/\/$/, ''));
+	const title = 'Deploylint vs ShipReady, WebsiteReady, PageLens, and Lighthouse';
+	const description =
+		'Compare Deploylint with ShipReady, WebsiteReady, PageLens, and Lighthouse for launch readiness, embarrassment prevention, CI gating, and agent-ready fixes.';
+	const canonical = $derived(`${base}/compare`);
+	const jsonLd = $derived([
+		{
+			'@context': 'https://schema.org',
+			'@type': 'WebPage',
+			name: title,
+			url: canonical,
+			description,
+			isPartOf: {
+				'@type': 'WebSite',
+				name: 'Deploylint',
+				url: base
+			}
+		}
+	]);
 
 	type Cell = 'yes' | 'partial' | 'no';
 
@@ -135,14 +154,7 @@
 	};
 </script>
 
-<svelte:head>
-	<title>Compare — Deploylint vs ShipReady, WebsiteReady & PageLens</title>
-	<meta
-		name="description"
-		content="Honest comparison: Deploylint is launch judgment and embarrassment prevention vs ShipReady, WebsiteReady, and PageLens."
-	/>
-	<link rel="canonical" href="{base}/compare" />
-</svelte:head>
+<SeoHead {title} {description} {canonical} image={`${base}/og.png`} {jsonLd} />
 
 <div class="mx-auto max-w-5xl px-4 py-12 text-zinc-300">
 	<p class="mb-3 text-sm font-medium tracking-widest text-sky-400 uppercase">

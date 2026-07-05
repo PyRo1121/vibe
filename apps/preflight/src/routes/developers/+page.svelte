@@ -1,9 +1,35 @@
 <script lang="ts">
+	import SeoHead from '$lib/components/SeoHead.svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
 	const base = $derived(data.appUrl.replace(/\/$/, ''));
+	const title = 'Deploylint CI gate for GitHub Actions, CLI, and MCP';
+	const description =
+		'Block bad deploys with Deploylint CI gates for GitHub Actions, zero-install scripts, local CLI checks, and MCP tools for coding agents.';
+	const canonical = $derived(`${base}/developers`);
+	const jsonLd = $derived([
+		{
+			'@context': 'https://schema.org',
+			'@type': 'TechArticle',
+			headline: title,
+			url: canonical,
+			description,
+			about: 'Deploylint CI gates and MCP tools'
+		},
+		{
+			'@context': 'https://schema.org',
+			'@type': 'HowTo',
+			name: 'Add a Deploylint CI gate',
+			description,
+			step: [
+				{ '@type': 'HowToStep', name: 'Set DEPLOYLINT_GATE_URL to your production URL' },
+				{ '@type': 'HowToStep', name: 'Run Deploylint from GitHub Actions or the CLI' },
+				{ '@type': 'HowToStep', name: 'Block deploys when launch blockers remain' }
+			]
+		}
+	]);
 
 	const compositeActionYaml = $derived(`name: Deploylint deploy gate
 
@@ -72,14 +98,7 @@ PREFLIGHT_URL=https://your-app.com PREFLIGHT_MIN_SCORE=80 npm run gate -w prefli
 node gate-remote.mjs https://your-app.com`);
 </script>
 
-<svelte:head>
-	<title>Developers — Deploylint CI gate</title>
-	<meta
-		name="description"
-		content="Block bad deploys with Deploylint: GitHub Action, zero-install gate script, local CLI, and MCP tools."
-	/>
-	<link rel="canonical" href="{base}/developers" />
-</svelte:head>
+<SeoHead {title} {description} {canonical} image={`${base}/og.png`} {jsonLd} />
 
 <div class="mx-auto max-w-3xl px-4 py-12 text-zinc-300">
 	<p class="mb-3 text-sm font-medium tracking-widest text-sky-400 uppercase">Fix and prove in CI</p>
@@ -250,7 +269,7 @@ node gate-remote.mjs https://your-app.com`);
 		<h2 class="mb-2 text-lg font-semibold text-white">The full loop</h2>
 		<ol class="list-decimal space-y-2 pl-6 text-sm text-zinc-400">
 			<li>
-				Scan free at <a class="text-sky-400 hover:underline" href="/">lint.latham.cloud</a>
+				Scan free at <a class="text-sky-400 hover:underline" href="/">deploylint.com</a>
 			</li>
 			<li>Unlock fix prompts ($9) → paste into Cursor</li>
 			<li>Re-scan to prove score delta</li>
