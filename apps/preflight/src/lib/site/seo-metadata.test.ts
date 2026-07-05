@@ -34,7 +34,7 @@ describe('Deploylint SEO metadata', () => {
 		expect(graph.map((entry) => entry['@type'])).toEqual([
 			'Organization',
 			'WebSite',
-			'WebApplication'
+			['WebApplication', 'SoftwareApplication']
 		]);
 		expect(graph[1]).toMatchObject({
 			name: 'Deploylint',
@@ -44,6 +44,12 @@ describe('Deploylint SEO metadata', () => {
 		expect(graph[2]).toMatchObject({
 			applicationCategory: 'DeveloperApplication',
 			operatingSystem: 'Web',
+			isAccessibleForFree: true,
+			featureList: expect.arrayContaining([
+				'SEO blocker detection',
+				'GitHub repository scanning',
+				'CI deploy gate'
+			]),
 			offers: {
 				'@type': 'Offer',
 				price: '9.00',

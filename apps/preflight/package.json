@@ -43,7 +43,6 @@
 	"devDependencies": {
 		"@cloudflare/workers-types": "^5.20260705.1",
 		"@eslint/js": "^10.0.1",
-		"@fontsource-variable/geist": "^5.2.8",
 		"@playwright/test": "^1.60.0",
 		"@sveltejs/adapter-cloudflare": "^7.2.9",
 		"@sveltejs/kit": "^2.69.1",

@@ -4,15 +4,19 @@ export interface PublicSiteRoute {
 	path: string;
 	title: string;
 	description: string;
+	lastmod: string;
 	changefreq: 'weekly' | 'monthly';
 	priority: string;
 }
+
+const SITE_LASTMOD = '2026-07-05';
 
 export const PUBLIC_SITE_ROUTES = [
 	{
 		path: '/',
 		title: 'Scanner',
 		description: 'Run a Deploylint launch-readiness scan for a live website.',
+		lastmod: SITE_LASTMOD,
 		changefreq: 'weekly',
 		priority: '1.0'
 	},
@@ -20,6 +24,7 @@ export const PUBLIC_SITE_ROUTES = [
 		path: '/checks',
 		title: 'Check catalog',
 		description: 'Browse the launch, security, SEO, social preview, and AI discovery checks.',
+		lastmod: SITE_LASTMOD,
 		changefreq: 'weekly',
 		priority: '0.9'
 	},
@@ -27,6 +32,7 @@ export const PUBLIC_SITE_ROUTES = [
 		path: '/compare',
 		title: 'Comparison',
 		description: 'Compare Deploylint with Lighthouse, OG debuggers, uptime checks, and audits.',
+		lastmod: SITE_LASTMOD,
 		changefreq: 'monthly',
 		priority: '0.8'
 	},
@@ -34,6 +40,7 @@ export const PUBLIC_SITE_ROUTES = [
 		path: '/developers',
 		title: 'CI gate',
 		description: 'Read the deploy gate setup for teams that want automated launch blocking.',
+		lastmod: SITE_LASTMOD,
 		changefreq: 'monthly',
 		priority: '0.7'
 	},
@@ -41,6 +48,7 @@ export const PUBLIC_SITE_ROUTES = [
 		path: '/changelog',
 		title: 'Changelog',
 		description: 'Track Deploylint product changes and newly added launch-readiness checks.',
+		lastmod: SITE_LASTMOD,
 		changefreq: 'weekly',
 		priority: '0.6'
 	},
@@ -48,6 +56,7 @@ export const PUBLIC_SITE_ROUTES = [
 		path: '/privacy',
 		title: 'Privacy',
 		description: 'Read the Deploylint privacy policy.',
+		lastmod: SITE_LASTMOD,
 		changefreq: 'monthly',
 		priority: '0.3'
 	},
@@ -55,6 +64,7 @@ export const PUBLIC_SITE_ROUTES = [
 		path: '/terms',
 		title: 'Terms',
 		description: 'Read the Deploylint terms of service.',
+		lastmod: SITE_LASTMOD,
 		changefreq: 'monthly',
 		priority: '0.3'
 	}
@@ -73,6 +83,7 @@ export function buildSitemapXml(origin = DEFAULT_DEPLOYLINT_API): string {
 	const urls = PUBLIC_SITE_ROUTES.map(
 		(route) => `  <url>
     <loc>${absoluteSiteUrl(route.path, origin)}</loc>
+    <lastmod>${route.lastmod}</lastmod>
     <changefreq>${route.changefreq}</changefreq>
     <priority>${route.priority}</priority>
   </url>`

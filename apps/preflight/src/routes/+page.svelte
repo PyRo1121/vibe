@@ -263,7 +263,7 @@
 				<p class="mt-2 text-sm text-zinc-300">{ALPHA_DISCLAIMER}</p>
 			</div>
 			<div class="shrink-0 rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3">
-				<p class="text-[10px] font-semibold tracking-wider text-zinc-500 uppercase">
+				<p class="text-[10px] font-semibold tracking-wider text-zinc-400 uppercase">
 					Full release price
 				</p>
 				<p class="mt-1 text-lg font-bold text-white">{ALPHA_PRICE_PREVIEW.later}</p>
@@ -309,7 +309,7 @@
 			<button
 				type="submit"
 				disabled={loading || !url.trim()}
-				class="rounded-xl bg-sky-600 px-6 py-3 font-semibold text-white hover:bg-sky-500 disabled:opacity-50"
+				class="rounded-xl bg-sky-600 px-6 py-3 font-semibold text-white hover:bg-sky-500 disabled:bg-sky-900 disabled:text-sky-100"
 			>
 				{loading ? 'Scanning…' : 'Scan free'}
 			</button>
@@ -386,7 +386,7 @@
 		{/if}
 	{:else if !loading}
 		<section class="mb-8 text-center">
-			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
+			<p class="text-xs font-semibold tracking-widest text-zinc-400 uppercase">
 				What Lighthouse and OG checkers miss
 			</p>
 		</section>

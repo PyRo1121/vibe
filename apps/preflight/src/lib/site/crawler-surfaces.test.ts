@@ -12,12 +12,16 @@ describe('crawler-facing website surfaces', () => {
 			'/privacy',
 			'/terms'
 		]);
+		expect(PUBLIC_SITE_ROUTES.every((route) => /^\d{4}-\d{2}-\d{2}$/.test(route.lastmod))).toBe(
+			true
+		);
 	});
 
 	it('generates a sitemap that includes the check catalog', () => {
 		const xml = buildSitemapXml('https://deploylint.com');
 
 		expect(xml).toContain('<loc>https://deploylint.com/checks</loc>');
+		expect(xml).toContain('<lastmod>2026-07-05</lastmod>');
 		expect(xml).toContain('<loc>https://deploylint.com/compare</loc>');
 		expect(xml).not.toContain('/launch-readiness-checker');
 		expect(xml).not.toContain('/ai-app-launch-checker');

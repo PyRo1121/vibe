@@ -60,29 +60,29 @@
 					</span>
 				{/if}
 			</a>
-			<nav aria-label="Main navigation" class="flex items-center gap-4 text-xs text-zinc-500">
-				<a href="/compare" class="hover:text-zinc-300">Compare</a>
-				<a href="/checks" class="hover:text-zinc-300">Checks</a>
-				<a href="/developers" class="hover:text-zinc-300">CI gate</a>
-				<span class="hidden sm:inline">90+ launch checks &middot; fix & re-scan</span>
+			<nav aria-label="Main navigation" class="flex items-center gap-4 text-xs text-zinc-300">
+				<a href="/compare" class="hover:text-white">Compare</a>
+				<a href="/checks" class="hover:text-white">Checks</a>
+				<a href="/developers" class="hover:text-white">CI gate</a>
+				<span class="hidden text-zinc-400 sm:inline">90+ launch checks &middot; fix & re-scan</span>
 			</nav>
 		</div>
 	</header>
 	<main id="main" class="preflight-mesh min-h-[calc(100vh-8rem)]">{@render children()}</main>
-	<footer class="border-t border-zinc-800 py-8 text-center text-xs text-zinc-600 print:hidden">
+	<footer class="border-t border-zinc-800 py-8 text-center text-xs text-zinc-400 print:hidden">
 		<p class="mb-2">Built for builders who ship fast and hate public surprises.</p>
 		<p>
-			<a href="/" class="hover:text-zinc-400">Scanner</a>
+			<a href="/" class="hover:text-white">Scanner</a>
 			<span class="mx-2">&middot;</span>
-			<a href="/developers" class="hover:text-zinc-400">Developers</a>
+			<a href="/developers" class="hover:text-white">Developers</a>
 			<span class="mx-2">&middot;</span>
-			<a href="/checks" class="hover:text-zinc-400">Checks</a>
+			<a href="/checks" class="hover:text-white">Checks</a>
 			<span class="mx-2">&middot;</span>
-			<a href="/changelog" class="hover:text-zinc-400">Changelog</a>
+			<a href="/changelog" class="hover:text-white">Changelog</a>
 			<span class="mx-2">&middot;</span>
-			<a href="/privacy" class="hover:text-zinc-400">Privacy</a>
+			<a href="/privacy" class="hover:text-white">Privacy</a>
 			<span class="mx-2">&middot;</span>
-			<a href="/terms" class="hover:text-zinc-400">Terms</a>
+			<a href="/terms" class="hover:text-white">Terms</a>
 		</p>
 	</footer>
 </div>

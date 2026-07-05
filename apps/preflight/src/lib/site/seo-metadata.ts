@@ -97,7 +97,7 @@ export function buildDeploylintJsonLd({
 		},
 		{
 			'@context': 'https://schema.org',
-			'@type': 'WebApplication',
+			'@type': ['WebApplication', 'SoftwareApplication'],
 			'@id': `${root}/#app`,
 			name: DEPLOYLINT_SEO.siteName,
 			url: `${root}/`,
@@ -105,6 +105,20 @@ export function buildDeploylintJsonLd({
 			applicationCategory: 'DeveloperApplication',
 			operatingSystem: 'Web',
 			inLanguage: DEPLOYLINT_SEO.language,
+			isAccessibleForFree: true,
+			browserRequirements: 'Requires a modern browser with JavaScript enabled.',
+			featureList: [
+				'Launch readiness scanning',
+				'SEO blocker detection',
+				'Security header checks',
+				'Social preview validation',
+				'GitHub repository scanning',
+				'CI deploy gate'
+			],
+			audience: {
+				'@type': 'Audience',
+				audienceType: 'Developers shipping web apps'
+			},
 			publisher: {
 				'@id': `${root}/#organization`
 			},

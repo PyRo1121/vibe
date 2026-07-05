@@ -1,9 +1,8 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/forms';
-@import '@fontsource-variable/geist';
 
 @theme {
-	--font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+	--font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 @layer base {
