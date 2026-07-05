@@ -1,4 +1,5 @@
 import { DEFAULT_DEPLOYLINT_API } from '@vibe/deploylint-shared';
+import { SEO_LANDING_PAGES } from './seo-pages';
 
 export interface PublicSiteRoute {
 	path: string;
@@ -16,6 +17,13 @@ export const PUBLIC_SITE_ROUTES = [
 		changefreq: 'weekly',
 		priority: '1.0'
 	},
+	...SEO_LANDING_PAGES.map((page) => ({
+		path: `/${page.slug}`,
+		title: page.navLabel,
+		description: page.description,
+		changefreq: 'weekly' as const,
+		priority: '0.95'
+	})),
 	{
 		path: '/checks',
 		title: 'Check catalog',
@@ -96,7 +104,7 @@ export function buildLlmsTxt(origin = DEFAULT_DEPLOYLINT_API): string {
 
 Deploylint scans a live URL for launch blockers: exposed secrets in JavaScript bundles, broken social preview images, placeholder copy, missing legal pages, robots.txt blocking Google, llms.txt, security.txt, security headers, CVE exposure, and more.
 
-Alpha access: all scan output is currently free while the product is being developed. A $9 unlock price is planned for full release.
+Alpha access: all scan output is currently free while the product is being developed. Solo is planned at $9/mo after alpha, with higher tiers for more saved reports and monitoring.
 
 Public pages:
 ${pages}

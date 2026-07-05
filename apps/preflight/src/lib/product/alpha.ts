@@ -2,12 +2,12 @@ export const ALPHA_FREE_UNLOCK = true;
 
 export const ALPHA_PRICE_PREVIEW = {
 	current: 'Free during alpha',
-	later: '$9 per URL after alpha',
+	later: '$9/mo Solo after alpha',
 	hiddenLater: [
-		'Every Cursor-ready fix prompt',
-		'One master repair paste',
-		'AI landing-copy review',
-		'Before/after re-scan proof'
+		'10 full reports per month on Solo',
+		'Saved report history and exports',
+		'Every Cursor-ready fix prompt and one master repair paste',
+		'CVE alerts and security notifications for monitored targets'
 	]
 } as const;
 

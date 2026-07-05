@@ -25,15 +25,15 @@
 		class="mb-10 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6"
 		aria-labelledby="unlock-compare-heading"
 	>
-		<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Why pay $9?</p>
+		<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Why pay later?</p>
 
 		<h2 id="unlock-compare-heading" class="mt-2 text-xl font-bold text-white">
 			Fix everything in one Cursor paste
 		</h2>
 
 		<p class="mt-2 text-sm text-zinc-400">
-			Free tells you what's wrong. Paid gives you every fix prompt plus one master repair prompt you
-			paste once.
+			Free tells you what's wrong. Paid will give you saved report history, every fix prompt, and
+			one master repair prompt you paste once.
 		</p>
 
 		<p class="mt-2 text-sm text-sky-300">{offer.valuePitch}</p>
@@ -41,7 +41,7 @@
 		<div class="mt-6 grid gap-4 md:grid-cols-2">
 			<div class="rounded-xl border border-zinc-700 bg-zinc-950/80 p-5">
 				<p class="text-xs font-semibold tracking-wider text-zinc-500 uppercase">
-					Free (you have this)
+					Free alpha (you have this)
 				</p>
 
 				<ul class="mt-3 space-y-2 text-sm text-zinc-400">
@@ -49,7 +49,7 @@
 
 					<li>✓ Embarrassment brief + social preview</li>
 
-					<li>✓ Full checklist — what's failing</li>
+					<li>✓ Full checklist - what's failing</li>
 
 					<li>
 						✓ 1 sample Cursor prompt{#if offer.hasSample}{/if}
@@ -59,7 +59,7 @@
 
 			<div class="rounded-xl border border-sky-500/40 bg-sky-500/5 p-5">
 				<p class="text-xs font-semibold tracking-wider text-sky-400 uppercase">
-					$9 unlock (fix loop)
+					$9/mo Solo (fix loop)
 				</p>
 
 				<ul class="mt-3 space-y-2 text-sm text-zinc-200">
@@ -71,30 +71,30 @@
 					<li>
 						✓ <strong class="text-white">Fix all issues in one Cursor paste</strong>
 						{#if offer.masterPromptLineCount > 0}
-							— {offer.masterPromptLineCount}-line repair prompt
+							- {offer.masterPromptLineCount}-line repair prompt
 						{/if}
 					</li>
 
 					<li>
-						✓ <strong class="text-white">Unlimited re-scans</strong>
+						✓ <strong class="text-white">Monthly re-scans</strong>
 
 						{#if offer.projectedScore != null}
-							— e.g. {report.score} → {offer.projectedScore} after fixes
+							- e.g. {report.score} -> {offer.projectedScore} after fixes
 						{:else}
-							— before/after score delta
+							- before/after score delta
 						{/if}
 					</li>
 
-					<li>✓ One-time · this URL only · not a subscription</li>
+					<li>✓ 10 full reports/month - saved re-scan history - cancel anytime</li>
 				</ul>
 			</div>
 		</div>
 
 		<div class="mt-6 rounded-xl border border-zinc-800 bg-zinc-950 p-4">
 			<p class="mb-2 text-[10px] font-semibold tracking-wider text-zinc-500 uppercase">
-				Preview — master repair prompt (locked)
+				Preview - master repair prompt
 				{#if offer.masterPromptLineCount > 0}
-					· {offer.masterPromptLineCount} lines
+					- {offer.masterPromptLineCount} lines
 				{/if}
 			</p>
 
@@ -114,7 +114,7 @@
 						class="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500 disabled:opacity-50"
 						onclick={onCheckout}
 					>
-						{checkoutLoading ? 'Redirecting…' : offer.ctaLabel}
+						{checkoutLoading ? 'Redirecting...' : offer.ctaLabel}
 					</button>
 				</div>
 			</div>
