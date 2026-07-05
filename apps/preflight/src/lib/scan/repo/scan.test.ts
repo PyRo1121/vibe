@@ -571,7 +571,7 @@ export async function POST({ request }) {
 		expect(byId['webhook-signature-missing']).toMatchObject({
 			status: 'fail',
 			category: 'payments',
-			priority: 'p2'
+			priority: 'p0'
 		});
 		expect(byId['billing-portal']).toMatchObject({
 			status: 'warn',

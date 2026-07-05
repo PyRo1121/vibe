@@ -73,6 +73,32 @@ describe('evaluateGate', () => {
 		expect(result.pass).toBe(false);
 	});
 
+	it('fails on repo security findings that are deploy blockers', () => {
+		for (const id of [
+			'dependency-vulns',
+			'workflow-pull-request-target',
+			'webhook-signature-missing',
+			'docker-env-copy',
+			'exposed-backup'
+		]) {
+			const result = evaluateGate(
+				report({
+					checks: [
+						{
+							id,
+							category: 'security',
+							title: id,
+							status: 'fail',
+							message: 'confirmed blocker',
+							fixPrompt: ''
+						}
+					]
+				})
+			);
+			expect(result.pass).toBe(false);
+		}
+	});
+
 	it('can ignore P0 checks when configured for advisory scoring only', () => {
 		const result = evaluateGate(
 			report({

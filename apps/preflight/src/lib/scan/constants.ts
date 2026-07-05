@@ -40,7 +40,7 @@ export const EXPOSED_PATH_PROBE_PATHS = [
 	'/.env.bak',
 	'/package.json'
 ] as const;
-export const HEALTH_PROBE_PATHS = ['/health', '/healthz'] as const;
+export const HEALTH_PROBE_PATHS = ['/health', '/healthz', '/api/health', '/status'] as const;
 /** Warn when HTML payload or script count suggests slow first paint. */
 export const WEIGHT_LIMITS = {
 	htmlWarnBytes: 400 * 1024,

@@ -22,6 +22,15 @@ export const PUBLIC_SITE_ROUTES = [
 		priority: '1.0'
 	},
 	{
+		path: '/about',
+		title: 'About Deploylint',
+		description:
+			'Learn how Deploylint checks AI-built apps for launch blockers before public release.',
+		lastmod: SITE_LASTMOD,
+		changefreq: 'monthly',
+		priority: '0.8'
+	},
+	{
 		path: '/checks',
 		title: 'Check catalog',
 		description: 'Browse the launch, security, SEO, social preview, and AI discovery checks.',

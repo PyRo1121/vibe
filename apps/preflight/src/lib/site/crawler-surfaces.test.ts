@@ -6,6 +6,7 @@ describe('crawler-facing website surfaces', () => {
 	it('keeps public website routes in one crawlable registry', () => {
 		expect(PUBLIC_SITE_ROUTES.map((route) => route.path)).toEqual([
 			'/',
+			'/about',
 			'/checks',
 			'/compare',
 			'/developers',
@@ -25,6 +26,7 @@ describe('crawler-facing website surfaces', () => {
 		const xml = buildSitemapXml('https://deploylint.com');
 
 		expect(xml).toContain('<loc>https://deploylint.com/checks</loc>');
+		expect(xml).toContain('<loc>https://deploylint.com/about</loc>');
 		expect(xml).toContain('<lastmod>2026-07-05</lastmod>');
 		expect(xml).toContain('<loc>https://deploylint.com/compare</loc>');
 		expect(xml).toContain('<loc>https://deploylint.com/guides/ai-app-launch-checker</loc>');
@@ -41,6 +43,7 @@ describe('crawler-facing website surfaces', () => {
 		const text = buildLlmsTxt('https://deploylint.com');
 
 		expect(text).toContain('- [Check catalog](https://deploylint.com/checks)');
+		expect(text).toContain('- [About Deploylint](https://deploylint.com/about)');
 		expect(text).toContain(
 			'- [AI app launch checker](https://deploylint.com/guides/ai-app-launch-checker)'
 		);

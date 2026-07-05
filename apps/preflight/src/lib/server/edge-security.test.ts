@@ -57,4 +57,22 @@ describe('applySecurityHeaders', () => {
 		expect(res.headers.get('X-Content-Type-Options')).toBe('nosniff');
 		expect(res.headers.get('X-Frame-Options')).toBe('DENY');
 	});
+
+	it('keeps Cloudflare preview hosts out of search indexes', () => {
+		const res = applySecurityHeaders(
+			new Response('ok', { status: 200 }),
+			'https://deploylint-preview.pages.dev/'
+		);
+
+		expect(res.headers.get('X-Robots-Tag')).toBe('noindex, nofollow');
+	});
+
+	it('allows the canonical Deploylint host to be indexed', () => {
+		const res = applySecurityHeaders(
+			new Response('ok', { status: 200 }),
+			'https://deploylint.com/'
+		);
+
+		expect(res.headers.get('X-Robots-Tag')).toBeNull();
+	});
 });

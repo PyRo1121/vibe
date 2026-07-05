@@ -111,4 +111,30 @@ describe('buildContentChecks', () => {
 		);
 		expect(checks.find((c) => c.id === 'secrets')?.status).toBe('fail');
 	});
+
+	it('warns on mixed-content asset URLs for HTTPS pages', () => {
+		const finalUrl = new URL('https://app.test/');
+		const html = GOOD_HTML.replace(
+			'</head>',
+			'<script src="http://cdn.test/app.js"></script></head>'
+		);
+		const checks = buildContentChecks(
+			html,
+			finalUrl,
+			200,
+			{
+				brokenCount: 0,
+				checkedCount: 0,
+				robotsOk: false,
+				sitemapOk: false,
+				llmsTxtOk: false,
+				securityTxtOk: false,
+				robotsText: null,
+				sitemapLocs: []
+			},
+			extractLinks(html, finalUrl)
+		);
+
+		expect(checks.find((c) => c.id === 'mixed-content')?.status).toBe('warn');
+	});
 });

@@ -45,4 +45,11 @@ describe('probeHealthEndpoints', () => {
 		const r = await probeHealthEndpoints(new URL('https://api.example.com/'), headOk);
 		expect(r.found).toBe(false);
 	});
+
+	it('checks API health and status paths promised by the scan copy', async () => {
+		const headOk = vi.fn<HeadOk>(async (url) => url.endsWith('/api/health'));
+		const r = await probeHealthEndpoints(new URL('https://api.example.com/'), headOk);
+		expect(r.found).toBe(true);
+		expect(r.path).toBe('/api/health');
+	});
 });

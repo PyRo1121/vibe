@@ -54,6 +54,28 @@ describe('pushDeploymentHygieneChecks', () => {
 		expect(checks.find((c) => c.id === 'web-manifest')?.status).toBe('pass');
 	});
 
+	it('flags exposed-backup, exposed-package, and debug-in-bundle hygiene signals', () => {
+		const checks: ScanCheck[] = [];
+		pushDeploymentHygieneChecks(
+			checks,
+			'<html></html>',
+			saasMeta,
+			{
+				env: { exposed: false },
+				git: { exposed: false },
+				backup: { exposed: true, url: 'https://app.example.com/backup.zip' },
+				packageJson: { exposed: true, url: 'https://app.example.com/package.json' }
+			},
+			{ found: false },
+			{ consoleLogCount: 3, debuggerCount: 1, testIdCount: 5 },
+			ctx
+		);
+
+		expect(checks.find((c) => c.id === 'exposed-backup')?.status).toBe('fail');
+		expect(checks.find((c) => c.id === 'exposed-package')?.status).toBe('warn');
+		expect(checks.find((c) => c.id === 'debug-in-bundle')?.status).toBe('warn');
+	});
+
 	it('expects a health endpoint for auth-backed apps', () => {
 		const checks: ScanCheck[] = [];
 		pushDeploymentHygieneChecks(

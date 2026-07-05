@@ -29,8 +29,13 @@ const P0_IDS = new Set([
 	'robots-block',
 	'env-committed',
 	'form-security',
+	'dependency-vulns',
+	'workflow-pull-request-target',
+	'webhook-signature-missing',
+	'docker-env-copy',
 	'exposed-env',
-	'exposed-git'
+	'exposed-git',
+	'exposed-backup'
 ]);
 
 const COMMENT_MARKER = '<!-- preflight-gate -->';

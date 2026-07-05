@@ -33,4 +33,25 @@ describe('pushMetaChecks', () => {
 		).find((c) => c.id === 'title');
 		expect(title?.status).toBe('pass');
 	});
+
+	it('warns when the page omits charset-meta and passes when UTF-8 is declared', () => {
+		const missing = run('<html><head></head><body></body></html>').find(
+			(c) => c.id === 'charset-meta'
+		);
+		const present = run('<html><head><meta charset="utf-8"></head><body></body></html>').find(
+			(c) => c.id === 'charset-meta'
+		);
+
+		expect(missing?.status).toBe('warn');
+		expect(present?.status).toBe('pass');
+	});
+
+	it('reports img-alt status from parsed missing alt counts', () => {
+		const imgAlt = run('<html></html>', emptyMeta({ missingAlts: 2 })).find(
+			(c) => c.id === 'img-alt'
+		);
+
+		expect(imgAlt?.status).toBe('warn');
+		expect(imgAlt?.message).toContain('2 image(s) missing alt');
+	});
 });

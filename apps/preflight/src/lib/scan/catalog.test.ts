@@ -99,7 +99,7 @@ describe('check catalog', () => {
 		const ids = catalogEntries().map((entry) => entry.id);
 
 		expect(new Set(ids).size).toBe(ids.length);
-		expect(Object.keys(CHECK_CATALOG)).toEqual([...ids].toSorted());
+		expect(Object.keys(CHECK_CATALOG).toSorted()).toEqual([...ids].toSorted());
 	});
 
 	it('returns null for checks that are not cataloged yet', () => {

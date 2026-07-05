@@ -57,6 +57,27 @@ describe('evaluateGate', () => {
 		expect(r.reasons.some((x: string) => x.includes('.git'))).toBe(true);
 	});
 
+	it('fails on repo-security P0 findings', () => {
+		const r = evaluateGate(
+			report({
+				verdict: 'go',
+				summary: { pass: 9, warn: 0, fail: 1 },
+				checks: [
+					{
+						id: 'webhook-signature-missing',
+						title: 'Webhook signature verification',
+						status: 'fail',
+						message: 'unsigned webhook'
+					}
+				]
+			}),
+			80
+		);
+
+		expect(r.pass).toBe(false);
+		expect(r.reasons.some((x: string) => x.includes('Webhook signature'))).toBe(true);
+	});
+
 	it('does not block on non-P0 failed checks when the score and verdict pass', () => {
 		const r = evaluateGate(
 			report({

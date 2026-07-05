@@ -12,8 +12,13 @@ export const P0_CHECK_IDS = [
 	'robots-block',
 	'env-committed',
 	'form-security',
+	'dependency-vulns',
+	'workflow-pull-request-target',
+	'webhook-signature-missing',
+	'docker-env-copy',
 	'exposed-env',
-	'exposed-git'
+	'exposed-git',
+	'exposed-backup'
 ] as const;
 
 export type P0CheckId = (typeof P0_CHECK_IDS)[number];

@@ -1,5 +1,6 @@
 import { assertIpRateLimit, clientIp } from '$lib/server/rate-limit';
 import { isHttpError } from '@sveltejs/kit';
+import { DEPLOYLINT_HOST } from '@vibe/deploylint-shared';
 
 /** Common exploit paths — block before the Worker does real work. */
 const BLOCKED_PATH_SNIPPETS = [
@@ -53,6 +54,7 @@ const API_CATCHALL = {
 };
 
 const MAX_POST_BYTES = 256 * 1024;
+const NON_INDEXABLE_HOST_SUFFIXES = ['.pages.dev', '.workers.dev'] as const;
 
 export function isBlockedProbePath(pathname: string): boolean {
 	const path = pathname.toLowerCase();
@@ -86,11 +88,24 @@ export function applySecurityHeaders(response: Response, requestUrl?: string): R
 	if (secure) {
 		headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
 	}
+	if (requestUrl && isNonIndexableHost(requestUrl)) {
+		headers.set('X-Robots-Tag', 'noindex, nofollow');
+	}
 	return new Response(response.body, {
 		status: response.status,
 		statusText: response.statusText,
 		headers
 	});
+}
+
+function isNonIndexableHost(requestUrl: string): boolean {
+	try {
+		const host = new URL(requestUrl).hostname.toLowerCase();
+		if (host === DEPLOYLINT_HOST) return false;
+		return NON_INDEXABLE_HOST_SUFFIXES.some((suffix) => host.endsWith(suffix));
+	} catch {
+		return false;
+	}
 }
 
 /** Returns a 404 for probe paths, 405 for bad methods, 413 for huge bodies. */

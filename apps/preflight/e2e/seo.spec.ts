@@ -24,6 +24,16 @@ const pages = [
 		staticPage: true
 	},
 	{
+		path: '/about',
+		title: 'About Deploylint - Deploylint',
+		description:
+			'Deploylint is a launch-readiness scanner for AI-built apps, checking SEO blockers, security exposure, social previews, legal gaps, and CI gates before public release.',
+		canonical: `${baseUrl}/about`,
+		heading: /About Deploylint/i,
+		jsonLdTypes: ['AboutPage', 'Organization'],
+		staticPage: true
+	},
+	{
 		path: '/developers',
 		title: 'Deploylint CI gate for GitHub Actions, CLI, and MCP',
 		description:

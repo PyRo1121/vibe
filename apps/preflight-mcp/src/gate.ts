@@ -9,10 +9,15 @@ export const GATE_P0_IDS = new Set([
 	'privacy',
 	'noindex',
 	'robots-block',
-	'form-security',
 	'env-committed',
+	'form-security',
+	'dependency-vulns',
+	'workflow-pull-request-target',
+	'webhook-signature-missing',
+	'docker-env-copy',
 	'exposed-env',
-	'exposed-git'
+	'exposed-git',
+	'exposed-backup'
 ]);
 
 export type GateScanReport = Pick<

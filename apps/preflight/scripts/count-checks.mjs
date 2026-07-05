@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Count unique Deploylint check IDs (for honest "90+ checks" marketing).
+ * Count unique Deploylint check/finding IDs (for honest check-count marketing).
  * Run: npm run count:checks -w preflight
  */
 import { readFileSync, readdirSync, statSync } from 'node:fs';
@@ -18,11 +18,21 @@ function walk(dir, out = []) {
 }
 
 const ids = new Set();
+const patterns = [
+	/makeCheck\(\s*['"]([a-z0-9-]+)['"]/g,
+	/\bcheck\(\s*['"]([a-z0-9-]+)['"]/g,
+	/\bfinding\(\s*['"]([a-z0-9-]+)['"]/g,
+	/\bid:\s*['"]([a-z0-9-]+)['"]/g
+];
+
 for (const file of walk(scanDir)) {
+	if (file.endsWith('catalog.ts')) continue;
 	const text = readFileSync(file, 'utf8');
-	for (const m of text.matchAll(/makeCheck\(\s*['"]([a-z0-9-]+)['"]/g)) ids.add(m[1]);
+	for (const pattern of patterns) {
+		for (const m of text.matchAll(pattern)) ids.add(m[1]);
+	}
 }
 
 const sorted = [...ids].toSorted();
-console.log(`Unique check IDs: ${sorted.length}`);
+console.log(`Unique check/finding IDs: ${sorted.length}`);
 console.log(sorted.join('\n'));

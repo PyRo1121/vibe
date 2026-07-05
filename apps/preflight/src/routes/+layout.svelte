@@ -74,6 +74,8 @@
 		<p>
 			<a href="/" class="hover:text-white">Scanner</a>
 			<span class="mx-2">&middot;</span>
+			<a href="/about" class="hover:text-white">About</a>
+			<span class="mx-2">&middot;</span>
 			<a href="/developers" class="hover:text-white">Developers</a>
 			<span class="mx-2">&middot;</span>
 			<a href="/checks" class="hover:text-white">Checks</a>
