@@ -19,6 +19,7 @@ function fakeFetchers(opts: {
 	entries?: RepoTreeEntry[];
 	files?: Record<string, string>;
 	metaError?: Error;
+	onGetFile?: (path: string) => void;
 }): RepoFetchers {
 	return {
 		async getMeta() {
@@ -29,6 +30,7 @@ function fakeFetchers(opts: {
 			return { entries: opts.entries ?? [], truncated: false };
 		},
 		async getFile(_ref, _branch, path) {
+			opts.onGetFile?.(path);
 			return opts.files?.[path] ?? null;
 		}
 	};
@@ -190,6 +192,41 @@ jobs:
 		const secrets = report.checks.find((c) => c.id === 'secrets');
 		expect(secrets?.status).toBe('fail');
 		expect(secrets?.message).toContain('AWS access key');
+	});
+
+	it('flags secrets found only in payment-selected source files', async () => {
+		const paymentPath = 'src/routes/api/checkout/+server.ts';
+		const highSignalSamples = [
+			'src/config/app.ts',
+			'src/config/auth.ts',
+			'src/config/db.ts',
+			'src/config/email.ts',
+			'src/config/env.ts',
+			'src/config/firebase.ts',
+			'src/config/secrets.ts',
+			'src/config/settings.ts'
+		];
+		const report = await scanRepo(REF, {
+			fetchers: fakeFetchers({
+				entries: [
+					...CLEAN_ENTRIES,
+					...highSignalSamples.map((path) => ({ path, type: 'blob' as const })),
+					{ path: paymentPath, type: 'blob' }
+				],
+				files: {
+					...CLEAN_FILES,
+					...Object.fromEntries(
+						highSignalSamples.map((path) => [path, 'export const value = true;'])
+					),
+					[paymentPath]: `const stripe = new Stripe('sk_live_${'a'.repeat(24)}');`
+				}
+			}),
+			npmLicense: async () => 'MIT'
+		});
+
+		const secrets = report.checks.find((c) => c.id === 'secrets');
+		expect(secrets?.status).toBe('fail');
+		expect(secrets?.message).toContain('Stripe live secret key');
 	});
 
 	it('warns on missing license and flags GPL dependencies as sell risk', async () => {
@@ -680,6 +717,31 @@ export async function POST() {
 		for (const path of paymentPaths) {
 			expect(report.repo?.filesSampled).toContain(path);
 		}
+	});
+
+	it('fetches payment files once when the generic sampler also selects them', async () => {
+		const paymentPath = 'src/routes/api/webhooks/stripe/+server.ts';
+		const fetchedPaths: string[] = [];
+		await scanRepo(REF, {
+			fetchers: fakeFetchers({
+				entries: [...CLEAN_ENTRIES, { path: paymentPath, type: 'blob' }],
+				files: {
+					...CLEAN_FILES,
+					'package.json': JSON.stringify({
+						dependencies: { stripe: '^20.0.0' },
+						scripts: { test: 'vitest run', build: 'vite build' }
+					}),
+					[paymentPath]: `
+const event = stripe.webhooks.constructEvent(raw, signature, env.STRIPE_WEBHOOK_SECRET);
+if (event.type === 'checkout.session.completed') return new Response('ok');
+`
+				},
+				onGetFile: (path) => fetchedPaths.push(path)
+			}),
+			npmLicense: async () => 'MIT'
+		});
+
+		expect(fetchedPaths.filter((path) => path === paymentPath)).toHaveLength(1);
 	});
 
 	it('warns on missing repo quality signals for a minimal repo', async () => {

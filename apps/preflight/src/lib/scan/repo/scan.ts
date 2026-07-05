@@ -224,7 +224,10 @@ export async function scanRepo(
 	const lockfilePaths = findPackageLockPaths(entries);
 	const tsconfigPath = findRootFile(entries, /^tsconfig\.json$/);
 	const staticConfigPaths = findStaticConfigPaths(entries);
-	const paymentFilePaths = findPaymentFilePaths(entries);
+	const fetchedSourcePaths = new Set([...sampleFiles, ...staticConfigPaths]);
+	const paymentFilePaths = findPaymentFilePaths(entries).filter(
+		(path) => !fetchedSourcePaths.has(path)
+	);
 
 	const getFile = (path: string | null, maxBytes?: number) =>
 		path ? fetchers.getFile(ref, meta.branch, path, maxBytes) : Promise.resolve(null);
@@ -265,7 +268,11 @@ export async function scanRepo(
 		path,
 		text: paymentFileTexts[index] ?? null
 	}));
-	const repoFiles = [...staticFiles, ...sourceFiles, ...paymentFiles];
+	const repoFiles = [
+		...new Map(
+			[...staticFiles, ...sourceFiles, ...paymentFiles].map((file) => [file.path, file])
+		).values()
+	];
 	const rootPackageJsonText =
 		packageJsonPath == null
 			? null
@@ -323,7 +330,8 @@ export async function scanRepo(
 
 	// --- Secret patterns in sampled source (P0) ---
 	const sourceSecrets = new Set<string>();
-	sampleTexts.forEach((text) => {
+	const sourceSecretTexts = [...sampleTexts, ...paymentFileTexts];
+	sourceSecretTexts.forEach((text) => {
 		if (text) for (const label of findSecrets(text)) sourceSecrets.add(label);
 	});
 	check(
@@ -333,7 +341,7 @@ export async function scanRepo(
 		sourceSecrets.size > 0 ? 'fail' : 'pass',
 		sourceSecrets.size > 0
 			? `Possible ${[...sourceSecrets].join(', ')} in sampled source files — move to env vars and rotate the keys.`
-			: `No obvious secret patterns in ${sampleFiles.length} sampled source files.`
+			: `No obvious secret patterns in ${sourceSecretTexts.length} sampled source files.`
 	);
 
 	// --- .gitignore hygiene (P1) ---
