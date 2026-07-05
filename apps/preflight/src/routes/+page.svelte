@@ -247,7 +247,12 @@
 			may scan incomplete. Free scans show the verdict and one sample prompt. Subscribe from
 			<span class="font-medium text-zinc-300">{ALPHA_PRICE_PREVIEW.later}</span>
 			for every fix prompt, master repair paste, MCP access, and recurring monitoring.
-			<a href="/compare" class="text-sky-400 hover:underline">See how we compare →</a>
+			<a
+				href="/compare"
+				class="font-medium text-sky-300 underline underline-offset-4 hover:text-sky-200"
+			>
+				See how we compare →
+			</a>
 		</p>
 	</section>
 
