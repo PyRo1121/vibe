@@ -4,7 +4,10 @@ test.describe('home', () => {
 	test('shows hero and pre-scan differentiators', async ({ page }) => {
 		await page.goto('/');
 		await expect(
-			page.getByRole('heading', { name: /Should you post this URL today/i })
+			page.getByRole('heading', { name: /can this ai-built saas safely take money/i })
+		).toBeVisible();
+		await expect(
+			page.getByText(/checkout, signed webhooks, entitlements, billing self-service/i)
 		).toBeVisible();
 		await expect(page.getByText(/90\+ checks/i)).toBeVisible();
 		await expect(page.getByRole('button', { name: 'Scan free' })).toBeVisible();

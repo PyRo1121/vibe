@@ -234,18 +234,19 @@
 <div class="mx-auto max-w-5xl px-4 py-12">
 	<section class="mb-12 text-center print:hidden">
 		<p class="mb-3 text-sm font-medium tracking-widest text-sky-400 uppercase">
-			Before you post your URL anywhere public
+			Before your AI-built SaaS charges users
 		</p>
 		<h1 class="mb-4 text-4xl font-bold tracking-tight text-white sm:text-5xl">
-			Should you post this URL today?
+			Can this AI-built SaaS safely take money?
 		</h1>
 		<p class="mx-auto max-w-2xl text-lg text-zinc-400">
-			<strong class="font-medium text-zinc-300">90+ checks in seconds</strong> — placeholders,
-			broken share images, exposed secrets, robots blocking Google, and more. Paste a live URL or a
+			<strong class="font-medium text-zinc-300">90+ checks in seconds</strong> — {'checkout, signed webhooks, entitlements, billing self-service'},
+			exposed secrets, broken share images, robots blocking Google, and more. Paste a live URL or a
 			public
 			<strong class="font-medium text-zinc-300">GitHub repo</strong> (committed .env files,
 			dependency licenses, sell rights). Built for apps you ship — bot-protected enterprise sites
-			may scan incomplete. Free scans show the verdict and one sample prompt. Subscribe from
+			may scan incomplete. Free scans show the verdict and one sample prompt. Subscription unlock
+			starts from
 			<span class="font-medium text-zinc-300">{ALPHA_PRICE_PREVIEW.later}</span>
 			for every fix prompt, master repair paste, MCP access, and recurring monitoring.
 			<a
