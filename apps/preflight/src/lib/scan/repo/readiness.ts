@@ -601,6 +601,96 @@ export function analyzeCiWorkflows(files: RepoFileEvidence[]): RepoReadinessFind
 	];
 }
 
+const PAYMENT_PROVIDER_DEPENDENCIES = ['stripe', '@stripe/stripe-js', '@stripe/react-stripe-js'];
+
+function manifestsHaveDependency(
+	manifests: PackageManifestEvidence[],
+	names: string[]
+): boolean {
+	return manifests.some((manifest) => hasDependency(manifest, names));
+}
+
+function combinedFileText(files: RepoFileEvidence[]): string {
+	return files
+		.map((file) => file.text ?? '')
+		.filter(Boolean)
+		.join('\n');
+}
+
+function paymentProviderDetected(
+	manifests: PackageManifestEvidence[],
+	files: RepoFileEvidence[]
+): boolean {
+	if (manifestsHaveDependency(manifests, PAYMENT_PROVIDER_DEPENDENCIES)) return true;
+	const text = combinedFileText(files);
+	return /\b(stripe\.checkout|checkout\.sessions\.create|PaymentIntent|price_[A-Za-z0-9]+|Stripe\(|stripe\.webhooks)\b/i.test(
+		text
+	);
+}
+
+function webhookSignal(files: RepoFileEvidence[]): RepoFileEvidence | undefined {
+	return files.find((file) => {
+		const text = file.text ?? '';
+		return (
+			/webhook/i.test(file.path) ||
+			/\b(checkout\.session\.completed|customer\.subscription|invoice\.payment_failed|stripe-signature|webhook)\b/i.test(
+				text
+			)
+		);
+	});
+}
+
+function hasWebhookSignatureVerification(files: RepoFileEvidence[]): boolean {
+	const text = combinedFileText(files);
+	return /stripe\.webhooks\.constructEvent(?:Async)?\b|constructEventAsync\b|STRIPE_WEBHOOK_SECRET|webhookSecret/i.test(
+		text
+	);
+}
+
+function hasBillingPortalSignal(files: RepoFileEvidence[]): boolean {
+	const text = combinedFileText(files);
+	return (
+		/\b(billingPortal\.sessions\.create|billing_portal|customer portal)\b/i.test(text) ||
+		files.some((file) => /(^|\/)(account\/billing|settings\/billing|billing)(\/|$)/i.test(file.path))
+	);
+}
+
+export function analyzeBillingReadiness(
+	manifests: PackageManifestEvidence[],
+	files: RepoFileEvidence[]
+): RepoReadinessFinding[] {
+	if (!paymentProviderDetected(manifests, files)) return [];
+
+	const webhook = webhookSignal(files);
+	const verifiesWebhook = hasWebhookSignatureVerification(files);
+	const hasPortal = hasBillingPortalSignal(files);
+
+	return [
+		finding(
+			'webhook-signature-missing',
+			'Webhook signature verification',
+			webhook ? (verifiesWebhook ? 'pass' : 'fail') : 'warn',
+			webhook
+				? verifiesWebhook
+					? 'Stripe-like webhook handling verifies incoming event signatures.'
+					: 'Stripe-like webhook handling was found without signature verification; forged events could mark subscriptions paid or canceled.'
+				: 'Payment provider code was found, but no Stripe-like webhook handler was detected for subscription lifecycle events.',
+			{ path: webhook?.path },
+			'payments'
+		),
+		finding(
+			'billing-portal',
+			'Customer billing portal',
+			hasPortal ? 'pass' : 'warn',
+			hasPortal
+				? 'Customer billing management or portal handling is present.'
+				: 'Stripe-like subscription code was found, but no customer billing portal or billing-management route was detected.',
+			{ path: files.find((file) => /billing/i.test(file.path))?.path },
+			'payments'
+		)
+	];
+}
+
 const DEPLOY_CONFIG_PATTERNS = [
 	/(^|\/)wrangler\.(jsonc?|toml)$/,
 	/(^|\/)vercel\.json$/,

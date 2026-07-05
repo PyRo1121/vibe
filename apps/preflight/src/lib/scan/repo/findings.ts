@@ -69,6 +69,7 @@ const FIX_SOON_RULE_IDS = new Set([
 	'gitignore-env',
 	'health-endpoint',
 	'security-policy',
+	'webhook-signature-missing',
 	'workflow-permissions'
 ]);
 

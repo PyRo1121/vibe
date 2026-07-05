@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	analyzeCiWorkflows,
+	analyzeBillingReadiness,
 	analyzeDeployConfig,
 	analyzeLintSetup,
 	analyzePackageManager,
@@ -472,5 +473,97 @@ jobs:
 		expect(findings.find((finding) => finding.id === 'docker-env-copy')).toMatchObject({
 			status: 'fail'
 		});
+	});
+
+	it('fails Stripe webhook handlers without signature verification', () => {
+		const findings = analyzeBillingReadiness(
+			[
+				{
+					path: 'package.json',
+					json: { dependencies: { stripe: '^20.0.0' } }
+				}
+			],
+			[
+				{
+					path: 'src/routes/api/webhooks/stripe/+server.ts',
+					text: `
+import Stripe from 'stripe';
+
+export async function POST({ request }) {
+  const event = await request.json();
+  if (event.type === 'checkout.session.completed') return new Response('ok');
+}
+`
+				}
+			]
+		);
+
+		expect(findings.find((finding) => finding.id === 'webhook-signature-missing')).toMatchObject({
+			status: 'fail',
+			category: 'payments',
+			launchImpact: 'blocker'
+		});
+	});
+
+	it('passes Stripe webhook handlers with signature verification', () => {
+		const findings = analyzeBillingReadiness(
+			[
+				{
+					path: 'package.json',
+					json: { dependencies: { stripe: '^20.0.0' } }
+				}
+			],
+			[
+				{
+					path: 'src/routes/api/webhooks/stripe/+server.ts',
+					text: `
+const signature = request.headers.get('stripe-signature');
+const event = stripe.webhooks.constructEvent(await request.text(), signature, env.STRIPE_WEBHOOK_SECRET);
+`
+				},
+				{
+					path: 'src/routes/account/billing/+server.ts',
+					text: 'await stripe.billingPortal.sessions.create({ customer });'
+				}
+			]
+		);
+
+		expect(findings.find((finding) => finding.id === 'webhook-signature-missing')).toMatchObject({
+			status: 'pass'
+		});
+		expect(findings.find((finding) => finding.id === 'billing-portal')).toMatchObject({
+			status: 'pass'
+		});
+	});
+
+	it('warns when Stripe subscription code has no customer billing portal signal', () => {
+		const findings = analyzeBillingReadiness(
+			[
+				{
+					path: 'package.json',
+					json: { dependencies: { stripe: '^20.0.0' } }
+				}
+			],
+			[
+				{
+					path: 'src/lib/checkout.ts',
+					text: "await stripe.checkout.sessions.create({ mode: 'subscription', line_items: [] });"
+				}
+			]
+		);
+
+		expect(findings.find((finding) => finding.id === 'billing-portal')).toMatchObject({
+			status: 'warn',
+			category: 'payments',
+			launchImpact: 'fix-soon'
+		});
+	});
+
+	it('does not emit billing findings when no payment provider is detected', () => {
+		const findings = analyzeBillingReadiness([rootManifest], [
+			{ path: 'src/routes/api/webhooks/github/+server.ts', text: 'export const POST = () => {};' }
+		]);
+
+		expect(findings).toEqual([]);
 	});
 });

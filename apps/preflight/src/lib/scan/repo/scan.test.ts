@@ -543,6 +543,43 @@ jobs:
 		expect(report.repo?.filesSampled).toContain('wrangler.jsonc');
 	});
 
+	it('surfaces billing readiness findings from sampled source files', async () => {
+		const report = await scanRepo(REF, {
+			fetchers: fakeFetchers({
+				entries: [
+					...CLEAN_ENTRIES,
+					{ path: 'src/routes/api/webhooks/stripe/+server.ts', type: 'blob' }
+				],
+				files: {
+					...CLEAN_FILES,
+					'package.json': JSON.stringify({
+						dependencies: { stripe: '^20.0.0' },
+						scripts: { test: 'vitest run', build: 'vite build' }
+					}),
+					'src/routes/api/webhooks/stripe/+server.ts': `
+export async function POST({ request }) {
+  const event = await request.json();
+  if (event.type === 'checkout.session.completed') return new Response('ok');
+}
+`
+				}
+			}),
+			npmLicense: async () => 'MIT'
+		});
+
+		const byId = Object.fromEntries(report.checks.map((check) => [check.id, check]));
+		expect(byId['webhook-signature-missing']).toMatchObject({
+			status: 'fail',
+			category: 'payments',
+			priority: 'p2'
+		});
+		expect(byId['billing-portal']).toMatchObject({
+			status: 'warn',
+			category: 'payments'
+		});
+		expect(report.repo?.filesSampled).toContain('src/routes/api/webhooks/stripe/+server.ts');
+	});
+
 	it('warns on missing repo quality signals for a minimal repo', async () => {
 		const report = await scanRepo(REF, {
 			fetchers: fakeFetchers({ entries: CLEAN_ENTRIES, files: CLEAN_FILES }),

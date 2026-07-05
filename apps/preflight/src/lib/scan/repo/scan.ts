@@ -34,6 +34,7 @@ import {
 	parseTsconfigStrict
 } from '$lib/scan/repo/quality';
 import {
+	analyzeBillingReadiness,
 	analyzeCiWorkflows,
 	analyzeDeployConfig,
 	analyzeLintSetup,
@@ -218,6 +219,11 @@ export async function scanRepo(
 		path,
 		text: staticConfigTexts[index] ?? null
 	}));
+	const sourceFiles: RepoFileEvidence[] = sampleFiles.map((path, index) => ({
+		path,
+		text: sampleTexts[index] ?? null
+	}));
+	const repoFiles = [...staticFiles, ...sourceFiles];
 	const rootPackageJsonText =
 		packageJsonPath == null
 			? null
@@ -463,6 +469,7 @@ export async function scanRepo(
 			: []),
 		...analyzeTypescriptSetup(packageEvidence, staticFiles),
 		...analyzeCiWorkflows(staticFiles),
+		...analyzeBillingReadiness(packageEvidence, repoFiles),
 		...analyzeDeployConfig(packageEvidence, staticFiles)
 	];
 	checks.push(...repoReadinessChecks(url, readinessFindings));
