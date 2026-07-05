@@ -24,6 +24,8 @@ Bleeding-edge direction, kept practical for Deploylint:
 - **Corepack/packageManager:** Modern Node repos should pin a package manager through `packageManager` or compatible `devEngines.packageManager`, and lockfile choice should match the pinned manager.
 - **SLSA/OWASP CI/CD risks:** Readiness should look for reproducible, hosted CI builds, least privilege, artifact integrity signals, and obvious pipeline abuse patterns, but keep severe failures reserved for clear evidence.
 
+Follow-up competitor research in `2026-07-05-deploylint-ci-cve-competitor-research.md` confirms the product wedge: Deploylint should not become a broad AppSec clone. The strongest direction is a low-noise CI/CVE launch gate that says what blocks launch, what can wait, and what exact fix should happen first. Keep this implementation static-first, but preserve SARIF-ready finding evidence so later phases can add OSV-Scanner, zizmor, Scorecard, SBOM validation, dependency review, and artifact attestation checks without reshaping the report model.
+
 Primary sources:
 
 - https://github.com/ossf/scorecard
