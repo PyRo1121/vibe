@@ -14,10 +14,7 @@ const DurableObjectBase =
 		globalThis as typeof globalThis & {
 			DurableObject?: new (state: DurableObjectState, env: Env) => object;
 		}
-	).DurableObject ??
-	class {
-		constructor(_state: DurableObjectState, _env: Env) {}
-	};
+	).DurableObject ?? class {};
 
 export class CounterLimiter extends DurableObjectBase {
 	constructor(
