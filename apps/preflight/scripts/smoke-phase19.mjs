@@ -35,7 +35,7 @@ if (dev.res.ok && dev.text.includes('Deploy gate for vibe-coded apps')) {
 	fail('developers page', String(dev.res.status));
 }
 
-if (dev.text.includes('PREFLIGHT_GATE_URL') && dev.text.includes('gate-remote.mjs')) {
+if (dev.text.includes('DEPLOYLINT_GATE_URL') && dev.text.includes('gate-remote.mjs')) {
 	pass('developers setup docs', 'GitHub Action + hosted script');
 } else {
 	fail('developers setup docs');
@@ -112,5 +112,5 @@ console.log(`${passed}/${total} passed`);
 if (passed < total) process.exit(1);
 
 console.log(
-	'\nManual: add PREFLIGHT_GATE_URL secret to a repo and run the GitHub Action from /developers'
+	'\nManual: add DEPLOYLINT_GATE_URL secret to a repo and run the GitHub Action from /developers'
 );
