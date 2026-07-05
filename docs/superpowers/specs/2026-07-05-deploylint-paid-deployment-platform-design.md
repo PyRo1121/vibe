@@ -28,6 +28,480 @@ The wedge is:
 
 The paid reason is not "more checks". The paid reason is "tell me before users find out".
 
+## Competitive Bar
+
+Deploylint should be designed around what the best adjacent tools already do well:
+
+- GitHub Advanced Security covers code scanning, CodeQL, Dependabot-related dependency review, secret scanning, and push protection for supported plans and public repositories.
+- Semgrep provides SAST/SCA/secrets workflows with PR comments, block/comment modes, and developer-facing remediation.
+- Snyk covers SCA, code security, containers, IaC scanning, CI/CD gates, and in-code remediation.
+- Checkly-style synthetic monitoring uses Playwright/API checks to prove real user flows such as login, checkout, and API payloads.
+
+Deploylint should not try to replace all of them. The superior angle is to combine:
+
+- Repo readiness.
+- GitHub workflow safety.
+- Live URL launch readiness.
+- Revenue-flow checks.
+- Synthetic browser journeys.
+- Monitoring/regression history.
+- Agent-ready repair plans.
+
+The product should answer a question those tools do not answer cleanly for solo builders:
+
+> Can I deploy this AI-built SaaS today without breaking launch, checkout, SEO, trust, or the core user journey?
+
+## Superiority Check Matrix
+
+Each check family should have an execution mode. Hosted checks must stay read-only and cheap. Connected GitHub checks may run commands in the user's own CI runner. GitHub App checks may inspect repository settings. MCP checks may guide a local agent to run commands and report structured results.
+
+### A. Repository And Toolchain Readiness
+
+Static hosted scan:
+
+- Detect package manager: npm, pnpm, yarn, bun.
+- Detect workspace layout: root app, monorepo, nested apps, package workspaces.
+- Detect framework: SvelteKit, Next.js, Astro, Remix/React Router, Vite, Nuxt, Laravel, Rails, Django/FastAPI, Go, Rust.
+- Detect required script surface: `lint`, `test`, `check` or `typecheck`, `build`, `preview` or `start`.
+- Detect placeholder scripts: `true`, `exit 0`, `echo no tests`.
+- Detect missing root commands when nested apps have useful commands.
+- Detect lockfile presence, mixed lockfiles, package manager mismatch, missing `packageManager`.
+- Detect Node version pinning via `engines.node`, `.nvmrc`, `.node-version`, Volta, or package manager metadata.
+- Detect TypeScript strictness and invalid `tsconfig`.
+- Detect SvelteKit projects without `svelte-check`.
+- Detect Next/Vite/Svelte/Astro apps with no build script.
+- Detect missing test files and missing test script.
+- Detect missing formatter/linter config or config with no script.
+- Detect excessive ignore patterns that skip `src/**`, `apps/**`, or route folders.
+- Detect stale framework/runtime versions where a reliable ecosystem source is available.
+
+Connected runner checks:
+
+- Install dependencies with the detected package manager.
+- Run the discovered lint command.
+- Run typecheck/check command.
+- Run unit tests.
+- Run production build.
+- Run existing Playwright or Cypress smoke tests if present.
+- Capture failing command, exit code, stderr excerpt, and suggested next fix.
+- Report "command absent" separately from "command failed".
+
+Why this beats a static checklist:
+
+- A static scanner says "you have tests". A connected Deploylint gate says "your tests actually pass on this PR".
+
+### B. GitHub Workflow And Repository Governance
+
+Static hosted scan:
+
+- CI workflow exists.
+- CI runs lint, typecheck/check, test, and build.
+- Workflow permissions are explicit.
+- `permissions: write-all` warning.
+- `pull_request_target` risk detection.
+- Third-party actions use floating refs such as `main`, `master`, `latest`, or `HEAD`.
+- First-party actions are at least major-version pinned.
+- Shell commands interpolate untrusted PR data.
+- `actions/cache` keys include untrusted input.
+- Artifact upload paths include broad globs such as repo root.
+- Workflow exposes secrets to forked PRs.
+- Deploy workflow runs on broad triggers without environment protection.
+- Self-hosted runner labels are used on public PR workflows.
+- OIDC permissions are present only where cloud deploy actually needs them.
+
+GitHub App checks:
+
+- Branch protection or rulesets exist for main/default branch.
+- Required status checks include build/test/gate.
+- Force pushes disabled on protected branches.
+- Required pull request review count configured for team plans.
+- Require conversation resolution enabled.
+- CODEOWNERS present when repo has multiple critical areas.
+- Dependabot alerts enabled.
+- Dependabot version updates or Renovate configured.
+- CodeQL/code scanning configured, or explicitly absent.
+- Secret scanning/push protection status when available through API/permissions.
+- Security policy `SECURITY.md` exists.
+- Private vulnerability reporting enabled for public repos where applicable.
+- Environments protect production deploys.
+- Deployment branch rules or preview environment rules are explicit.
+
+Connected runner checks:
+
+- Upload Deploylint gate result as a required status.
+- Comment on PR with only new or worsened launch issues.
+- Add annotations for repo-backed findings with file paths.
+- Export SARIF only for code/file-backed findings, never URL-only findings.
+
+Why this beats generic GitHub security:
+
+- GitHub and Semgrep find code/security issues. Deploylint should say whether the repo's whole delivery path is safe enough to launch.
+
+### C. Dependency, License, And Supply Chain
+
+Static hosted scan:
+
+- Direct dependency license risk.
+- Lockfile transitive license screen.
+- OSV vulnerability lookup from lockfile.
+- Missing lockfile.
+- Package manager mismatch.
+- Known risky package names for malware-prone ecosystems when there is high-confidence evidence.
+- Postinstall scripts in dependencies when lockfile format exposes them.
+- Git dependencies, tarball dependencies, local file dependencies, and registry overrides.
+- `npmrc` registry overrides.
+- Renovate/Dependabot configuration presence.
+- Dependency update cadence from lockfile or manifest age when commit metadata is available.
+
+Connected runner checks:
+
+- `npm audit --json`, `pnpm audit --json`, or equivalent, advisory only.
+- Optional Semgrep CE/Snyk/GitHub CodeQL integration detection and passthrough status.
+- Validate that dependency review or equivalent runs on PRs.
+
+Positioning:
+
+- Do not compete with Snyk or Semgrep on deep SCA. Instead, detect absence, summarize critical blockers, and route users to the right fix.
+
+### D. Infrastructure, Deployment, And Runtime Config
+
+Static hosted scan:
+
+- Wrangler, Vercel, Netlify, Docker, Compose, Terraform, Pulumi, Kubernetes, Helm, Fly, Railway, Render, Supabase, Firebase, and AWS Amplify config detection.
+- Cloudflare `compatibility_date` staleness.
+- Workers bindings present but env docs missing.
+- Public `.dev.vars`, `.env`, `.env.production`, or secrets committed.
+- Dockerfile copies `.env`.
+- Docker image runs as root when detectable.
+- Health endpoint absent for SaaS-like stacks.
+- Preview/prod environment variable naming confusion.
+- Missing deploy config for framework apps where CI also absent.
+- Missing rollback or release documentation.
+
+Connected runner checks:
+
+- Build artifact generation.
+- Framework adapter output exists.
+- Cloudflare/Vercel/Netlify config parses.
+- Optional dry-run deployment validation where the platform supports a safe dry-run mode.
+
+GitHub App checks:
+
+- Production deploy workflow requires protected environment.
+- Deployment status is reported back to GitHub.
+- Release tags or changelog exist for production releases.
+
+Positioning:
+
+- IaC scanners find cloud misconfiguration. Deploylint should find launch-impacting deploy readiness and missing operational guardrails.
+
+### E. Live Site Launch Surface
+
+Hosted scan:
+
+- Reachability, redirect chain, HTTP status, final URL.
+- HTTPS, HSTS, CSP, clickjacking, MIME sniffing, referrer policy, permissions policy.
+- WWW/apex consistency.
+- Canonical, title, description, H1, language, viewport.
+- Open Graph, Twitter/X card, live `og:image`, image content type.
+- Sitemap and robots discovery, including `noindex` and accidental robots blocks.
+- `llms.txt`, AI crawler posture, and AI-answer readiness copy.
+- Legal/trust pages: privacy, terms, refund, contact, security.txt.
+- Cookie consent where tracking/ads scripts are detected.
+- Broken internal links and anchor nav.
+- Placeholder copy, default framework artifacts, stale copyright.
+- Pricing page presence and primary CTA.
+- Signup friction, social proof, CTA clarity.
+- Page weight, render-blocking CSS, font loading, image dimensions/lazy loading.
+- Exposed `.env`, `.git`, backups, package metadata, source maps, debug logs.
+
+Deep hosted scan:
+
+- Crawl more sitemap URLs with plan-specific budgets.
+- Run a real browser render.
+- Collect console errors, network errors, JS exceptions.
+- Detect blank screens and hydration failures.
+- Check mobile viewport overflow.
+- Capture private screenshots for failed checks.
+- Track layout stability heuristics before full Web Vitals integration.
+
+### F. Synthetic Journeys And API Checks
+
+Deep browser scan:
+
+- Homepage loads and primary CTA is visible.
+- Pricing page loads and plan CTAs are clickable.
+- Signup/login route renders.
+- Checkout-start flow opens Stripe/Paddle/Lemon Squeezy or expected app route.
+- Dashboard route is protected or reachable depending on app type.
+- Contact/waitlist form dry-run validates labels, errors, and success state without destructive submission.
+- Navigation works on mobile.
+- No obvious modal/cookie banner blocks primary CTA.
+- Console and network errors are attached to the failed journey.
+
+API checks:
+
+- `/health`, `/healthz`, `/api/health`, `/status`.
+- Public JSON endpoints return valid JSON and expected content type.
+- API latency and status budget.
+- CORS policy sanity for public APIs.
+- Authenticated API checks later, only after credential storage is designed.
+
+Positioning:
+
+- Checkly is strong at synthetic monitoring. Deploylint can win for solo SaaS builders by generating opinionated launch journeys automatically and correlating them with repo/deploy/payment readiness.
+
+### G. Revenue And Billing Readiness
+
+Static hosted scan:
+
+- Payment provider detection.
+- Pricing path exists.
+- Checkout CTA exists.
+- Public price copy exists and does not contradict plan config.
+- Terms/refund/privacy linked near checkout.
+
+Server-config scan:
+
+- App env has expected price IDs.
+- Checkout endpoint uses subscription mode when subscription pricing is selected.
+- Success/cancel URLs exist.
+- Webhook endpoint exists.
+- Webhook signature verification exists.
+- Paid fulfillment only happens after paid/complete events.
+- Customer portal or cancellation path exists.
+
+Stripe API audit:
+
+- Products and prices exist and are active.
+- Live/test mode consistency.
+- Webhook endpoint points at production domain.
+- Required events enabled.
+- Customer portal configured.
+- Tax settings decision documented.
+- Failed payment/dunning settings reviewed.
+- Trial, coupon, and price metadata match app plan mapping.
+- Subscription cancellation and entitlement downgrade path exists.
+
+Why this should be a paid upgrade:
+
+- Billing regressions directly cost revenue. This is more valuable than generic SEO polish.
+
+### H. AI Coding And Agent Safety
+
+Hosted/repo scan:
+
+- `.cursorrules`, `AGENTS.md`, Codex instructions, Claude instructions, and repo AI guidance presence.
+- Instructions include test/verify commands.
+- Instructions warn against destructive git commands.
+- Instructions document env/secrets handling.
+- Generated-code markers or TODO density in critical paths.
+- AI provider references in client bundles.
+- Server-side proxy expectation for OpenAI/Anthropic/Replicate/Hugging Face calls.
+
+MCP/local agent checks:
+
+- Ask the local agent to run project-specific verification commands.
+- Convert failures into patch-sized tasks.
+- Produce "do not touch" constraints from repo instructions.
+- Generate a PR checklist and release checklist.
+
+Positioning:
+
+- This is the AI-built-app angle competitors are weaker on: not just "is the code secure", but "can an agent safely continue this project without breaking launch?"
+
+### I. Monitoring And Regression Intelligence
+
+Monitor checks:
+
+- New P0 issue.
+- Worsened P1 issue.
+- Score drop beyond threshold.
+- Checkout-start journey broke.
+- Pricing page changed or disappeared.
+- Public noindex/robots regression.
+- Legal/trust page removed.
+- Dependency high/critical vulnerability newly detected.
+- GitHub workflow gate disabled.
+- Branch protection removed.
+- Webhook endpoint missing or failing.
+
+Noise control:
+
+- Alert immediately for P0.
+- Require two consecutive failures for transient network/blocking errors.
+- Digest P2 changes.
+- Group repeated failures by fingerprint.
+- Attach "last known good" report and changed checks.
+
+## Execution Modes
+
+### Hosted Public Scan
+
+Safe, no-auth, read-only:
+
+- HTTP GET/HEAD.
+- DNS/TXT lookups.
+- Public GitHub API.
+- Public raw file reads.
+- Bounded sitemap/script/source-map fetches.
+
+Use this for free acquisition and public reports.
+
+### Connected GitHub Action Runner
+
+Runs inside the user's repository and CI permissions:
+
+- Install dependencies.
+- Run lint/typecheck/test/build.
+- Run existing e2e smoke tests.
+- Run Deploylint gate against preview or production URL.
+- Upload artifacts, JSON, annotations, and PR comments.
+
+Use this for Solo/Builder paid value.
+
+### GitHub App
+
+Uses GitHub API permissions:
+
+- Read branch protection, rulesets, environments, security settings, Dependabot config, code scanning status, and workflow runs.
+- Create check runs and PR comments.
+- Store repo installation mapping to projects.
+
+Use this when GitHub Action adoption proves demand.
+
+### MCP Local Agent
+
+Runs through the user's local coding environment:
+
+- Scan URL/repo.
+- Generate fix plan.
+- Ask the agent to run local commands.
+- Summarize failures into patch tasks.
+- Generate GitHub workflow YAML.
+
+Use this as the agent-native workflow, but keep tools read-only until explicit edit workflows are designed.
+
+## Runnable Quality Gates
+
+Deploylint should distinguish "configured" from "passed".
+
+### JavaScript And TypeScript
+
+Detect and run, in this order, when connected runner or local MCP mode is available:
+
+1. Package manager install: `npm ci`, `pnpm install --frozen-lockfile`, `yarn install --immutable`, or `bun install --frozen-lockfile`.
+2. Formatter check when available.
+3. Lint command.
+4. Typecheck/check command.
+5. Unit test command.
+6. Production build command.
+7. Existing e2e smoke test command.
+
+Framework-specific expectations:
+
+- SvelteKit: `svelte-check`, build, route smoke, Cloudflare adapter output when configured.
+- Next.js: typecheck, lint if configured, production build, route smoke.
+- Vite SPA: build, preview route smoke, blank-screen/hydration check.
+- Astro/Remix/Nuxt: build and route smoke.
+
+### Cloudflare And Edge Apps
+
+Checks:
+
+- Wrangler config parses.
+- Bindings in config match expected env type declarations.
+- Compatibility date is current enough.
+- Durable Object migrations exist for bindings.
+- KV/R2/D1 bindings used by code are declared.
+- Build output contains Worker entry.
+- Source maps are uploaded intentionally, not publicly exposed by the app.
+
+### Test Quality Signals
+
+Static:
+
+- Test files exist.
+- Test script is not a placeholder.
+- CI runs tests.
+- E2E tests exist for app with checkout/auth.
+- Coverage command exists, advisory only.
+
+Connected:
+
+- Unit tests pass.
+- E2E smoke tests pass.
+- Build passes.
+- Failing tests are grouped by command and first failure.
+- Flaky repeated runs can be marked as "unstable" instead of hard fail in monitoring.
+
+## GitHub Tooling Roadmap
+
+### Stage 1: Composite Action
+
+- Keep action install simple.
+- Inputs: URL, mode, min score, report visibility, comment mode.
+- Outputs: pass/fail, score, verdict, report URL, JSON path.
+- Advisory mode by default for first install.
+
+### Stage 2: GitHub Check Runs
+
+- Create rich check output with conclusion, summary, annotations, and report links.
+- Separate URL findings from file-backed repo findings.
+- Store check fingerprints so old comments update instead of duplicating.
+
+### Stage 3: GitHub App
+
+- Install app to repos.
+- Read repo settings and security posture.
+- Link repos to monitored projects.
+- Trigger scans on deployment events.
+- Comment only on new or worsened findings.
+
+### Stage 4: GitHub-Native Fix Workflow
+
+- Generate issue bodies for non-trivial fixes.
+- Generate patch suggestions for deterministic config changes.
+- Draft PRs only after explicit approval and narrow scope.
+- Never auto-merge.
+
+## Severity Model
+
+Use separate dimensions instead of one flat score:
+
+- Launch blocker: do not share publicly.
+- Merge blocker: do not merge this PR.
+- Revenue blocker: checkout/billing/subscription risk.
+- Trust blocker: legal/security/trust issue likely to hurt conversion.
+- Monitoring alert: regression from previous known-good state.
+- Polish: useful but not blocking.
+
+Every finding should include:
+
+- `id`.
+- `family`.
+- `status`.
+- `severity`.
+- `executionMode`.
+- `evidence`.
+- `confidence`.
+- `fingerprint`.
+- `fixPrompt`.
+- `docsUrl`.
+- `falsePositive`.
+
+This allows the UI, GitHub Action, MCP, and monitoring alerts to use the same finding without flattening everything into a generic checklist.
+
+## Product Differentiators To Market
+
+- "Launch judgment, not generic lint."
+- "Checks repo, live URL, checkout, and deploy flow together."
+- "Runs your actual lint/test/build in GitHub when connected."
+- "Turns findings into Codex/Cursor-ready fix plans."
+- "Public summary reports stay safe; private owner reports contain the real repair plan."
+- "Billing and checkout readiness, not just uptime."
+- "Detects regressions after deploy, not just issues on first scan."
+
 ## Pricing Packaging
 
 Keep the public alpha free while the product is being shaped, but build the paid feature boundaries now.
