@@ -67,12 +67,22 @@ describe('findRootFile', () => {
 });
 
 describe('parsePackageJson', () => {
-	it('extracts production dependencies', () => {
+	it('extracts production and secondary dependency sections', () => {
 		const { dependencies, valid } = parsePackageJson(
-			JSON.stringify({ dependencies: { react: '^18.0.0' }, devDependencies: { vitest: '^1.0.0' } })
+			JSON.stringify({
+				dependencies: { react: '^18.0.0' },
+				devDependencies: { vitest: '^1.0.0' },
+				optionalDependencies: { sharp: '^0.33.0' },
+				peerDependencies: { svelte: '^5.0.0' }
+			})
 		);
 		expect(valid).toBe(true);
-		expect(dependencies).toEqual({ react: '^18.0.0' });
+		expect(dependencies).toEqual({
+			react: '^18.0.0',
+			vitest: '^1.0.0',
+			sharp: '^0.33.0',
+			svelte: '^5.0.0'
+		});
 	});
 
 	it('handles missing or broken files', () => {

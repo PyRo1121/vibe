@@ -53,9 +53,19 @@ describe('report store', () => {
 	});
 
 	it('keys history by host and path, ignoring trailing slash', () => {
-		expect(historyKey('https://app.test/')).toBe('history:app.test');
-		expect(historyKey('https://app.test/docs/')).toBe('history:app.test/docs');
+		expect(historyKey('https://app.test/')).toMatch(/^history:[a-f0-9]{64}$/);
+		expect(historyKey('https://app.test/docs/')).toMatch(/^history:[a-f0-9]{64}$/);
+		expect(historyKey('https://app.test/docs')).toBe(historyKey('https://app.test/docs/'));
 		expect(historyKey('not a url')).toBeNull();
+	});
+
+	it('keeps history keys under KV limits and distinguishes query strings', () => {
+		const longKey = historyKey(`https://app.test/${'a'.repeat(1000)}`);
+		expect(longKey).toBeTruthy();
+		expect(new TextEncoder().encode(longKey as string).byteLength).toBeLessThanOrEqual(512);
+		expect(historyKey('https://app.test/docs?a=1')).not.toBe(
+			historyKey('https://app.test/docs?a=2')
+		);
 	});
 
 	it('appends history and returns prior entries oldest-first', async () => {
@@ -82,7 +92,9 @@ describe('report store', () => {
 				at: 'x'
 			});
 		}
-		const saved = JSON.parse(store.get('history:app.test') as string) as unknown[];
+		const saved = JSON.parse(
+			store.get(historyKey('https://app.test/') as string) as string
+		) as unknown[];
 		expect(saved).toHaveLength(20);
 	});
 

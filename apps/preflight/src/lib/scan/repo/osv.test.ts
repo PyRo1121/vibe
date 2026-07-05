@@ -37,6 +37,12 @@ describe('normalizeSeverity', () => {
 		expect(normalizeSeverity('bogus')).toBeNull();
 		expect(normalizeSeverity(undefined)).toBeNull();
 	});
+
+	it('maps CVSS vectors to severity buckets', () => {
+		expect(normalizeSeverity('CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H')).toBe('critical');
+		expect(normalizeSeverity('CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:N')).toBe('high');
+		expect(normalizeSeverity('CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:U/C:L/I:L/A:N')).toBe('moderate');
+	});
 });
 
 describe('auditVulnerabilities', () => {
@@ -53,6 +59,19 @@ describe('auditVulnerabilities', () => {
 			findings: [{ package: 'lodash', version: '4.17.20', vulnIds: ['GHSA-x'] }],
 			worstSeverity: 'high'
 		});
+	});
+
+	it('uses top-level OSV severity entries from detail lookups', async () => {
+		const fetchImpl: FetchLike = async (url) => {
+			if (url.includes('querybatch')) {
+				return jsonResponse({ results: [{ vulns: [{ id: 'GHSA-x' }] }, {}] });
+			}
+			return jsonResponse({
+				severity: [{ type: 'CVSS_V3', score: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:N' }]
+			});
+		};
+		const audit = await auditVulnerabilities(PACKAGES, fetchImpl);
+		expect(audit?.worstSeverity).toBe('high');
 	});
 
 	it('returns null when OSV is unreachable — check is skipped, not faked', async () => {

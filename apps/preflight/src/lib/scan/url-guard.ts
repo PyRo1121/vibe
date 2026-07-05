@@ -2,6 +2,8 @@ import { normalizeUrl } from '$lib/scan/parse';
 
 const BLOCKED_HOSTS = new Set(['localhost', 'metadata.google.internal', 'metadata.goog']);
 
+export type DnsResolver = (hostname: string) => Promise<string[]>;
+
 export class UrlValidationError extends Error {
 	constructor(message: string) {
 		super(message);
@@ -33,15 +35,23 @@ function isPrivateIpv4(octets: number[]): boolean {
 }
 
 function isPrivateIpv6(host: string): boolean {
-	const h = host.toLowerCase();
+	const h = host.toLowerCase().replace(/^\[|\]$/g, '');
 	if (h === '::1') return true;
+	const mappedIpv4 = h.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
+	if (mappedIpv4) {
+		const ipv4 = parseIpv4(mappedIpv4[1]);
+		return ipv4 ? isPrivateIpv4(ipv4) : true;
+	}
 	if (h.startsWith('fc') || h.startsWith('fd')) return true;
 	if (h.startsWith('fe80')) return true;
 	return false;
 }
 
 function isBlockedHost(host: string): boolean {
-	const lower = host.toLowerCase().replace(/\.$/, '');
+	const lower = host
+		.toLowerCase()
+		.replace(/\.$/, '')
+		.replace(/^\[|\]$/g, '');
 	if (BLOCKED_HOSTS.has(lower)) return true;
 	if (lower.endsWith('.localhost')) return true;
 	if (lower.endsWith('.local')) return true;
@@ -78,6 +88,20 @@ export function assertPublicHttpUrl(raw: string): URL {
 	}
 
 	return url;
+}
+
+export async function assertPublicResolvedUrl(url: URL, resolver: DnsResolver): Promise<URL> {
+	const checked = assertPublicHttpUrl(url.href);
+	const resolved = await resolver(checked.hostname);
+	if (resolved.length === 0) {
+		throw new UrlValidationError('That URL cannot be scanned');
+	}
+	for (const address of resolved) {
+		if (isBlockedHost(address)) {
+			throw new UrlValidationError('That URL cannot be scanned');
+		}
+	}
+	return checked;
 }
 
 export function isPublicHttpUrl(raw: string): boolean {

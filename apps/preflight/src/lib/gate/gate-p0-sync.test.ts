@@ -6,7 +6,9 @@ import { P0_CHECK_IDS } from '$lib/scan/p0-ids';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..', '..', '..');
+const repoRoot = join(root, '..', '..');
 const mcpGatePath = join(root, '..', 'preflight-mcp', 'src', 'gate.ts');
+const actionPath = join(repoRoot, '.github', 'actions', 'deploylint-gate', 'action.yml');
 
 function extractGateP0Ids(relPath: string): string[] {
 	const content = readFileSync(join(root, relPath), 'utf8');
@@ -35,5 +37,17 @@ describe('gate P0 sync', () => {
 
 	it('preflight-mcp gate.ts matches verdict P0 list', () => {
 		expect(extractMcpP0Ids().sort()).toEqual(canonical);
+	});
+
+	it('vendored GitHub Action gate script matches verdict P0 list', () => {
+		expect(
+			extractGateP0Ids('../../.github/actions/deploylint-gate/gate-remote.mjs').sort()
+		).toEqual(canonical);
+	});
+
+	it('GitHub Action runs the vendored script instead of curling live code', () => {
+		const action = readFileSync(actionPath, 'utf8');
+		expect(action).not.toContain('curl');
+		expect(action).toContain('$GITHUB_ACTION_PATH/gate-remote.mjs');
 	});
 });

@@ -7,3 +7,6 @@ bun.lockb
 
 # Miscellaneous
 /static/
+test-results/
+playwright-report/
+blob-report/

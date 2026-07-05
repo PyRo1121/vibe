@@ -1,4 +1,5 @@
 import type { ScanReport } from '$lib/scan/types';
+import { stableStorageKey } from '$lib/server/storage-key';
 
 /**
  * Durable report storage for shareable permalinks. Reports are stored in
@@ -51,7 +52,8 @@ const HISTORY_TTL_SECONDS = 60 * 60 * 24 * 180;
 export function historyKey(finalUrl: string): string | null {
 	try {
 		const u = new URL(finalUrl);
-		return `history:${u.hostname}${u.pathname.replace(/\/$/, '')}`;
+		if (u.pathname !== '/') u.pathname = u.pathname.replace(/\/$/, '');
+		return stableStorageKey('history', u.href);
 	} catch {
 		return null;
 	}

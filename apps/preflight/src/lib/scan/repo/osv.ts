@@ -52,7 +52,60 @@ export function normalizeSeverity(raw: string | undefined): OsvSeverity | null {
 	if (value === 'critical' || value === 'high' || value === 'moderate' || value === 'low') {
 		return value;
 	}
+	if (raw?.startsWith('CVSS:3.')) {
+		return severityFromCvss3(raw);
+	}
 	return null;
+}
+
+function severityFromScore(score: number): OsvSeverity | null {
+	if (score >= 9) return 'critical';
+	if (score >= 7) return 'high';
+	if (score >= 4) return 'moderate';
+	if (score > 0) return 'low';
+	return null;
+}
+
+function severityFromCvss3(vector: string): OsvSeverity | null {
+	const metrics = Object.fromEntries(
+		vector
+			.split('/')
+			.slice(1)
+			.map((part) => part.split(':'))
+			.filter((part): part is [string, string] => part.length === 2)
+	);
+	const scopeChanged = metrics.S === 'C';
+	const av = { N: 0.85, A: 0.62, L: 0.55, P: 0.2 }[metrics.AV ?? ''];
+	const ac = { L: 0.77, H: 0.44 }[metrics.AC ?? ''];
+	const pr = scopeChanged
+		? { N: 0.85, L: 0.68, H: 0.5 }[metrics.PR ?? '']
+		: { N: 0.85, L: 0.62, H: 0.27 }[metrics.PR ?? ''];
+	const ui = { N: 0.85, R: 0.62 }[metrics.UI ?? ''];
+	const impactMetric = (v: string | undefined) => ({ H: 0.56, L: 0.22, N: 0 })[v ?? ''];
+	const c = impactMetric(metrics.C);
+	const i = impactMetric(metrics.I);
+	const a = impactMetric(metrics.A);
+	if ([av, ac, pr, ui, c, i, a].some((v) => v == null)) return null;
+	const [avScore, acScore, prScore, uiScore, cScore, iScore, aScore] = [
+		av,
+		ac,
+		pr,
+		ui,
+		c,
+		i,
+		a
+	] as number[];
+
+	const impact = 1 - (1 - cScore) * (1 - iScore) * (1 - aScore);
+	if (impact <= 0) return null;
+	const impactScore = scopeChanged
+		? 7.52 * (impact - 0.029) - 3.25 * Math.pow(impact - 0.02, 15)
+		: 6.42 * impact;
+	const exploitability = 8.22 * avScore * acScore * prScore * uiScore;
+	const base = scopeChanged
+		? Math.min(1.08 * (impactScore + exploitability), 10)
+		: Math.min(impactScore + exploitability, 10);
+	return severityFromScore(Math.ceil(base * 10) / 10);
 }
 
 /** Returns null when OSV is unreachable — the check is skipped, never faked. */
@@ -86,10 +139,16 @@ export async function auditVulnerabilities(
 				if (!detail.ok) continue;
 				const body = (await detail.json()) as {
 					database_specific?: { severity?: string };
+					severity?: Array<{ type?: string; score?: string }>;
 				};
-				const severity = normalizeSeverity(body.database_specific?.severity);
-				if (severity && (!worst || SEVERITY_RANK[severity] > SEVERITY_RANK[worst])) {
-					worst = severity;
+				const severities = [
+					normalizeSeverity(body.database_specific?.severity),
+					...(body.severity ?? []).map((s) => normalizeSeverity(s.score))
+				].filter((s): s is OsvSeverity => Boolean(s));
+				for (const severity of severities) {
+					if (!worst || SEVERITY_RANK[severity] > SEVERITY_RANK[worst]) {
+						worst = severity;
+					}
 				}
 			} catch {
 				// Severity detail is best-effort — the finding itself still stands.

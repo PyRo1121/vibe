@@ -8,7 +8,11 @@ import {
 import type { OgImageProbe } from '$lib/scan/checks/context';
 import { pickSecurityHeaders } from '$lib/scan/headers';
 import { isImageContentType } from '$lib/scan/signals';
-import { assertPublicHttpUrl } from '$lib/scan/url-guard';
+import {
+	assertPublicHttpUrl,
+	assertPublicResolvedUrl,
+	type DnsResolver
+} from '$lib/scan/url-guard';
 
 /**
  * Network layer for the site scanner. Every function here is injectable via
@@ -33,6 +37,11 @@ export interface ScanDeps {
 }
 
 type SiteFetch = typeof fetch;
+
+interface BuildScanDepsOptions {
+	maxHtmlBytes?: number;
+	maxScriptBytes?: number;
+}
 
 /** Hostname of PUBLIC_APP_URL — used to route same-zone fetches through the SELF binding. */
 export function appHostname(appUrl: string | undefined): string | null {
@@ -87,12 +96,75 @@ export function wrapSameZoneFetch(
 	};
 }
 
-function buildScanDeps(siteFetch: SiteFetch): ScanDeps {
+export async function discardBody(res: Response): Promise<void> {
+	try {
+		await res.body?.cancel();
+	} catch {
+		/* body already consumed or closed */
+	}
+}
+
+export async function readBoundedText(
+	res: Response,
+	maxBytes: number
+): Promise<{ text: string; truncated: boolean }> {
+	if (!res.body) {
+		const text = await res.text();
+		return {
+			text: text.slice(0, maxBytes),
+			truncated: new TextEncoder().encode(text).byteLength > maxBytes
+		};
+	}
+
+	const reader = res.body.getReader();
+	const chunks: Uint8Array[] = [];
+	let total = 0;
+	let truncated = false;
+
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		const chunk = value ?? new Uint8Array();
+		const remaining = maxBytes - total;
+		if (remaining <= 0 || chunk.byteLength > remaining) {
+			if (remaining > 0) {
+				chunks.push(chunk.slice(0, remaining));
+				total += remaining;
+			}
+			truncated = true;
+			await reader.cancel();
+			break;
+		}
+		chunks.push(chunk);
+		total += chunk.byteLength;
+	}
+
+	const bytes = new Uint8Array(total);
+	let offset = 0;
+	for (const chunk of chunks) {
+		bytes.set(chunk, offset);
+		offset += chunk.byteLength;
+	}
+
+	return { text: new TextDecoder('utf-8').decode(bytes), truncated };
+}
+
+export function buildScanDeps(
+	siteFetch: SiteFetch,
+	resolveAddresses: DnsResolver = resolvePublicAddresses,
+	opts: BuildScanDepsOptions = {}
+): ScanDeps {
+	const maxHtmlBytes = opts.maxHtmlBytes ?? MAX_HTML_BYTES;
+	const maxScriptBytes = opts.maxScriptBytes ?? MAX_SCRIPT_BYTES;
+
 	async function followRedirects(
 		startUrl: URL,
 		init: RequestInit
 	): Promise<{ res: Response; finalUrl: URL; redirectHops: number } | null> {
-		let current = assertPublicHttpUrl(startUrl.href);
+		let current = await assertPublicResolvedUrl(
+			assertPublicHttpUrl(startUrl.href),
+			resolveAddresses
+		);
 		let redirectHops = 0;
 
 		for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
@@ -101,7 +173,8 @@ function buildScanDeps(siteFetch: SiteFetch): ScanDeps {
 			if (res.status >= 300 && res.status < 400) {
 				const location = res.headers.get('location');
 				if (!location) return null;
-				current = assertPublicHttpUrl(new URL(location, current).href);
+				await discardBody(res);
+				current = await assertPublicResolvedUrl(new URL(location, current), resolveAddresses);
 				redirectHops += 1;
 				continue;
 			}
@@ -128,11 +201,10 @@ function buildScanDeps(siteFetch: SiteFetch): ScanDeps {
 			if (!result) throw new Error('Too many redirects');
 
 			const { res, finalUrl } = result;
-			const buf = await res.arrayBuffer();
-			const capped = buf.byteLength > MAX_HTML_BYTES ? buf.slice(0, MAX_HTML_BYTES) : buf;
+			const { text } = await readBoundedText(res, maxHtmlBytes);
 
 			return {
-				html: new TextDecoder('utf-8').decode(capped),
+				html: text,
 				finalUrl,
 				status: res.status,
 				headers: pickSecurityHeaders(res),
@@ -161,11 +233,7 @@ function buildScanDeps(siteFetch: SiteFetch): ScanDeps {
 				headers: { 'User-Agent': USER_AGENT }
 			});
 			if (!getResult) return false;
-			try {
-				await getResult.res.body?.cancel();
-			} catch {
-				/* body already consumed or closed */
-			}
+			await discardBody(getResult.res);
 			const getStatus = getResult.res.status;
 			if (getStatus >= 200 && getStatus < 400) return true;
 			return getStatus === 401 || getStatus === 403 || getStatus === 429 || getStatus === 503;
@@ -207,16 +275,38 @@ function buildScanDeps(siteFetch: SiteFetch): ScanDeps {
 
 			if (!result || result.res.status >= 400) return null;
 
-			const buf = await result.res.arrayBuffer();
-			if (buf.byteLength > MAX_SCRIPT_BYTES) return null;
+			const { text, truncated } = await readBoundedText(result.res, maxScriptBytes);
+			if (truncated) return null;
 
-			return new TextDecoder('utf-8').decode(buf);
+			return text;
 		} catch {
 			return null;
 		}
 	}
 
 	return { fetchHtml, headOk, headProbe, fetchText, resolveTxt };
+}
+
+async function resolvePublicAddresses(name: string): Promise<string[]> {
+	const lookup = async (type: 'A' | 'AAAA') => {
+		const res = await fetch(
+			`https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(name)}&type=${type}`,
+			{ headers: { Accept: 'application/dns-json' }, signal: AbortSignal.timeout(6000) }
+		);
+		if (!res.ok) return [];
+		const body = (await res.json()) as { Answer?: Array<{ type: number; data: string }> };
+		const expectedType = type === 'A' ? 1 : 28;
+		return (body.Answer ?? [])
+			.filter((answer) => answer.type === expectedType)
+			.map((answer) => answer.data);
+	};
+
+	try {
+		const [a, aaaa] = await Promise.all([lookup('A'), lookup('AAAA')]);
+		return [...a, ...aaaa];
+	} catch {
+		return [];
+	}
 }
 
 /** TXT lookup via Cloudflare DNS-over-HTTPS — always external, never same-zone. */

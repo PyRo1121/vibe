@@ -13,12 +13,19 @@ import { logFunnelEvent } from '$lib/metrics/funnel';
 
 const WEBHOOK_DEDUP_TTL_SECONDS = 60 * 60 * 24 * 7;
 
-async function isDuplicateWebhookEvent(kv: KVNamespace, eventId: string): Promise<boolean> {
+async function hasWebhookEvent(kv: KVNamespace, eventId: string): Promise<boolean> {
 	const key = `webhook:event:${eventId}`;
 	try {
-		if (await kv.get(key)) return true;
+		return Boolean(await kv.get(key));
+	} catch {
+		error(503, 'Webhook processing temporarily unavailable');
+	}
+}
+
+async function markWebhookEventProcessed(kv: KVNamespace, eventId: string): Promise<void> {
+	const key = `webhook:event:${eventId}`;
+	try {
 		await kv.put(key, '1', { expirationTtl: WEBHOOK_DEDUP_TTL_SECONDS });
-		return false;
 	} catch {
 		error(503, 'Webhook processing temporarily unavailable');
 	}
@@ -45,8 +52,9 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 		error(400, 'Invalid webhook payload');
 	}
 
-	if (event.id && platform?.env?.REPORTS) {
-		if (await isDuplicateWebhookEvent(platform.env.REPORTS, event.id)) {
+	const reports = platform?.env?.REPORTS;
+	if (event.id && reports) {
+		if (await hasWebhookEvent(reports, event.id)) {
 			return json({ received: true, duplicate: true });
 		}
 	}
@@ -55,13 +63,15 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 		const session = event.data.object;
 		const scanUrl = session.metadata?.scan_url?.trim();
 		const sessionId = session.id;
-		if (scanUrl && sessionId && platform?.env?.REPORTS) {
-			await saveUnlock(platform.env.REPORTS, canonicalScanUrl(scanUrl), sessionId);
+		if (scanUrl && sessionId && reports) {
+			await saveUnlock(reports, canonicalScanUrl(scanUrl), sessionId);
 		}
+		if (event.id && reports) await markWebhookEventProcessed(reports, event.id);
 		logFunnelEvent('checkout_paid', {});
 		return json({ received: true, sessionId: sessionId ?? null });
 	}
 
+	if (event.id && reports) await markWebhookEventProcessed(reports, event.id);
 	return json({ received: true, ignored: event.type });
 };
 

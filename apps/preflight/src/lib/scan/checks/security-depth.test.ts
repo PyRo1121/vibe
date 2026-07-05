@@ -27,9 +27,27 @@ describe('form-security', () => {
 		expect(check?.message).toContain('legacy.oldhost.com');
 	});
 
+	it('fails when an HTTPS page posts an unquoted form action to HTTP', () => {
+		const check = get(
+			run(page('<form action=http://legacy.oldhost.com/submit></form>')),
+			'form-security'
+		);
+		expect(check?.status).toBe('fail');
+		expect(check?.message).toContain('legacy.oldhost.com');
+	});
+
 	it('fails when a password field exists on an HTTP page', () => {
 		const check = get(
 			run(page('<input type="password" name="pw">'), 'http://app.test/'),
+			'form-security'
+		);
+		expect(check?.status).toBe('fail');
+		expect(check?.message).toContain('Password field on an HTTP page');
+	});
+
+	it('fails when an unquoted password field exists on an HTTP page', () => {
+		const check = get(
+			run(page('<input type=password name=pw>'), 'http://app.test/'),
 			'form-security'
 		);
 		expect(check?.status).toBe('fail');
@@ -101,6 +119,19 @@ describe('noopener', () => {
 				'<a target="_blank" href="https://one.test/a">A</a>',
 				'<a target="_blank" href="https://two.test/b">B</a>',
 				'<a target="_blank" href="https://three.test/c">C</a>'
+			].join('')
+		);
+		const check = get(run(html), 'noopener');
+		expect(check?.status).toBe('warn');
+		expect(check?.message).toContain('without rel=noopener');
+	});
+
+	it('warns when unquoted external _blank links lack noopener', () => {
+		const html = page(
+			[
+				'<a target=_blank href=https://one.test/a>A</a>',
+				'<a target=_blank href=https://two.test/b>B</a>',
+				'<a target=_blank href=https://three.test/c>C</a>'
 			].join('')
 		);
 		const check = get(run(html), 'noopener');

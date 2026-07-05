@@ -18,6 +18,20 @@
 			"id": "dac1d86110704359a9e7c08a24cc9873"
 		}
 	],
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "LIMITER",
+				"class_name": "CounterLimiter"
+			}
+		]
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": ["CounterLimiter"]
+		}
+	],
 	"ai": {
 		"binding": "AI",
 		"remote": true

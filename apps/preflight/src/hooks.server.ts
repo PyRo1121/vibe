@@ -2,6 +2,8 @@ import type { Handle } from '@sveltejs/kit';
 import { isHttpError } from '@sveltejs/kit';
 import { applySecurityHeaders, enforceEdgeSecurity } from '$lib/server/edge-security';
 
+export { CounterLimiter } from '$lib/server/counter-limiter';
+
 const REDIRECT_HOSTS = new Set(['deploylint.com', 'www.deploylint.com']);
 
 /** 301 apex marketing domain → canonical host when DNS is pointed at this Worker. */
@@ -15,7 +17,11 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	try {
-		const blocked = await enforceEdgeSecurity(event.platform?.env?.REPORTS, event.request);
+		const blocked = await enforceEdgeSecurity(
+			event.platform?.env?.REPORTS,
+			event.request,
+			event.platform?.env?.LIMITER
+		);
 		if (blocked) return applySecurityHeaders(blocked, event.url.href);
 	} catch (err) {
 		if (isHttpError(err)) {

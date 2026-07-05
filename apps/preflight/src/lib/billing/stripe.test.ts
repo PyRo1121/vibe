@@ -33,6 +33,35 @@ describe('createCheckoutSession', () => {
 
 		expect(session.url).toContain('stripe.com');
 	});
+
+	it('uses a fresh idempotency key for repeated checkout attempts on the same URL', async () => {
+		const keys: string[] = [];
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async (_url: string, init?: RequestInit) => {
+				const headers = init?.headers as Record<string, string>;
+				keys.push(headers['Idempotency-Key']);
+				return {
+					ok: true,
+					json: async () => ({ id: 'cs_test_abc', url: 'https://checkout.stripe.com/x' })
+				};
+			})
+		);
+
+		await createCheckoutSession({
+			scanUrl: 'https://app.test',
+			appUrl: 'https://preflight.test',
+			secretKey: 'sk_test_x'
+		});
+		await createCheckoutSession({
+			scanUrl: 'https://app.test',
+			appUrl: 'https://preflight.test',
+			secretKey: 'sk_test_x'
+		});
+
+		expect(keys).toHaveLength(2);
+		expect(keys[0]).not.toBe(keys[1]);
+	});
 });
 
 describe('verifyCheckoutSession', () => {

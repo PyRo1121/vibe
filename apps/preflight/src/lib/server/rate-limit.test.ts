@@ -1,6 +1,22 @@
 import { describe, expect, it, vi } from 'vitest';
 import { assertScanRateLimit, clientIp } from './rate-limit';
 
+function fakeLimiter() {
+	const counts = new Map<string, number>();
+	return {
+		idFromName: (name: string) => name,
+		get: (id: string) => ({
+			fetch: async (request: Request) => {
+				const body = (await request.json()) as { key: string; limit: number };
+				const key = `${id}:${body.key}`;
+				const next = (counts.get(key) ?? 0) + 1;
+				counts.set(key, next);
+				return Response.json({ allowed: next <= body.limit });
+			}
+		})
+	} as unknown as DurableObjectNamespace;
+}
+
 describe('clientIp', () => {
 	it('prefers CF-Connecting-IP', () => {
 		const req = new Request('https://app.test', {
@@ -13,6 +29,18 @@ describe('clientIp', () => {
 describe('assertScanRateLimit', () => {
 	it('skips without KV', async () => {
 		await expect(assertScanRateLimit(undefined, '203.0.113.1')).resolves.toBeUndefined();
+	});
+
+	it('uses the limiter binding atomically for concurrent scan limits', async () => {
+		const limiter = fakeLimiter();
+		const attempts = await Promise.allSettled(
+			Array.from({ length: 16 }, () => assertScanRateLimit(undefined, '203.0.113.1', limiter))
+		);
+
+		expect(attempts.filter((r) => r.status === 'fulfilled')).toHaveLength(15);
+		expect(
+			attempts.filter((r) => r.status === 'rejected' && 'reason' in r && r.reason.status === 429)
+		).toHaveLength(1);
 	});
 
 	it('allows scans under the limit', async () => {
@@ -35,9 +63,19 @@ describe('assertScanRateLimit', () => {
 
 		const { assertIpRateLimit } = await import('./rate-limit');
 		await expect(
-			assertIpRateLimit(kv, '203.0.113.1', 'api:checkout', 12, 3600_000, 'limited', {
-				failClosed: true
-			})
+			assertIpRateLimit(
+				{
+					kv,
+					ip: '203.0.113.1',
+					prefix: 'api:checkout',
+					limit: 12,
+					windowMs: 3600_000,
+					message: 'limited'
+				},
+				{
+					failClosed: true
+				}
+			)
 		).rejects.toMatchObject({ status: 503 });
 	});
 });

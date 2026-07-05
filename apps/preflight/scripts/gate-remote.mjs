@@ -40,7 +40,8 @@ const apiBase = (
 	process.env.PREFLIGHT_API ??
 	'https://lint.latham.cloud'
 ).replace(/\/$/, '');
-const targetUrl = process.argv[2]?.trim() || process.env.PREFLIGHT_URL?.trim();
+const positionalArgs = process.argv.slice(2).filter((arg) => !arg.startsWith('--'));
+const targetUrl = positionalArgs[0]?.trim() || process.env.PREFLIGHT_URL?.trim();
 const minScore = Number(process.env.PREFLIGHT_MIN_SCORE ?? '80');
 const advisory = (process.env.PREFLIGHT_MODE ?? 'gate').toLowerCase() === 'advisory';
 

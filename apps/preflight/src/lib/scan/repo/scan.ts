@@ -52,6 +52,46 @@ export interface RepoScanDeps {
 const MAX_LOCKFILE_BYTES = 3 * 1024 * 1024;
 
 const README_MIN_WORDS = 60;
+const MAX_PACKAGE_MANIFESTS = 5;
+const MAX_PACKAGE_LOCKFILES = 3;
+
+function isVendoredPath(path: string): boolean {
+	return /(^|\/)(node_modules|dist|build|out|vendor|\.next|\.svelte-kit|coverage)\//.test(path);
+}
+
+function findPackageJsonPaths(entries: RepoTreeEntry[]): string[] {
+	const paths = entries
+		.filter(
+			(e) => e.type === 'blob' && !isVendoredPath(e.path) && /(^|\/)package\.json$/.test(e.path)
+		)
+		.map((e) => e.path);
+	return [
+		...paths.filter((path) => path === 'package.json'),
+		...paths.filter((path) => path !== 'package.json')
+	].slice(0, MAX_PACKAGE_MANIFESTS);
+}
+
+function findPackageLockPaths(entries: RepoTreeEntry[]): string[] {
+	const paths = entries
+		.filter(
+			(e) =>
+				e.type === 'blob' && !isVendoredPath(e.path) && /(^|\/)package-lock\.json$/.test(e.path)
+		)
+		.map((e) => e.path);
+	return [
+		...paths.filter((path) => path === 'package-lock.json'),
+		...paths.filter((path) => path !== 'package-lock.json')
+	].slice(0, MAX_PACKAGE_LOCKFILES);
+}
+
+function uniqueLockPackages(packages: LockPackage[]): LockPackage[] {
+	const seen = new Map<string, LockPackage>();
+	for (const pkg of packages) {
+		const key = `${pkg.name}@${pkg.version}`;
+		if (!seen.has(key)) seen.set(key, pkg);
+	}
+	return [...seen.values()];
+}
 
 export async function scanRepo(
 	ref: RepoRef,
@@ -74,35 +114,45 @@ export async function scanRepo(
 
 	const envFiles = findCommittedEnvFiles(entries);
 	const sampleFiles = selectSourceSamples(entries);
-	const packageJsonPath = findRootFile(entries, /^package\.json$/);
+	const packageJsonPaths = findPackageJsonPaths(entries);
+	const packageJsonPath = packageJsonPaths.find((path) => path === 'package.json') ?? null;
 	const readmePath = findRootFile(entries, /^readme(\.(md|markdown|txt|rst))?$/i);
 	const gitignorePath = findRootFile(entries, /^\.gitignore$/);
-	const lockfilePath = findRootFile(entries, /^package-lock\.json$/);
+	const lockfilePaths = findPackageLockPaths(entries);
 	const tsconfigPath = findRootFile(entries, /^tsconfig\.json$/);
 
 	const getFile = (path: string | null, maxBytes?: number) =>
 		path ? fetchers.getFile(ref, meta.branch, path, maxBytes) : Promise.resolve(null);
 
 	const [
-		packageJsonText,
+		packageJsonTexts,
 		readmeText,
 		gitignoreText,
-		lockfileText,
+		lockfileTexts,
 		tsconfigText,
 		envTexts,
 		sampleTexts
 	] = await Promise.all([
-		getFile(packageJsonPath),
+		Promise.all(packageJsonPaths.map((path) => getFile(path))),
 		getFile(readmePath),
 		getFile(gitignorePath),
-		getFile(lockfilePath, MAX_LOCKFILE_BYTES),
+		Promise.all(lockfilePaths.map((path) => getFile(path, MAX_LOCKFILE_BYTES))),
 		getFile(tsconfigPath),
 		Promise.all(envFiles.slice(0, 2).map((p) => getFile(p))),
 		Promise.all(sampleFiles.map((p) => getFile(p)))
 	]);
 
-	const { dependencies, valid: hasPackageJson } = parsePackageJson(packageJsonText);
-	const lockPackages = parsePackageLock(lockfileText);
+	const parsedManifests = packageJsonTexts.map((text) => parsePackageJson(text));
+	const rootPackageJsonText =
+		packageJsonPath == null
+			? null
+			: (packageJsonTexts[packageJsonPaths.indexOf(packageJsonPath)] ?? null);
+	const dependencies = Object.assign(
+		{},
+		...parsedManifests.map((parsed) => parsed.dependencies)
+	) as Record<string, string>;
+	const hasPackageJson = parsedManifests.some((parsed) => parsed.valid);
+	const lockPackages = uniqueLockPackages(lockfileTexts.flatMap((text) => parsePackageLock(text)));
 	const [depAudit, vulnAudit] = await Promise.all([
 		hasPackageJson ? auditNpmDependencies(dependencies, npmLicense) : Promise.resolve(null),
 		lockPackages.length > 0 ? vulnAuditor(lockPackages) : Promise.resolve(null)
@@ -207,13 +257,16 @@ export async function scanRepo(
 				.join(', ');
 			const extra = vulnAudit.findings.length > 3 ? ` +${vulnAudit.findings.length - 3} more` : '';
 			const severe = vulnAudit.worstSeverity === 'critical' || vulnAudit.worstSeverity === 'high';
+			const severityNote = vulnAudit.worstSeverity
+				? ` (worst: ${vulnAudit.worstSeverity})`
+				: ' (severity unavailable)';
 			check(
 				'dependency-vulns',
 				'security',
 				'Known vulnerabilities (OSV)',
 				severe ? 'fail' : 'warn',
 				`${vulnAudit.findings.length} of ${vulnAudit.checked.toLocaleString()} lockfile dependencies have known vulnerabilities${
-					vulnAudit.worstSeverity ? ` (worst: ${vulnAudit.worstSeverity})` : ''
+					severityNote
 				}: ${shown}${extra}. Run npm audit fix, or bump the affected packages.`
 			);
 		}
@@ -277,7 +330,7 @@ export async function scanRepo(
 			: 'No CI workflow found — every deploy is a manual gamble, especially when accepting AI-generated changes.'
 	);
 
-	const testsFound = hasTests(entries, packageJsonText);
+	const testsFound = hasTests(entries, rootPackageJsonText);
 	check(
 		'tests-present',
 		'launch',
@@ -299,7 +352,7 @@ export async function scanRepo(
 			: 'No lockfile committed — every install may resolve different dependency versions than you shipped.'
 	);
 
-	const nodePinned = nodeVersionPinned(entries, packageJsonText);
+	const nodePinned = nodeVersionPinned(entries, rootPackageJsonText);
 	check(
 		'node-version-pinned',
 		'launch',
@@ -334,13 +387,15 @@ export async function scanRepo(
 		license: meta.licenseSpdx,
 		filesSampled: [
 			...new Set([
-				...(packageJsonPath ? [packageJsonPath] : []),
-				...(lockfilePath && lockPackages.length > 0 ? [lockfilePath] : []),
+				...packageJsonPaths,
+				...(lockPackages.length > 0 ? lockfilePaths : []),
 				...(readmePath ? [readmePath] : []),
 				...(gitignorePath ? [gitignorePath] : []),
 				...(tsconfigPath ? [tsconfigPath] : []),
 				...(ciPath ? [ciPath] : []),
-				...(committedLockfile && committedLockfile !== lockfilePath ? [committedLockfile] : []),
+				...(committedLockfile && !lockfilePaths.includes(committedLockfile)
+					? [committedLockfile]
+					: []),
 				...envFiles.slice(0, 2),
 				...sampleFiles
 			])

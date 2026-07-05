@@ -3,8 +3,13 @@ import { fixPrompt } from '$lib/scan/prompts';
 import { makeCheck } from '$lib/scan/score';
 
 function attr(tag: string, name: string): string | null {
-	const re = new RegExp(`\\b${name}\\s*=\\s*(["'])([^"']*)\\1`, 'i');
-	return tag.match(re)?.[2] ?? null;
+	const re = new RegExp(
+		'\\b' + name + '\\b(?:\\s*=\\s*(?:"([^"]*)"|\'([^\']*)\'|([^\\s"\'=<>`]+)))?',
+		'i'
+	);
+	const match = tag.match(re);
+	if (!match) return null;
+	return match[1] ?? match[2] ?? match[3] ?? '';
 }
 
 function stripBlocks(html: string): string {
@@ -34,7 +39,9 @@ function pushFormSecurityCheck(
 ): void {
 	const scan = stripBlocks(html);
 	const forms = [...scan.matchAll(/<form\b[^>]*>/gi)].map((m) => m[0]);
-	const hasPassword = /<input\b[^>]*\btype\s*=\s*(["'])password\1/i.test(scan);
+	const hasPassword = [...scan.matchAll(/<input\b[^>]*>/gi)].some(
+		(m) => attr(m[0], 'type')?.toLowerCase() === 'password'
+	);
 
 	if (forms.length === 0 && !hasPassword) return;
 

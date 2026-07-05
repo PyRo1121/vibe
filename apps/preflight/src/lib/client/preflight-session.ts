@@ -246,7 +246,8 @@ export function buildShareText(report: ScanReport, appUrl: string): string {
 	const permalink = report.reportId ? `${base}/r/${report.reportId}` : null;
 	const lines = [
 		hook,
-		permalink ? `Report: ${permalink}` : `Score: ${report.score}/100 · ${report.finalUrl}`,
+		`Score: ${report.score}/100 (${verdict}) - ${report.finalUrl}`,
+		...(permalink ? [`Report: ${permalink}`] : []),
 		`Check yours free: ${base}`
 	];
 	return lines.join('\n');

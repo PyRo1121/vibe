@@ -3,11 +3,11 @@ name: Deploylint gate
 on:
   pull_request:
     paths:
-      - 'apps/preflight/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'turbo.json'
-      - '.github/workflows/preflight-gate.yml'
+      - "apps/preflight/**"
+      - "package.json"
+      - "package-lock.json"
+      - "turbo.json"
+      - ".github/workflows/preflight-gate.yml"
   workflow_dispatch:
     inputs:
       url:
@@ -17,7 +17,7 @@ on:
       min_score:
         description: Minimum launch score
         required: false
-        default: '80'
+        default: "80"
         type: string
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: '24'
+          node-version: "24"
           cache: npm
 
       - name: Install dependencies
@@ -36,6 +36,9 @@ jobs:
 
       - name: Verify Preflight package
         run: npm run verify:preflight
+
+      - name: Install Playwright browser
+        run: npm run test:e2e:install -w preflight
 
       - name: E2E smoke (Preflight)
         run: npm run test:e2e -w preflight
@@ -47,7 +50,7 @@ jobs:
           PREFLIGHT_API: https://lint.latham.cloud
         run: |
           if [ -z "$PREFLIGHT_URL" ]; then
-            echo "Skipping URL gate — set PREFLIGHT_GATE_URL (or DEPLOYLINT_GATE_URL) or workflow_dispatch with url."
+            echo "Skipping URL gate - set PREFLIGHT_GATE_URL (or DEPLOYLINT_GATE_URL) or workflow_dispatch with url."
             exit 0
           fi
           npm run gate -w preflight -- "$PREFLIGHT_URL"

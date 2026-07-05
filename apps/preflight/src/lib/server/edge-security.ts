@@ -113,7 +113,8 @@ export function probeBlockResponse(request: Request): Response | null {
  */
 export async function assertApiEdgeRateLimit(
 	kv: KVNamespace | undefined,
-	request: Request
+	request: Request,
+	limiter?: DurableObjectNamespace
 ): Promise<void> {
 	const path = new URL(request.url).pathname;
 	if (!path.startsWith('/api/')) return;
@@ -122,12 +123,15 @@ export async function assertApiEdgeRateLimit(
 	const specific = API_RATE_LIMITS[path];
 	if (specific) {
 		await assertIpRateLimit(
-			kv,
-			ip,
-			`api:${path}`,
-			specific.limit,
-			specific.windowMs,
-			specific.message,
+			{
+				kv,
+				ip,
+				prefix: `api:${path}`,
+				limit: specific.limit,
+				windowMs: specific.windowMs,
+				message: specific.message,
+				limiter
+			},
 			{ failClosed: path === '/api/checkout' || path === '/api/webhooks/stripe' }
 		);
 		return;
@@ -135,26 +139,28 @@ export async function assertApiEdgeRateLimit(
 
 	if (path === '/api/scan') return;
 
-	await assertIpRateLimit(
+	await assertIpRateLimit({
 		kv,
 		ip,
-		'api:catchall',
-		API_CATCHALL.limit,
-		API_CATCHALL.windowMs,
-		API_CATCHALL.message
-	);
+		prefix: 'api:catchall',
+		limit: API_CATCHALL.limit,
+		windowMs: API_CATCHALL.windowMs,
+		message: API_CATCHALL.message,
+		limiter
+	});
 }
 
 /** Run all edge checks; throws SvelteKit HttpErrors for rate limits. */
 export async function enforceEdgeSecurity(
 	kv: KVNamespace | undefined,
-	request: Request
+	request: Request,
+	limiter?: DurableObjectNamespace
 ): Promise<Response | null> {
 	const blocked = probeBlockResponse(request);
 	if (blocked) return blocked;
 
 	try {
-		await assertApiEdgeRateLimit(kv, request);
+		await assertApiEdgeRateLimit(kv, request, limiter);
 	} catch (err) {
 		if (isHttpError(err)) throw err;
 	}

@@ -13,8 +13,8 @@ import { assertScanRateLimit, clientIp } from '$lib/server/rate-limit';
 import { assertDailyScanBudget, reserveAiCopyReview } from '$lib/server/usage-budget';
 
 export async function handleScanPost(request: Request, env: Env | undefined) {
-	await assertDailyScanBudget(env?.REPORTS);
-	await assertScanRateLimit(env?.REPORTS, clientIp(request));
+	await assertDailyScanBudget(env?.REPORTS, env?.LIMITER);
+	await assertScanRateLimit(env?.REPORTS, clientIp(request), env?.LIMITER);
 
 	let parsed;
 	try {
@@ -74,7 +74,7 @@ export async function handleScanPost(request: Request, env: Env | undefined) {
 	// Paid extra: AI copy critique. Unlocked-only + daily cap keeps Workers AI inside
 	// the free 10k neurons/day allocation.
 	if (unlocked && env?.AI && !repoRef && report.scanCoverage !== 'blocked') {
-		const allowed = await reserveAiCopyReview(env.REPORTS);
+		const allowed = await reserveAiCopyReview(env.REPORTS, env.LIMITER);
 		if (allowed) {
 			const review = await buildCopyReview(env.AI, {
 				url: report.finalUrl,

@@ -4,6 +4,11 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit()],
+	build: {
+		rolldownOptions: {
+			external: ['cloudflare:workers']
+		}
+	},
 	test: {
 		include: ['src/**/*.{test,spec}.{js,ts}'],
 		environment: 'node'

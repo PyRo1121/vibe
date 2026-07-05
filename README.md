@@ -1,14 +1,15 @@
 # Vibe
 
-Turborepo monorepo for **Preflight** (site readiness audits) and **TCG Vault** (multi-TCG price catalog).
+Turborepo monorepo for **Deploylint** (launch-readiness audits; internal workspace
+`preflight`), **Deploylint MCP**, and **TCG Vault** (multi-TCG price catalog).
 
 ## Apps
 
-| App | Path | Command |
-|-----|------|---------|
-| Preflight | `apps/preflight` | `npm run dev:preflight` |
-| TCG Vault | `apps/tcg-vault` | `npm run dev:tcg-vault` |
-| Preflight MCP | `apps/preflight-mcp` | — |
+| App                      | Path                 | Command                        |
+| ------------------------ | -------------------- | ------------------------------ |
+| Deploylint (`preflight`) | `apps/preflight`     | `npm run dev:preflight`        |
+| TCG Vault                | `apps/tcg-vault`     | `npm run dev:tcg-vault`        |
+| Deploylint MCP           | `apps/preflight-mcp` | `npm run dev -w preflight-mcp` |
 
 ## Commands
 
@@ -24,7 +25,7 @@ npm run upgrade:stack   # bump deps to latest
 
 - Monorepo stack policy: `docs/tech-stack.md`
 - TCG Vault: `docs/tcg-vault/overview.md`
-- Preflight workflow: `docs/superpowers/workflow/ship-loop.md`
+- Deploylint workflow: `docs/superpowers/workflow/preflight-loop-status.md`
 
 ## Requirements
 

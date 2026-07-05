@@ -15,7 +15,7 @@ inputs:
   min_score:
     description: Minimum launch score (0–100)
     required: false
-    default: '80'
+    default: "80"
   mode:
     description: gate (fail on blockers) or advisory (report only)
     required: false
@@ -29,10 +29,10 @@ runs:
       env:
         PREFLIGHT_URL: ${{ inputs.url }}
         PREFLIGHT_API: ${{ inputs.api }}
+        DEPLOYLINT_API: ${{ inputs.api }}
         PREFLIGHT_MIN_SCORE: ${{ inputs.min_score }}
         PREFLIGHT_MODE: ${{ inputs.mode }}
         GITHUB_TOKEN: ${{ github.token }}
       run: |
         set -euo pipefail
-        curl -fsSL "${PREFLIGHT_API%/}/gate-remote.mjs" -o gate-remote.mjs
-        node gate-remote.mjs "${PREFLIGHT_URL}"
+        node "$GITHUB_ACTION_PATH/gate-remote.mjs" "${PREFLIGHT_URL}"

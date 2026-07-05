@@ -13,7 +13,7 @@ renameSync(skWorker, skWorkerRenamed);
 
 execSync(
 	[
-		'npx esbuild scripts/worker-wrapper.ts',
+		'npx esbuild ./scripts/worker-wrapper.ts',
 		`--outfile=${outWorker}`,
 		'--bundle',
 		'--format=esm',

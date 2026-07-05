@@ -22,7 +22,7 @@ jobs:
       # Or use the curl script below — same gate rules.
       - uses: ./.github/actions/deploylint-gate
         with:
-          url: \${{ secrets.PREFLIGHT_GATE_URL }}
+          url: \${{ secrets.DEPLOYLINT_GATE_URL }}
           api: ${base}
           min_score: '80'
           mode: gate`);
@@ -42,7 +42,7 @@ jobs:
 
       - name: Block deploy if launch blockers remain
         env:
-          PREFLIGHT_URL: \${{ secrets.PREFLIGHT_GATE_URL }}
+          PREFLIGHT_URL: \${{ secrets.DEPLOYLINT_GATE_URL }}
           PREFLIGHT_API: ${base}
           PREFLIGHT_MIN_SCORE: '80'
           # PREFLIGHT_MODE: advisory   # report only, never blocks
@@ -119,7 +119,7 @@ node gate-remote.mjs https://your-app.com`);
 				>vibe monorepo</a
 			>
 			(or vendor the folder). Set secret
-			<code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">PREFLIGHT_GATE_URL</code>
+			<code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">DEPLOYLINT_GATE_URL</code>
 			to your production URL.
 		</p>
 		<pre
@@ -157,7 +157,7 @@ node gate-remote.mjs https://your-app.com`);
 				<strong class="text-zinc-300">Job summary</strong> — same markdown in the Actions run summary
 			</li>
 			<li>
-				<code class="text-sky-300">node gate-remote.mjs --json URL</code> — structured output for custom
+				<code class="text-sky-300">node gate-remote.mjs URL --json</code> — structured output for custom
 				steps
 			</li>
 		</ul>

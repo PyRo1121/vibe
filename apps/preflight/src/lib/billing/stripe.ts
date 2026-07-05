@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { assertPublicHttpUrl } from '$lib/scan/url-guard';
 
 const STRIPE_API = 'https://api.stripe.com/v1';
@@ -19,7 +19,8 @@ export interface CheckoutSession {
 }
 
 function checkoutIdempotencyKey(scanUrl: string): string {
-	return createHash('sha256').update(canonicalScanUrl(scanUrl)).digest('hex').slice(0, 32);
+	const urlHash = createHash('sha256').update(canonicalScanUrl(scanUrl)).digest('hex').slice(0, 16);
+	return `checkout-${urlHash}-${randomUUID()}`;
 }
 
 export async function createCheckoutSession(opts: {

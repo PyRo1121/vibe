@@ -60,8 +60,21 @@ export function parsePackageJson(text: string | null): {
 } {
 	if (!text) return { dependencies: {}, valid: false };
 	try {
-		const parsed = JSON.parse(text) as { dependencies?: Record<string, string> };
-		return { dependencies: parsed.dependencies ?? {}, valid: true };
+		const parsed = JSON.parse(text) as {
+			dependencies?: Record<string, string>;
+			devDependencies?: Record<string, string>;
+			optionalDependencies?: Record<string, string>;
+			peerDependencies?: Record<string, string>;
+		};
+		return {
+			dependencies: {
+				...(parsed.dependencies ?? {}),
+				...(parsed.devDependencies ?? {}),
+				...(parsed.optionalDependencies ?? {}),
+				...(parsed.peerDependencies ?? {})
+			},
+			valid: true
+		};
 	} catch {
 		return { dependencies: {}, valid: false };
 	}

@@ -20,8 +20,16 @@ if (!match) {
 const ids = [...match[1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
 const p0Block = `const P0_IDS = new Set([\n${ids.map((id) => `\t'${id}'`).join(',\n')}\n]);`;
 
-for (const rel of ['scripts/gate-remote.mjs', 'static/gate-remote.mjs']) {
-	const path = join(root, rel);
+const targets = [
+	{ rel: 'scripts/gate-remote.mjs', path: join(root, 'scripts/gate-remote.mjs') },
+	{ rel: 'static/gate-remote.mjs', path: join(root, 'static/gate-remote.mjs') },
+	{
+		rel: '.github/actions/deploylint-gate/gate-remote.mjs',
+		path: join(root, '..', '..', '.github', 'actions', 'deploylint-gate', 'gate-remote.mjs')
+	}
+];
+
+for (const { rel, path } of targets) {
 	let content = readFileSync(path, 'utf8');
 	if (!/const P0_IDS = new Set\(\[[\s\S]*?\]\);/.test(content)) {
 		console.error(`P0_IDS block not found in ${rel}`);

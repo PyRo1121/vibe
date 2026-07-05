@@ -1,6 +1,6 @@
 import { error, isHttpError } from '@sveltejs/kit';
 
-/** Scans allowed per IP per 5-minute window — generous for humans, blocks abuse. */
+/** Scans allowed per IP per 5-minute window - generous for humans, blocks abuse. */
 const SCAN_LIMIT_PER_WINDOW = 15;
 const WINDOW_MS = 5 * 60 * 1000;
 
@@ -17,10 +17,54 @@ function rateKey(prefix: string, ip: string, windowMs: number, now = Date.now())
 	return `${prefix}:${ip}:${bucket}`;
 }
 
+interface RateLimitRequest {
+	kv: KVNamespace | undefined;
+	ip: string;
+	prefix: string;
+	limit: number;
+	windowMs: number;
+	message: string;
+	limiter?: DurableObjectNamespace;
+}
+
+interface RateLimitOptions {
+	failClosed?: boolean;
+	limiter?: DurableObjectNamespace;
+}
+
+async function reserveDurableLimit(
+	limiter: DurableObjectNamespace | undefined,
+	req: RateLimitRequest
+): Promise<boolean> {
+	if (!limiter || req.ip === 'unknown') return false;
+
+	const id = limiter.idFromName(req.prefix);
+	const stub = limiter.get(id);
+	const res = await stub.fetch(
+		new Request('https://limiter.local/reserve', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				key: rateKey('ip', req.ip, req.windowMs),
+				limit: req.limit,
+				windowMs: req.windowMs
+			})
+		})
+	);
+	if (!res.ok) throw new Error(`Limiter failed (${res.status})`);
+	const body = (await res.json()) as { allowed?: boolean };
+	if (!body.allowed) error(429, req.message);
+	return true;
+}
+
 /**
- * Generic KV token-bucket limiter. Skips when KV is unbound (local dev).
- * Billing paths fail closed on KV errors; scan limits fail open to preserve availability.
+ * Generic limiter. Durable Object is authoritative when bound; KV remains the
+ * local/dev fallback and is best-effort because KV has no atomic increment.
  */
+export async function assertIpRateLimit(
+	req: RateLimitRequest,
+	opts?: RateLimitOptions
+): Promise<void>;
 export async function assertIpRateLimit(
 	kv: KVNamespace | undefined,
 	ip: string,
@@ -28,42 +72,79 @@ export async function assertIpRateLimit(
 	limit: number,
 	windowMs: number,
 	message: string,
-	opts?: { failClosed?: boolean }
+	opts?: RateLimitOptions
+): Promise<void>;
+export async function assertIpRateLimit(
+	reqOrKv: RateLimitRequest | KVNamespace | undefined,
+	ipOrOpts?: string | RateLimitOptions,
+	prefix?: string,
+	limit?: number,
+	windowMs?: number,
+	message?: string,
+	opts?: RateLimitOptions
 ): Promise<void> {
-	if (!kv || ip === 'unknown') return;
+	const req =
+		typeof ipOrOpts === 'string'
+			? {
+					kv: reqOrKv as KVNamespace | undefined,
+					ip: ipOrOpts,
+					prefix: prefix as string,
+					limit: limit as number,
+					windowMs: windowMs as number,
+					message: message as string
+				}
+			: (reqOrKv as RateLimitRequest);
+	const options = typeof ipOrOpts === 'string' ? opts : ipOrOpts;
 
-	const key = rateKey(prefix, ip, windowMs);
-	const ttlSeconds = Math.max(120, Math.ceil(windowMs / 1000) + 60);
 	try {
-		const raw = await kv.get(key);
-		const count = raw ? Number.parseInt(raw, 10) : 0;
-		if (Number.isFinite(count) && count >= limit) {
-			error(429, message);
+		if (await reserveDurableLimit(options?.limiter ?? req.limiter, req)) return;
+	} catch (err) {
+		if (isHttpError(err)) throw err;
+		if (options?.failClosed) {
+			error(503, 'Service temporarily unavailable - try again shortly.');
 		}
-		await kv.put(key, String((Number.isFinite(count) ? count : 0) + 1), {
+	}
+
+	if (!req.kv || req.ip === 'unknown') return;
+
+	const key = rateKey(req.prefix, req.ip, req.windowMs);
+	const ttlSeconds = Math.max(120, Math.ceil(req.windowMs / 1000) + 60);
+	try {
+		const raw = await req.kv.get(key);
+		const count = raw ? Number.parseInt(raw, 10) : 0;
+		if (Number.isFinite(count) && count >= req.limit) {
+			error(429, req.message);
+		}
+		await req.kv.put(key, String((Number.isFinite(count) ? count : 0) + 1), {
 			expirationTtl: ttlSeconds
 		});
 	} catch (err) {
 		if (isHttpError(err)) throw err;
-		if (opts?.failClosed) {
-			error(503, 'Service temporarily unavailable — try again shortly.');
+		if (options?.failClosed) {
+			error(503, 'Service temporarily unavailable - try again shortly.');
 		}
 		/* rate limiting is best-effort */
 	}
 }
 
 /**
- * KV token-bucket rate limit for /api/scan. Skips when REPORTS KV is unbound (local dev).
- * Fails open on KV errors so scans never break because of rate-limit storage.
+ * Rate limit for /api/scan. Skips when no limiter/KV is bound in local dev.
+ * Fails open on storage errors so scans never break because of limit storage.
  */
-export async function assertScanRateLimit(kv: KVNamespace | undefined, ip: string): Promise<void> {
+export async function assertScanRateLimit(
+	kv: KVNamespace | undefined,
+	ip: string,
+	limiter?: DurableObjectNamespace
+): Promise<void> {
 	await assertIpRateLimit(
-		kv,
-		ip,
-		'rate:scan',
-		SCAN_LIMIT_PER_WINDOW,
-		WINDOW_MS,
-		'Too many scans — wait a few minutes and try again.',
-		{ failClosed: false }
+		{
+			kv,
+			ip,
+			prefix: 'rate:scan',
+			limit: SCAN_LIMIT_PER_WINDOW,
+			windowMs: WINDOW_MS,
+			message: 'Too many scans - wait a few minutes and try again.'
+		},
+		{ failClosed: false, limiter }
 	);
 }

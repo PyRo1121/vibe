@@ -54,8 +54,8 @@ Same inputs plus:
 ```yaml
 - uses: ./.github/actions/deploylint-gate
   with:
-    url: ${{ secrets.PREFLIGHT_GATE_URL }}
-    min_score: '80'
+    url: ${{ secrets.DEPLOYLINT_GATE_URL }}
+    min_score: "80"
     mode: gate
 ```
 
@@ -64,10 +64,11 @@ Same inputs plus:
 ```bash
 curl -fsSL https://lint.latham.cloud/gate-remote.mjs -o gate-remote.mjs
 node gate-remote.mjs https://your-app.com
-node gate-remote.mjs --json https://your-app.com
+node gate-remote.mjs https://your-app.com --json
 ```
 
-Env: `DEPLOYLINT_API`, `PREFLIGHT_URL`, `PREFLIGHT_MIN_SCORE`, `PREFLIGHT_MODE=advisory`.
+Env: `DEPLOYLINT_API`, `DEPLOYLINT_GATE_URL` (preferred), `PREFLIGHT_URL` (legacy alias),
+`PREFLIGHT_MIN_SCORE`, `PREFLIGHT_MODE=advisory`.
 
 ## Fix loop
 

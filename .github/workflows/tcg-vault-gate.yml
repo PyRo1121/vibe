@@ -3,11 +3,11 @@ name: TCG Vault gate
 on:
   pull_request:
     paths:
-      - 'apps/tcg-vault/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'turbo.json'
-      - '.github/workflows/tcg-vault-gate.yml'
+      - "apps/tcg-vault/**"
+      - "package.json"
+      - "package-lock.json"
+      - "turbo.json"
+      - ".github/workflows/tcg-vault-gate.yml"
   workflow_dispatch:
 
 jobs:
@@ -18,7 +18,7 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: '24'
+          node-version: "24"
           cache: npm
 
       - name: Install dependencies
@@ -26,6 +26,9 @@ jobs:
 
       - name: Verify TCG Vault
         run: npm run verify:tcg-vault
+
+      - name: Install Playwright browser
+        run: npm run test:e2e:install -w tcg-vault
 
       - name: E2E smoke (TCG Vault)
         run: npm run test:e2e -w tcg-vault

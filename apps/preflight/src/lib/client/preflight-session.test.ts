@@ -54,6 +54,30 @@ describe('buildShareText', () => {
 		expect(text).toContain('Deploylint caught this');
 		expect(text).toContain('Exposed keys');
 	});
+
+	it('keeps score and verdict when an embarrassment hook and permalink are present', () => {
+		const text = buildShareText(
+			{
+				...baseReport,
+				score: 72,
+				verdict: 'conditional',
+				reportId: 'abc12345',
+				launchBrief: {
+					headline: 'risk',
+					embarrassmentRisks: [
+						'Someone will ask where your privacy policy is before they trust you.'
+					],
+					shareReady: false,
+					categoryScores: []
+				}
+			},
+			'https://lint.latham.cloud'
+		);
+
+		expect(text).toContain('72/100');
+		expect(text).toContain('CONDITIONAL GO');
+		expect(text).toContain('https://lint.latham.cloud/r/abc12345');
+	});
 });
 
 describe('buildUnlockOffer', () => {

@@ -16,5 +16,15 @@ export function requireStripeWebhookSecretKey(env: Env | undefined): string {
 export function resolveAppUrl(env: Env | undefined, requestOrigin: string): string {
 	const configured = env?.PUBLIC_APP_URL?.trim();
 	if (configured) return configured.replace(/\/$/, '');
-	return requestOrigin.replace(/\/$/, '');
+
+	const origin = new URL(requestOrigin);
+	if (
+		origin.hostname === 'localhost' ||
+		origin.hostname === '127.0.0.1' ||
+		origin.hostname === '[::1]'
+	) {
+		return origin.origin.replace(/\/$/, '');
+	}
+
+	error(503, 'PUBLIC_APP_URL is required for checkout');
 }

@@ -7,6 +7,8 @@ interface Env {
 	SELF?: Fetcher;
 	/** Stored scan reports for shareable permalinks. */
 	REPORTS?: KVNamespace;
+	/** Atomic counters for production rate limits and daily budgets. */
+	LIMITER?: DurableObjectNamespace;
 	/** Workers AI — used for the paid copy-review extra. */
 	AI?: { run(model: string, options: Record<string, unknown>): Promise<unknown> };
 	PUBLIC_SITE_NAME: string;
@@ -24,6 +26,7 @@ declare namespace Cloudflare {
 		ASSETS: Fetcher;
 		SELF?: Fetcher;
 		REPORTS?: KVNamespace;
+		LIMITER?: DurableObjectNamespace;
 		AI?: { run(model: string, options: Record<string, unknown>): Promise<unknown> };
 		PUBLIC_SITE_NAME: string;
 		PUBLIC_APP_URL?: string;

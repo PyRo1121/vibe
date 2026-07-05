@@ -251,6 +251,62 @@ describe('scanRepo', () => {
 		expect(licenseRisk?.message).toContain('Screened 2 lockfile packages');
 	});
 
+	it('audits nested app package manifests and lockfiles in a monorepo', async () => {
+		const report = await scanRepo(REF, {
+			fetchers: fakeFetchers({
+				entries: [
+					...CLEAN_ENTRIES,
+					{ path: 'apps/web/package.json', type: 'blob' },
+					{ path: 'apps/web/package-lock.json', type: 'blob' }
+				],
+				files: {
+					...CLEAN_FILES,
+					'apps/web/package.json': JSON.stringify({
+						devDependencies: { vitest: '^4.0.0' },
+						dependencies: { lodash: '4.17.20' }
+					}),
+					'apps/web/package-lock.json': JSON.stringify({
+						packages: {
+							'node_modules/lodash': { version: '4.17.20' }
+						}
+					})
+				}
+			}),
+			npmLicense: async () => 'MIT',
+			vulnAuditor: async (packages) => ({
+				checked: packages.length,
+				findings: [{ package: 'lodash', version: '4.17.20', vulnIds: ['GHSA-x'] }],
+				worstSeverity: null
+			})
+		});
+
+		expect(report.repo?.depCount).toBe(3);
+		expect(report.repo?.filesSampled).toContain('apps/web/package.json');
+		expect(report.repo?.filesSampled).toContain('apps/web/package-lock.json');
+		const vulns = report.checks.find((c) => c.id === 'dependency-vulns');
+		expect(vulns?.status).toBe('warn');
+		expect(vulns?.message).toContain('severity unavailable');
+	});
+
+	it('warns on vulnerabilities with unknown severity instead of hiding them', async () => {
+		const report = await scanRepo(REF, {
+			fetchers: fakeFetchers({
+				entries: LOCK_ENTRIES,
+				files: { ...CLEAN_FILES, 'package-lock.json': LOCKFILE }
+			}),
+			npmLicense: async () => 'MIT',
+			vulnAuditor: async (packages) => ({
+				checked: packages.length,
+				findings: [{ package: 'lodash', version: '4.17.20', vulnIds: ['GHSA-x'] }],
+				worstSeverity: null
+			})
+		});
+
+		const vulns = report.checks.find((c) => c.id === 'dependency-vulns');
+		expect(vulns?.status).toBe('warn');
+		expect(vulns?.message).toContain('severity unavailable');
+	});
+
 	it('skips the vulnerability check when OSV is unreachable or no lockfile exists', async () => {
 		const unreachable = await scanRepo(REF, {
 			fetchers: fakeFetchers({

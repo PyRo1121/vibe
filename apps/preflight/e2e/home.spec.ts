@@ -6,9 +6,9 @@ test.describe('home', () => {
 		await expect(
 			page.getByRole('heading', { name: /Should you post this URL today/i })
 		).toBeVisible();
-		await expect(page.getByText(/60\+ checks/i)).toBeVisible();
+		await expect(page.getByText(/90\+ checks/i)).toBeVisible();
 		await expect(page.getByRole('button', { name: 'Scan free' })).toBeVisible();
 		await expect(page.getByText('Launch judgment')).toBeVisible();
-		await expect(page.getByRole('link', { name: 'Compare tools →' })).toBeVisible();
+		await expect(page.getByRole('link', { name: /See how we compare/i })).toBeVisible();
 	});
 });
