@@ -10,7 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-- _Nothing yet._
+- Payment-readiness repo findings for server-owned checkout, webhook lifecycle coverage,
+  entitlement fulfillment, billing portal support, and payment secret handling.
+- Homepage positioning and SEO metadata for AI-built SaaS revenue readiness.
 
 ## [0.35.0] - 2026-07-05
 
