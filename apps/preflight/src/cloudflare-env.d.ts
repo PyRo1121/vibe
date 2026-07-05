@@ -17,6 +17,9 @@ interface Env {
 	PUBLIC_PLAUSIBLE_SCRIPT?: string;
 	STRIPE_SECRET_KEY?: string;
 	STRIPE_WEBHOOK_SECRET?: string;
+	STRIPE_PRICE_SOLO?: string;
+	STRIPE_PRICE_BUILDER?: string;
+	STRIPE_PRICE_AGENCY?: string;
 	/** Optional — raises GitHub API rate limits for repo scans. */
 	GITHUB_TOKEN?: string;
 }
@@ -34,6 +37,9 @@ declare namespace Cloudflare {
 		PUBLIC_PLAUSIBLE_SCRIPT?: string;
 		STRIPE_SECRET_KEY?: string;
 		STRIPE_WEBHOOK_SECRET?: string;
+		STRIPE_PRICE_SOLO?: string;
+		STRIPE_PRICE_BUILDER?: string;
+		STRIPE_PRICE_AGENCY?: string;
 		GITHUB_TOKEN?: string;
 	}
 }

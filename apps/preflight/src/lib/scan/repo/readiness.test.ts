@@ -279,6 +279,68 @@ jobs:
 		});
 	});
 
+	it('ignores commented-out quality gates and floating action refs', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/ci.yml',
+				text: `
+name: CI
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    steps:
+      # - uses: third-party/action@main
+      # - run: npm run lint
+      # - run: npm run check
+      # - run: npm test
+      # - run: npm run build
+      - uses: actions/checkout@v4
+      - run: npm ci
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'ci-runs-quality-gates')).toMatchObject({
+			status: 'warn'
+		});
+		expect(findings.find((finding) => finding.id === 'workflow-action-pinning')).toMatchObject({
+			status: 'pass'
+		});
+	});
+
+	it('detects multiline run blocks and quoted floating third-party action refs', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/ci.yml',
+				text: `
+name: CI
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    steps:
+      - uses: actions/checkout@v4
+      - uses: "acme/deploy@main"
+      - run: |
+          npm run lint
+          npm run check
+          npm test
+          npm run build
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'ci-runs-quality-gates')).toMatchObject({
+			status: 'pass'
+		});
+		expect(findings.find((finding) => finding.id === 'workflow-action-pinning')).toMatchObject({
+			status: 'warn'
+		});
+	});
+
 	it('passes deploy config and warns on stale Wrangler compatibility date', () => {
 		const findings = analyzeDeployConfig(
 			[rootManifest],

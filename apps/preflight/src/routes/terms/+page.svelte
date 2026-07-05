@@ -14,7 +14,7 @@
 
 <div class="mx-auto max-w-3xl px-4 py-12 text-zinc-300">
 	<h1 class="mb-2 text-3xl font-bold text-white">Terms of Service</h1>
-	<p class="mb-8 text-sm text-zinc-500">Last updated: July 2, 2026</p>
+	<p class="mb-8 text-sm text-zinc-500">Last updated: July 5, 2026</p>
 
 	<p class="mb-6">
 		Deploylint provides automated site readiness checks and optional AI fix prompts. Results are
@@ -29,8 +29,9 @@
 
 	<h2 class="mb-3 text-xl font-semibold text-white">Payments</h2>
 	<p class="mb-6">
-		Fix-prompt unlocks are a one-time purchase per checkout session. Refunds are handled case by
-		case via support.
+		During alpha, paid report features are included free while Deploylint is under active
+		development. After alpha, paid plans are recurring subscriptions for the selected tier. Refunds
+		are handled case by case via support.
 	</p>
 
 	<h2 class="mb-3 text-xl font-semibold text-white">Disclaimer</h2>

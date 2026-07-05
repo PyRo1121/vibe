@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
+import type { DeploylintPlanId } from '$lib/product/plans';
 import { assertPublicHttpUrl } from '$lib/scan/url-guard';
 
 const STRIPE_API = 'https://api.stripe.com/v1';
@@ -27,24 +28,26 @@ export async function createCheckoutSession(opts: {
 	scanUrl: string;
 	appUrl: string;
 	secretKey: string;
+	plan: DeploylintPlanId;
+	priceId: string;
 }): Promise<CheckoutSession> {
-	const { scanUrl, appUrl, secretKey } = opts;
+	const { scanUrl, appUrl, secretKey, plan, priceId } = opts;
 	const successUrl = `${appUrl.replace(/\/$/, '')}/?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
 	const cancelUrl = `${appUrl.replace(/\/$/, '')}/?checkout=cancel`;
+	const canonicalUrl = canonicalScanUrl(scanUrl).slice(0, 500);
 
 	const body = new URLSearchParams({
-		mode: 'payment',
+		mode: 'subscription',
 		success_url: successUrl,
 		cancel_url: cancelUrl,
 		// Instant methods only — avoids async checkout.session.async_payment_* flow for $9 unlock
 		'payment_method_types[0]': 'card',
 		'line_items[0][quantity]': '1',
-		'line_items[0][price_data][currency]': 'usd',
-		'line_items[0][price_data][unit_amount]': '900',
-		'line_items[0][price_data][product_data][name]': 'Deploylint fix & verify',
-		'line_items[0][price_data][product_data][description]':
-			'All AI fix prompts, master repair prompt, and unlimited re-scans for this URL',
-		'metadata[scan_url]': canonicalScanUrl(scanUrl).slice(0, 500)
+		'line_items[0][price]': priceId,
+		'metadata[plan]': plan,
+		'metadata[scan_url]': canonicalUrl,
+		'subscription_data[metadata][plan]': plan,
+		'subscription_data[metadata][scan_url]': canonicalUrl
 	});
 
 	const res = await fetch(`${STRIPE_API}/checkout/sessions`, {

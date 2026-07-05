@@ -357,6 +357,117 @@ function allWorkflowText(files: RepoFileEvidence[]): string {
 		.join('\n');
 }
 
+function stripYamlComment(line: string): string {
+	let quote: '"' | "'" | null = null;
+	for (let index = 0; index < line.length; index += 1) {
+		const char = line[index];
+		const previous = line[index - 1];
+		if ((char === '"' || char === "'") && previous !== '\\') {
+			quote = quote === char ? null : (quote ?? char);
+			continue;
+		}
+		if (char === '#' && quote == null && (index === 0 || /\s/.test(previous ?? ''))) {
+			return line.slice(0, index);
+		}
+	}
+	return line;
+}
+
+function unquoteYamlScalar(value: string): string {
+	const trimmed = value.trim();
+	if (
+		(trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+		(trimmed.startsWith("'") && trimmed.endsWith("'"))
+	) {
+		return trimmed.slice(1, -1);
+	}
+	return trimmed;
+}
+
+function meaningfulWorkflowLines(text: string): string[] {
+	return text
+		.split(/\r?\n/)
+		.map((line) => stripYamlComment(line).trimEnd())
+		.filter((line) => line.trim().length > 0);
+}
+
+function workflowRunCommands(text: string): string[] {
+	const lines = text.split(/\r?\n/);
+	const runs: string[] = [];
+
+	for (let index = 0; index < lines.length; index += 1) {
+		const raw = lines[index] ?? '';
+		const cleaned = stripYamlComment(raw);
+		const match =
+			cleaned.match(/^(\s*)-\s*run\s*:\s*(.*)$/) ?? cleaned.match(/^(\s*)run\s*:\s*(.*)$/);
+		if (!match) continue;
+
+		const baseIndent = match[1]?.length ?? 0;
+		const rawValue = match[2]?.trim() ?? '';
+		if (/^[|>][+-]?$/.test(rawValue)) {
+			const block: string[] = [];
+			index += 1;
+			for (; index < lines.length; index += 1) {
+				const blockRaw = lines[index] ?? '';
+				if (!blockRaw.trim()) {
+					block.push('');
+					continue;
+				}
+
+				const blockIndent = blockRaw.match(/^\s*/)?.[0].length ?? 0;
+				if (blockIndent <= baseIndent) {
+					index -= 1;
+					break;
+				}
+
+				const blockLine = stripYamlComment(blockRaw).trim();
+				if (blockLine) block.push(blockLine);
+			}
+			if (block.some((line) => line.trim())) runs.push(block.join('\n'));
+			continue;
+		}
+
+		const value = unquoteYamlScalar(rawValue);
+		if (value) runs.push(value);
+	}
+
+	return runs;
+}
+
+function workflowUsesRefs(text: string): Array<{ action: string; ref: string }> {
+	const refs: Array<{ action: string; ref: string }> = [];
+	for (const line of meaningfulWorkflowLines(text)) {
+		const match = line.match(/^\s*(?:-\s*)?uses\s*:\s*(.+)$/);
+		if (!match) continue;
+
+		const value = unquoteYamlScalar(match[1] ?? '');
+		const atIndex = value.lastIndexOf('@');
+		if (atIndex <= 0 || atIndex === value.length - 1) continue;
+
+		refs.push({
+			action: value.slice(0, atIndex),
+			ref: value.slice(atIndex + 1)
+		});
+	}
+	return refs;
+}
+
+function hasWorkflowEvent(text: string, eventName: string): boolean {
+	return meaningfulWorkflowLines(text).some((line) =>
+		new RegExp(`(^|[\\s\\[,])${eventName}(:|\\b)`).test(line)
+	);
+}
+
+function hasWorkflowPermissions(text: string): boolean {
+	return meaningfulWorkflowLines(text).some((line) => /^\s*permissions\s*:/.test(line));
+}
+
+function hasWriteAllPermissions(text: string): boolean {
+	return meaningfulWorkflowLines(text).some((line) =>
+		/^\s*permissions\s*:\s*write-all\b/i.test(line)
+	);
+}
+
 function qualityGateSummary(text: string): string[] {
 	const gates: Array<[string, RegExp]> = [
 		['lint', /\b(npm|pnpm|yarn|bun)\s+(run\s+)?lint\b|\bbiome\s+check\b|\beslint\b/i],
@@ -369,17 +480,17 @@ function qualityGateSummary(text: string): string[] {
 
 function hasRiskyPullRequestTarget(text: string): boolean {
 	return (
-		/\bpull_request_target\b/.test(text) &&
-		/\brun\s*:/.test(text) &&
-		/\$\{\{\s*github\.event\.(pull_request|issue|comment)\./.test(text)
+		hasWorkflowEvent(text, 'pull_request_target') &&
+		workflowRunCommands(text).some((command) =>
+			/\$\{\{\s*github\.event\.(pull_request|issue|comment)\./.test(command)
+		)
 	);
 }
 
 function hasFloatingThirdPartyAction(text: string): boolean {
-	const actionRefs = text.matchAll(/\buses:\s*([^@\s]+)@([^\s#]+)/g);
-	for (const [, action, ref] of actionRefs) {
-		if (action?.startsWith('actions/')) continue;
-		if (/^(main|master|latest|HEAD)$/i.test(ref ?? '')) return true;
+	for (const { action, ref } of workflowUsesRefs(text)) {
+		if (action.startsWith('actions/')) continue;
+		if (/^(main|master|latest|HEAD)$/i.test(ref)) return true;
 	}
 	return false;
 }
@@ -398,10 +509,11 @@ export function analyzeCiWorkflows(files: RepoFileEvidence[]): RepoReadinessFind
 	}
 
 	const text = allWorkflowText(files);
-	const gates = qualityGateSummary(text);
+	const runText = workflows.flatMap((file) => workflowRunCommands(file.text ?? '')).join('\n');
+	const gates = qualityGateSummary(runText);
 	const missing = ['lint', 'typecheck', 'test', 'build'].filter((gate) => !gates.includes(gate));
-	const writeAll = /\bpermissions\s*:\s*write-all\b/i.test(text);
-	const hasPermissions = /\bpermissions\s*:/.test(text);
+	const writeAll = workflows.some((file) => hasWriteAllPermissions(file.text ?? ''));
+	const hasPermissions = workflows.some((file) => hasWorkflowPermissions(file.text ?? ''));
 	const riskyTarget = hasRiskyPullRequestTarget(text);
 	const floatingAction = hasFloatingThirdPartyAction(text);
 	const evidencePath = workflows[0]?.path;
@@ -431,10 +543,10 @@ export function analyzeCiWorkflows(files: RepoFileEvidence[]): RepoReadinessFind
 		finding(
 			'workflow-pull-request-target',
 			'pull_request_target safety',
-			riskyTarget ? 'fail' : /\bpull_request_target\b/.test(text) ? 'warn' : 'pass',
+			riskyTarget ? 'fail' : hasWorkflowEvent(text, 'pull_request_target') ? 'warn' : 'pass',
 			riskyTarget
 				? 'pull_request_target workflow runs shell code with untrusted pull request context.'
-				: /\bpull_request_target\b/.test(text)
+				: hasWorkflowEvent(text, 'pull_request_target')
 					? 'pull_request_target workflow found; review token and checkout behavior carefully.'
 					: 'No pull_request_target workflow risk detected.',
 			{ path: evidencePath },

@@ -28,10 +28,39 @@ describe('createCheckoutSession', () => {
 		const session = await createCheckoutSession({
 			scanUrl: 'https://app.test',
 			appUrl: 'https://preflight.test',
-			secretKey: 'sk_test_x'
+			secretKey: 'sk_test_x',
+			plan: 'solo',
+			priceId: 'price_solo'
 		});
 
 		expect(session.url).toContain('stripe.com');
+	});
+
+	it('creates subscription checkout for the selected recurring price', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async (_url: string, init?: RequestInit) => {
+				const body = init?.body as URLSearchParams;
+				expect(body.get('mode')).toBe('subscription');
+				expect(body.get('line_items[0][price]')).toBe('price_builder');
+				expect(body.get('metadata[plan]')).toBe('builder');
+				expect(body.get('metadata[scan_url]')).toBe('https://app.test');
+				expect(body.get('subscription_data[metadata][plan]')).toBe('builder');
+				expect(body.get('subscription_data[metadata][scan_url]')).toBe('https://app.test');
+				return {
+					ok: true,
+					json: async () => ({ id: 'cs_test_abc', url: 'https://checkout.stripe.com/x' })
+				};
+			})
+		);
+
+		await createCheckoutSession({
+			scanUrl: 'https://app.test',
+			appUrl: 'https://preflight.test',
+			secretKey: 'sk_test_x',
+			plan: 'builder',
+			priceId: 'price_builder'
+		});
 	});
 
 	it('uses a fresh idempotency key for repeated checkout attempts on the same URL', async () => {
@@ -51,12 +80,16 @@ describe('createCheckoutSession', () => {
 		await createCheckoutSession({
 			scanUrl: 'https://app.test',
 			appUrl: 'https://preflight.test',
-			secretKey: 'sk_test_x'
+			secretKey: 'sk_test_x',
+			plan: 'solo',
+			priceId: 'price_solo'
 		});
 		await createCheckoutSession({
 			scanUrl: 'https://app.test',
 			appUrl: 'https://preflight.test',
-			secretKey: 'sk_test_x'
+			secretKey: 'sk_test_x',
+			plan: 'solo',
+			priceId: 'price_solo'
 		});
 
 		expect(keys).toHaveLength(2);

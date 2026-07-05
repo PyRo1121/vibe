@@ -31,12 +31,16 @@ describe('handleCheckoutPost', () => {
 		const request = new Request('http://localhost/api/checkout', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ url: 'https://app.test' })
+			body: JSON.stringify({ url: 'https://app.test', plan: 'builder' })
 		});
 
 		const res = await handleCheckoutPost(
 			request,
-			{ STRIPE_SECRET_KEY: 'sk_test_x', PUBLIC_APP_URL: 'https://deploylint.com' } as Env,
+			{
+				STRIPE_SECRET_KEY: 'sk_test_x',
+				PUBLIC_APP_URL: 'https://deploylint.com',
+				STRIPE_PRICE_BUILDER: 'price_builder'
+			} as Env,
 			'http://evil.test'
 		);
 
@@ -44,7 +48,25 @@ describe('handleCheckoutPost', () => {
 		expect(createCheckoutSession).toHaveBeenCalledWith({
 			scanUrl: 'https://app.test',
 			appUrl: 'https://deploylint.com',
-			secretKey: 'sk_test_x'
+			secretKey: 'sk_test_x',
+			plan: 'builder',
+			priceId: 'price_builder'
 		});
+	});
+
+	it('fails closed when the selected plan has no Stripe price id configured', async () => {
+		const request = new Request('http://localhost/api/checkout', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ url: 'https://app.test', plan: 'agency' })
+		});
+
+		await expect(
+			handleCheckoutPost(
+				request,
+				{ STRIPE_SECRET_KEY: 'sk_test_x', PUBLIC_APP_URL: 'https://deploylint.com' } as Env,
+				'http://evil.test'
+			)
+		).rejects.toMatchObject({ status: 503 });
 	});
 });
