@@ -87,14 +87,15 @@ function loadToken() {
 }
 
 async function cf(method, path, token, body) {
-	const res = await fetch(`${API}${path}`, {
+	const init = {
 		method,
 		headers: {
 			Authorization: `Bearer ${token}`,
 			'Content-Type': 'application/json'
-		},
-		body: body ? JSON.stringify(body) : undefined
-	});
+		}
+	};
+	if (body != null) init.body = JSON.stringify(body);
+	const res = await fetch(`${API}${path}`, init);
 	const json = await res.json();
 	if (!json.success) {
 		const msg = json.errors?.map((e) => e.message).join('; ') ?? res.statusText;

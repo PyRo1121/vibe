@@ -159,12 +159,13 @@ function rootManifest(manifests: PackageManifestEvidence[]): PackageManifestEvid
 }
 
 function dependencies(manifest: PackageManifestEvidence | undefined): Record<string, string> {
-	return {
-		...(manifest?.json.dependencies ?? {}),
-		...(manifest?.json.devDependencies ?? {}),
-		...(manifest?.json.optionalDependencies ?? {}),
-		...(manifest?.json.peerDependencies ?? {})
-	};
+	return Object.assign(
+		{},
+		manifest?.json.dependencies,
+		manifest?.json.devDependencies,
+		manifest?.json.optionalDependencies,
+		manifest?.json.peerDependencies
+	);
 }
 
 function hasDependency(manifest: PackageManifestEvidence | undefined, names: string[]): boolean {

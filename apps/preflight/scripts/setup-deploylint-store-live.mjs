@@ -28,14 +28,15 @@ function parseArgs() {
 }
 
 async function stripe(secretKey, path, method = 'GET', body) {
-	const res = await fetch(`https://api.stripe.com/v1${path}`, {
+	const init = {
 		method,
 		headers: {
 			Authorization: `Bearer ${secretKey}`,
 			'Content-Type': 'application/x-www-form-urlencoded'
-		},
-		body
-	});
+		}
+	};
+	if (body != null) init.body = body;
+	const res = await fetch(`https://api.stripe.com/v1${path}`, init);
 	const text = await res.text();
 	let json;
 	try {

@@ -82,12 +82,13 @@ export function parsePackageJson(text: string | null): ParsedPackageJson {
 	try {
 		const parsed = JSON.parse(text) as ParsedPackageJson['raw'];
 		return {
-			dependencies: {
-				...(parsed?.dependencies ?? {}),
-				...(parsed?.devDependencies ?? {}),
-				...(parsed?.optionalDependencies ?? {}),
-				...(parsed?.peerDependencies ?? {})
-			},
+			dependencies: Object.assign(
+				{},
+				parsed?.dependencies,
+				parsed?.devDependencies,
+				parsed?.optionalDependencies,
+				parsed?.peerDependencies
+			),
 			raw: parsed,
 			valid: true
 		};
