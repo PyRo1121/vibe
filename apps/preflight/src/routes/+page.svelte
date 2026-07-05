@@ -393,37 +393,37 @@
 		<section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 			<div class="rounded-xl border border-zinc-800 p-5">
 				<p class="font-medium text-white">Launch judgment</p>
-				<p class="mt-1 text-sm text-zinc-500">
+				<p class="mt-1 text-sm text-zinc-400">
 					GO / CONDITIONAL / NO-GO — ship/no-ship, not a perf score
 				</p>
 			</div>
 			<div class="rounded-xl border border-zinc-800 p-5">
 				<p class="font-medium text-white">Embarrassment radar</p>
-				<p class="mt-1 text-sm text-zinc-500">
+				<p class="mt-1 text-sm text-zinc-400">
 					Privacy gaps, placeholder copy, dead links critics click first
 				</p>
 			</div>
 			<div class="rounded-xl border border-zinc-800 p-5">
 				<p class="font-medium text-white">Fix & prove loop</p>
-				<p class="mt-1 text-sm text-zinc-500">
+				<p class="mt-1 text-sm text-zinc-400">
 					Free scan, then Solo from $9/mo for Cursor prompts and before/after re-scan proof
 				</p>
 			</div>
 			<div class="rounded-xl border border-zinc-800 p-5">
 				<p class="font-medium text-white">og:image content-type</p>
-				<p class="mt-1 text-sm text-zinc-500">
+				<p class="mt-1 text-sm text-zinc-400">
 					Catches SPA routes returning HTML instead of a real image
 				</p>
 			</div>
 			<div class="rounded-xl border border-zinc-800 p-5">
 				<p class="font-medium text-white">GitHub repo scan</p>
-				<p class="mt-1 text-sm text-zinc-500">
+				<p class="mt-1 text-sm text-zinc-400">
 					Committed .env files, sell-rights licenses, OSV vulnerabilities
 				</p>
 			</div>
 			<div class="rounded-xl border border-zinc-800 p-5">
 				<p class="font-medium text-white">CI deploy gate</p>
-				<p class="mt-1 text-sm text-zinc-500">
+				<p class="mt-1 text-sm text-zinc-400">
 					Block bad deploys in CI — same GO/NO-GO in GitHub Actions before users see them
 				</p>
 			</div>
@@ -433,13 +433,13 @@
 		>
 			<div>
 				<p class="font-medium text-white">Not Lighthouse. Not an OG debugger.</p>
-				<p class="mt-1 text-sm text-zinc-500">
+				<p class="mt-1 text-sm text-zinc-400">
 					Honest side-by-side — where Deploylint wins and where it does not.
 				</p>
 			</div>
 			<a
 				href="/compare"
-				class="mt-4 inline-block shrink-0 rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500 sm:mt-0"
+				class="mt-4 inline-block shrink-0 rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-600 sm:mt-0"
 			>
 				Compare tools →
 			</a>

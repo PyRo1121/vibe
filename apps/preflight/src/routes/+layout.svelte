@@ -48,9 +48,7 @@
 </a>
 
 <div class="min-h-screen">
-	<header
-		class="sticky top-0 z-40 border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur-md supports-[backdrop-filter]:bg-zinc-950/60 print:hidden"
-	>
+	<header class="sticky top-0 z-40 border-b border-zinc-800 bg-zinc-950 print:hidden">
 		<div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
 			<a href="/" class="flex flex-col leading-none transition-opacity hover:opacity-90">
 				<span class="text-lg font-semibold tracking-tight text-white">Deploylint</span>
@@ -68,7 +66,7 @@
 			</nav>
 		</div>
 	</header>
-	<main id="main" class="preflight-mesh min-h-[calc(100vh-8rem)]">{@render children()}</main>
+	<main id="main" class="min-h-[calc(100vh-8rem)]">{@render children()}</main>
 	<footer class="border-t border-zinc-800 py-8 text-center text-xs text-zinc-400 print:hidden">
 		<p class="mb-2">Built for builders who ship fast and hate public surprises.</p>
 		<p>
