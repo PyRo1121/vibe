@@ -110,7 +110,9 @@ if (!scan.res.ok) {
 	if (issues > 0 && (r.samplePromptId || r.unlocked)) {
 		pass(
 			'prompt access UX',
-			r.unlocked ? `${issues} issues, alpha unlocked` : `${issues} issues, sample=${r.samplePromptId}`
+			r.unlocked
+				? `${issues} issues, alpha unlocked`
+				: `${issues} issues, sample=${r.samplePromptId}`
 		);
 	} else fail('prompt access UX', `issues=${issues} sample=${r.samplePromptId}`);
 
