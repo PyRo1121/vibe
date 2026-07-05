@@ -150,11 +150,13 @@ Props (`verdict`, `score`, `scoreDelta`, etc.) appear on Business/trial plans.
 | Live webhook → `lint.latham.cloud/api/webhooks/stripe` | ✅ `we_1TpctGPI6tkdUQScHy1GREWi` |
 | Checkout session creation (`cs_live_…`) | ✅ smoke:phase24 |
 | `charges_enabled` / `card_payments` | ⏳ **pending** — Stripe reviewing `business_profile.url` |
+| GitHub `PREFLIGHT_GATE_URL` on vibe repo | ✅ `https://lint.latham.cloud` |
+| Test webhook cleanup | ✅ deleted `we_1TpcxEPI6tkdUQSc7Zupn4ZH` |
 | Prior blocker | `invalid_url_website_inaccessible` — resolved once `https://lint.latham.cloud` is set in [Business settings](https://dashboard.stripe.com/settings/business-details) |
 
 When `charges_enabled` flips true: run one $9 checkout → confirm webhook → re-scan for delta proof.
 
-**Optional cleanup:** Delete test-mode webhook `we_1TpcxEPI6tkdUQSc7Zupn4ZH` (same URL, wrong signing secret) from Stripe Dashboard → Webhooks (test mode).
+**Optional cleanup:** ~~Delete test-mode webhook `we_1TpcxEPI6tkdUQSc7Zupn4ZH`~~ ✅ done
 
 **Manual unlock→re-scan path:** Scan URL → checkout $9 → return with `?checkout=success` → copy master prompt → fix → **Re-scan to verify** → delta badge + progress ring.
 
