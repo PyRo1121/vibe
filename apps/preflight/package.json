@@ -37,6 +37,7 @@
 		"changelog:release": "node scripts/changelog-release.mjs",
 		"setup:plausible-goals": "node scripts/setup-plausible-goals.mjs",
 		"setup:cloudflare-firewall": "node scripts/setup-cloudflare-firewall.mjs",
+		"seo:indexnow": "tsx scripts/submit-indexnow.ts",
 		"count:checks": "node scripts/count-checks.mjs",
 		"deploy": "npm run sync:gate-remote && npm run build && wrangler deploy"
 	},

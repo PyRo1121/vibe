@@ -1,4 +1,5 @@
 import { DEFAULT_DEPLOYLINT_API } from '@vibe/deploylint-shared';
+import { GUIDES } from '$lib/site/guides';
 
 export interface PublicSiteRoute {
 	path: string;
@@ -44,6 +45,14 @@ export const PUBLIC_SITE_ROUTES = [
 		changefreq: 'monthly',
 		priority: '0.7'
 	},
+	...GUIDES.map((guide) => ({
+		path: `/guides/${guide.slug}`,
+		title: guide.navTitle,
+		description: guide.description,
+		lastmod: SITE_LASTMOD,
+		changefreq: 'monthly' as const,
+		priority: '0.7'
+	})),
 	{
 		path: '/changelog',
 		title: 'Changelog',

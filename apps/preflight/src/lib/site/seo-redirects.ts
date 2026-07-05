@@ -1,7 +1,7 @@
 export const SEO_LEGACY_REDIRECTS = {
-	'launch-readiness-checker': '/',
-	'ai-app-launch-checker': '/',
-	'vibe-code-launch-checklist': '/checks'
+	'launch-readiness-checker': '/guides/website-launch-checklist',
+	'ai-app-launch-checker': '/guides/ai-app-launch-checker',
+	'vibe-code-launch-checklist': '/guides/website-launch-checklist'
 } as const;
 
 export function getSeoLegacyRedirect(slug: string): string | null {

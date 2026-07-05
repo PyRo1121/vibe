@@ -8,6 +8,9 @@ describe('crawler-facing website surfaces', () => {
 			'/checks',
 			'/compare',
 			'/developers',
+			'/guides/ai-app-launch-checker',
+			'/guides/website-launch-checklist',
+			'/guides/lighthouse-alternative',
 			'/changelog',
 			'/privacy',
 			'/terms'
@@ -23,9 +26,12 @@ describe('crawler-facing website surfaces', () => {
 		expect(xml).toContain('<loc>https://deploylint.com/checks</loc>');
 		expect(xml).toContain('<lastmod>2026-07-05</lastmod>');
 		expect(xml).toContain('<loc>https://deploylint.com/compare</loc>');
-		expect(xml).not.toContain('/launch-readiness-checker');
-		expect(xml).not.toContain('/ai-app-launch-checker');
-		expect(xml).not.toContain('/vibe-code-launch-checklist');
+		expect(xml).toContain('<loc>https://deploylint.com/guides/ai-app-launch-checker</loc>');
+		expect(xml).toContain('<loc>https://deploylint.com/guides/website-launch-checklist</loc>');
+		expect(xml).toContain('<loc>https://deploylint.com/guides/lighthouse-alternative</loc>');
+		expect(xml).not.toContain('https://deploylint.com/launch-readiness-checker');
+		expect(xml).not.toContain('https://deploylint.com/ai-app-launch-checker');
+		expect(xml).not.toContain('https://deploylint.com/vibe-code-launch-checklist');
 		expect(xml).not.toContain('/api/');
 		expect(xml).not.toContain('/r/');
 	});
@@ -34,9 +40,15 @@ describe('crawler-facing website surfaces', () => {
 		const text = buildLlmsTxt('https://deploylint.com');
 
 		expect(text).toContain('- Check catalog: https://deploylint.com/checks');
-		expect(text).not.toContain('/launch-readiness-checker');
-		expect(text).not.toContain('/ai-app-launch-checker');
-		expect(text).not.toContain('/vibe-code-launch-checklist');
+		expect(text).toContain(
+			'- AI app launch checker: https://deploylint.com/guides/ai-app-launch-checker'
+		);
+		expect(text).toContain(
+			'- Website launch checklist: https://deploylint.com/guides/website-launch-checklist'
+		);
+		expect(text).not.toContain('https://deploylint.com/launch-readiness-checker');
+		expect(text).not.toContain('https://deploylint.com/ai-app-launch-checker');
+		expect(text).not.toContain('https://deploylint.com/vibe-code-launch-checklist');
 		expect(text).toContain('Paid monthly plans start with Solo at $9/mo');
 		expect(text).not.toContain('GitHub');
 	});

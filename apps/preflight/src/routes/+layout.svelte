@@ -61,6 +61,7 @@
 			<nav aria-label="Main navigation" class="flex items-center gap-4 text-xs text-zinc-300">
 				<a href="/compare" class="hover:text-white">Compare</a>
 				<a href="/checks" class="hover:text-white">Checks</a>
+				<a href="/guides/website-launch-checklist" class="hover:text-white">Guides</a>
 				<a href="/developers" class="hover:text-white">CI gate</a>
 				<span class="hidden text-zinc-400 sm:inline">90+ launch checks &middot; fix & re-scan</span>
 			</nav>
@@ -75,6 +76,8 @@
 			<a href="/developers" class="hover:text-white">Developers</a>
 			<span class="mx-2">&middot;</span>
 			<a href="/checks" class="hover:text-white">Checks</a>
+			<span class="mx-2">&middot;</span>
+			<a href="/guides/website-launch-checklist" class="hover:text-white">Guides</a>
 			<span class="mx-2">&middot;</span>
 			<a href="/changelog" class="hover:text-white">Changelog</a>
 			<span class="mx-2">&middot;</span>
