@@ -39,7 +39,7 @@ describe('pushHeaderChecks', () => {
 			xFrameOptions: null,
 			xContentTypeOptions: 'nosniff',
 			referrerPolicy: 'strict-origin-when-cross-origin',
-			permissionsPolicy: 'camera=(), microphone=()'
+			permissionsPolicy: 'camera=(), microphone=(), geolocation=()'
 		});
 
 		for (const check of checks) {
@@ -47,6 +47,31 @@ describe('pushHeaderChecks', () => {
 			expect(check.category).toBe('security');
 			expect(check.fixPrompt.length).toBeGreaterThan(0);
 		}
+	});
+
+	it('warns when HTTPS security headers are present but weak or invalid', () => {
+		const checks = run({
+			hsts: 'max-age=0',
+			csp: "default-src * 'unsafe-inline'",
+			xFrameOptions: 'ALLOWALL',
+			xContentTypeOptions: 'nosniff; mode=block',
+			referrerPolicy: 'unsafe-url',
+			permissionsPolicy: 'fullscreen=*'
+		});
+
+		for (const id of [
+			'hsts-header',
+			'csp-header',
+			'clickjack-header',
+			'mime-sniff-header',
+			'referrer-header',
+			'permissions-policy-header'
+		]) {
+			expect(checks.find((check) => check.id === id)?.status).toBe('warn');
+		}
+		expect(checks.find((check) => check.id === 'csp-header')?.message).toMatch(/weak/i);
+		expect(checks.find((check) => check.id === 'clickjack-header')?.message).toMatch(/invalid/i);
+		expect(checks.find((check) => check.id === 'mime-sniff-header')?.message).toMatch(/invalid/i);
 	});
 
 	it('does not emit header checks for HTTP URLs because HTTPS must be fixed first', () => {

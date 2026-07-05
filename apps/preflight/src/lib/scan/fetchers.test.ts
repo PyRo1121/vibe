@@ -106,4 +106,36 @@ describe('buildScanDeps', () => {
 		);
 		expect(siteFetch).toHaveBeenCalledTimes(1);
 	});
+
+	it('falls back to GET for og:image probes when HEAD is rejected', async () => {
+		const methods: string[] = [];
+		let getBodyCanceled = false;
+		const deps = buildScanDeps(
+			async (_url, init) => {
+				methods.push(init?.method ?? 'GET');
+				if (init?.method === 'HEAD') {
+					return new Response('', { status: 405 });
+				}
+				const body = new ReadableStream<Uint8Array>({
+					start(controller) {
+						controller.enqueue(new Uint8Array([1, 2, 3]));
+					},
+					cancel() {
+						getBodyCanceled = true;
+					}
+				});
+				return new Response(body, {
+					status: 200,
+					headers: { 'content-type': 'image/png' }
+				});
+			},
+			async () => ['93.184.216.34']
+		);
+
+		const result = await deps.headProbe('https://example.com/og.png');
+
+		expect(result).toEqual({ reachable: true, contentType: 'image/png', isImage: true });
+		expect(methods).toEqual(['HEAD', 'GET']);
+		expect(getBodyCanceled).toBe(true);
+	});
 });

@@ -20,67 +20,88 @@ export function pushHeaderChecks(
 ): void {
 	if (!https) return;
 
+	const hsts = hstsStatus(headers, https);
+	const csp = cspStatus(headers);
+	const clickjack = clickjackStatus(headers);
+	const mimeSniff = mimeSniffStatus(headers);
+	const referrer = referrerPolicyStatus(headers);
+	const permissionsPolicy = permissionsPolicyStatus(headers);
+
 	checks.push(
 		makeCheck(
 			'hsts-header',
 			'security',
 			'HSTS header',
-			hstsStatus(headers, https),
-			headers.hsts?.trim()
-				? `Strict-Transport-Security: ${headers.hsts.split(';')[0]}`
-				: 'Missing Strict-Transport-Security — first visit can be downgraded',
+			hsts,
+			hsts === 'pass'
+				? `Strict-Transport-Security: ${headers.hsts?.split(';')[0]}`
+				: headers.hsts?.trim()
+					? `Strict-Transport-Security is present but too weak: ${headers.hsts.split(';')[0]}`
+					: 'Missing Strict-Transport-Security - first visit can be downgraded',
 			fixPrompt('hsts-header', ctx)
 		),
 		makeCheck(
 			'csp-header',
 			'security',
 			'Content-Security-Policy',
-			cspStatus(headers),
-			headers.csp?.trim()
+			csp,
+			csp === 'pass'
 				? 'CSP header present'
-				: 'No CSP — XSS impact is higher if markup is ever injectable',
+				: headers.csp?.trim()
+					? 'CSP header is present but weak against script injection'
+					: 'No CSP - XSS impact is higher if markup is ever injectable',
 			fixPrompt('csp-header', ctx)
 		),
 		makeCheck(
 			'clickjack-header',
 			'security',
 			'Clickjacking protection',
-			clickjackStatus(headers),
-			headers.xFrameOptions?.trim()
+			clickjack,
+			clickjack === 'pass' && headers.xFrameOptions?.trim()
 				? `X-Frame-Options: ${headers.xFrameOptions}`
-				: headers.csp?.includes('frame-ancestors')
+				: clickjack === 'pass' && headers.csp?.includes('frame-ancestors')
 					? 'frame-ancestors set in CSP'
-					: 'No X-Frame-Options or frame-ancestors',
+					: headers.xFrameOptions?.trim()
+						? `Invalid X-Frame-Options: ${headers.xFrameOptions}`
+						: headers.csp?.includes('frame-ancestors')
+							? 'Invalid frame-ancestors directive in CSP'
+							: 'No X-Frame-Options or frame-ancestors',
 			fixPrompt('clickjack-header', ctx)
 		),
 		makeCheck(
 			'mime-sniff-header',
 			'security',
 			'MIME sniffing protection',
-			mimeSniffStatus(headers),
-			headers.xContentTypeOptions?.toLowerCase().includes('nosniff')
+			mimeSniff,
+			mimeSniff === 'pass'
 				? 'X-Content-Type-Options: nosniff'
-				: 'Missing nosniff header',
+				: headers.xContentTypeOptions?.trim()
+					? `Invalid X-Content-Type-Options: ${headers.xContentTypeOptions}`
+					: 'Missing nosniff header',
 			fixPrompt('mime-sniff-header', ctx)
 		),
 		makeCheck(
 			'referrer-header',
 			'security',
 			'Referrer-Policy',
-			referrerPolicyStatus(headers),
-			headers.referrerPolicy?.trim()
+			referrer,
+			referrer === 'pass'
 				? `Referrer-Policy: ${headers.referrerPolicy}`
-				: 'No Referrer-Policy header',
+				: headers.referrerPolicy?.trim()
+					? `Weak Referrer-Policy: ${headers.referrerPolicy}`
+					: 'No Referrer-Policy header',
 			fixPrompt('referrer-header', ctx)
 		),
 		makeCheck(
 			'permissions-policy-header',
 			'security',
 			'Permissions-Policy',
-			permissionsPolicyStatus(headers),
-			headers.permissionsPolicy?.trim()
-				? `Permissions-Policy: ${headers.permissionsPolicy.split(';')[0]}`
-				: 'No Permissions-Policy — browsers may allow camera/mic/geo without explicit denial',
+			permissionsPolicy,
+			permissionsPolicy === 'pass'
+				? `Permissions-Policy: ${headers.permissionsPolicy?.split(';')[0]}`
+				: headers.permissionsPolicy?.trim()
+					? 'Permissions-Policy is present but does not deny camera, microphone, and geolocation'
+					: 'No Permissions-Policy - browsers may allow camera/mic/geo without explicit denial',
 			fixPrompt('permissions-policy-header', ctx)
 		)
 	);

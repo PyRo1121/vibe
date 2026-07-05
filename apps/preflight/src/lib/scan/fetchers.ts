@@ -244,15 +244,36 @@ export function buildScanDeps(
 
 	async function headProbe(rawUrl: string): Promise<OgImageProbe> {
 		try {
-			const result = await followRedirects(assertPublicHttpUrl(rawUrl), {
+			const url = assertPublicHttpUrl(rawUrl);
+			const result = await followRedirects(url, {
 				method: 'HEAD',
 				signal: AbortSignal.timeout(8000),
 				headers: { 'User-Agent': USER_AGENT }
 			});
-			if (!result || result.res.status >= 400) {
+
+			if (result && result.res.status < 400) {
+				const contentType = result.res.headers.get('content-type');
+				return {
+					reachable: true,
+					contentType,
+					isImage: isImageContentType(contentType)
+				};
+			}
+			if (result?.res.status === 404 || result?.res.status === 410) {
 				return { reachable: false, isImage: null, contentType: null };
 			}
-			const contentType = result.res.headers.get('content-type');
+
+			const getResult = await followRedirects(url, {
+				method: 'GET',
+				signal: AbortSignal.timeout(8000),
+				headers: { Accept: 'image/*,*/*', 'User-Agent': USER_AGENT }
+			});
+			if (!getResult || getResult.res.status >= 400) {
+				return { reachable: false, isImage: null, contentType: null };
+			}
+
+			const contentType = getResult.res.headers.get('content-type');
+			await discardBody(getResult.res);
 			return {
 				reachable: true,
 				contentType,

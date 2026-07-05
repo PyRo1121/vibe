@@ -65,14 +65,15 @@ const BASE_CHECK_CATALOG = {
 		id: 'clickjack-header',
 		why: 'Clickjacking protections stop other sites from framing your app and tricking users into clicking destructive or account-changing UI.',
 		detectedBy:
-			'Checks for X-Frame-Options or a Content-Security-Policy frame-ancestors directive on HTTPS responses.',
+			'Checks for valid X-Frame-Options values or a non-wildcard Content-Security-Policy frame-ancestors directive on HTTPS responses.',
 		falsePositive:
 			'Embedding may be intentional for widgets or dashboards; frame-ancestors should explicitly allow only trusted parent origins.'
 	},
 	'csp-header': {
 		id: 'csp-header',
 		why: 'A Content Security Policy reduces the blast radius of XSS by limiting which scripts, frames, images, and network targets the page can use.',
-		detectedBy: 'Checks whether the HTTPS response includes a Content-Security-Policy header.',
+		detectedBy:
+			'Checks whether the HTTPS response includes a Content-Security-Policy with a script/default source boundary and without broad unsafe script allowances.',
 		falsePositive:
 			'Add a report-only policy first if the product is changing quickly and immediate enforcement would be risky.'
 	},
@@ -246,7 +247,8 @@ const BASE_CHECK_CATALOG = {
 	'hsts-header': {
 		id: 'hsts-header',
 		why: 'HSTS tells browsers to keep using HTTPS after the first secure visit, reducing downgrade and cookie-stripping risk.',
-		detectedBy: 'Checks the Strict-Transport-Security header on HTTPS responses.',
+		detectedBy:
+			'Checks the Strict-Transport-Security header on HTTPS responses and requires a meaningful max-age instead of a disabled or token header.',
 		falsePositive:
 			'Only enable includeSubDomains after every subdomain is HTTPS-ready; a missing HSTS header is still worth fixing for production apps.'
 	},
@@ -362,7 +364,7 @@ const BASE_CHECK_CATALOG = {
 	'mime-sniff-header': {
 		id: 'mime-sniff-header',
 		why: 'MIME sniffing protection helps browsers avoid treating files as executable content when the server sends an unexpected content type.',
-		detectedBy: 'Checks for X-Content-Type-Options: nosniff on HTTPS responses.',
+		detectedBy: 'Checks for an exact X-Content-Type-Options: nosniff value on HTTPS responses.',
 		falsePositive:
 			'Some legacy asset pipelines omit this header; add it at the edge or framework middleware rather than per route.'
 	},
@@ -401,7 +403,7 @@ const BASE_CHECK_CATALOG = {
 		id: 'og-image-live',
 		why: 'Broken Open Graph images make product links look unfinished in chat apps, social feeds, and launch communities.',
 		detectedBy:
-			'Fetches the declared og:image URL and records whether the asset responds successfully.',
+			'Probes the declared og:image URL with HEAD and falls back to a bounded GET when HEAD is rejected, then records whether the asset responds successfully.',
 		falsePositive:
 			'Some platforms generate images at request time; make sure bots and anonymous requests can still fetch the final image.'
 	},
@@ -455,7 +457,8 @@ const BASE_CHECK_CATALOG = {
 	'permissions-policy-header': {
 		id: 'permissions-policy-header',
 		why: 'Permissions-Policy narrows browser capabilities such as camera, microphone, geolocation, and payment APIs before any injected code can ask for them.',
-		detectedBy: 'Checks whether the HTTPS response includes a Permissions-Policy header.',
+		detectedBy:
+			'Checks whether the HTTPS response includes a Permissions-Policy that explicitly denies camera, microphone, and geolocation by default.',
 		falsePositive:
 			'Apps that intentionally use device features should explicitly allow only the needed features and trusted origins.'
 	},
@@ -517,7 +520,8 @@ const BASE_CHECK_CATALOG = {
 	'referrer-header': {
 		id: 'referrer-header',
 		why: 'Referrer-Policy prevents sensitive paths, query strings, and campaign data from leaking to third-party sites through the Referer header.',
-		detectedBy: 'Checks whether the HTTPS response includes a Referrer-Policy header.',
+		detectedBy:
+			'Checks whether the HTTPS response includes a strict Referrer-Policy such as no-referrer, same-origin, strict-origin, or strict-origin-when-cross-origin.',
 		falsePositive:
 			'Analytics-heavy sites may choose a less strict policy, but the choice should be deliberate and documented.'
 	},
