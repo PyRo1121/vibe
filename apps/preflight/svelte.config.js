@@ -10,7 +10,8 @@ const config = {
 			platformProxy: {
 				configPath: 'wrangler.jsonc'
 			}
-		})
+		}),
+		inlineStyleThreshold: 60_000
 	}
 };
 

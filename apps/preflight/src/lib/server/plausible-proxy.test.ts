@@ -18,4 +18,11 @@ describe('proxyPlausibleScript', () => {
 		const res = await proxyPlausibleScript('https://plausible.io/js/script.js');
 		expect(res.headers.get('Content-Type')).toContain('javascript');
 	});
+
+	it('uses a long cache lifetime for the stable first-party script proxy', async () => {
+		const res = await proxyPlausibleScript('https://plausible.io/js/script.js');
+		expect(res.headers.get('Cache-Control')).toBe(
+			'public, max-age=2592000, s-maxage=2592000, stale-while-revalidate=86400'
+		);
+	});
 });

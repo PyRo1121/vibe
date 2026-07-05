@@ -10,6 +10,11 @@ import { applySecurityHeaders, enforceEdgeSecurity } from '$lib/server/edge-secu
 export { CounterLimiter } from '$lib/server/counter-limiter';
 
 const REDIRECT_HOSTS = new Set([DEPLOYLINT_LEGACY_HOST, DEPLOYLINT_WWW_HOST]);
+const PUBLIC_HOSTS = new Set([
+	new URL(DEFAULT_DEPLOYLINT_API).hostname,
+	DEPLOYLINT_LEGACY_HOST,
+	DEPLOYLINT_WWW_HOST
+]);
 const LEGACY_DIRECT_PREFIXES = ['/api/', '/s/'];
 
 /** 301 legacy and www hosts to the canonical apex domain. */
@@ -18,9 +23,15 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const shouldServeDirect = LEGACY_DIRECT_PREFIXES.some((prefix) =>
 		event.url.pathname.startsWith(prefix)
 	);
+	const canonical =
+		event.platform?.env?.PUBLIC_APP_URL?.replace(/\/$/, '') ?? DEFAULT_DEPLOYLINT_API;
+
+	if (host && PUBLIC_HOSTS.has(host) && event.url.protocol === 'http:' && !shouldServeDirect) {
+		const target = new URL(event.url.pathname + event.url.search, canonical);
+		return Response.redirect(target.href, 301);
+	}
+
 	if (host && REDIRECT_HOSTS.has(host) && !shouldServeDirect) {
-		const canonical =
-			event.platform?.env?.PUBLIC_APP_URL?.replace(/\/$/, '') ?? DEFAULT_DEPLOYLINT_API;
 		const target = new URL(event.url.pathname + event.url.search, canonical);
 		return Response.redirect(target.href, 301);
 	}

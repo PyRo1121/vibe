@@ -4,11 +4,11 @@ import { handle } from './hooks.server';
 
 const resolve: Parameters<Handle>[0]['resolve'] = async () => new Response('ok');
 
-function requestHost(host: string, appUrl = 'https://deploylint.com') {
+function requestHost(host: string, appUrl = 'https://deploylint.com', protocol = 'https') {
 	return handle({
 		event: {
-			request: new Request(`https://${host}/developers?x=1`, { headers: { host } }),
-			url: new URL(`https://${host}/developers?x=1`),
+			request: new Request(`${protocol}://${host}/developers?x=1`, { headers: { host } }),
+			url: new URL(`${protocol}://${host}/developers?x=1`),
 			platform: { env: { PUBLIC_APP_URL: appUrl } }
 		} as Parameters<Handle>[0]['event'],
 		resolve
@@ -40,6 +40,12 @@ describe('handle canonical redirects', () => {
 	it('serves the apex deploylint.com host without redirecting to itself', async () => {
 		const response = await requestHost('deploylint.com');
 		expect(response.status).toBe(200);
+	});
+
+	it('redirects plain HTTP apex requests to HTTPS', async () => {
+		const response = await requestHost('deploylint.com', 'https://deploylint.com', 'http');
+		expect(response.status).toBe(301);
+		expect(response.headers.get('location')).toBe('https://deploylint.com/developers?x=1');
 	});
 
 	it('keeps legacy API routes serving in place for webhooks and old clients', async () => {

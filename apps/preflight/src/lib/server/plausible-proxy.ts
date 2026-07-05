@@ -1,5 +1,6 @@
 const PLAUSIBLE_EVENT_URL = 'https://plausible.io/api/event';
 const DEFAULT_UPSTREAM_SCRIPT = 'https://plausible.io/js/script.js';
+const SCRIPT_CACHE_SECONDS = 60 * 60 * 24 * 30;
 
 export function plausibleUpstreamScript(
 	env: { PUBLIC_PLAUSIBLE_SCRIPT?: string } | undefined
@@ -16,7 +17,7 @@ export async function proxyPlausibleScript(upstream: string): Promise<Response> 
 		status: res.status,
 		headers: {
 			'Content-Type': 'application/javascript; charset=utf-8',
-			'Cache-Control': 'public, max-age=86400',
+			'Cache-Control': `public, max-age=${SCRIPT_CACHE_SECONDS}, s-maxage=${SCRIPT_CACHE_SECONDS}, stale-while-revalidate=86400`,
 			'Access-Control-Allow-Origin': '*'
 		}
 	});
