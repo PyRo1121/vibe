@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 /**
  * Phase 18 production smoke — run: node scripts/smoke-phase18.mjs
- * Optional: PREFLIGHT_BASE=https://lint.latham.cloud
+ * Optional: PREFLIGHT_BASE=https://deploylint.com
  */
 const BASE = (
 	process.env.DEPLOYLINT_BASE ??
 	process.env.PREFLIGHT_BASE ??
-	'https://lint.latham.cloud'
+	'https://deploylint.com'
 ).replace(/\/$/, '');
+const BASE_HOST = new URL(BASE).hostname;
 
 const results = [];
 
@@ -58,7 +59,7 @@ const securityTxt = await get('/.well-known/security.txt');
 if (
 	securityTxt.res.ok &&
 	securityTxt.text.includes('Contact:') &&
-	securityTxt.text.includes('lint.latham.cloud')
+	securityTxt.text.includes(BASE_HOST)
 ) {
 	pass('security.txt', String(securityTxt.res.status));
 } else fail('security.txt', `${securityTxt.res.status} ${securityTxt.text.slice(0, 40)}`);
@@ -76,7 +77,7 @@ if (home.res.ok && home.text.includes('og:image') && home.text.includes('applica
 if (
 	home.text.includes('/s/script.js') &&
 	home.text.includes('plausible.init') &&
-	home.text.includes('lint.latham.cloud')
+	home.text.includes(BASE_HOST)
 ) {
 	pass('Plausible', 'first-party proxy snippet in HTML (/s/script.js + plausible.init)');
 } else fail('Plausible', 'expected /s/script.js proxy + plausible.init in HTML');
@@ -95,7 +96,7 @@ if (
 	pass('/changelog', 'renders CHANGELOG versions');
 } else fail('/changelog', String(changelog.res.status));
 
-// 2. Exit criterion 1 — scan with issues shows embarrassment + locked prompts
+// 2. Exit criterion 1 — scan with issues shows embarrassment + prompts/unlock state
 const scan = await post('/api/scan', { url: 'https://example.com' });
 if (!scan.res.ok) {
 	fail('scan example.com', `${scan.res.status} ${scan.text.slice(0, 120)}`);
@@ -106,9 +107,12 @@ if (!scan.res.ok) {
 	else fail('embarrassment brief', 'empty');
 
 	const issues = r.checks?.filter((c) => c.status !== 'pass').length ?? 0;
-	if (issues > 0 && r.samplePromptId)
-		pass('locked prompts UX', `${issues} issues, sample=${r.samplePromptId}`);
-	else fail('locked prompts UX', `issues=${issues} sample=${r.samplePromptId}`);
+	if (issues > 0 && (r.samplePromptId || r.unlocked)) {
+		pass(
+			'prompt access UX',
+			r.unlocked ? `${issues} issues, alpha unlocked` : `${issues} issues, sample=${r.samplePromptId}`
+		);
+	} else fail('prompt access UX', `issues=${issues} sample=${r.samplePromptId}`);
 
 	if (r.verdict && typeof r.score === 'number') pass('verdict + score', `${r.verdict} ${r.score}`);
 	else fail('verdict + score');
