@@ -64,9 +64,27 @@ if (home.res.ok && home.text.includes('og:image') && home.text.includes('applica
 	pass('homepage meta', 'og + json-ld in HTML');
 } else fail('homepage meta');
 
-if (home.text.includes('plausible-domain') && home.text.includes('lint.latham.cloud')) {
-	pass('Plausible', '@plausible-analytics/tracker domain wired (NPM, client init)');
-} else fail('Plausible', 'set PUBLIC_PLAUSIBLE_DOMAIN and init @plausible-analytics/tracker');
+if (
+	home.text.includes('/s/script.js') &&
+	home.text.includes('plausible.init') &&
+	home.text.includes('lint.latham.cloud')
+) {
+	pass('Plausible', 'first-party proxy snippet in HTML (/s/script.js + plausible.init)');
+} else fail('Plausible', 'expected /s/script.js proxy + plausible.init in HTML');
+
+const proxyScript = await get('/s/script.js');
+if (proxyScript.res.ok && proxyScript.text.includes('plausible')) {
+	pass('Plausible proxy script', `${proxyScript.res.status} application/javascript`);
+} else fail('Plausible proxy script', String(proxyScript.res.status));
+
+const changelog = await get('/changelog');
+if (
+	changelog.res.ok &&
+	changelog.text.includes('Changelog') &&
+	/\[0\.\d+\.\d+\]/.test(changelog.text)
+) {
+	pass('/changelog', 'renders CHANGELOG versions');
+} else fail('/changelog', String(changelog.res.status));
 
 // 2. Exit criterion 1 — scan with issues shows embarrassment + locked prompts
 const scan = await post('/api/scan', { url: 'https://example.com' });

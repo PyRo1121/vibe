@@ -1,5 +1,10 @@
 import type { LayoutServerLoad } from './$types';
 
-export const load: LayoutServerLoad = ({ platform }) => ({
-	plausibleDomain: platform?.env?.PUBLIC_PLAUSIBLE_DOMAIN?.trim() || null
-});
+export const load: LayoutServerLoad = ({ platform }) => {
+	const plausibleDomain = platform?.env?.PUBLIC_PLAUSIBLE_DOMAIN?.trim() || null;
+
+	return {
+		plausibleDomain,
+		plausibleProxy: plausibleDomain ? { script: '/s/script.js', endpoint: '/s/event' } : null
+	};
+};

@@ -94,10 +94,9 @@ function gitRevParse(ref) {
 
 function changelogVersionCommit(version) {
 	try {
-		const hash = run(
-			`git log -1 --format=%H -S "## [${version}]" -- apps/preflight/CHANGELOG.md`,
-			{ quiet: true }
-		);
+		const hash = run(`git log -1 --format=%H -S "## [${version}]" -- apps/preflight/CHANGELOG.md`, {
+			quiet: true
+		});
 		return hash || null;
 	} catch {
 		return null;
@@ -120,7 +119,6 @@ function parseSubject(line) {
 function formatBullet(parsed) {
 	let text = parsed.subject;
 	if (parsed.breaking) text = `**Breaking:** ${text}`;
-	const scopeMatch = parsed.subject.match(/^\(([^)]+)\)\s*/);
 	return `- ${text.charAt(0).toUpperCase()}${text.slice(1)}`;
 }
 

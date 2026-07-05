@@ -1,16 +1,22 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { onNavigate } from '$app/navigation';
-	import { startPlausible } from '$lib/client/plausible';
+	import { watchPlausible, plausibleInitSnippet } from '$lib/client/plausible';
 	import './layout.css';
 
 	let {
 		children,
 		data
-	}: { children: import('svelte').Snippet; data: { plausibleDomain?: string | null } } = $props();
+	}: {
+		children: import('svelte').Snippet;
+		data: {
+			plausibleDomain?: string | null;
+			plausibleProxy?: { script: string; endpoint: string } | null;
+		};
+	} = $props();
 
 	onMount(() => {
-		if (data.plausibleDomain) void startPlausible(data.plausibleDomain);
+		if (data.plausibleDomain) watchPlausible();
 	});
 
 	onNavigate((navigation) => {
@@ -25,8 +31,11 @@
 </script>
 
 <svelte:head>
-	{#if data.plausibleDomain}
+	{#if data.plausibleDomain && data.plausibleProxy}
 		<meta name="plausible-domain" content={data.plausibleDomain} />
+		<!-- eslint-disable-next-line svelte/no-at-html-tags -- init stub built server-side -->
+		{@html plausibleInitSnippet(data.plausibleDomain, data.plausibleProxy.endpoint)}
+		<script defer src={data.plausibleProxy.script}></script>
 	{/if}
 </svelte:head>
 
@@ -60,6 +69,8 @@
 		<p class="mb-2">Built for builders who ship fast and hate public surprises.</p>
 		<p>
 			<a href="/developers" class="hover:text-zinc-400">Developers</a>
+			<span class="mx-2">·</span>
+			<a href="/changelog" class="hover:text-zinc-400">Changelog</a>
 			<span class="mx-2">·</span>
 			<a href="/privacy" class="hover:text-zinc-400">Privacy</a>
 			<span class="mx-2">·</span>

@@ -127,7 +127,7 @@ Per Phase 3 kill metrics (45 days). **Ops runs in parallel** — engineering con
 | `PostUnlockGuide` progress ring after re-scan | ✅ |
 | `/compare` — ShipReady, WebsiteReady, PageLens columns | ✅ |
 | Unlock panels — master prompt line count + Fix All headline | ✅ |
-| Plausible on `lint.latham.cloud` | ✅ official `@plausible-analytics/tracker` (client `init`, SPA pageviews) |
+| Plausible on `lint.latham.cloud` | ✅ first-party proxy `/s/script.js` + funnel via `window.plausible` |
 | Funnel: `rescan_completed` with `scoreDelta` | ✅ (existing `trackFunnel`) |
 
 **Plausible custom goals** (Settings → Goals → Add goal → Custom event):
@@ -160,6 +160,21 @@ When `charges_enabled` flips true: run one $9 checkout → confirm webhook → r
 
 **Manual unlock→re-scan path:** Scan URL → checkout $9 → return with `?checkout=success` → copy master prompt → fix → **Re-scan to verify** → delta badge + progress ring.
 
+### Phase 28b — DKIM probe (shipped)
+
+| Item | Status |
+|------|--------|
+| `dkim-dns` check — common `_domainkey` selectors when SPF present | ✅ |
+| `/compare` row for SPF/DMARC/DKIM | ✅ |
+
+### Phase 35 — Backlog (shipped)
+
+| Item | Status |
+|------|--------|
+| `/changelog` public page | ✅ |
+| `deploylint.com` 301 redirect hook (wire DNS + wrangler route when registered) | ✅ code ready |
+| Plausible first-party proxy | ✅ |
+
 ### Phase 26+ — Parallel with validation
 
 | Item | Notes |
@@ -183,6 +198,7 @@ npm run deploy:preflight          # from repo root: npm run deploy:preflight
 npm run gate:preflight -- https://your-app.com
 npm run smoke:preflight           # phases 18–24
 npm run changelog:draft -w preflight   # draft bullets from conventional commits
+npm run setup:plausible-goals -w preflight   # needs PLAUSIBLE_PLUGIN_TOKEN
 # Release: docs/superpowers/workflow/changelog-and-releases.md
 npm run setup:stripe              # test mode
 # Live: scripts/setup-stripe-live.ps1

@@ -595,4 +595,31 @@ describe('scanUrl', () => {
 		});
 		expect(report.checks.find((c) => c.id === 'email-auth')).toBeUndefined();
 	});
+
+	it('warns on dkim-dns when SPF is set but no DKIM selector is found', async () => {
+		const report = await scanUrl('https://app.test', {
+			fetchHtml: routedFetchHtml(LEGAL_ROUTES),
+			...mockDeps,
+			resolveTxt: async (name: string) =>
+				name === 'app.test' ? ['v=spf1 include:_spf.example.com ~all'] : []
+		});
+		const dkim = report.checks.find((c) => c.id === 'dkim-dns');
+		expect(dkim?.status).toBe('warn');
+		expect(dkim?.message).toContain('no DKIM selector');
+	});
+
+	it('passes dkim-dns when a common selector record exists', async () => {
+		const report = await scanUrl('https://app.test', {
+			fetchHtml: routedFetchHtml(LEGAL_ROUTES),
+			...mockDeps,
+			resolveTxt: async (name: string) => {
+				if (name === 'app.test') return ['v=spf1 ~all'];
+				if (name === 'default._domainkey.app.test') return ['v=DKIM1; k=rsa; p=MIIB'];
+				return [];
+			}
+		});
+		const dkim = report.checks.find((c) => c.id === 'dkim-dns');
+		expect(dkim?.status).toBe('pass');
+		expect(dkim?.message).toContain('default._domainkey');
+	});
 });

@@ -45,6 +45,14 @@
 			pageLens: 'no'
 		},
 		{
+			feature: 'SPF / DMARC / DKIM email auth probes',
+			deploylint: 'yes',
+			shipReady: 'partial',
+			websiteReady: 'no',
+			pageLens: 'no',
+			note: 'DKIM selector DNS check when SPF is present'
+		},
+		{
 			feature: 'Exposed .env / .git path probes',
 			deploylint: 'yes',
 			shipReady: 'partial',

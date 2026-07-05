@@ -17,6 +17,7 @@ import {
 import { extractLinks } from '$lib/scan/parse';
 import {
 	checkEmailAuth,
+	checkDkimDns,
 	checkHostConsistency,
 	checkLinks,
 	checkOgImageLive,
@@ -60,6 +61,7 @@ export async function scanUrl(rawUrl: string, deps: ScanDeps = defaultDeps): Pro
 			{ ok: ogImageOk, probe: ogImageProbe },
 			notFoundStatus,
 			emailAuth,
+			dkimDns,
 			hostConsistency,
 			exposedPaths,
 			healthEndpoint
@@ -69,6 +71,7 @@ export async function scanUrl(rawUrl: string, deps: ScanDeps = defaultDeps): Pro
 			checkOgImageLive(html, finalUrl, deps.headProbe),
 			probeNotFound(finalUrl, deps.fetchHtml),
 			deps.resolveTxt ? checkEmailAuth(finalUrl.hostname, deps.resolveTxt) : Promise.resolve(null),
+			deps.resolveTxt ? checkDkimDns(finalUrl.hostname, deps.resolveTxt) : Promise.resolve(null),
 			checkHostConsistency(finalUrl, deps.fetchHtml),
 			probeExposedPaths(finalUrl, deps.headOk, deps.fetchText),
 			probeHealthEndpoints(finalUrl, deps.headOk)
@@ -113,6 +116,7 @@ export async function scanUrl(rawUrl: string, deps: ScanDeps = defaultDeps): Pro
 			responseTimeMs,
 			notFoundStatus,
 			emailAuth,
+			dkimDns,
 			hostConsistency,
 			exposedPaths,
 			healthEndpoint,

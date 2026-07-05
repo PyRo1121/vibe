@@ -10,11 +10,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-- Official Plausible analytics via `@plausible-analytics/tracker` (SPA pageviews + funnel events).
+- _Nothing yet._
+
+## [0.35.0] - 2026-07-05
+
+Phase 28b-35: DKIM probe, changelog page, Plausible proxy.
+
+### Added
+
+- DKIM DNS probe (`dkim-dns`) when SPF is present — common `_domainkey` selectors.
+- Public `/changelog` page rendering `CHANGELOG.md`.
+- First-party Plausible proxy (`/s/script.js`, `/s/event`) for verifier + ad-blocker resilience.
+- `deploylint.com` → canonical host 301 redirect (when DNS points at Worker).
 
 ### Changed
 
-- CI gate workflow on `vibe` repo points at `lint.latham.cloud` API; `PREFLIGHT_GATE_URL` secret set for dogfood.
+- Official Plausible analytics via deferred script + `window.plausible` (replaces NPM tracker).
 
 ## [0.34.0] - 2026-07-04
 
@@ -56,7 +67,8 @@ Deploylint rebrand on `lint.latham.cloud`.
 
 - KV-backed unlock persistence — paid re-scans verify without re-hitting Stripe every time.
 
-[unreleased]: https://github.com/PyRo1121/vibe/compare/deploylint-v0.34.0...HEAD
+[unreleased]: https://github.com/PyRo1121/vibe/compare/deploylint-v0.35.0...HEAD
+[0.35.0]: https://github.com/PyRo1121/vibe/compare/deploylint-v0.34.0...deploylint-v0.35.0
 [0.34.0]: https://github.com/PyRo1121/vibe/compare/deploylint-v0.31.0...deploylint-v0.34.0
 [0.31.0]: https://github.com/PyRo1121/vibe/compare/deploylint-v0.26.0...deploylint-v0.31.0
 [0.26.0]: https://github.com/PyRo1121/vibe/compare/deploylint-v0.25.0...deploylint-v0.26.0

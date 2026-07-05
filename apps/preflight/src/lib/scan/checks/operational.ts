@@ -69,6 +69,23 @@ export function pushOperationalChecks(
 		);
 	}
 
+	const dkim = scanCtx.dkimDns;
+	if (email?.spf && dkim) {
+		const dkimMessage = dkim.dkim
+			? `DKIM record found at ${dkim.selector}._domainkey.${dkim.domain}`
+			: `SPF is set on ${dkim.domain} but no DKIM selector was found — transactional mail may still land in spam`;
+		checks.push(
+			makeCheck(
+				'dkim-dns',
+				'launch',
+				'DKIM (email signing)',
+				dkim.dkim ? 'pass' : 'warn',
+				dkimMessage,
+				fixPrompt('dkim-dns', { ...ctx, message: dkimMessage })
+			)
+		);
+	}
+
 	const host = scanCtx.hostConsistency;
 	if (host) {
 		let status: ScanCheck['status'] = 'pass';

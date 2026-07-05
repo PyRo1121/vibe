@@ -32,6 +32,7 @@
 		"smoke": "npm run smoke:phase18 && npm run smoke:phase19 && npm run smoke:phase20 && npm run smoke:phase23 && npm run smoke:phase24",
 		"changelog:draft": "node scripts/changelog-draft.mjs",
 		"changelog:release": "node scripts/changelog-release.mjs",
+		"setup:plausible-goals": "node scripts/setup-plausible-goals.mjs",
 		"deploy": "npm run build && wrangler deploy"
 	},
 	"devDependencies": {
@@ -63,7 +64,5 @@
 		"vitest": "^4.1.9",
 		"wrangler": "^4.107.0"
 	},
-	"dependencies": {
-		"@plausible-analytics/tracker": "^0.4.5"
-	}
+	"dependencies": {}
 }

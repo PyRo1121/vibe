@@ -1,33 +1,68 @@
 import { browser } from '$app/environment';
 
-type PlausibleTrack = (event: string, options: { props?: Record<string, string> }) => void;
+type PlausibleFn = (event: string, options?: { props?: Record<string, string> }) => void;
 
-let started = false;
-let trackFn: PlausibleTrack | null = null;
+declare global {
+	interface Window {
+		plausible?: PlausibleFn;
+	}
+}
 
-/** Client-only Plausible init — official NPM integration for SPAs with SSR. */
-export async function startPlausible(domain: string): Promise<void> {
-	if (!browser || started || !domain.trim()) return;
+const POLL_MS = 50;
+const POLL_TIMEOUT_MS = 10_000;
 
-	const { init, track } = await import('@plausible-analytics/tracker');
-	init({
-		domain: domain.trim(),
-		autoCapturePageviews: true,
-		bindToWindow: true
-	});
-	trackFn = track;
-	started = true;
+let watchStarted = false;
+let ready = false;
+const pending: Array<{ event: string; props?: Record<string, string> }> = [];
+
+function flushPending(): void {
+	if (!window.plausible) return;
+	for (const { event, props } of pending.splice(0)) {
+		window.plausible(event, props ? { props } : undefined);
+	}
+}
+
+function markReady(): void {
+	if (ready) return;
+	ready = true;
+	flushPending();
+}
+
+/** Inline init stub for SSR — verifier looks for plausible.init in page source. */
+export function plausibleInitSnippet(domain: string, endpoint: string): string {
+	const opts = JSON.stringify({ domain, endpoint });
+	return `<script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)};plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init(${opts})</script>`;
+}
+
+/** Wait for the deferred Plausible script tag to expose window.plausible. */
+export function watchPlausible(): void {
+	if (!browser || watchStarted) return;
+	watchStarted = true;
+
+	const tick = () => {
+		if (typeof window.plausible === 'function') markReady();
+	};
+
+	tick();
+	if (ready) return;
+
+	const started = Date.now();
+	const id = window.setInterval(() => {
+		tick();
+		if (ready || Date.now() - started >= POLL_TIMEOUT_MS) window.clearInterval(id);
+	}, POLL_MS);
 }
 
 export function isPlausibleReady(): boolean {
-	return started;
+	return ready && typeof window.plausible === 'function';
 }
 
 export function trackPlausibleEvent(
 	event: string,
 	props?: Record<string, string | number | boolean>
 ): void {
-	if (!trackFn) return;
+	if (!browser) return;
+	watchPlausible();
 
 	const plausibleProps: Record<string, string> = {};
 	if (props) {
@@ -36,5 +71,12 @@ export function trackPlausibleEvent(
 		}
 	}
 
-	trackFn(event, Object.keys(plausibleProps).length > 0 ? { props: plausibleProps } : {});
+	const payload = Object.keys(plausibleProps).length > 0 ? plausibleProps : undefined;
+
+	if (typeof window.plausible === 'function') {
+		window.plausible(event, payload ? { props: payload } : undefined);
+		return;
+	}
+
+	pending.push({ event, props: payload });
 }

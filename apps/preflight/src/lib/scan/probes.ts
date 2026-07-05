@@ -364,6 +364,60 @@ export async function checkEmailAuth(
 	}
 }
 
+const COMMON_DKIM_SELECTORS = [
+	'default',
+	'google',
+	'k1',
+	'k2',
+	'selector1',
+	'selector2',
+	's1',
+	's2',
+	'dkim',
+	'mail',
+	'smtp',
+	'mandrill',
+	'sendgrid',
+	'amazonses',
+	'email',
+	'mx',
+	'api',
+	'hs1',
+	'hs2'
+] as const;
+
+function isDkimTxtRecord(record: string): boolean {
+	return /v=DKIM1/i.test(record) || (/k=rsa/i.test(record) && /p=[A-Za-z0-9+/=]/.test(record));
+}
+
+/** DKIM selector probes at common `{selector}._domainkey.{domain}` patterns. */
+export async function checkDkimDns(
+	hostname: string,
+	resolve: NonNullable<ScanDeps['resolveTxt']>
+): Promise<{ dkim: boolean; selector: string | null; domain: string } | null> {
+	try {
+		const domain = hostname.replace(/^www\./i, '');
+		const labels = domain.split('.');
+		const apex = labels.length > 2 ? labels.slice(-2).join('.') : null;
+		const candidates = apex && apex !== domain ? [domain, apex] : [domain];
+
+		for (const candidate of candidates) {
+			const hits = await Promise.all(
+				COMMON_DKIM_SELECTORS.map(async (selector) => {
+					const records = await resolve(`${selector}._domainkey.${candidate}`);
+					return records.some(isDkimTxtRecord) ? selector : null;
+				})
+			);
+			const selector = hits.find((h) => h != null) ?? null;
+			if (selector) return { dkim: true, selector, domain: candidate };
+		}
+
+		return { dkim: false, selector: null, domain: candidates[0] };
+	} catch {
+		return null;
+	}
+}
+
 export async function checkOgImageLive(
 	html: string,
 	finalUrl: URL,

@@ -29,6 +29,8 @@ export interface ScanContext {
 	notFoundStatus?: number | null;
 	/** SPF/DMARC DNS lookups; null/undefined = resolver unavailable. */
 	emailAuth?: { spf: boolean; dmarc: boolean; domain: string } | null;
+	/** DKIM selector DNS probes; null/undefined = resolver unavailable. */
+	dkimDns?: { dkim: boolean; selector: string | null; domain: string } | null;
 	/** www ↔ apex sibling probe; null/undefined = not applicable. */
 	hostConsistency?: { altHost: string; resolves: boolean; sameSite: boolean } | null;
 	/** Same-origin sensitive path probes. */

@@ -37,6 +37,7 @@ const EMBARRASSMENT: Record<string, string> = {
 	'not-found-page':
 		'Every broken link silently shows your homepage — you will never know what is dead.',
 	'email-auth': 'Password resets landing in spam means signups you paid for never activate.',
+	'dkim-dns': 'SPF without DKIM still gets spam-foldered by Gmail and Outlook on many sends.',
 	'form-security':
 		'A form posts over plain HTTP — browsers flag it and credentials transit unencrypted.',
 	'exposed-env': 'A public /.env download hands live credentials to anyone with curl.',
