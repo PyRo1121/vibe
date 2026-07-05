@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ScanCheck, ScanReport } from '$lib/scan/types';
 	import { buildUnlockOffer } from '$lib/client/preflight-session';
+	import { getCheckCatalogEntry } from '$lib/scan/catalog';
 	import { sortChecksByPriority } from '$lib/scan/verdict';
 	import { categoryLabels, priorityClass, statusClass, statusIcon } from '$lib/ui/scan-styles';
 
@@ -85,6 +86,7 @@
 			</div>
 			<div class="space-y-3">
 				{#each group.items as item (item.id)}
+					{@const catalog = getCheckCatalogEntry(item.id)}
 					<div class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
 						<div class="flex items-start gap-3">
 							<span
@@ -104,6 +106,28 @@
 									</span>
 								</div>
 								<p class="mt-1 text-sm text-zinc-400">{item.message}</p>
+								{#if catalog}
+									<div
+										class="mt-3 grid gap-3 rounded-lg border border-zinc-800/80 bg-zinc-950/60 p-3 text-xs text-zinc-400 sm:grid-cols-2"
+									>
+										<div>
+											<p class="font-semibold tracking-wide text-zinc-300 uppercase">
+												Why this matters
+											</p>
+											<p class="mt-1 leading-relaxed">{catalog.why}</p>
+										</div>
+										<div>
+											<p class="font-semibold tracking-wide text-zinc-300 uppercase">Detection</p>
+											<p class="mt-1 leading-relaxed">{catalog.detectedBy}</p>
+											{#if catalog.falsePositive}
+												<p class="mt-2 leading-relaxed text-zinc-500">
+													<span class="font-medium text-zinc-400">Might be okay if:</span>
+													{catalog.falsePositive}
+												</p>
+											{/if}
+										</div>
+									</div>
+								{/if}
 								{#if report.unlocked && item.fixPrompt}
 									<div class="mt-3 rounded-lg border border-zinc-800 bg-zinc-950 p-3">
 										<p class="mb-2 text-xs whitespace-pre-wrap text-zinc-300">{item.fixPrompt}</p>

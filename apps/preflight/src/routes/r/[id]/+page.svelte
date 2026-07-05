@@ -153,8 +153,7 @@
 	<section class="rounded-2xl border border-sky-500/30 bg-sky-500/5 p-6 text-center">
 		<p class="font-medium text-white">Want fix prompts for these issues?</p>
 		<p class="mt-1 text-sm text-zinc-400">
-			Run your own scan — free verdict in seconds, $9 unlocks every Cursor fix prompt and re-scan
-			proof.
+			Run your own scan — free verdict in seconds, $9 unlocks every fix prompt and re-scan proof.
 		</p>
 		<a
 			href="/"

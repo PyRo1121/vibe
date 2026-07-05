@@ -62,8 +62,9 @@
 			</a>
 			<nav aria-label="Main navigation" class="flex items-center gap-4 text-xs text-zinc-500">
 				<a href="/compare" class="hover:text-zinc-300">Compare</a>
+				<a href="/checks" class="hover:text-zinc-300">Checks</a>
 				<a href="/developers" class="hover:text-zinc-300">CI gate</a>
-				<span class="hidden sm:inline">90+ launch checks · fix & re-scan</span>
+				<span class="hidden sm:inline">90+ launch checks &middot; fix & re-scan</span>
 			</nav>
 		</div>
 	</header>
@@ -72,11 +73,13 @@
 		<p class="mb-2">Built for builders who ship fast and hate public surprises.</p>
 		<p>
 			<a href="/developers" class="hover:text-zinc-400">Developers</a>
-			<span class="mx-2">·</span>
+			<span class="mx-2">&middot;</span>
+			<a href="/checks" class="hover:text-zinc-400">Checks</a>
+			<span class="mx-2">&middot;</span>
 			<a href="/changelog" class="hover:text-zinc-400">Changelog</a>
-			<span class="mx-2">·</span>
+			<span class="mx-2">&middot;</span>
 			<a href="/privacy" class="hover:text-zinc-400">Privacy</a>
-			<span class="mx-2">·</span>
+			<span class="mx-2">&middot;</span>
 			<a href="/terms" class="hover:text-zinc-400">Terms</a>
 		</p>
 	</footer>

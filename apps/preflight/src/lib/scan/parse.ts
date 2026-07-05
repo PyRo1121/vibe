@@ -237,14 +237,44 @@ export function linkHints(links: string[]): { privacy: boolean; terms: boolean; 
 
 export function mentionsStack(html: string): {
 	stripe: boolean;
+	paddle: boolean;
+	lemonSqueezy: boolean;
 	supabase: boolean;
 	firebase: boolean;
+	sentry: boolean;
+	logRocket: boolean;
+	posthog: boolean;
+	plausible: boolean;
+	ga4: boolean;
+	gtm: boolean;
+	clerk: boolean;
+	auth0: boolean;
+	workos: boolean;
+	openai: boolean;
+	anthropic: boolean;
+	replicate: boolean;
+	huggingFace: boolean;
 } {
 	const lower = html.toLowerCase();
 	return {
 		stripe: /stripe\.com|js\.stripe\.com|pk_live_|pk_test_/.test(lower),
+		paddle: /cdn\.paddle\.com|paddle\.js|paddle_billing|paddle\.checkout/.test(lower),
+		lemonSqueezy: /lemonsqueezy\.com|assets\.lemonsqueezy\.com|lemon\.js/.test(lower),
 		supabase: /supabase\.co|supabase\.in/.test(lower),
-		firebase: /firebase(app)?\.com|firebaseio\.com/.test(lower)
+		firebase: /firebase(app)?\.com|firebaseio\.com/.test(lower),
+		sentry: /browser\.sentry-cdn\.com|sentry\.io|@sentry\//.test(lower),
+		logRocket: /cdn\.logrocket\.io|logrocket\.init|logrocket\.com/.test(lower),
+		posthog: /app\.posthog\.com|posthog\.init|posthog-js/.test(lower),
+		plausible: /plausible\.io\/js|data-domain=.*plausible|plausible\.trackevent/.test(lower),
+		ga4: /googletagmanager\.com\/gtag\/js|gtag\(['"]config['"],\s*['"]g-/.test(lower),
+		gtm: /googletagmanager\.com\/gtm\.js|gtm-[a-z0-9]+/.test(lower),
+		clerk: /js\.clerk\.com|clerk\.browser|@clerk\//.test(lower),
+		auth0: /cdn\.auth0\.com|auth0-spa-js|@auth0\//.test(lower),
+		workos: /workos\.com|@workos\//.test(lower),
+		openai: /api\.openai\.com\/v1|openai\.audio|openai\.chat|@openai\//.test(lower),
+		anthropic: /api\.anthropic\.com\/v1|anthropic\.messages|@anthropic-ai\//.test(lower),
+		replicate: /api\.replicate\.com\/v1|replicate\.run|@replicate\//.test(lower),
+		huggingFace: /api-inference\.huggingface\.co|huggingface\.co\/api|@huggingface\//.test(lower)
 	};
 }
 

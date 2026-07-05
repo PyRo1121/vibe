@@ -260,7 +260,7 @@
 			dependency licenses, sell rights). Built for apps you ship — bot-protected enterprise sites
 			may scan incomplete. Alpha: full reports are free while we build. Later:
 			<span class="font-medium text-zinc-300">{ALPHA_PRICE_PREVIEW.later}</span>
-			for every Cursor fix prompt, master repair paste, AI copy review, and re-scan proof.
+			for every fix prompt, master repair paste, AI copy review, and re-scan proof.
 			<a href="/compare" class="text-sky-400 hover:underline">See how we compare →</a>
 		</p>
 	</section>

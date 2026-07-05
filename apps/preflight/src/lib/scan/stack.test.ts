@@ -34,6 +34,20 @@ describe('detectStack', () => {
 		);
 	});
 
+	it('detects high-signal launch services from script and API signatures', () => {
+		const html = [
+			'<script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>',
+			'<script src="https://assets.lemonsqueezy.com/lemon.js"></script>',
+			'<script src="https://browser.sentry-cdn.com/8.0.0/bundle.min.js"></script>',
+			'<script src="https://js.clerk.com/v4/clerk.browser.js"></script>',
+			'<script>fetch("https://api.openai.com/v1/chat/completions")</script>'
+		].join('');
+
+		expect(detectStack(html, URL_PLAIN)).toEqual(
+			expect.arrayContaining(['Paddle', 'Lemon Squeezy', 'Sentry', 'Clerk', 'OpenAI'])
+		);
+	});
+
 	it('returns empty for a plain page with no signatures', () => {
 		expect(detectStack('<html><body><h1>Hi</h1></body></html>', URL_PLAIN)).toEqual([]);
 	});

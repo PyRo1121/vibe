@@ -57,7 +57,7 @@
 			pageLens: 'yes'
 		},
 		{
-			feature: 'Cursor fix prompts + master paste',
+			feature: 'fix prompts + master paste',
 			deploylint: 'yes',
 			shipReady: 'no',
 			websiteReady: 'no',

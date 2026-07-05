@@ -24,7 +24,26 @@ const HTML_RULES: Array<{ label: string; pattern: RegExp }> = [
 	{ label: 'Lovable', pattern: /cdn\.gpteng\.co/ },
 	{ label: 'Vercel', pattern: /\/_vercel\/insights|vercel\.live/ },
 	{ label: 'Netlify', pattern: /netlify-identity-widget|\bdata-netlify\b/ },
-	{ label: 'Cloudflare', pattern: /\/cdn-cgi\/(challenge-platform|beacon)/ }
+	{ label: 'Cloudflare', pattern: /\/cdn-cgi\/(challenge-platform|beacon)/ },
+	{ label: 'Stripe', pattern: /js\.stripe\.com|pk_(live|test)_/ },
+	{ label: 'Paddle', pattern: /cdn\.paddle\.com|paddle\.js|paddle_billing|paddle\.checkout/i },
+	{ label: 'Lemon Squeezy', pattern: /lemonsqueezy\.com|assets\.lemonsqueezy\.com|lemon\.js/i },
+	{ label: 'Sentry', pattern: /browser\.sentry-cdn\.com|sentry\.io|@sentry\//i },
+	{ label: 'LogRocket', pattern: /cdn\.logrocket\.io|logrocket\.init|logrocket\.com/i },
+	{ label: 'PostHog', pattern: /app\.posthog\.com|posthog\.init|posthog-js/i },
+	{ label: 'Plausible', pattern: /plausible\.io\/js|plausible\.trackevent/i },
+	{ label: 'GA4', pattern: /googletagmanager\.com\/gtag\/js|gtag\(['"]config['"],\s*['"]G-/ },
+	{ label: 'Google Tag Manager', pattern: /googletagmanager\.com\/gtm\.js|GTM-[A-Z0-9]+/ },
+	{ label: 'Clerk', pattern: /js\.clerk\.com|clerk\.browser|@clerk\//i },
+	{ label: 'Auth0', pattern: /cdn\.auth0\.com|auth0-spa-js|@auth0\//i },
+	{ label: 'WorkOS', pattern: /workos\.com|@workos\//i },
+	{ label: 'OpenAI', pattern: /api\.openai\.com\/v1|openai\.audio|openai\.chat|@openai\//i },
+	{ label: 'Anthropic', pattern: /api\.anthropic\.com\/v1|anthropic\.messages|@anthropic-ai\//i },
+	{ label: 'Replicate', pattern: /api\.replicate\.com\/v1|replicate\.run|@replicate\//i },
+	{
+		label: 'Hugging Face',
+		pattern: /api-inference\.huggingface\.co|huggingface\.co\/api|@huggingface\//i
+	}
 ];
 
 const HOST_RULES: Array<{ label: string; pattern: RegExp }> = [

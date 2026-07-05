@@ -57,7 +57,19 @@ export function pushDeploymentHygieneChecks(
 		)
 	);
 
-	const saasLike = meta.stack.stripe || meta.stack.supabase || meta.stack.firebase;
+	const saasLike =
+		meta.stack.stripe ||
+		meta.stack.paddle ||
+		meta.stack.lemonSqueezy ||
+		meta.stack.supabase ||
+		meta.stack.firebase ||
+		meta.stack.clerk ||
+		meta.stack.auth0 ||
+		meta.stack.workos ||
+		meta.stack.openai ||
+		meta.stack.anthropic ||
+		meta.stack.replicate ||
+		meta.stack.huggingFace;
 	if (saasLike) {
 		checks.push(
 			makeCheck(

@@ -9,7 +9,7 @@ Deploylint scans a live URL for launch blockers: exposed secrets in JS bundles, 
 
 - Product: ${DEFAULT_DEPLOYLINT_API}
 - Free tier: verdict, embarrassment brief, social preview, one sample fix prompt
-- Paid ($9): all Cursor fix prompts, master repair paste, unlimited re-scans with score delta
+- Paid ($9): all fix prompts, master repair paste, unlimited re-scans with score delta
 - CI gate: ${DEFAULT_DEPLOYLINT_API}/developers — block deploys when launch blockers remain
 
 Built for builders using Cursor, Lovable, Bolt, and similar tools who ship fast and hate public surprises.

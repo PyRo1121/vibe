@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { ScanCheck } from '$lib/scan/types';
 import type { PageMeta } from '$lib/scan/parse';
+import { parsePageMeta } from '$lib/scan/parse';
 import { pushDeploymentHygieneChecks } from './deployment-hygiene';
 
 const ctx = { url: 'https://app.example.com' };
@@ -50,5 +51,28 @@ describe('pushDeploymentHygieneChecks', () => {
 		expect(checks.find((c) => c.id === 'exposed-env')?.status).toBe('pass');
 		expect(checks.find((c) => c.id === 'health-endpoint')?.status).toBe('pass');
 		expect(checks.find((c) => c.id === 'web-manifest')?.status).toBe('pass');
+	});
+
+	it('expects a health endpoint for auth-backed apps', () => {
+		const checks: ScanCheck[] = [];
+		pushDeploymentHygieneChecks(
+			checks,
+			'<script src="https://js.clerk.com/v4/clerk.browser.js"></script>',
+			parsePageMeta(
+				'<script src="https://js.clerk.com/v4/clerk.browser.js"></script>',
+				new URL(ctx.url)
+			),
+			{
+				env: { exposed: false },
+				git: { exposed: false },
+				backup: { exposed: false },
+				packageJson: { exposed: false }
+			},
+			{ found: false },
+			{ consoleLogCount: 0, debuggerCount: 0, testIdCount: 0 },
+			ctx
+		);
+
+		expect(checks.find((c) => c.id === 'health-endpoint')?.status).toBe('warn');
 	});
 });

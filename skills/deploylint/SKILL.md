@@ -5,7 +5,7 @@ description: Run Deploylint launch-readiness scans and deploy gates before posti
 
 # Deploylint agent skill
 
-Deploylint answers: **should you post this URL today?** It returns GO/NO-GO, embarrassment risks, and Cursor fix prompts.
+Deploylint answers: **should you post this URL today?** It returns GO/NO-GO, embarrassment risks, and fix prompts.
 
 ## When to use
 
