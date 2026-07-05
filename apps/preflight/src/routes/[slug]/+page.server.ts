@@ -1,17 +1,15 @@
-import { error } from '@sveltejs/kit';
-import { getSeoLandingPage } from '$lib/site/seo-pages';
+import { error, redirect } from '@sveltejs/kit';
+import { getSeoLegacyRedirect } from '$lib/site/seo-redirects';
 import type { PageServerLoad } from './$types';
 
 export const csr = false;
 
 export const load: PageServerLoad = ({ params, url, platform }) => {
-	const page = getSeoLandingPage(params.slug);
-	if (!page) {
+	const target = getSeoLegacyRedirect(params.slug);
+	if (!target) {
 		error(404, 'Not found');
 	}
 
-	return {
-		appUrl: platform?.env?.PUBLIC_APP_URL ?? url.origin,
-		page
-	};
+	const base = platform?.env?.PUBLIC_APP_URL?.replace(/\/$/, '') ?? url.origin;
+	redirect(301, `${base}${target}`);
 };

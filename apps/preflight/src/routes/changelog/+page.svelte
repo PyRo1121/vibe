@@ -1,26 +1,19 @@
 <script lang="ts">
 	import SeoHead from '$lib/components/SeoHead.svelte';
+	import { buildPageJsonLd, buildSeoTitle, defaultSeoImage } from '$lib/site/seo-metadata';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
 	const base = 'https://deploylint.com';
-	const title = 'Deploylint Changelog - Product updates and release notes';
+	const title = buildSeoTitle('Deploylint Changelog - Product updates and release notes');
 	const description =
 		'Deploylint release notes for launch-readiness checks, CI gates, MCP tools, payment unlocks, and product changes.';
 	const canonical = `${base}/changelog`;
-	const jsonLd = [
-		{
-			'@context': 'https://schema.org',
-			'@type': 'WebPage',
-			name: title,
-			url: canonical,
-			description
-		}
-	];
+	const jsonLd = [buildPageJsonLd({ base, canonical, title, description })];
 </script>
 
-<SeoHead {title} {description} {canonical} image={`${base}/og.png`} {jsonLd} />
+<SeoHead {title} {description} {canonical} image={defaultSeoImage(base)} {jsonLd} />
 
 <div class="mx-auto max-w-3xl px-4 py-12">
 	<h1 class="mb-2 text-3xl font-bold text-white">Changelog</h1>

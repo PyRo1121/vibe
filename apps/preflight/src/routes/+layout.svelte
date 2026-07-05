@@ -72,7 +72,7 @@
 	<footer class="border-t border-zinc-800 py-8 text-center text-xs text-zinc-600 print:hidden">
 		<p class="mb-2">Built for builders who ship fast and hate public surprises.</p>
 		<p>
-			<a href="/launch-readiness-checker" class="hover:text-zinc-400">Launch checker</a>
+			<a href="/" class="hover:text-zinc-400">Scanner</a>
 			<span class="mx-2">&middot;</span>
 			<a href="/developers" class="hover:text-zinc-400">Developers</a>
 			<span class="mx-2">&middot;</span>

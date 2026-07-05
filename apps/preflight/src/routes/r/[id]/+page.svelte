@@ -50,16 +50,21 @@
 		content="Launch readiness report: {report.summary.fail} failing, {report.summary
 			.warn} warnings, {report.summary.pass} passing."
 	/>
-	<meta name="robots" content="noindex" />
+	<meta name="robots" content="noindex, follow" />
+	<meta name="googlebot" content="noindex, follow" />
+	<link rel="canonical" href={permalink} />
 	<meta property="og:title" content={pageTitle} />
 	<meta
 		property="og:description"
 		content="Verdict: {verdictLabels[report.verdict]} · score {report.score}/100 · {report.summary
 			.fail} failing checks."
 	/>
+	<meta property="og:url" content={permalink} />
 	<meta property="og:image" content={badgeUrl} />
+	<meta property="og:image:alt" content="Deploylint report score badge" />
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:image" content={badgeUrl} />
+	<meta name="twitter:image:alt" content="Deploylint report score badge" />
 </svelte:head>
 
 <div class="mx-auto max-w-5xl px-4 py-12">

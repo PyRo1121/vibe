@@ -15,16 +15,17 @@ Goal: keep Deploylint free and honest during alpha, while shaping the product to
 ## SEO focus
 
 - [x] Generate sitemap.xml and llms.txt from the same crawlable route registry.
-- [x] Add focused organic landing pages for launch readiness checker, AI app launch checker, and vibe code launch checklist searches.
-- [x] Internally link the launch checker page from the footer so Google can discover it through normal site links.
+- [x] Keep SEO focused on real product pages rather than keyword-only landing pages.
+- [x] Redirect old keyword-style SEO URLs back to canonical product pages.
 - [ ] In Google Search Console, submit `https://deploylint.com/sitemap.xml`.
-- [ ] Use URL Inspection for `/`, `/checks`, `/launch-readiness-checker`, `/ai-app-launch-checker`, and `/vibe-code-launch-checklist` after deployment.
+- [ ] Use URL Inspection for `/`, `/checks`, `/compare`, `/developers`, and `/changelog` after deployment.
 - [ ] Watch Search Console query impressions weekly and add pages only when they match real search intent.
 - [ ] Add comparison pages for high-intent alternatives once the core scanner and pricing copy stabilize.
 - [ ] Add example-report content after saved reports exist, using sanitized fixtures rather than private user data.
 
 ## Quality gate
 
-- [ ] Every public SEO page has a unique title, description, canonical URL, H1, FAQ schema, and CTA back to the scanner.
+- [x] Every public crawlable page has a unique title, description, canonical URL, and page-specific structured data that matches visible content.
+- [ ] Add FAQ schema only on pages that visibly include an actual FAQ section.
 - [ ] No public route mentions GitHub as the main distribution channel until the website-first positioning is stable.
 - [ ] Copy stays honest: alpha is free, some checks may break while active development continues, and paid features are previews until checkout is enabled.

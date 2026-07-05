@@ -2,6 +2,7 @@
 	import SeoHead from '$lib/components/SeoHead.svelte';
 	import { catalogEntries } from '$lib/scan/catalog';
 	import { buildCatalogGroups, catalogTitle } from '$lib/scan/catalog-view';
+	import { buildPageJsonLd, buildSeoTitle, defaultSeoImage } from '$lib/site/seo-metadata';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -10,26 +11,15 @@
 	const canonical = $derived(`${base}/checks`);
 	const groups = buildCatalogGroups(catalogEntries());
 	const total = catalogEntries().length;
-	const title = 'Deploylint check catalog';
+	const title = buildSeoTitle('Deploylint check catalog');
 	const description =
 		'Browse Deploylint launch-readiness checks, including launch blockers, security checks, detection notes, and false-positive guidance.';
 	const jsonLd = $derived([
-		{
-			'@context': 'https://schema.org',
-			'@type': 'CollectionPage',
-			name: title,
-			url: canonical,
-			description,
-			isPartOf: {
-				'@type': 'WebSite',
-				name: 'Deploylint',
-				url: base
-			}
-		}
+		buildPageJsonLd({ base, canonical, title, description, type: 'CollectionPage' })
 	]);
 </script>
 
-<SeoHead {title} {description} {canonical} image={`${base}/og.png`} {jsonLd} />
+<SeoHead {title} {description} {canonical} image={defaultSeoImage(base)} {jsonLd} />
 
 <div class="mx-auto max-w-5xl px-4 py-12">
 	<section class="mb-8">

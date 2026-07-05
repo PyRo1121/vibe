@@ -1,21 +1,19 @@
 <script lang="ts">
 	import SeoHead from '$lib/components/SeoHead.svelte';
+	import { buildPageJsonLd, buildSeoTitle, defaultSeoImage } from '$lib/site/seo-metadata';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
 	const base = $derived(data.appUrl.replace(/\/$/, ''));
-	const title = 'Deploylint CI gate for GitHub Actions, CLI, and MCP';
+	const title = buildSeoTitle('Deploylint CI gate for GitHub Actions, CLI, and MCP');
 	const description =
 		'Block bad deploys with Deploylint CI gates for GitHub Actions, zero-install scripts, local CLI checks, and MCP tools for coding agents.';
 	const canonical = $derived(`${base}/developers`);
 	const jsonLd = $derived([
 		{
-			'@context': 'https://schema.org',
-			'@type': 'TechArticle',
+			...buildPageJsonLd({ base, canonical, title, description, type: 'TechArticle' }),
 			headline: title,
-			url: canonical,
-			description,
 			about: 'Deploylint CI gates and MCP tools'
 		},
 		{
@@ -23,6 +21,10 @@
 			'@type': 'HowTo',
 			name: 'Add a Deploylint CI gate',
 			description,
+			inLanguage: 'en-US',
+			isPartOf: {
+				'@id': `${base}/#website`
+			},
 			step: [
 				{ '@type': 'HowToStep', name: 'Set DEPLOYLINT_GATE_URL to your production URL' },
 				{ '@type': 'HowToStep', name: 'Run Deploylint from GitHub Actions or the CLI' },
@@ -98,7 +100,7 @@ PREFLIGHT_URL=https://your-app.com PREFLIGHT_MIN_SCORE=80 npm run gate -w prefli
 node gate-remote.mjs https://your-app.com`);
 </script>
 
-<SeoHead {title} {description} {canonical} image={`${base}/og.png`} {jsonLd} />
+<SeoHead {title} {description} {canonical} image={defaultSeoImage(base)} {jsonLd} />
 
 <div class="mx-auto max-w-3xl px-4 py-12 text-zinc-300">
 	<p class="mb-3 text-sm font-medium tracking-widest text-sky-400 uppercase">Fix and prove in CI</p>

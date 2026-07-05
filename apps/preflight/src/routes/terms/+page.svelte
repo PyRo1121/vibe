@@ -1,23 +1,16 @@
 <script lang="ts">
 	import SeoHead from '$lib/components/SeoHead.svelte';
+	import { buildPageJsonLd, buildSeoTitle, defaultSeoImage } from '$lib/site/seo-metadata';
 
 	const base = 'https://deploylint.com';
-	const title = 'Terms of Service - Deploylint';
+	const title = buildSeoTitle('Terms of Service');
 	const description =
 		'Deploylint terms for automated launch-readiness scans, paid fix-prompt unlocks, acceptable use, and refund handling.';
 	const canonical = `${base}/terms`;
-	const jsonLd = [
-		{
-			'@context': 'https://schema.org',
-			'@type': 'WebPage',
-			name: title,
-			url: canonical,
-			description
-		}
-	];
+	const jsonLd = [buildPageJsonLd({ base, canonical, title, description })];
 </script>
 
-<SeoHead {title} {description} {canonical} image={`${base}/og.png`} {jsonLd} />
+<SeoHead {title} {description} {canonical} image={defaultSeoImage(base)} {jsonLd} />
 
 <div class="mx-auto max-w-3xl px-4 py-12 text-zinc-300">
 	<h1 class="mb-2 text-3xl font-bold text-white">Terms of Service</h1>

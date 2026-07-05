@@ -1,5 +1,4 @@
 import { DEFAULT_DEPLOYLINT_API } from '@vibe/deploylint-shared';
-import { SEO_LANDING_PAGES } from './seo-pages';
 
 export interface PublicSiteRoute {
 	path: string;
@@ -17,13 +16,6 @@ export const PUBLIC_SITE_ROUTES = [
 		changefreq: 'weekly',
 		priority: '1.0'
 	},
-	...SEO_LANDING_PAGES.map((page) => ({
-		path: `/${page.slug}`,
-		title: page.navLabel,
-		description: page.description,
-		changefreq: 'weekly' as const,
-		priority: '0.95'
-	})),
 	{
 		path: '/checks',
 		title: 'Check catalog',

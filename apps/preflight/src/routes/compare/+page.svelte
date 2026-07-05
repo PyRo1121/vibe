@@ -1,28 +1,16 @@
 <script lang="ts">
 	import SeoHead from '$lib/components/SeoHead.svelte';
+	import { buildPageJsonLd, buildSeoTitle, defaultSeoImage } from '$lib/site/seo-metadata';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
 	const base = $derived(data.appUrl.replace(/\/$/, ''));
-	const title = 'Deploylint vs ShipReady, WebsiteReady, PageLens, and Lighthouse';
+	const title = buildSeoTitle('Deploylint vs ShipReady, WebsiteReady, PageLens, and Lighthouse');
 	const description =
 		'Compare Deploylint with ShipReady, WebsiteReady, PageLens, and Lighthouse for launch readiness, embarrassment prevention, CI gating, and agent-ready fixes.';
 	const canonical = $derived(`${base}/compare`);
-	const jsonLd = $derived([
-		{
-			'@context': 'https://schema.org',
-			'@type': 'WebPage',
-			name: title,
-			url: canonical,
-			description,
-			isPartOf: {
-				'@type': 'WebSite',
-				name: 'Deploylint',
-				url: base
-			}
-		}
-	]);
+	const jsonLd = $derived([buildPageJsonLd({ base, canonical, title, description })]);
 
 	type Cell = 'yes' | 'partial' | 'no';
 
@@ -154,7 +142,7 @@
 	};
 </script>
 
-<SeoHead {title} {description} {canonical} image={`${base}/og.png`} {jsonLd} />
+<SeoHead {title} {description} {canonical} image={defaultSeoImage(base)} {jsonLd} />
 
 <div class="mx-auto max-w-5xl px-4 py-12 text-zinc-300">
 	<p class="mb-3 text-sm font-medium tracking-widest text-sky-400 uppercase">
