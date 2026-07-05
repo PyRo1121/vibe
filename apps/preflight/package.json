@@ -67,5 +67,7 @@
 		"vitest": "^4.1.9",
 		"wrangler": "^4.107.0"
 	},
-	"dependencies": {}
+	"dependencies": {
+		"@vibe/deploylint-shared": "file:../deploylint-shared"
+	}
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-	const appUrl = 'https://lint.latham.cloud';
+	const appUrl = 'https://deploylint.com';
 </script>
 
 <svelte:head>

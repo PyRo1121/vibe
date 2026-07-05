@@ -36,14 +36,14 @@ describe('handleCheckoutPost', () => {
 
 		const res = await handleCheckoutPost(
 			request,
-			{ STRIPE_SECRET_KEY: 'sk_test_x', PUBLIC_APP_URL: 'https://lint.latham.cloud' } as Env,
+			{ STRIPE_SECRET_KEY: 'sk_test_x', PUBLIC_APP_URL: 'https://deploylint.com' } as Env,
 			'http://evil.test'
 		);
 
 		expect(res.status).toBe(200);
 		expect(createCheckoutSession).toHaveBeenCalledWith({
 			scanUrl: 'https://app.test',
-			appUrl: 'https://lint.latham.cloud',
+			appUrl: 'https://deploylint.com',
 			secretKey: 'sk_test_x'
 		});
 	});

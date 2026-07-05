@@ -11,7 +11,7 @@ function signPayload(payload: string, secret: string): string {
 }
 
 function webhookRequest(payload: string, secret: string): Request {
-	return new Request('https://lint.latham.cloud/api/webhooks/stripe', {
+	return new Request('https://deploylint.com/api/webhooks/stripe', {
 		method: 'POST',
 		headers: { 'stripe-signature': signPayload(payload, secret) },
 		body: payload

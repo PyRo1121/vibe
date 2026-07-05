@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const WEBHOOK_URL = 'https://lint.latham.cloud/api/webhooks/stripe';
+const WEBHOOK_URL = 'https://deploylint.com/api/webhooks/stripe';
 const PRODUCT_NAME = 'Deploylint fix & verify';
 const PRODUCT_DESC = 'All AI fix prompts, master repair prompt, and unlimited re-scans for one URL';
 const UNIT_AMOUNT = 900;

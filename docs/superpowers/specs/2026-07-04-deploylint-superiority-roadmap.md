@@ -1,7 +1,7 @@
 # Deploylint superiority roadmap — C → B → A
 
 **Status:** Approved priority order (2026-07-04)  
-**Host:** https://lint.latham.cloud  
+**Host:** https://deploylint.com
 **Goal:** Close competitor check-depth gaps, strengthen developer distribution, then optimize founder conversion — without abandoning the launch-judgment wedge.
 
 ---
@@ -84,7 +84,7 @@ Extend `checkEmailAuth`:
 | Server name | `deploylint` |
 | Tools | `deploylint_scan`, `deploylint_gate` |
 | Aliases | Keep `preflight_scan`, `preflight_gate` deprecated for 1 release |
-| Default API | `DEPLOYLINT_API` → `https://lint.latham.cloud`; fallback `PREFLIGHT_API` |
+| Default API | `DEPLOYLINT_API` → `https://deploylint.com`; fallback `PREFLIGHT_API` |
 | Gate P0 set | Sync with `verdict.ts`: add `noindex`, `robots-block`, `form-security`, `exposed-env`, `exposed-git` |
 
 ### B2 — Agent skill (skills.sh)
@@ -144,7 +144,7 @@ Honest partials — builds trust.
 
 ### A4 — Funnel ops
 
-- Plausible on `lint.latham.cloud`
+- Plausible on `deploylint.com`
 - Phase 18 metrics watch (30–45 days)
 - Stripe live once `charges_enabled`
 

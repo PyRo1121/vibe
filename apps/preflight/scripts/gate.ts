@@ -8,7 +8,7 @@
  *
  * Env:
  *   PREFLIGHT_URL       Target URL (or first CLI arg)
- *   PREFLIGHT_API       API base (default https://lint.latham.cloud)
+ *   PREFLIGHT_API       API base (default https://deploylint.com)
  *   PREFLIGHT_MIN_SCORE Minimum score (default 80)
  */
 import type { ScanReport } from '../src/lib/scan/types';
@@ -17,7 +17,7 @@ import { evaluateGate, formatGateReport } from '../src/lib/gate/evaluate';
 const apiBase = (
 	process.env.DEPLOYLINT_API ??
 	process.env.PREFLIGHT_API ??
-	'https://lint.latham.cloud'
+	'https://deploylint.com'
 ).replace(/\/$/, '');
 const targetUrl = process.argv[2]?.trim() || process.env.PREFLIGHT_URL?.trim();
 

@@ -24,7 +24,7 @@ Add `.cursor/mcp.json`:
     "deploylint": {
       "command": "npx",
       "args": ["tsx", "apps/preflight-mcp/src/index.ts"],
-      "env": { "DEPLOYLINT_API": "https://lint.latham.cloud" }
+      "env": { "DEPLOYLINT_API": "https://deploylint.com" }
     }
   }
 }
@@ -62,7 +62,7 @@ Same inputs plus:
 **Zero-install:**
 
 ```bash
-curl -fsSL https://lint.latham.cloud/gate-remote.mjs -o gate-remote.mjs
+curl -fsSL https://deploylint.com/gate-remote.mjs -o gate-remote.mjs
 node gate-remote.mjs https://your-app.com
 node gate-remote.mjs https://your-app.com --json
 ```
@@ -73,7 +73,7 @@ Env: `DEPLOYLINT_API`, `DEPLOYLINT_GATE_URL` (preferred), `PREFLIGHT_URL` (legac
 ## Fix loop
 
 1. `deploylint_scan` — note P0 failures and embarrassment brief
-2. Use fix prompts (unlock at lint.latham.cloud for all prompts)
+2. Use fix prompts (unlock at deploylint.com for all prompts)
 3. Deploy fixes
 4. Re-scan with `unlock_session_id` + `previous_score` — confirm delta
 

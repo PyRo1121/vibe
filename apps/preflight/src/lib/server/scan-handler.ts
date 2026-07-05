@@ -11,6 +11,7 @@ import { resolveUnlock } from '$lib/server/resolve-unlock';
 import { logFunnelEvent } from '$lib/metrics/funnel';
 import { assertScanRateLimit, clientIp } from '$lib/server/rate-limit';
 import { assertDailyScanBudget, reserveAiCopyReview } from '$lib/server/usage-budget';
+import { ALPHA_FREE_UNLOCK } from '$lib/product/alpha';
 
 export async function handleScanPost(request: Request, env: Env | undefined) {
 	await assertDailyScanBudget(env?.REPORTS, env?.LIMITER);
@@ -30,13 +31,13 @@ export async function handleScanPost(request: Request, env: Env | undefined) {
 		: await scanUrl(parsed.url, deps);
 	const stripeKey = env?.STRIPE_SECRET_KEY;
 
-	if (parsed.unlockSessionId && !stripeKey && !env?.REPORTS) {
+	if (!ALPHA_FREE_UNLOCK && parsed.unlockSessionId && !stripeKey && !env?.REPORTS) {
 		error(503, 'Unlock verification is not configured yet');
 	}
 
-	let unlocked = false;
+	let unlocked = ALPHA_FREE_UNLOCK;
 	if (parsed.unlockSessionId) {
-		unlocked = await resolveUnlock({
+		unlocked ||= await resolveUnlock({
 			kv: env?.REPORTS,
 			stripeKey,
 			scanUrl: parsed.url,

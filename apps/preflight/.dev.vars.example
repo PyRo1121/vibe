@@ -4,5 +4,5 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 PUBLIC_APP_URL=http://localhost:5173
 
 # Stripe Dashboard webhook (production):
-# URL: https://lint.latham.cloud/api/webhooks/stripe
+# URL: https://deploylint.com/api/webhooks/stripe
 # Events: checkout.session.completed, checkout.session.async_payment_succeeded

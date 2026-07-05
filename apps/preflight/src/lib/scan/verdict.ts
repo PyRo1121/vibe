@@ -1,8 +1,7 @@
-import type { ScanCheck } from '$lib/scan/types';
+import type { CheckPriority, LaunchVerdict, ScanCheck } from '$lib/scan/types';
 import { P0_ID_SET } from '$lib/scan/p0-ids';
 
-export type CheckPriority = 'p0' | 'p1' | 'p2';
-export type LaunchVerdict = 'go' | 'conditional' | 'no-go';
+export type { CheckPriority, LaunchVerdict } from '$lib/scan/types';
 
 const P0_IDS = P0_ID_SET;
 const P1_IDS = new Set([

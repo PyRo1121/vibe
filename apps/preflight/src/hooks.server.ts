@@ -1,17 +1,26 @@
 import type { Handle } from '@sveltejs/kit';
 import { isHttpError } from '@sveltejs/kit';
+import {
+	DEFAULT_DEPLOYLINT_API,
+	DEPLOYLINT_LEGACY_HOST,
+	DEPLOYLINT_WWW_HOST
+} from '@vibe/deploylint-shared';
 import { applySecurityHeaders, enforceEdgeSecurity } from '$lib/server/edge-security';
 
 export { CounterLimiter } from '$lib/server/counter-limiter';
 
-const REDIRECT_HOSTS = new Set(['deploylint.com', 'www.deploylint.com']);
+const REDIRECT_HOSTS = new Set([DEPLOYLINT_LEGACY_HOST, DEPLOYLINT_WWW_HOST]);
+const LEGACY_DIRECT_PREFIXES = ['/api/', '/s/'];
 
-/** 301 apex marketing domain → canonical host when DNS is pointed at this Worker. */
+/** 301 legacy and www hosts to the canonical apex domain. */
 export const handle: Handle = async ({ event, resolve }) => {
 	const host = event.request.headers.get('host')?.split(':')[0]?.toLowerCase();
-	if (host && REDIRECT_HOSTS.has(host)) {
+	const shouldServeDirect = LEGACY_DIRECT_PREFIXES.some((prefix) =>
+		event.url.pathname.startsWith(prefix)
+	);
+	if (host && REDIRECT_HOSTS.has(host) && !shouldServeDirect) {
 		const canonical =
-			event.platform?.env?.PUBLIC_APP_URL?.replace(/\/$/, '') ?? 'https://lint.latham.cloud';
+			event.platform?.env?.PUBLIC_APP_URL?.replace(/\/$/, '') ?? DEFAULT_DEPLOYLINT_API;
 		const target = new URL(event.url.pathname + event.url.search, canonical);
 		return Response.redirect(target.href, 301);
 	}

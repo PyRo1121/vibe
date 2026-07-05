@@ -21,7 +21,7 @@ function extractMcpP0Ids(): string[] {
 	const content = readFileSync(mcpGatePath, 'utf8');
 	const match = content.match(/GATE_P0_IDS = new Set\(\[([\s\S]*?)\]\)/);
 	if (!match) throw new Error('GATE_P0_IDS block missing in preflight-mcp');
-	return [...match[1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
+	return [...match[1].matchAll(/['"]([^'"]+)['"]/g)].map((m) => m[1]);
 }
 
 describe('gate P0 sync', () => {

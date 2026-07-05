@@ -46,14 +46,30 @@ describe('handleScanPost', () => {
 		expect(scanUrl).toHaveBeenCalledWith('https://app.test', expect.any(Object));
 	});
 
-	it('returns 503 when unlock session sent without Stripe key or KV', async () => {
+	it('unlocks scans without checkout while alpha free unlock is enabled', async () => {
+		const request = new Request('http://localhost/api/scan', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ url: 'https://app.test' })
+		});
+
+		const res = await handleScanPost(request, undefined);
+		const body = (await res.json()) as { unlocked?: boolean };
+		expect(body.unlocked).toBe(true);
+		expect(resolveUnlock).not.toHaveBeenCalled();
+	});
+
+	it('accepts legacy unlock session ids without Stripe while alpha is free', async () => {
 		const request = new Request('http://localhost/api/scan', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ url: 'https://app.test', unlockSessionId: 'cs_test_abc123' })
 		});
 
-		await expect(handleScanPost(request, undefined)).rejects.toMatchObject({ status: 503 });
+		const res = await handleScanPost(request, undefined);
+		const body = (await res.json()) as { unlocked?: boolean };
+		expect(body.unlocked).toBe(true);
+		expect(resolveUnlock).not.toHaveBeenCalled();
 	});
 
 	it('stores the report and returns a permalink id when KV is bound', async () => {
@@ -110,7 +126,7 @@ describe('handleScanPost', () => {
 		expect(second.history?.[0].score).toBe(80);
 	});
 
-	it('attaches AI copy review only for unlocked scans', async () => {
+	it('attaches AI copy review to alpha-unlocked scans', async () => {
 		const ai = {
 			run: async () => ({
 				response:
@@ -126,8 +142,10 @@ describe('handleScanPost', () => {
 			}),
 			{ AI: ai } as unknown as Env
 		);
-		const locked = (await lockedRes.json()) as { aiCopyReview?: unknown };
-		expect(locked.aiCopyReview).toBeUndefined();
+		const locked = (await lockedRes.json()) as {
+			aiCopyReview?: { headline: string };
+		};
+		expect(locked.aiCopyReview?.headline).toBe('Better headline');
 
 		const unlockedRes = await handleScanPost(
 			new Request('http://localhost/api/scan', {
@@ -143,7 +161,7 @@ describe('handleScanPost', () => {
 		expect(unlocked.aiCopyReview?.headline).toBe('Better headline');
 	});
 
-	it('resolves unlock via resolveUnlock when session id is sent', async () => {
+	it('does not call Stripe unlock verification while alpha free unlock is enabled', async () => {
 		const request = new Request('http://localhost/api/scan', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
@@ -156,11 +174,6 @@ describe('handleScanPost', () => {
 
 		const res = await handleScanPost(request, { STRIPE_SECRET_KEY: 'sk_test_x' } as Env);
 		expect(res.status).toBe(200);
-		expect(resolveUnlock).toHaveBeenCalledWith({
-			kv: undefined,
-			stripeKey: 'sk_test_x',
-			scanUrl: 'https://app.test',
-			sessionId: 'cs_test_abc123'
-		});
+		expect(resolveUnlock).not.toHaveBeenCalled();
 	});
 });

@@ -8,7 +8,7 @@
  *
  * Env:
  *   PREFLIGHT_URL       Target URL (or first CLI arg)
- *   PREFLIGHT_API       API base (default https://lint.latham.cloud)
+ *   PREFLIGHT_API       API base (default https://deploylint.com)
  *   PREFLIGHT_MIN_SCORE Minimum score (default 80)
  *   PREFLIGHT_MODE      "gate" (default, exits 1 on blockers) or "advisory" (report only, always exits 0)
  *
@@ -38,7 +38,7 @@ const COMMENT_MARKER = '<!-- preflight-gate -->';
 const apiBase = (
 	process.env.DEPLOYLINT_API ??
 	process.env.PREFLIGHT_API ??
-	'https://lint.latham.cloud'
+	'https://deploylint.com'
 ).replace(/\/$/, '');
 const positionalArgs = process.argv.slice(2).filter((arg) => !arg.startsWith('--'));
 const targetUrl = positionalArgs[0]?.trim() || process.env.PREFLIGHT_URL?.trim();

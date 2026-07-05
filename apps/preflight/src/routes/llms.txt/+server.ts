@@ -1,4 +1,5 @@
 import type { RequestHandler } from './$types';
+import { DEFAULT_DEPLOYLINT_API } from '@vibe/deploylint-shared';
 
 const BODY = `# Deploylint
 
@@ -6,10 +7,10 @@ const BODY = `# Deploylint
 
 Deploylint scans a live URL for launch blockers: exposed secrets in JS bundles, broken social preview images, placeholder copy, missing legal pages, robots.txt blocking Google, llms.txt, security.txt, security headers, and more.
 
-- Product: https://lint.latham.cloud
+- Product: ${DEFAULT_DEPLOYLINT_API}
 - Free tier: verdict, embarrassment brief, social preview, one sample fix prompt
 - Paid ($9): all Cursor fix prompts, master repair paste, unlimited re-scans with score delta
-- CI gate: https://lint.latham.cloud/developers — block deploys when launch blockers remain
+- CI gate: ${DEFAULT_DEPLOYLINT_API}/developers — block deploys when launch blockers remain
 
 Built for builders using Cursor, Lovable, Bolt, and similar tools who ship fast and hate public surprises.
 `;

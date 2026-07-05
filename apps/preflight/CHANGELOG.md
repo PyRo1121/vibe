@@ -1,6 +1,6 @@
 # Changelog
 
-All notable **user-facing** changes to [Deploylint](https://lint.latham.cloud) are documented here.
+All notable **user-facing** changes to [Deploylint](https://deploylint.com) are documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for `apps/preflight` releases (`0.MINOR.PATCH` until 1.0).
 
@@ -21,7 +21,7 @@ Phase 28b-35: DKIM probe, changelog page, Plausible proxy.
 - DKIM DNS probe (`dkim-dns`) when SPF is present — common `_domainkey` selectors.
 - Public `/changelog` page rendering `CHANGELOG.md`.
 - First-party Plausible proxy (`/s/script.js`, `/s/event`) for verifier + ad-blocker resilience.
-- `deploylint.com` → canonical host 301 redirect (when DNS points at Worker).
+- `deploylint.com` canonical host, with `lint.latham.cloud` and `www.deploylint.com` redirecting to the apex domain.
 
 ### Changed
 
@@ -55,7 +55,7 @@ Phase 26–31 — check depth + developer wedge.
 
 ## [0.26.0] - 2026-07-04
 
-Deploylint rebrand on `lint.latham.cloud`.
+Deploylint rebrand on `deploylint.com`.
 
 ### Changed
 

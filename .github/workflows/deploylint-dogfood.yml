@@ -26,9 +26,9 @@ jobs:
       - name: Verify MCP package
         run: npm run verify -w preflight-mcp
 
-      - name: Gate lint.latham.cloud
+      - name: Gate deploylint.com
         uses: ./.github/actions/deploylint-gate
         with:
-          url: https://lint.latham.cloud
+          url: https://deploylint.com
           min_score: "70"
           mode: advisory

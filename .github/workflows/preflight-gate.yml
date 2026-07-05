@@ -47,7 +47,7 @@ jobs:
         env:
           PREFLIGHT_URL: ${{ github.event.inputs.url || secrets.PREFLIGHT_GATE_URL || secrets.DEPLOYLINT_GATE_URL }}
           PREFLIGHT_MIN_SCORE: ${{ github.event.inputs.min_score || '80' }}
-          PREFLIGHT_API: https://lint.latham.cloud
+          PREFLIGHT_API: https://deploylint.com
         run: |
           if [ -z "$PREFLIGHT_URL" ]; then
             echo "Skipping URL gate - set PREFLIGHT_GATE_URL (or DEPLOYLINT_GATE_URL) or workflow_dispatch with url."

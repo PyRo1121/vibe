@@ -4,8 +4,8 @@ import { resolveAppUrl } from './env';
 describe('resolveAppUrl', () => {
 	it('prefers configured PUBLIC_APP_URL over request origin', () => {
 		expect(
-			resolveAppUrl({ PUBLIC_APP_URL: 'https://lint.latham.cloud/' } as Env, 'http://evil.test')
-		).toBe('https://lint.latham.cloud');
+			resolveAppUrl({ PUBLIC_APP_URL: 'https://deploylint.com/' } as Env, 'http://evil.test')
+		).toBe('https://deploylint.com');
 	});
 
 	it('allows request-origin fallback for local development', () => {

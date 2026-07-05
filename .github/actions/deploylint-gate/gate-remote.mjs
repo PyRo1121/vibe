@@ -21,7 +21,7 @@ const P0_IDS = new Set([
 const apiBase = (
   process.env.DEPLOYLINT_API ??
   process.env.PREFLIGHT_API ??
-  "https://lint.latham.cloud"
+  "https://deploylint.com"
 ).replace(/\/$/, "");
 const targetUrl = process.argv[2]?.trim() || process.env.PREFLIGHT_URL?.trim();
 const minScore = Number(process.env.PREFLIGHT_MIN_SCORE ?? "80");

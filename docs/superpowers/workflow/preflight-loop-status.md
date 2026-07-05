@@ -12,7 +12,7 @@
 | P2 (JS secrets, CI gate CLI, MCP)                                 | ✅     |
 | World-class scan depth                                            | ✅     |
 
-**Primary URL:** https://lint.latham.cloud (Deploylint test deploy; was preflight.latham.cloud)
+**Primary URL:** https://deploylint.com (Deploylint production domain; `lint.latham.cloud` remains as a legacy redirect)
 
 ## Verification
 
@@ -39,9 +39,9 @@ Per Phase 3 kill metrics (45 days). **Ops runs in parallel** — engineering con
 
 **Ops checklist:**
 
-1. ~~Register Plausible for `lint.latham.cloud`~~ ✅ — add custom goals in Plausible dashboard (see below)
+1. ~~Register Plausible for `deploylint.com`~~ ✅ — add custom goals in Plausible dashboard (see below)
 2. One live checkout ($9) → unlock → re-scan delta (blocked until Stripe enables charges)
-3. ~~Add `DEPLOYLINT_GATE_URL` secret~~ → set `DEPLOYLINT_GATE_URL` (or legacy `PREFLIGHT_GATE_URL`) to `https://lint.latham.cloud` on vibe repo; workflow uses `lint.latham.cloud` API
+3. ~~Add `DEPLOYLINT_GATE_URL` secret~~ → set `DEPLOYLINT_GATE_URL` (or legacy `PREFLIGHT_GATE_URL`) to `https://deploylint.com` on vibe repo; workflow uses `deploylint.com` API
 4. Watch funnel events 30–45 days
 
 ### Phase 19 — CI deploy gate (now)
@@ -103,7 +103,7 @@ Per Phase 3 kill metrics (45 days). **Ops runs in parallel** — engineering con
 **Stripe live checklist** (no secrets in repo):
 
 1. `npm run stripe -- login` (Stripe CLI)
-2. `powershell -ExecutionPolicy Bypass -File scripts/setup-stripe-live.ps1` — creates live webhook at `https://lint.latham.cloud/api/webhooks/stripe` (real charges)
+2. `powershell -ExecutionPolicy Bypass -File scripts/setup-stripe-live.ps1` — creates live webhook at `https://deploylint.com/api/webhooks/stripe` (real charges)
 3. `npx wrangler secret put STRIPE_SECRET_KEY` — paste `sk_live_…` from [live API keys](https://dashboard.stripe.com/apikeys)
 4. `npx wrangler secret put STRIPE_WEBHOOK_SECRET` — paste `whsec_…` from script output
 5. `npm run deploy` then `npm run smoke:phase24` — checkout skips with message if not configured; webhook GET must return `ok`
@@ -127,7 +127,7 @@ Per Phase 3 kill metrics (45 days). **Ops runs in parallel** — engineering con
 | `PostUnlockGuide` progress ring after re-scan                                    | ✅                                                                  |
 | `/compare` — ShipReady, WebsiteReady, PageLens columns                           | ✅                                                                  |
 | Unlock panels — master prompt line count + Fix All headline                      | ✅                                                                  |
-| Plausible on `lint.latham.cloud`                                                 | ✅ first-party proxy `/s/script.js` + funnel via `window.plausible` |
+| Plausible on `deploylint.com`                                                 | ✅ first-party proxy `/s/script.js` + funnel via `window.plausible` |
 | Funnel: `rescan_completed` with `scoreDelta`                                     | ✅ (existing `trackFunnel`)                                         |
 
 **Plausible custom goals** (Settings → Goals → Add goal → Custom event):
@@ -147,12 +147,12 @@ Props (`verdict`, `score`, `scoreDelta`, etc.) appear on Business/trial plans.
 | Check                                                  | Status                                                                                                                                                               |
 | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Worker `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET`   | ✅                                                                                                                                                                   |
-| Live webhook → `lint.latham.cloud/api/webhooks/stripe` | ✅ `we_1TpctGPI6tkdUQScHy1GREWi`                                                                                                                                     |
+| Live webhook → `deploylint.com/api/webhooks/stripe` | ✅ `we_1TpctGPI6tkdUQScHy1GREWi`                                                                                                                                     |
 | Checkout session creation (`cs_live_…`)                | ✅ `smoke:preflight` / `smoke:phase24`                                                                                                                               |
 | `charges_enabled` / `card_payments`                    | ⏳ **pending** — Stripe reviewing `business_profile.url`; product description now matches DeployLint                                                                 |
-| GitHub `DEPLOYLINT_GATE_URL` on vibe repo              | ✅ `https://lint.latham.cloud`                                                                                                                                       |
+| GitHub `DEPLOYLINT_GATE_URL` on vibe repo              | ✅ `https://deploylint.com`                                                                                                                                       |
 | Test webhook cleanup                                   | ✅ deleted `we_1TpcxEPI6tkdUQSc7Zupn4ZH`                                                                                                                             |
-| Prior blocker                                          | `invalid_url_website_inaccessible` — resolved once `https://lint.latham.cloud` is set in [Business settings](https://dashboard.stripe.com/settings/business-details) |
+| Prior blocker                                          | `invalid_url_website_inaccessible` — resolved once `https://deploylint.com` is set in [Business settings](https://dashboard.stripe.com/settings/business-details) |
 
 When `charges_enabled` flips true: run one $9 checkout → confirm webhook → re-scan for delta proof.
 
@@ -172,7 +172,7 @@ When `charges_enabled` flips true: run one $9 checkout → confirm webhook → r
 | Item                                                                                                                       | Status        |
 | -------------------------------------------------------------------------------------------------------------------------- | ------------- |
 | `/changelog` public page                                                                                                   | ✅            |
-| `deploylint.com` 301 redirect hook (wire DNS + wrangler route when registered)                                             | ✅ code ready |
+| `lint.latham.cloud` + `www.deploylint.com` 301 redirect hook to `deploylint.com`                                           | ✅ code ready |
 | Plausible first-party proxy                                                                                                | ✅            |
 | **v0.35.0** — tag `deploylint-v0.35.0`, [GitHub release](https://github.com/PyRo1121/vibe/releases/tag/deploylint-v0.35.0) | ✅            |
 

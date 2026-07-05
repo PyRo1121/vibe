@@ -1,4 +1,4 @@
-# Cloudflare firewall — Deploylint / latham.cloud
+# Cloudflare firewall — Deploylint / deploylint.com
 
 Two layers: **zone firewall** (Cloudflare edge, blocks traffic before your Worker) and **Worker edge security** (in-app rate limits + headers).
 
@@ -10,7 +10,7 @@ Automatic **L3/L4 DDoS mitigation** is always on for Cloudflare zones. This scri
 
 1. Create an API token: [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens) → **Create Token** → Custom token
    - **Permissions:** Zone · Zone · Read, Zone · Zone Settings · Edit, Zone · Firewall Services · Edit
-   - **Zone Resources:** Include · Specific zone · `latham.cloud`
+   - **Zone Resources:** Include · Specific zone · `deploylint.com`
 
 2. Run:
 
@@ -68,4 +68,4 @@ See also: [cloudflare-free-tier.md](./cloudflare-free-tier.md)
 
 ## TCG Vault (`vault.latham.cloud`)
 
-Same zone (`latham.cloud`) — zone rules protect both hostnames. Worker limits on `lint.latham.cloud` paths only; vault has its own Worker without scan API abuse surface.
+TCG Vault remains on the separate `latham.cloud` zone. To apply equivalent zone-level rules there, run the script with `CLOUDFLARE_ZONE=latham.cloud`; Worker limits for Deploylint are handled in this app.

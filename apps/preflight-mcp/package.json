@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
+    "@vibe/deploylint-shared": "file:../deploylint-shared",
     "zod": "^4.4.3"
   },
   "devDependencies": {

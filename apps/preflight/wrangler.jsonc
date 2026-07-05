@@ -2,7 +2,7 @@
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "preflight",
 	"main": ".svelte-kit/cloudflare/_worker.js",
-	"compatibility_date": "2026-07-02",
+	"compatibility_date": "2026-07-05",
 	"compatibility_flags": ["nodejs_compat", "nodejs_als"],
 	"assets": {
 		"binding": "ASSETS",
@@ -45,16 +45,22 @@
 	"workers_dev": false,
 	"routes": [
 		{
+			"pattern": "deploylint.com",
+			"custom_domain": true
+		},
+		{
+			"pattern": "www.deploylint.com",
+			"custom_domain": true
+		},
+		{
 			"pattern": "lint.latham.cloud",
 			"custom_domain": true
 		}
-		// When deploylint.com DNS is on Cloudflare: add { "pattern": "deploylint.com", "custom_domain": true }
-		// hooks.server.ts 301s deploylint.com → PUBLIC_APP_URL
 	],
 	"vars": {
 		"PUBLIC_SITE_NAME": "Deploylint",
-		"PUBLIC_APP_URL": "https://lint.latham.cloud",
-		"PUBLIC_PLAUSIBLE_DOMAIN": "lint.latham.cloud",
+		"PUBLIC_APP_URL": "https://deploylint.com",
+		"PUBLIC_PLAUSIBLE_DOMAIN": "deploylint.com",
 		"PUBLIC_PLAUSIBLE_SCRIPT": "https://plausible.io/js/pa-6HNboY8BBbu4MK_Qmeoxr.js"
 	}
 }

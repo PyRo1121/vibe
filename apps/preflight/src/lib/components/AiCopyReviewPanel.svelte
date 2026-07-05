@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { ScanReport } from '$lib/scan/types';
+	import { ALPHA_FREE_UNLOCK } from '$lib/product/alpha';
 
 	let {
 		report,
@@ -25,7 +26,7 @@
 			<span
 				class="rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] font-semibold tracking-wider text-violet-300 uppercase"
 			>
-				Included with unlock
+				{ALPHA_FREE_UNLOCK ? 'Free in alpha' : 'Included with unlock'}
 			</span>
 		</div>
 		<ul class="mt-3 space-y-2 text-sm text-zinc-300">

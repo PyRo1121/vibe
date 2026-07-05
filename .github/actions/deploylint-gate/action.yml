@@ -11,7 +11,7 @@ inputs:
   api:
     description: Deploylint API base URL
     required: false
-    default: https://lint.latham.cloud
+    default: https://deploylint.com
   min_score:
     description: Minimum launch score (0–100)
     required: false

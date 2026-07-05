@@ -6,7 +6,7 @@
  *   PLAUSIBLE_PLUGIN_TOKEN=plausible-plugin-... node scripts/setup-plausible-goals.mjs
  *   npm run setup:plausible-goals -w preflight
  *
- * Get token: Plausible → lint.latham.cloud → Settings → Plugin Token
+ * Get token: Plausible → deploylint.com → Settings → Plugin Token
  */
 const TOKEN = process.env.PLAUSIBLE_PLUGIN_TOKEN?.trim();
 const API = 'https://plausible.io/api/plugins/v1/goals';

@@ -1,17 +1,8 @@
 import { SEO_LIMITS } from '$lib/scan/constants';
 import { parsePageMeta, pickMeta } from '$lib/scan/parse';
+import type { SocialPreview } from '$lib/scan/types';
 
-export interface SocialPreview {
-	title: string | null;
-	description: string | null;
-	image: string | null;
-	imageUrl: string | null;
-	twitterCard: string | null;
-	issues: string[];
-	ready: boolean;
-	/** null when no og:image; false when HEAD failed */
-	imageReachable?: boolean | null;
-}
+export type { SocialPreview } from '$lib/scan/types';
 
 export function buildSocialPreview(html: string, finalUrl: URL): SocialPreview {
 	const meta = parsePageMeta(html, finalUrl);

@@ -313,7 +313,7 @@ const GATE_P0 = new Set([
 - [ ] **Step 3: Add tools**
 
 ```typescript
-const apiBase = (process.env.DEPLOYLINT_API ?? process.env.PREFLIGHT_API ?? 'https://lint.latham.cloud').replace(/\/$/, '');
+const apiBase = (process.env.DEPLOYLINT_API ?? process.env.PREFLIGHT_API ?? 'https://deploylint.com').replace(/\/$/, '');
 
 server.tool('deploylint_scan', 'Run a Deploylint launch-readiness audit...', ...);
 server.tool('deploylint_gate', 'PASS/FAIL deploy gate...', ...);
@@ -338,7 +338,7 @@ server.tool('deploylint_gate', 'PASS/FAIL deploy gate...', ...);
 Sections:
 - When to use Deploylint (pre-PR, pre-Product Hunt, post-deploy)
 - MCP setup (`deploylint_scan`, `deploylint_gate`)
-- Hosted gate: `curl -fsSL https://lint.latham.cloud/gate-remote.mjs`
+- Hosted gate: `curl -fsSL https://deploylint.com/gate-remote.mjs`
 - Fix loop: unlock → master prompt → re-scan
 
 - [ ] **Step 2: Link from /developers**
@@ -373,7 +373,7 @@ if (process.argv.includes('--json')) {
 
 - [ ] **Step 4: Run smoke:phase19 + commit**
 
-**Phase B complete when:** MCP tools work against lint.latham.cloud; smoke:phase19 green.
+**Phase B complete when:** MCP tools work against deploylint.com; smoke:phase19 green.
 
 ---
 

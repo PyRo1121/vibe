@@ -10,7 +10,7 @@ import {
 
 describe('appHostname', () => {
 	it('parses configured app URL', () => {
-		expect(appHostname('https://lint.latham.cloud/')).toBe('lint.latham.cloud');
+		expect(appHostname('https://deploylint.com/')).toBe('deploylint.com');
 	});
 
 	it('returns null for invalid URL', () => {

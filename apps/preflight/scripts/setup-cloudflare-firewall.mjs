@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Apply Cloudflare zone firewall + security settings for latham.cloud (Deploylint + TCG Vault).
+ * Apply Cloudflare zone firewall + security settings for deploylint.com.
  *
  * Requires an API token with Zone Settings Edit + Zone WAF Edit (wrangler OAuth is read-only).
  *
@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
-const ZONE_NAME = process.env.CLOUDFLARE_ZONE ?? 'latham.cloud';
+const ZONE_NAME = process.env.CLOUDFLARE_ZONE ?? 'deploylint.com';
 const API = 'https://api.cloudflare.com/client/v4';
 
 const ZONE_SETTINGS = [
@@ -171,7 +171,7 @@ main().catch((err) => {
 		console.error(
 			'  2. Permissions: Zone · Zone Settings · Edit, Zone · Firewall Services · Edit, Zone · Zone · Read'
 		);
-		console.error('  3. Zone Resources: Include · Specific zone · latham.cloud');
+		console.error('  3. Zone Resources: Include · Specific zone · deploylint.com');
 		console.error('  4. CLOUDFLARE_API_TOKEN=... npm run setup:cloudflare-firewall -w preflight');
 	}
 	console.error(err.message ?? err);

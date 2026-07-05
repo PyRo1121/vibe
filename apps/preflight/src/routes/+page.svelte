@@ -24,6 +24,7 @@
 	import UnlockStickyBar from '$lib/components/UnlockStickyBar.svelte';
 	import DeepDivesSection from '$lib/components/DeepDivesSection.svelte';
 	import SeoHead from '$lib/components/SeoHead.svelte';
+	import { ALPHA_DISCLAIMER, ALPHA_FREE_UNLOCK, ALPHA_PRICE_PREVIEW } from '$lib/product/alpha';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -108,8 +109,8 @@
 				unlockSessionId?: string;
 				previousScore?: number;
 			} = { url: url.trim() };
-			if (unlockSessionId) payload.unlockSessionId = unlockSessionId;
-			if (rescan && unlockSessionId) {
+			if (unlockSessionId && !ALPHA_FREE_UNLOCK) payload.unlockSessionId = unlockSessionId;
+			if (rescan && (unlockSessionId || ALPHA_FREE_UNLOCK)) {
 				const baseline = sessionStorage.getItem(STORAGE.baselineScore);
 				if (baseline) payload.previousScore = Number(baseline);
 			}
@@ -140,23 +141,20 @@
 					const sign = report.scoreDelta >= 0 ? '+' : '';
 					checkoutMessage = `Verified: ${report.previousScore} → ${report.score} (${sign}${report.scoreDelta})`;
 				} else {
-					checkoutMessage = 'Fix prompts unlocked — copy prompts below, then re-scan after fixing.';
+					checkoutMessage = ALPHA_FREE_UNLOCK
+						? 'Alpha access active - all fix prompts are free while we build.'
+						: 'Fix prompts unlocked — copy prompts below, then re-scan after fixing.';
 				}
 			}
 
 			const issueCount = report.checks.filter((c) => c.status !== 'pass').length;
-			trackFunnel(
-				rescan && unlockSessionId && report.scoreDelta != null
-					? 'rescan_completed'
-					: 'scan_completed',
-				{
-					verdict: report.verdict,
-					score: report.score,
-					unlocked: report.unlocked,
-					issueCount,
-					...(report.scoreDelta != null ? { scoreDelta: report.scoreDelta } : {})
-				}
-			);
+			trackFunnel(rescan && report.scoreDelta != null ? 'rescan_completed' : 'scan_completed', {
+				verdict: report.verdict,
+				score: report.score,
+				unlocked: report.unlocked,
+				issueCount,
+				...(report.scoreDelta != null ? { scoreDelta: report.scoreDelta } : {})
+			});
 		} catch (err) {
 			if (err instanceof DOMException && err.name === 'AbortError') return;
 			error = err instanceof Error ? err.message : 'Scan failed';
@@ -167,6 +165,10 @@
 
 	async function startCheckout() {
 		if (!url.trim() || !report) return;
+		if (ALPHA_FREE_UNLOCK) {
+			checkoutMessage = 'No checkout during alpha - paid features are included free right now.';
+			return;
+		}
 		trackFunnel('unlock_click', { verdict: report.verdict, score: report.score });
 		checkoutLoading = true;
 		checkoutMessage = null;
@@ -256,10 +258,39 @@
 			public
 			<strong class="font-medium text-zinc-300">GitHub repo</strong> (committed .env files,
 			dependency licenses, sell rights). Built for apps you ship — bot-protected enterprise sites
-			may scan incomplete. Free: verdict + embarrassment brief. Paid ($9): every Cursor fix prompt,
-			master repair paste, and re-scans to prove you fixed it.
+			may scan incomplete. Alpha: full reports are free while we build. Later:
+			<span class="font-medium text-zinc-300">{ALPHA_PRICE_PREVIEW.later}</span>
+			for every Cursor fix prompt, master repair paste, AI copy review, and re-scan proof.
 			<a href="/compare" class="text-sky-400 hover:underline">See how we compare →</a>
 		</p>
+	</section>
+
+	<section
+		class="mx-auto mb-10 max-w-2xl rounded-2xl border border-sky-500/30 bg-sky-500/5 p-5 print:hidden"
+		aria-label="Alpha pricing notice"
+	>
+		<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+			<div>
+				<p class="text-xs font-semibold tracking-widest text-sky-300 uppercase">
+					{ALPHA_PRICE_PREVIEW.current}
+				</p>
+				<p class="mt-2 text-sm text-zinc-300">{ALPHA_DISCLAIMER}</p>
+			</div>
+			<div class="shrink-0 rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3">
+				<p class="text-[10px] font-semibold tracking-wider text-zinc-500 uppercase">
+					Full release price
+				</p>
+				<p class="mt-1 text-lg font-bold text-white">{ALPHA_PRICE_PREVIEW.later}</p>
+			</div>
+		</div>
+		<ul class="mt-4 grid gap-2 text-xs text-zinc-400 sm:grid-cols-2">
+			{#each ALPHA_PRICE_PREVIEW.hiddenLater as item (item)}
+				<li class="flex gap-2">
+					<span class="text-sky-400">+</span>
+					<span>{item} will move behind checkout later</span>
+				</li>
+			{/each}
+		</ul>
 	</section>
 
 	<form
@@ -314,6 +345,21 @@
 	</form>
 
 	{#if report}
+		{#if ALPHA_FREE_UNLOCK}
+			<section
+				class="mb-6 rounded-2xl border border-sky-500/30 bg-sky-500/5 p-5 print:hidden"
+				aria-label="Alpha unlocked report notice"
+			>
+				<p class="text-xs font-semibold tracking-widest text-sky-300 uppercase">
+					Alpha access unlocked
+				</p>
+				<p class="mt-2 text-sm text-zinc-300">
+					You are seeing the full paid report free during alpha. Later,
+					{ALPHA_PRICE_PREVIEW.later} unlocks the prompts, master paste, AI copy review, and re-scan proof
+					shown below.
+				</p>
+			</section>
+		{/if}
 		<VerdictBanner {report} />
 		<RepoSummaryPanel {report} />
 		<ScanIncompleteBanner {report} />
@@ -375,7 +421,7 @@
 			<div class="rounded-xl border border-zinc-800 p-5">
 				<p class="font-medium text-white">Fix & prove loop</p>
 				<p class="mt-1 text-sm text-zinc-500">
-					$9 unlock · Cursor prompts + before/after re-scan delta
+					Free in alpha · later $9 for Cursor prompts + before/after re-scan delta
 				</p>
 			</div>
 			<div class="rounded-xl border border-zinc-800 p-5">

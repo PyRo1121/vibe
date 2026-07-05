@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { onNavigate } from '$app/navigation';
 	import { watchPlausible, plausibleInitSnippet } from '$lib/client/plausible';
+	import { ALPHA_FREE_UNLOCK } from '$lib/product/alpha';
 	import './layout.css';
 
 	let {
@@ -51,11 +52,13 @@
 		class="sticky top-0 z-40 border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur-md supports-[backdrop-filter]:bg-zinc-950/60 print:hidden"
 	>
 		<div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-			<a
-				href="/"
-				class="text-lg font-semibold tracking-tight text-white transition-opacity hover:opacity-90"
-			>
-				Deploylint
+			<a href="/" class="flex flex-col leading-none transition-opacity hover:opacity-90">
+				<span class="text-lg font-semibold tracking-tight text-white">Deploylint</span>
+				{#if ALPHA_FREE_UNLOCK}
+					<span class="mt-0.5 text-[9px] font-semibold tracking-[0.24em] text-sky-400 uppercase">
+						Alpha
+					</span>
+				{/if}
 			</a>
 			<nav aria-label="Main navigation" class="flex items-center gap-4 text-xs text-zinc-500">
 				<a href="/compare" class="hover:text-zinc-300">Compare</a>

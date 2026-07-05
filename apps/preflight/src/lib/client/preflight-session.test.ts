@@ -31,8 +31,8 @@ const baseReport: ScanReport = {
 
 describe('buildShareText', () => {
 	it('uses configured app URL and score', () => {
-		const text = buildShareText(baseReport, 'https://lint.latham.cloud');
-		expect(text).toContain('https://lint.latham.cloud');
+		const text = buildShareText(baseReport, 'https://deploylint.com');
+		expect(text).toContain('https://deploylint.com');
 		expect(text).toContain('88/100');
 		expect(text).toContain('GO');
 	});
@@ -49,7 +49,7 @@ describe('buildShareText', () => {
 					categoryScores: []
 				}
 			},
-			'https://lint.latham.cloud'
+			'https://deploylint.com'
 		);
 		expect(text).toContain('Deploylint caught this');
 		expect(text).toContain('Exposed keys');
@@ -71,12 +71,12 @@ describe('buildShareText', () => {
 					categoryScores: []
 				}
 			},
-			'https://lint.latham.cloud'
+			'https://deploylint.com'
 		);
 
 		expect(text).toContain('72/100');
 		expect(text).toContain('CONDITIONAL GO');
-		expect(text).toContain('https://lint.latham.cloud/r/abc12345');
+		expect(text).toContain('https://deploylint.com/r/abc12345');
 	});
 });
 

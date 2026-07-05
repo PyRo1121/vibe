@@ -6,7 +6,7 @@ $ErrorActionPreference = 'Stop'
 $stripe = Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Links\stripe.exe'
 if (-not (Test-Path $stripe)) { $stripe = 'stripe' }
 
-$WebhookUrl = 'https://lint.latham.cloud/api/webhooks/stripe'
+$WebhookUrl = 'https://deploylint.com/api/webhooks/stripe'
 $Events = @('checkout.session.completed', 'checkout.session.async_payment_succeeded')
 
 Write-Host "Checking Stripe CLI login..." -ForegroundColor Cyan

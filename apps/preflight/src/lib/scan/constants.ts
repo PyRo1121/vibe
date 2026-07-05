@@ -8,7 +8,7 @@ export const SEO_LIMITS = {
 	clarityDescriptionMin: 50
 } as const;
 
-export const USER_AGENT = 'Deploylint/1.0 (+https://lint.latham.cloud; site-readiness-audit)';
+export const USER_AGENT = 'Deploylint/1.0 (+https://deploylint.com; site-readiness-audit)';
 
 export const FETCH_TIMEOUT_MS = 12_000;
 /**
