@@ -3,14 +3,14 @@
  * Phase 23 production smoke — sitemap supplemental crawl (pagesScanned sitemap role)
  * Run: npm run smoke:phase23 (from apps/preflight)
  *
- * Self-scans deploylint.com via the SELF service binding (Phase 21).
+ * Self-scans lint.latham.cloud via the SELF service binding (Phase 21).
  * Legal pages come from homepage link crawl; /compare and /developers may appear
  * as role=sitemap when listed in sitemap.xml but not linked from the homepage.
  */
 const BASE = (
 	process.env.DEPLOYLINT_BASE ??
 	process.env.PREFLIGHT_BASE ??
-	'https://deploylint.com'
+	'https://lint.latham.cloud'
 ).replace(/\/$/, '');
 
 const results = [];

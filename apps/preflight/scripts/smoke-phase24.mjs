@@ -9,7 +9,7 @@
 const BASE = (
 	process.env.DEPLOYLINT_BASE ??
 	process.env.PREFLIGHT_BASE ??
-	'https://deploylint.com'
+	'https://lint.latham.cloud'
 ).replace(/\/$/, '');
 const CHECKOUT_URL = process.env.SMOKE_CHECKOUT_URL ?? 'https://example.com';
 
