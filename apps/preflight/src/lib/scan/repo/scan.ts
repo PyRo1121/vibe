@@ -68,6 +68,7 @@ const README_MIN_WORDS = 60;
 const MAX_PACKAGE_MANIFESTS = 5;
 const MAX_PACKAGE_LOCKFILES = 3;
 const STATIC_CONFIG_LIMIT = 48;
+const PAYMENT_FILE_LIMIT = 16;
 
 function isVendoredPath(path: string): boolean {
 	return /(^|\/)(node_modules|dist|build|out|vendor|\.next|\.svelte-kit|coverage)\//.test(path);
@@ -127,6 +128,40 @@ function findStaticConfigPaths(entries: RepoTreeEntry[]): string[] {
 		.map((entry) => entry.path)
 		.filter((path) => patterns.some((pattern) => pattern.test(path)))
 		.slice(0, STATIC_CONFIG_LIMIT);
+}
+
+function findPaymentFilePaths(entries: RepoTreeEntry[]): string[] {
+	const sourceExt = /\.(js|mjs|cjs|ts|mts|cts|jsx|tsx|svelte|py|rb|go|php)$/i;
+	const pathToken =
+		/(^|\/|\.|-|_)(checkout|billing|payments?|stripe|subscriptions?|entitlements?)(\/|\.|-|_|$)/i;
+	const svelteKitPaymentRoute =
+		/(^|\/)src\/routes\/(?:api\/(?:checkout|billing|payments?|stripe|subscriptions?|webhooks?\/(?:checkout|billing|payments?|stripe|subscriptions?))|account\/billing)(?:\/[^/]*)*\/\+server\.(js|ts)$/i;
+
+	const candidates = entries
+		.filter(
+			(entry) =>
+				entry.type === 'blob' &&
+				sourceExt.test(entry.path) &&
+				!isVendoredPath(entry.path) &&
+				(pathToken.test(entry.path) || svelteKitPaymentRoute.test(entry.path))
+		)
+		.map((entry) => entry.path);
+
+	const score = (path: string): number => {
+		const lower = path.toLowerCase();
+		const depth = path.split('/').length;
+		return (
+			(svelteKitPaymentRoute.test(path) ? 0 : 50) +
+			(lower.includes('webhook') ? 0 : 10) +
+			(lower.includes('checkout') ? 0 : 5) +
+			(lower.includes('entitlement') ? 0 : 3) +
+			depth
+		);
+	};
+
+	return [...new Set(candidates)]
+		.toSorted((a, b) => score(a) - score(b))
+		.slice(0, PAYMENT_FILE_LIMIT);
 }
 
 function manifestEvidence(paths: string[], texts: (string | null)[]): PackageManifestEvidence[] {
@@ -189,6 +224,7 @@ export async function scanRepo(
 	const lockfilePaths = findPackageLockPaths(entries);
 	const tsconfigPath = findRootFile(entries, /^tsconfig\.json$/);
 	const staticConfigPaths = findStaticConfigPaths(entries);
+	const paymentFilePaths = findPaymentFilePaths(entries);
 
 	const getFile = (path: string | null, maxBytes?: number) =>
 		path ? fetchers.getFile(ref, meta.branch, path, maxBytes) : Promise.resolve(null);
@@ -201,7 +237,8 @@ export async function scanRepo(
 		tsconfigText,
 		envTexts,
 		sampleTexts,
-		staticConfigTexts
+		staticConfigTexts,
+		paymentFileTexts
 	] = await Promise.all([
 		Promise.all(packageJsonPaths.map((path) => getFile(path))),
 		getFile(readmePath),
@@ -210,7 +247,8 @@ export async function scanRepo(
 		getFile(tsconfigPath),
 		Promise.all(envFiles.slice(0, 2).map((p) => getFile(p))),
 		Promise.all(sampleFiles.map((p) => getFile(p))),
-		Promise.all(staticConfigPaths.map((path) => getFile(path, MAX_LOCKFILE_BYTES)))
+		Promise.all(staticConfigPaths.map((path) => getFile(path, MAX_LOCKFILE_BYTES))),
+		Promise.all(paymentFilePaths.map((path) => getFile(path)))
 	]);
 
 	const parsedManifests = packageJsonTexts.map((text) => parsePackageJson(text));
@@ -223,7 +261,11 @@ export async function scanRepo(
 		path,
 		text: sampleTexts[index] ?? null
 	}));
-	const repoFiles = [...staticFiles, ...sourceFiles];
+	const paymentFiles: RepoFileEvidence[] = paymentFilePaths.map((path, index) => ({
+		path,
+		text: paymentFileTexts[index] ?? null
+	}));
+	const repoFiles = [...staticFiles, ...sourceFiles, ...paymentFiles];
 	const rootPackageJsonText =
 		packageJsonPath == null
 			? null
@@ -494,7 +536,8 @@ export async function scanRepo(
 					? [committedLockfile]
 					: []),
 				...envFiles.slice(0, 2),
-				...sampleFiles
+				...sampleFiles,
+				...paymentFilePaths
 			])
 		],
 		depCount: hasPackageJson ? Object.keys(dependencies).length : null

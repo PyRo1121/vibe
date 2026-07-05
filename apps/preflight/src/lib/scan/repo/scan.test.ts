@@ -580,6 +580,108 @@ export async function POST({ request }) {
 		expect(report.repo?.filesSampled).toContain('src/routes/api/webhooks/stripe/+server.ts');
 	});
 
+	it('loads high-signal payment files when judging repo revenue readiness', async () => {
+		const paymentPaths = [
+			'src/routes/api/checkout/+server.ts',
+			'src/routes/api/webhooks/stripe/+server.ts',
+			'src/lib/entitlements.ts',
+			'src/routes/account/billing/+server.ts'
+		];
+		const highSignalSamples = [
+			'src/config/app.ts',
+			'src/config/auth.ts',
+			'src/config/db.ts',
+			'src/config/email.ts',
+			'src/config/env.ts',
+			'src/config/firebase.ts',
+			'src/config/secrets.ts',
+			'src/config/settings.ts'
+		];
+		const report = await scanRepo(REF, {
+			fetchers: fakeFetchers({
+				entries: [
+					...CLEAN_ENTRIES,
+					...highSignalSamples.map((path) => ({ path, type: 'blob' as const })),
+					...paymentPaths.map((path) => ({ path, type: 'blob' as const }))
+				],
+				files: {
+					...CLEAN_FILES,
+					'package.json': JSON.stringify({
+						dependencies: { stripe: '^20.0.0' },
+						scripts: { test: 'vitest run', build: 'vite build' }
+					}),
+					...Object.fromEntries(
+						highSignalSamples.map((path) => [path, 'export const value = true;'])
+					),
+					'src/routes/api/checkout/+server.ts': `
+import Stripe from 'stripe';
+
+const stripe = new Stripe(env.STRIPE_SECRET_KEY);
+
+export async function POST() {
+  await stripe.checkout.sessions.create({ mode: 'subscription' });
+  return new Response('ok');
+}
+`,
+					'src/routes/api/webhooks/stripe/+server.ts': `
+import { grantAccess, revokeAccess } from '$lib/entitlements';
+
+export async function POST({ request, locals }) {
+  const signature = request.headers.get('stripe-signature');
+  const raw = await request.text();
+  const event = stripe.webhooks.constructEvent(raw, signature, locals.env.STRIPE_WEBHOOK_SECRET);
+
+  switch (event.type) {
+    case 'checkout.session.completed':
+    case 'checkout.session.async_payment_succeeded':
+      await grantAccess(event.data.object.customer);
+      break;
+    case 'checkout.session.async_payment_failed':
+    case 'invoice.payment_failed':
+    case 'customer.subscription.deleted':
+      await revokeAccess(event.data.object.customer);
+      break;
+  }
+
+  return new Response('ok');
+}
+`,
+					'src/lib/entitlements.ts': `
+export async function grantAccess(customer: string) {
+  return customer;
+}
+
+export async function revokeAccess(customer: string) {
+  return customer;
+}
+`,
+					'src/routes/account/billing/+server.ts': `
+export async function POST() {
+  await stripe.billingPortal.sessions.create({ customer });
+  return new Response('ok');
+}
+`
+				}
+			}),
+			npmLicense: async () => 'MIT'
+		});
+
+		const byId = Object.fromEntries(report.checks.map((check) => [check.id, check]));
+		for (const id of [
+			'checkout-server-owned',
+			'webhook-signature-missing',
+			'webhook-event-coverage',
+			'entitlement-fulfillment',
+			'billing-portal',
+			'payment-env-safety'
+		]) {
+			expect(byId[id]).toMatchObject({ status: 'pass', category: 'payments' });
+		}
+		for (const path of paymentPaths) {
+			expect(report.repo?.filesSampled).toContain(path);
+		}
+	});
+
 	it('warns on missing repo quality signals for a minimal repo', async () => {
 		const report = await scanRepo(REF, {
 			fetchers: fakeFetchers({ entries: CLEAN_ENTRIES, files: CLEAN_FILES }),
