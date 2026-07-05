@@ -22,10 +22,20 @@ describe('plausibleUpstreamScript', () => {
 		expect(plausibleUpstreamScript()).toBe('https://plausible.io/js/script.js');
 	});
 
-	it('uses env override', () => {
+	it('ignores Plausible personalized script overrides because they bake in a site domain', () => {
 		expect(
-			plausibleUpstreamScript({ PUBLIC_PLAUSIBLE_SCRIPT: 'https://plausible.io/js/pa-test.js' })
-		).toBe('https://plausible.io/js/pa-test.js');
+			plausibleUpstreamScript({
+				PUBLIC_PLAUSIBLE_SCRIPT: 'https://plausible.io/js/pa-6HNboY8BBbu4MK_Qmeoxr.js'
+			})
+		).toBe('https://plausible.io/js/script.js');
+	});
+
+	it('allows non-personalized upstream script overrides', () => {
+		expect(
+			plausibleUpstreamScript({
+				PUBLIC_PLAUSIBLE_SCRIPT: 'https://analytics.example.com/js/script.js'
+			})
+		).toBe('https://analytics.example.com/js/script.js');
 	});
 });
 

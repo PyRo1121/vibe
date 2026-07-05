@@ -1,9 +1,15 @@
 const PLAUSIBLE_EVENT_URL = 'https://plausible.io/api/event';
 const DEFAULT_UPSTREAM_SCRIPT = 'https://plausible.io/js/script.js';
 const SCRIPT_CACHE_SECONDS = 60 * 60 * 24 * 30;
+const PLAUSIBLE_PERSONALIZED_SCRIPT = /^https:\/\/plausible\.io\/js\/pa-[^/]+\.js$/;
 
-export function plausibleUpstreamScript(env?: { PUBLIC_PLAUSIBLE_SCRIPT?: string }): string {
-	return env?.PUBLIC_PLAUSIBLE_SCRIPT?.trim() || DEFAULT_UPSTREAM_SCRIPT;
+export function plausibleUpstreamScript(env?: object | null): string {
+	const configured =
+		env && 'PUBLIC_PLAUSIBLE_SCRIPT' in env && typeof env.PUBLIC_PLAUSIBLE_SCRIPT === 'string'
+			? env.PUBLIC_PLAUSIBLE_SCRIPT.trim()
+			: undefined;
+	if (!configured || PLAUSIBLE_PERSONALIZED_SCRIPT.test(configured)) return DEFAULT_UPSTREAM_SCRIPT;
+	return configured;
 }
 
 export async function proxyPlausibleScript(upstream: string): Promise<Response> {

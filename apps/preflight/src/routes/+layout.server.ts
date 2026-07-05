@@ -5,6 +5,8 @@ export const load: LayoutServerLoad = ({ platform }) => {
 
 	return {
 		plausibleDomain,
-		plausibleProxy: plausibleDomain ? { script: '/s/script.js', endpoint: '/s/event' } : null
+		plausibleProxy: plausibleDomain
+			? { script: `/s/script.js?site=${encodeURIComponent(plausibleDomain)}`, endpoint: '/s/event' }
+			: null
 	};
 };
