@@ -23,10 +23,6 @@
 		@apply outline-2 outline-offset-2 outline-sky-400/80;
 	}
 
-	main .text-zinc-500 {
-		@apply text-zinc-400;
-	}
-
 	@media (prefers-reduced-motion: reduce) {
 		html {
 			scroll-behavior: auto;
@@ -40,6 +36,10 @@
 			transition-duration: 0.01ms !important;
 		}
 	}
+}
+
+main .text-zinc-500 {
+	@apply text-zinc-400;
 }
 
 /* Print / save-as-PDF: flip the dark theme to readable black-on-white. */
