@@ -3,6 +3,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const marker = '// DEPLOYLINT_DURABLE_OBJECT_EXPORTS';
+const exportLine = "export { CounterLimiter } from './counter-limiter.js';";
 const workerPath = join(process.cwd(), '.svelte-kit/cloudflare/_worker.js');
 const limiterPath = join(process.cwd(), '.svelte-kit/cloudflare/counter-limiter.js');
 
@@ -13,7 +14,24 @@ if (!existsSync(workerPath)) {
 
 const current = readFileSync(workerPath, 'utf8');
 if (current.includes(marker)) {
+	verifyDurableObjectExport(current);
 	process.exit(0);
+}
+
+function verifyDurableObjectExport(workerContent) {
+	if (!workerContent.includes(marker) || !workerContent.includes(exportLine)) {
+		console.error('CounterLimiter export marker missing from Cloudflare worker bundle');
+		process.exit(1);
+	}
+	if (!existsSync(limiterPath)) {
+		console.error(`CounterLimiter sidecar missing: ${limiterPath}`);
+		process.exit(1);
+	}
+	const limiter = readFileSync(limiterPath, 'utf8');
+	if (!limiter.includes('extends DurableObject')) {
+		console.error('CounterLimiter sidecar must extend Cloudflare DurableObject');
+		process.exit(1);
+	}
 }
 
 writeFileSync(
@@ -52,7 +70,6 @@ export class CounterLimiter extends DurableObject {
 `
 );
 
-writeFileSync(
-	workerPath,
-	`${current}\n${marker}\nexport { CounterLimiter } from './counter-limiter.js';\n`
-);
+writeFileSync(workerPath, `${current}\n${marker}\n${exportLine}\n`);
+
+verifyDurableObjectExport(readFileSync(workerPath, 'utf8'));

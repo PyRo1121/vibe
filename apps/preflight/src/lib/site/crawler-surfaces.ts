@@ -107,7 +107,7 @@ ${urls}
 
 export function buildLlmsTxt(origin = DEFAULT_DEPLOYLINT_API): string {
 	const pages = PUBLIC_SITE_ROUTES.map(
-		(route) => `- ${route.title}: ${absoluteSiteUrl(route.path, origin)} - ${route.description}`
+		(route) => `- [${route.title}](${absoluteSiteUrl(route.path, origin)}): ${route.description}`
 	).join('\n');
 
 	return `# Deploylint
