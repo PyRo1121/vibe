@@ -5,7 +5,8 @@ export const EMPTY_HEADERS: ResponseSecurityHeaders = {
 	csp: null,
 	xFrameOptions: null,
 	xContentTypeOptions: null,
-	referrerPolicy: null
+	referrerPolicy: null,
+	permissionsPolicy: null
 };
 
 export const STRONG_HEADERS: ResponseSecurityHeaders = {
@@ -13,5 +14,6 @@ export const STRONG_HEADERS: ResponseSecurityHeaders = {
 	csp: "default-src 'self'",
 	xFrameOptions: 'DENY',
 	xContentTypeOptions: 'nosniff',
-	referrerPolicy: 'strict-origin-when-cross-origin'
+	referrerPolicy: 'strict-origin-when-cross-origin',
+	permissionsPolicy: 'camera=(), microphone=(), geolocation=()'
 };

@@ -41,7 +41,8 @@ export function buildContentChecks(
 		csp: null,
 		xFrameOptions: null,
 		xContentTypeOptions: null,
-		referrerPolicy: null
+		referrerPolicy: null,
+		permissionsPolicy: null
 	},
 	ogImageOk: boolean | null = null,
 	scanCtx: ScanContext = {
@@ -91,7 +92,7 @@ export function buildContentChecks(
 		);
 	}
 
-	pushMetaChecks(checks, meta, ctx, crawledPages);
+	pushMetaChecks(checks, html, meta, ctx, crawledPages);
 	pushLaunchSignalChecks(checks, meta, finalUrl, ctx, ogImageOk);
 	pushHeaderChecks(checks, securityHeaders, https, ctx);
 	pushSecretsCheck(checks, html, scriptSecrets, crawledPages, ctx);

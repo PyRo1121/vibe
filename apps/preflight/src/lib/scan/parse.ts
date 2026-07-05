@@ -23,6 +23,10 @@ export function hasViewport(html: string): boolean {
 	return pickMeta(html, 'viewport') !== null;
 }
 
+export function hasUtf8Charset(html: string): boolean {
+	return /<meta[^>]+charset\s*=\s*["']?utf-?8/i.test(html);
+}
+
 export interface PageMeta {
 	title: string | null;
 	resolvedTitle: string | null;

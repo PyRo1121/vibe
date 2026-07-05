@@ -26,12 +26,20 @@ const P0_IDS = new Set([
 	'secrets',
 	'privacy',
 	'noindex',
-	'robots-block'
+	'robots-block',
+	'env-committed',
+	'form-security',
+	'exposed-env',
+	'exposed-git'
 ]);
 
 const COMMENT_MARKER = '<!-- preflight-gate -->';
 
-const apiBase = (process.env.DEPLOYLINT_API ?? process.env.PREFLIGHT_API ?? 'https://lint.latham.cloud').replace(/\/$/, '');
+const apiBase = (
+	process.env.DEPLOYLINT_API ??
+	process.env.PREFLIGHT_API ??
+	'https://lint.latham.cloud'
+).replace(/\/$/, '');
 const targetUrl = process.argv[2]?.trim() || process.env.PREFLIGHT_URL?.trim();
 const minScore = Number(process.env.PREFLIGHT_MIN_SCORE ?? '80');
 const advisory = (process.env.PREFLIGHT_MODE ?? 'gate').toLowerCase() === 'advisory';
@@ -104,7 +112,8 @@ function formatMarkdown(report, result) {
 		lines.push('', '</details>', '');
 	}
 	const link = permalink(report);
-	if (link) lines.push(`[Full report](${link})${advisory ? ' · advisory mode (non-blocking)' : ''}`);
+	if (link)
+		lines.push(`[Full report](${link})${advisory ? ' · advisory mode (non-blocking)' : ''}`);
 	return lines.join('\n');
 }
 
@@ -137,7 +146,9 @@ async function upsertPrComment(ctx, markdown) {
 		const list = await fetch(`${base}?per_page=100`, { headers });
 		if (list.ok) {
 			const comments = await list.json();
-			const existing = comments.find((c) => typeof c.body === 'string' && c.body.includes(COMMENT_MARKER));
+			const existing = comments.find(
+				(c) => typeof c.body === 'string' && c.body.includes(COMMENT_MARKER)
+			);
 			if (existing) {
 				await fetch(`https://api.github.com/repos/${ctx.repo}/issues/comments/${existing.id}`, {
 					method: 'PATCH',
@@ -153,7 +164,9 @@ async function upsertPrComment(ctx, markdown) {
 			headers,
 			body: JSON.stringify({ body: markdown })
 		});
-		console.log(created.ok ? 'Posted Deploylint PR comment.' : `PR comment failed (HTTP ${created.status}).`);
+		console.log(
+			created.ok ? 'Posted Deploylint PR comment.' : `PR comment failed (HTTP ${created.status}).`
+		);
 	} catch (err) {
 		console.log(`PR comment failed: ${err instanceof Error ? err.message : err}`);
 	}
@@ -174,6 +187,19 @@ async function main() {
 	}
 
 	const result = evaluateGate(body);
+	if (process.argv.includes('--json')) {
+		console.log(
+			JSON.stringify({
+				pass: result.pass,
+				score: body.score,
+				verdict: body.verdict,
+				reasons: result.reasons,
+				reportId: body.reportId ?? null,
+				finalUrl: body.finalUrl
+			})
+		);
+		process.exit(result.pass || advisory ? 0 : 1);
+	}
 	console.log(formatReport(body, result));
 
 	const markdown = formatMarkdown(body, result);

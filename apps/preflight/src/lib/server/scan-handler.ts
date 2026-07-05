@@ -10,8 +10,10 @@ import { sanitizeReport } from '$lib/billing/report';
 import { resolveUnlock } from '$lib/server/resolve-unlock';
 import { logFunnelEvent } from '$lib/metrics/funnel';
 import { assertScanRateLimit, clientIp } from '$lib/server/rate-limit';
+import { assertDailyScanBudget, reserveAiCopyReview } from '$lib/server/usage-budget';
 
 export async function handleScanPost(request: Request, env: Env | undefined) {
+	await assertDailyScanBudget(env?.REPORTS);
 	await assertScanRateLimit(env?.REPORTS, clientIp(request));
 
 	let parsed;
@@ -69,19 +71,22 @@ export async function handleScanPost(request: Request, env: Env | undefined) {
 		}
 	}
 
-	// Paid extra: AI copy critique. Unlocked-only keeps Workers AI usage
-	// far inside the free daily allocation.
+	// Paid extra: AI copy critique. Unlocked-only + daily cap keeps Workers AI inside
+	// the free 10k neurons/day allocation.
 	if (unlocked && env?.AI && !repoRef && report.scanCoverage !== 'blocked') {
-		const review = await buildCopyReview(env.AI, {
-			url: report.finalUrl,
-			title: report.socialPreview?.title ?? null,
-			description: report.socialPreview?.description ?? null,
-			topIssues: report.checks
-				.filter((c) => c.status !== 'pass')
-				.slice(0, 5)
-				.map((c) => `${c.title}: ${c.message}`)
-		});
-		if (review) sanitized.aiCopyReview = review;
+		const allowed = await reserveAiCopyReview(env.REPORTS);
+		if (allowed) {
+			const review = await buildCopyReview(env.AI, {
+				url: report.finalUrl,
+				title: report.socialPreview?.title ?? null,
+				description: report.socialPreview?.description ?? null,
+				topIssues: report.checks
+					.filter((c) => c.status !== 'pass')
+					.slice(0, 5)
+					.map((c) => `${c.title}: ${c.message}`)
+			});
+			if (review) sanitized.aiCopyReview = review;
+		}
 	}
 
 	const issueCount = sanitized.checks.filter((c) => c.status !== 'pass').length;

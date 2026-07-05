@@ -24,4 +24,20 @@ describe('assertScanRateLimit', () => {
 		await assertScanRateLimit(kv, '203.0.113.1');
 		expect(kv.put).toHaveBeenCalled();
 	});
+
+	it('fails closed on KV errors when configured', async () => {
+		const kv = {
+			get: vi.fn(async () => {
+				throw new Error('kv down');
+			}),
+			put: vi.fn()
+		} as unknown as KVNamespace;
+
+		const { assertIpRateLimit } = await import('./rate-limit');
+		await expect(
+			assertIpRateLimit(kv, '203.0.113.1', 'api:checkout', 12, 3600_000, 'limited', {
+				failClosed: true
+			})
+		).rejects.toMatchObject({ status: 503 });
+	});
 });

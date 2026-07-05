@@ -122,6 +122,16 @@ export function pushCompetitiveChecks(
 				? 'llms.txt responds with usable content'
 				: 'No llms.txt — AI assistants may miss context about your product',
 			fixPrompt('llms-txt', ctx)
+		),
+		makeCheck(
+			'security-txt',
+			'security',
+			'security.txt disclosure',
+			linkResult.securityTxtOk ? 'pass' : 'warn',
+			linkResult.securityTxtOk
+				? 'security.txt found — researchers know how to report issues'
+				: 'No security.txt — add RFC 9116 disclosure before a serious launch',
+			fixPrompt('security-txt', ctx)
 		)
 	);
 

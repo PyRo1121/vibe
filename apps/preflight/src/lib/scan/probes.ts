@@ -17,7 +17,7 @@ import {
 	pickMeta,
 	searchableSourceMapText
 } from '$lib/scan/parse';
-import { llmsTxtLooksValid } from '$lib/scan/signals';
+import { llmsTxtLooksValid, securityTxtLooksValid } from '$lib/scan/signals';
 import { assertPublicHttpUrl } from '$lib/scan/url-guard';
 
 /**
@@ -132,10 +132,23 @@ export async function checkLinks(
 		}
 	};
 
-	const [linkResults, robots, llmsTxtOk] = await Promise.all([
+	const checkSecurityTxt = async (): Promise<boolean> => {
+		for (const path of ['/.well-known/security.txt', '/security.txt']) {
+			try {
+				const text = await fetch(new URL(path, finalUrl).href);
+				if (securityTxtLooksValid(text)) return true;
+			} catch {
+				/* try next */
+			}
+		}
+		return false;
+	};
+
+	const [linkResults, robots, llmsTxtOk, securityTxtOk] = await Promise.all([
 		mapLimit(sameOriginLinks, 4, head),
 		checkRobots(),
-		checkLlms()
+		checkLlms(),
+		checkSecurityTxt()
 	]);
 
 	const sitemap = await discoverSitemapLocs(finalUrl, robots.text, head, fetch);
@@ -146,6 +159,7 @@ export async function checkLinks(
 		robotsOk: robots.ok,
 		sitemapOk: sitemap.ok,
 		llmsTxtOk,
+		securityTxtOk,
 		robotsText: robots.text,
 		sitemapSample: sitemap.sample,
 		sitemapLocs: sitemap.locs
@@ -450,6 +464,7 @@ export interface ExposedPathResult {
 }
 
 const ENV_BODY_PATTERNS = [/^[A-Z][A-Z0-9_]*\s*=/m, /SECRET/i, /PASSWORD/i];
+const SQL_DUMP_PATTERNS = [/CREATE TABLE/i, /INSERT INTO/i, /mysqldump/i];
 const GIT_HEAD_PATTERN = /^ref:\s+/m;
 const PACKAGE_JSON_PATTERN = /"name"\s*:/;
 
@@ -483,19 +498,20 @@ export async function probeExposedPaths(
 	fetchText: ScanDeps['fetchText']
 ): Promise<ExposedPathResult> {
 	const paths = EXPOSED_PATH_PROBE_PATHS;
-	const [env, git, backupZip, envBak, packageJson] = await Promise.all([
+	const [env, git, backupZip, envBak, packageJson, dbSql] = await Promise.all([
 		probeSensitivePath(finalUrl, paths[0], headOk, fetchText, ENV_BODY_PATTERNS),
 		probeSensitivePath(finalUrl, paths[1], headOk, fetchText, [GIT_HEAD_PATTERN]),
 		probeSensitivePath(finalUrl, paths[2], headOk, fetchText, []),
 		probeSensitivePath(finalUrl, paths[3], headOk, fetchText, ENV_BODY_PATTERNS),
-		probeSensitivePath(finalUrl, paths[4], headOk, fetchText, [PACKAGE_JSON_PATTERN])
+		probeSensitivePath(finalUrl, paths[4], headOk, fetchText, [PACKAGE_JSON_PATTERN]),
+		probeSensitivePath(finalUrl, '/db.sql', headOk, fetchText, SQL_DUMP_PATTERNS)
 	]);
 	return {
 		env,
 		git,
 		backup: {
-			exposed: backupZip.exposed || envBak.exposed,
-			url: backupZip.url ?? envBak.url
+			exposed: backupZip.exposed || envBak.exposed || dbSql.exposed,
+			url: backupZip.url ?? envBak.url ?? dbSql.url
 		},
 		packageJson
 	};

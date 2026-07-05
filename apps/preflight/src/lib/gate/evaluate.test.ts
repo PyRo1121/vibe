@@ -53,4 +53,22 @@ describe('evaluateGate', () => {
 		expect(result.pass).toBe(false);
 		expect(result.reasons.some((r) => r.includes('P0 blocker'))).toBe(true);
 	});
+
+	it('fails on exposed-env P0', () => {
+		const result = evaluateGate(
+			report({
+				checks: [
+					{
+						id: 'exposed-env',
+						category: 'security',
+						title: '.env exposed',
+						status: 'fail',
+						message: 'Public .env file',
+						fixPrompt: ''
+					}
+				]
+			})
+		);
+		expect(result.pass).toBe(false);
+	});
 });

@@ -11,6 +11,7 @@
 	},
 	"observability": { "enabled": true },
 	"upload_source_maps": true,
+	// Free tier: 100k requests/day, 50 subrequests/invocation — see docs/superpowers/workflow/cloudflare-free-tier.md
 	"kv_namespaces": [
 		{
 			"binding": "REPORTS",

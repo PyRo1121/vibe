@@ -5,6 +5,7 @@ import { LEGAL_STUB_MIN_WORDS, SEO_LIMITS } from '$lib/scan/constants';
 import { lengthStatus, pagePath, tierFromCount, type CheckCtx } from '$lib/scan/checks/helpers';
 import { fixPrompt } from '$lib/scan/prompts';
 import { clarityScore, makeCheck } from '$lib/scan/score';
+import { hasUtf8Charset } from '$lib/scan/parse';
 
 const LEGAL_CHECKS = [
 	{
@@ -103,6 +104,7 @@ function legalCheck(
 
 export function pushMetaChecks(
 	checks: ScanCheck[],
+	html: string,
 	meta: PageMeta,
 	ctx: CheckCtx,
 	crawledPages: CrawledPage[]
@@ -173,6 +175,16 @@ export function pushMetaChecks(
 			meta.lang ? 'pass' : 'warn',
 			meta.lang ? `lang="${meta.lang}"` : 'Missing html lang attribute',
 			fixPrompt('lang', ctx)
+		),
+		makeCheck(
+			'charset-meta',
+			'seo',
+			'UTF-8 charset',
+			hasUtf8Charset(html) ? 'pass' : 'warn',
+			hasUtf8Charset(html)
+				? 'UTF-8 charset declared'
+				: 'No <meta charset="utf-8"> — mojibake risk on some browsers',
+			fixPrompt('charset-meta', ctx)
 		),
 		makeCheck(
 			'h1',

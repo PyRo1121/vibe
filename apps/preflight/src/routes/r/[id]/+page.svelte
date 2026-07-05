@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import VerdictBanner from '$lib/components/VerdictBanner.svelte';
+	import ScoreDeltaBadge from '$lib/components/ScoreDeltaBadge.svelte';
 	import RepoSummaryPanel from '$lib/components/RepoSummaryPanel.svelte';
 	import ScanIncompleteBanner from '$lib/components/ScanIncompleteBanner.svelte';
 	import PagesScannedStrip from '$lib/components/PagesScannedStrip.svelte';
@@ -39,6 +40,7 @@
 	const pageTitle = $derived(
 		`Deploylint report — ${verdictLabels[report.verdict]} ${report.score}/100 — ${report.finalUrl}`
 	);
+	const badgeUrl = $derived(`${permalink}/badge.svg`);
 </script>
 
 <svelte:head>
@@ -55,6 +57,9 @@
 		content="Verdict: {verdictLabels[report.verdict]} · score {report.score}/100 · {report.summary
 			.fail} failing checks."
 	/>
+	<meta property="og:image" content={badgeUrl} />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:image" content={badgeUrl} />
 </svelte:head>
 
 <div class="mx-auto max-w-5xl px-4 py-12">
@@ -118,6 +123,15 @@
 		</p>
 	{:else}
 		<VerdictBanner {report} />
+		{#if report.scoreDelta != null && report.previousScore != null}
+			<div class="mb-4">
+				<ScoreDeltaBadge
+					previousScore={report.previousScore}
+					score={report.score}
+					scoreDelta={report.scoreDelta}
+				/>
+			</div>
+		{/if}
 		<RepoSummaryPanel {report} />
 		<ScanIncompleteBanner {report} />
 		<PagesScannedStrip {report} />

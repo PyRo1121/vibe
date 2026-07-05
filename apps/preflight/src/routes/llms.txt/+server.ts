@@ -4,7 +4,7 @@ const BODY = `# Deploylint
 
 > Launch-readiness audit for vibe-coded apps — GO/NO-GO before you post a URL publicly.
 
-Deploylint scans a live URL for launch blockers: exposed secrets in JS bundles, broken social preview images, placeholder copy, missing legal pages, robots.txt blocking Google, llms.txt, security headers, and more.
+Deploylint scans a live URL for launch blockers: exposed secrets in JS bundles, broken social preview images, placeholder copy, missing legal pages, robots.txt blocking Google, llms.txt, security.txt, security headers, and more.
 
 - Product: https://lint.latham.cloud
 - Free tier: verdict, embarrassment brief, social preview, one sample fix prompt

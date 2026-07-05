@@ -5,13 +5,12 @@
 
 	const base = $derived(data.appUrl.replace(/\/$/, ''));
 
-	const hostedGateYaml = $derived(`name: Deploylint deploy gate
+	const compositeActionYaml = $derived(`name: Deploylint deploy gate
 
 on:
+  pull_request:
   push:
     branches: [main]
-  pull_request:
-  workflow_dispatch:
 
 jobs:
   deploylint:
@@ -19,9 +18,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      # Copy .github/actions/deploylint-gate from github.com/PyRo1121/vibe
+      # Or use the curl script below — same gate rules.
+      - uses: ./.github/actions/deploylint-gate
         with:
-          node-version: '22'
+          url: \${{ secrets.PREFLIGHT_GATE_URL }}
+          api: ${base}
+          min_score: '80'
+          mode: gate`);
+
+	const hostedGateYaml = $derived(`name: Deploylint deploy gate (zero-install)
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  deploylint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Block deploy if launch blockers remain
         env:
@@ -29,10 +46,22 @@ jobs:
           PREFLIGHT_API: ${base}
           PREFLIGHT_MIN_SCORE: '80'
           # PREFLIGHT_MODE: advisory   # report only, never blocks
-          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}   # enables the PR comment
+          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
         run: |
           curl -fsSL ${base}/gate-remote.mjs -o gate-remote.mjs
           node gate-remote.mjs "$PREFLIGHT_URL"`);
+
+	const mcpJson = $derived(`{
+  "mcpServers": {
+    "deploylint": {
+      "command": "npx",
+      "args": ["tsx", "apps/preflight-mcp/src/index.ts"],
+      "env": {
+        "DEPLOYLINT_API": "${base}"
+      }
+    }
+  }
+}`);
 
 	const localGate = $derived(`npm run gate -w preflight -- https://your-app.com
 
@@ -78,13 +107,43 @@ node gate-remote.mjs https://your-app.com`);
 	</section>
 
 	<section class="mb-10">
-		<h2 class="mb-2 text-xl font-semibold text-white">1. GitHub Action (recommended)</h2>
+		<h2 class="mb-2 text-xl font-semibold text-white">1. Composite GitHub Action</h2>
 		<p class="mb-4 text-sm text-zinc-500">
-			Add repository secret <code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300"
-				>PREFLIGHT_GATE_URL</code
+			Copy <code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300"
+				>.github/actions/deploylint-gate</code
 			>
-			with your production URL (e.g.
-			<code class="rounded bg-zinc-800 px-1.5 py-0.5">https://your-app.com</code>).
+			from the
+			<a
+				class="text-sky-400 hover:underline"
+				href="https://github.com/PyRo1121/vibe/tree/main/.github/actions/deploylint-gate"
+				>vibe monorepo</a
+			>
+			(or vendor the folder). Set secret
+			<code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">PREFLIGHT_GATE_URL</code>
+			to your production URL.
+		</p>
+		<pre
+			class="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-xs leading-relaxed text-zinc-300"><code
+				>{compositeActionYaml}</code
+			></pre>
+		<ul class="mt-4 list-disc space-y-2 pl-6 text-sm text-zinc-400">
+			<li>
+				<code class="text-sky-300">mode: advisory</code> — report issues without failing the build
+			</li>
+			<li>
+				<code class="text-sky-300">min_score</code> — default 80; lower for early-stage apps
+			</li>
+		</ul>
+	</section>
+
+	<section class="mb-10">
+		<h2 class="mb-2 text-xl font-semibold text-white">2. Zero-install workflow (curl)</h2>
+		<p class="mb-4 text-sm text-zinc-500">
+			No action folder — fetch <a class="text-sky-400 hover:underline" href="/gate-remote.mjs"
+				>/gate-remote.mjs</a
+			>
+			at runtime. PR comments need
+			<code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">GITHUB_TOKEN</code>.
 		</p>
 		<pre
 			class="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-xs leading-relaxed text-zinc-300"><code
@@ -92,24 +151,20 @@ node gate-remote.mjs https://your-app.com`);
 			></pre>
 		<ul class="mt-4 list-disc space-y-2 pl-6 text-sm text-zinc-400">
 			<li>
-				<strong class="text-zinc-300">PR comments</strong> — on pull requests the gate posts (and
-				updates) a comment with the verdict, score, failing checks, and a link to the full report.
-				Just pass <code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">GITHUB_TOKEN</code>.
+				<strong class="text-zinc-300">PR comments</strong> — verdict, score, failing checks, report link
 			</li>
 			<li>
-				<strong class="text-zinc-300">Job summary</strong> — the same markdown lands in the Actions run
-				summary automatically.
+				<strong class="text-zinc-300">Job summary</strong> — same markdown in the Actions run summary
 			</li>
 			<li>
-				<strong class="text-zinc-300">Advisory mode</strong> — set
-				<code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">PREFLIGHT_MODE: advisory</code>
-				to report without ever failing the build. Good for the first weeks on an existing project.
+				<code class="text-sky-300">node gate-remote.mjs --json URL</code> — structured output for custom
+				steps
 			</li>
 		</ul>
 	</section>
 
 	<section class="mb-10">
-		<h2 class="mb-2 text-xl font-semibold text-white">2. Zero-install script</h2>
+		<h2 class="mb-2 text-xl font-semibold text-white">3. Zero-install script (local / CI)</h2>
 		<p class="mb-4 text-sm text-zinc-500">
 			Fetch the hosted gate from <a class="text-sky-400 hover:underline" href="/gate-remote.mjs"
 				>/gate-remote.mjs</a
@@ -128,7 +183,7 @@ node gate-remote.mjs https://your-app.com`);
 	</section>
 
 	<section class="mb-10">
-		<h2 class="mb-2 text-xl font-semibold text-white">3. Monorepo CLI</h2>
+		<h2 class="mb-2 text-xl font-semibold text-white">4. Monorepo CLI</h2>
 		<p class="mb-4 text-sm text-zinc-500">If you fork or clone the Deploylint repo:</p>
 		<pre
 			class="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-xs leading-relaxed text-zinc-300"><code
@@ -137,17 +192,31 @@ node gate-remote.mjs https://your-app.com`);
 	</section>
 
 	<section class="mb-10">
-		<h2 class="mb-2 text-xl font-semibold text-white">4. Cursor MCP + agent skill</h2>
+		<h2 class="mb-2 text-xl font-semibold text-white">5. Cursor MCP + agent skill</h2>
 		<p class="mb-4 text-sm text-zinc-500">
-			Add <code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">preflight-mcp</code> to
-			<code class="rounded bg-zinc-800 px-1.5 py-0.5">.cursor/mcp.json</code> for agent tools:
+			Add to <code class="rounded bg-zinc-800 px-1.5 py-0.5">.cursor/mcp.json</code> at your repo
+			root (clone vibe or copy <code class="text-sky-300">apps/preflight-mcp</code>):
 		</p>
+		<pre
+			class="mb-4 overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-xs leading-relaxed text-zinc-300"><code
+				>{mcpJson}</code
+			></pre>
 		<ul class="list-disc space-y-2 pl-6 text-sm text-zinc-400">
-			<li><code class="text-sky-300">deploylint_scan</code> — full audit summary</li>
-			<li><code class="text-sky-300">deploylint_gate</code> — PASS/FAIL for launch readiness</li>
 			<li>
-				Legacy aliases <code class="text-sky-300">preflight_scan</code> /
-				<code class="text-sky-300">preflight_gate</code> still work
+				<code class="text-sky-300">deploylint_scan</code> — score, embarrassment risks, issues, fix
+				prompts (<code class="text-sky-300">format: json</code> for agents)
+			</li>
+			<li>
+				<code class="text-sky-300">deploylint_gate</code> — PASS/FAIL;
+				<code class="text-sky-300">advisory: true</code> for non-blocking reports
+			</li>
+			<li>
+				<code class="text-sky-300">unlock_session_id</code> — after $9 checkout, pass Stripe
+				<code class="text-sky-300">cs_live_…</code> for all prompts + master paste
+			</li>
+			<li>
+				Legacy <code class="text-sky-300">preflight_scan</code> /
+				<code class="text-sky-300">preflight_gate</code> aliases still work
 			</li>
 		</ul>
 		<p class="mt-4 text-sm text-zinc-500">
@@ -158,6 +227,22 @@ node gate-remote.mjs https://your-app.com`);
 		<p class="mt-2 text-sm text-zinc-500">
 			API base: <code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">DEPLOYLINT_API</code>
 			(default <code class="text-sky-300">{base}</code>)
+		</p>
+	</section>
+
+	<section class="mb-10">
+		<h2 class="mb-2 text-xl font-semibold text-white">6. README score badge</h2>
+		<p class="mb-4 text-sm text-zinc-500">
+			After a scan, copy the badge from the report summary — embed proof in your repo README (like
+			CI shields, but launch-readiness):
+		</p>
+		<pre
+			class="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-xs leading-relaxed text-zinc-300"><code
+				>{`[![Deploylint score](${base}/r/YOUR_REPORT_ID/badge.svg)](${base}/r/YOUR_REPORT_ID)`}</code
+			></pre>
+		<p class="mt-3 text-sm text-zinc-500">
+			Shared reports include an OG image at <code class="text-sky-300">/r/[id]/badge.svg</code> for Slack,
+			X, and GitHub link previews.
 		</p>
 	</section>
 

@@ -30,12 +30,29 @@ const baseReport: ScanReport = {
 };
 
 describe('buildShareText', () => {
-	it('uses configured app URL instead of hardcoded domain', () => {
+	it('uses configured app URL and score', () => {
 		const text = buildShareText(baseReport, 'https://lint.latham.cloud');
 		expect(text).toContain('https://lint.latham.cloud');
 		expect(text).toContain('88/100');
 		expect(text).toContain('GO');
-		expect(text).toContain('before posting');
+	});
+
+	it('includes embarrassment hook when launch brief exists', () => {
+		const text = buildShareText(
+			{
+				...baseReport,
+				verdict: 'no-go',
+				launchBrief: {
+					headline: 'blockers',
+					embarrassmentRisks: ['Exposed keys get scraped within hours — rotate immediately.'],
+					shareReady: false,
+					categoryScores: []
+				}
+			},
+			'https://lint.latham.cloud'
+		);
+		expect(text).toContain('Deploylint caught this');
+		expect(text).toContain('Exposed keys');
 	});
 });
 

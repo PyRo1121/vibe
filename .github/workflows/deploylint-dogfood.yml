@@ -1,0 +1,26 @@
+name: Deploylint dogfood
+
+on:
+  pull_request:
+    paths:
+      - 'apps/preflight/**'
+      - 'apps/preflight-mcp/**'
+      - '.github/actions/deploylint-gate/**'
+      - '.github/workflows/deploylint-dogfood.yml'
+  workflow_dispatch:
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify MCP package
+        run: npm run verify -w preflight-mcp
+
+      - name: Gate lint.latham.cloud
+        uses: ./.github/actions/deploylint-gate
+        with:
+          url: https://lint.latham.cloud
+          min_score: '70'
+          mode: advisory

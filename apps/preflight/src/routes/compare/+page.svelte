@@ -82,6 +82,21 @@
 			pageLens: 'no'
 		},
 		{
+			feature: 'security.txt (RFC 9116 disclosure)',
+			deploylint: 'yes',
+			shipReady: 'partial',
+			websiteReady: 'no',
+			pageLens: 'no'
+		},
+		{
+			feature: 'Shareable report permalink + README badge',
+			deploylint: 'yes',
+			shipReady: 'partial',
+			websiteReady: 'partial',
+			pageLens: 'yes',
+			note: 'OG badge on /r/[id] — prove score without screenshots'
+		},
+		{
 			feature: 'Visual screenshots / page capture',
 			deploylint: 'no',
 			shipReady: 'partial',

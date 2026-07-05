@@ -27,6 +27,7 @@ const P0_IDS = new Set([
 	'privacy',
 	'noindex',
 	'robots-block',
+	'env-committed',
 	'form-security',
 	'exposed-env',
 	'exposed-git'

@@ -14,7 +14,7 @@
 		"test": "vitest run",
 		"test:e2e": "playwright install && playwright test",
 		"test:watch": "vitest",
-		"verify": "npm run check && npm run lint && npm run test && npm run build",
+		"verify": "npm run sync:gate-remote && npm run check && npm run lint && npm run test && npm run build",
 		"cf-typegen": "wrangler types src/cloudflare-env.d.ts --include-runtime false",
 		"setup:stripe": "powershell -ExecutionPolicy Bypass -File scripts/setup-stripe.ps1",
 		"setup:stripe:live": "powershell -ExecutionPolicy Bypass -File scripts/setup-stripe-live.ps1",
@@ -24,6 +24,7 @@
 		"stripe:test-webhook": "powershell -ExecutionPolicy Bypass -File scripts/test-webhook.ps1",
 		"gate": "tsx scripts/gate.ts",
 		"gate:remote": "node scripts/gate-remote.mjs",
+		"sync:gate-remote": "node scripts/sync-gate-remote.mjs",
 		"smoke:phase18": "node scripts/smoke-phase18.mjs",
 		"smoke:phase19": "node scripts/smoke-phase19.mjs",
 		"smoke:phase20": "node scripts/smoke-phase20.mjs",
@@ -33,6 +34,8 @@
 		"changelog:draft": "node scripts/changelog-draft.mjs",
 		"changelog:release": "node scripts/changelog-release.mjs",
 		"setup:plausible-goals": "node scripts/setup-plausible-goals.mjs",
+		"setup:cloudflare-firewall": "node scripts/setup-cloudflare-firewall.mjs",
+		"count:checks": "node scripts/count-checks.mjs",
 		"deploy": "npm run build && wrangler deploy"
 	},
 	"devDependencies": {

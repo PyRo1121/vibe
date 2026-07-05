@@ -1,0 +1,38 @@
+name: Deploylint gate
+description: Block deploys when Deploylint finds launch blockers (P0 failures, low score, or NO-GO verdict).
+branding:
+  icon: shield
+  color: blue
+
+inputs:
+  url:
+    description: Production or staging URL to scan (HTTPS)
+    required: true
+  api:
+    description: Deploylint API base URL
+    required: false
+    default: https://lint.latham.cloud
+  min_score:
+    description: Minimum launch score (0–100)
+    required: false
+    default: '80'
+  mode:
+    description: gate (fail on blockers) or advisory (report only)
+    required: false
+    default: gate
+
+runs:
+  using: composite
+  steps:
+    - name: Run Deploylint gate
+      shell: bash
+      env:
+        PREFLIGHT_URL: ${{ inputs.url }}
+        PREFLIGHT_API: ${{ inputs.api }}
+        PREFLIGHT_MIN_SCORE: ${{ inputs.min_score }}
+        PREFLIGHT_MODE: ${{ inputs.mode }}
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+        curl -fsSL "${PREFLIGHT_API%/}/gate-remote.mjs" -o gate-remote.mjs
+        node gate-remote.mjs "${PREFLIGHT_URL}"

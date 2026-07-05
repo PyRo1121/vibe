@@ -6,6 +6,7 @@ export interface LinkCheckResult {
 	robotsOk: boolean;
 	sitemapOk: boolean;
 	llmsTxtOk: boolean;
+	securityTxtOk: boolean;
 	robotsText: string | null;
 	/** HEAD results for a few URLs listed in sitemap.xml; null = not sampled. */
 	sitemapSample?: { checked: number; broken: number } | null;

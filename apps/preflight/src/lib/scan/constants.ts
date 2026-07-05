@@ -11,20 +11,24 @@ export const SEO_LIMITS = {
 export const USER_AGENT = 'Deploylint/1.0 (+https://lint.latham.cloud; site-readiness-audit)';
 
 export const FETCH_TIMEOUT_MS = 12_000;
-export const MAX_LINK_CHECKS = 12;
+/**
+ * Probe depth is sized for Cloudflare Workers Free (50 subrequests/invocation).
+ * @see docs/superpowers/workflow/cloudflare-free-tier.md
+ */
+export const MAX_LINK_CHECKS = 6;
 /** Targeted sub-pages fetched per scan (privacy, terms, pricing). */
-export const MAX_CRAWL_PAGES = 3;
+export const MAX_CRAWL_PAGES = 2;
 /** Extra marketing pages discovered via sitemap.xml (beyond link-based crawl). */
-export const MAX_SITEMAP_CRAWL_PAGES = 2;
+export const MAX_SITEMAP_CRAWL_PAGES = 1;
 /** Max URLs parsed from sitemap.xml for crawl selection and link sampling. */
 export const MAX_SITEMAP_LOCS = 20;
 /** Max child sitemaps followed when parsing a sitemap index. */
-export const MAX_SITEMAP_INDEX_CHILDREN = 3;
+export const MAX_SITEMAP_INDEX_CHILDREN = 1;
 /** Below this visible word count a legal page is treated as a stub. */
 export const LEGAL_STUB_MIN_WORDS = 120;
 export const MAX_HTML_BYTES = 2 * 1024 * 1024;
-export const MAX_SCRIPT_FETCHES = 10;
-export const MAX_SOURCEMAP_FETCHES = 5;
+export const MAX_SCRIPT_FETCHES = 5;
+export const MAX_SOURCEMAP_FETCHES = 2;
 export const MAX_SCRIPT_BYTES = 512 * 1024;
 export const MAX_REDIRECTS = 5;
 /** Same-origin sensitive path probes (Preflyt-style, read-only). */
@@ -36,7 +40,7 @@ export const EXPOSED_PATH_PROBE_PATHS = [
 	'/.env.bak',
 	'/package.json'
 ] as const;
-export const HEALTH_PROBE_PATHS = ['/health', '/healthz', '/api/health', '/status'] as const;
+export const HEALTH_PROBE_PATHS = ['/health', '/healthz'] as const;
 /** Warn when HTML payload or script count suggests slow first paint. */
 export const WEIGHT_LIMITS = {
 	htmlWarnBytes: 400 * 1024,

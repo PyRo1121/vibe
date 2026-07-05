@@ -5,6 +5,7 @@ import {
 	cspStatus,
 	hstsStatus,
 	mimeSniffStatus,
+	permissionsPolicyStatus,
 	referrerPolicyStatus,
 	type ResponseSecurityHeaders
 } from '$lib/scan/headers';
@@ -71,6 +72,16 @@ export function pushHeaderChecks(
 				? `Referrer-Policy: ${headers.referrerPolicy}`
 				: 'No Referrer-Policy header',
 			fixPrompt('referrer-header', ctx)
+		),
+		makeCheck(
+			'permissions-policy-header',
+			'security',
+			'Permissions-Policy',
+			permissionsPolicyStatus(headers),
+			headers.permissionsPolicy?.trim()
+				? `Permissions-Policy: ${headers.permissionsPolicy.split(';')[0]}`
+				: 'No Permissions-Policy — browsers may allow camera/mic/geo without explicit denial',
+			fixPrompt('permissions-policy-header', ctx)
 		)
 	);
 }

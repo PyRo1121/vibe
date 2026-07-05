@@ -7,7 +7,8 @@ import {
 	hasJsonLd,
 	isImageContentType,
 	llmsTxtLooksValid,
-	robotsBlocksAllCrawlers
+	robotsBlocksAllCrawlers,
+	securityTxtLooksValid
 } from './signals';
 
 describe('findPlaceholderHints subpage context', () => {
@@ -88,6 +89,16 @@ describe('llmsTxtLooksValid', () => {
 
 	it('rejects HTML error pages', () => {
 		expect(llmsTxtLooksValid('<!DOCTYPE html><html></html>')).toBe(false);
+	});
+});
+
+describe('securityTxtLooksValid', () => {
+	it('accepts RFC 9116 contact line', () => {
+		expect(securityTxtLooksValid('Contact: mailto:security@example.com\n')).toBe(true);
+	});
+
+	it('rejects HTML error pages', () => {
+		expect(securityTxtLooksValid('<html><body>404</body></html>')).toBe(false);
 	});
 });
 

@@ -1,4 +1,4 @@
-/** Sync with apps/preflight/src/lib/scan/verdict.ts P0_IDS */
+/** Sync with apps/preflight/src/lib/scan/p0-ids.ts P0_CHECK_IDS */
 export const GATE_P0_IDS = new Set([
 	'reachable',
 	'fetch',
@@ -22,7 +22,12 @@ export interface GateScanReport {
 	summary: { pass: number; warn: number; fail: number };
 }
 
-export function evaluateGate(report: GateScanReport, minScore: number): { pass: boolean; reasons: string[] } {
+export interface GateResult {
+	pass: boolean;
+	reasons: string[];
+}
+
+export function evaluateGate(report: GateScanReport, minScore: number): GateResult {
 	const reasons: string[] = [];
 
 	if (report.verdict === 'no-go') {

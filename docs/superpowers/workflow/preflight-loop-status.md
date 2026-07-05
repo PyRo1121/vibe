@@ -16,8 +16,8 @@
 
 ## Verification
 
-- **486 tests** — `npm run verify:preflight`
-- Phase 18 smoke — `npm run smoke:phase18 -w preflight` (18 checks)
+- **503 tests** — `npm run verify:preflight`
+- Phase 18 smoke — `npm run smoke:phase18 -w preflight` (19 checks)
 - Phase 19 smoke — `npm run smoke:phase19 -w preflight` (7 checks)
 - Phase 20 smoke — `npm run smoke:phase20 -w preflight` (multi-page crawl)
 - Phase 23 smoke — `npm run smoke:phase23 -w preflight` (sitemap dogfood + self-scan)
@@ -176,6 +176,29 @@ When `charges_enabled` flips true: run one $9 checkout → confirm webhook → r
 | Plausible first-party proxy | ✅ |
 | **v0.35.0** — tag `deploylint-v0.35.0`, [GitHub release](https://github.com/PyRo1121/vibe/releases/tag/deploylint-v0.35.0) | ✅ |
 
+### Phase 36 — World-class polish (shipped)
+
+| Item | Status |
+|------|--------|
+| **91 unique checks** (`npm run count:checks -w preflight`) | ✅ |
+| `security.txt` probe (RFC 9116) | ✅ |
+| `/db.sql` exposed in backup probe | ✅ |
+| `charset-meta` UTF-8 check | ✅ |
+| Share text uses embarrassment hook + permalink | ✅ |
+| Report `/r/[id]` OG/Twitter badge image | ✅ |
+| Score delta on shared reports | ✅ |
+| `/developers` README badge embed docs | ✅ |
+| `/compare` security.txt + badge rows | ✅ |
+| Edge security + zone WAF (prior session) | ✅ |
+
+### Phase 37 — Dogfood + header depth (shipped)
+
+| Item | Status |
+|------|--------|
+| **92 unique checks** — `permissions-policy-header` | ✅ |
+| Dogfood `/.well-known/security.txt` + `/security.txt` | ✅ |
+| Smoke phase18 asserts security.txt | ✅ |
+
 ### Phase 26+ — Parallel with validation
 
 | Item | Notes |
@@ -200,6 +223,8 @@ npm run gate:preflight -- https://your-app.com
 npm run smoke:preflight           # phases 18–24
 npm run changelog:draft -w preflight   # draft bullets from conventional commits
 npm run setup:plausible-goals -w preflight   # needs PLAUSIBLE_PLUGIN_TOKEN
+npm run setup:cloudflare-firewall -w preflight   # needs CLOUDFLARE_API_TOKEN (Zone WAF Edit)
+# Cloudflare Free tier guardrails: docs/superpowers/workflow/cloudflare-free-tier.md
 # Release: docs/superpowers/workflow/changelog-and-releases.md
 npm run setup:stripe              # test mode
 # Live: scripts/setup-stripe-live.ps1
@@ -207,4 +232,6 @@ npm run setup:stripe              # test mode
 
 ## MCP
 
-`.cursor/mcp.json` — tools: `preflight_scan`, `preflight_gate`
+`.cursor/mcp.json` — server `deploylint`: tools `deploylint_scan`, `deploylint_gate` (`format: json`, `advisory`, `unlock_session_id`)
+
+Composite action: `.github/actions/deploylint-gate` · dogfood workflow: `deploylint-dogfood.yml`

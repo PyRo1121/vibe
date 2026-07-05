@@ -13,6 +13,8 @@ const EMBARRASSMENT: Record<string, string> = {
 	'robots-block': 'robots.txt tells Google to stay away — you will launch to zero search traffic.',
 	'placeholder-copy': 'Template TODO or Lorem ipsum on a live page screams unfinished product.',
 	'llms-txt': 'AI assistants may summarize your product wrong without llms.txt context.',
+	'security-txt':
+		'No security.txt — researchers and enterprise buyers cannot find a disclosure path.',
 	noindex: 'Search engines are told not to index this page — fatal for a public launch.',
 	https: 'Browsers will warn visitors your site is insecure.',
 	reachable: 'Your homepage does not load — every share link goes to an error.',
@@ -22,6 +24,8 @@ const EMBARRASSMENT: Record<string, string> = {
 	description: 'Google and social previews will invent copy for you — badly.',
 	links: 'Dead links in nav/footer are the first thing critics click.',
 	'hsts-header': 'Missing HSTS — first visit can be downgraded before redirect.',
+	'permissions-policy-header':
+		'No Permissions-Policy — camera/mic/geo are not explicitly denied for embeds.',
 	'page-weight': 'Slow first paint makes Product Hunt comments mention performance.',
 	'twitter-card': 'X may render a plain URL instead of a rich card.',
 	canonical: 'Duplicate URLs split SEO and confuse crawlers.',

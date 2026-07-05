@@ -50,6 +50,7 @@ describe('buildContentChecks', () => {
 				robotsOk: true,
 				sitemapOk: true,
 				llmsTxtOk: false,
+				securityTxtOk: false,
 				robotsText: 'User-agent: *\nAllow: /',
 				sitemapLocs: []
 			},
@@ -76,6 +77,7 @@ describe('buildContentChecks', () => {
 				robotsOk: false,
 				sitemapOk: false,
 				llmsTxtOk: false,
+				securityTxtOk: false,
 				robotsText: null,
 				sitemapLocs: []
 			},
@@ -100,6 +102,7 @@ describe('buildContentChecks', () => {
 				robotsOk: false,
 				sitemapOk: false,
 				llmsTxtOk: false,
+				securityTxtOk: false,
 				robotsText: null,
 				sitemapLocs: []
 			},

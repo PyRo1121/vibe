@@ -1,10 +1,10 @@
 {
   "mcpServers": {
-    "preflight": {
-      "command": "node",
-      "args": ["apps/preflight-mcp/dist/index.js"],
+    "deploylint": {
+      "command": "npx",
+      "args": ["tsx", "apps/preflight-mcp/src/index.ts"],
       "env": {
-        "PREFLIGHT_API": "https://preflight.latham.cloud"
+        "DEPLOYLINT_API": "https://lint.latham.cloud"
       }
     }
   }

@@ -54,6 +54,15 @@ const llms = await get('/llms.txt');
 if (llms.res.ok && llms.text.startsWith('# Deploylint')) pass('llms.txt', String(llms.res.status));
 else fail('llms.txt', `${llms.res.status} ${llms.text.slice(0, 40)}`);
 
+const securityTxt = await get('/.well-known/security.txt');
+if (
+	securityTxt.res.ok &&
+	securityTxt.text.includes('Contact:') &&
+	securityTxt.text.includes('lint.latham.cloud')
+) {
+	pass('security.txt', String(securityTxt.res.status));
+} else fail('security.txt', `${securityTxt.res.status} ${securityTxt.text.slice(0, 40)}`);
+
 const robots = await get('/robots.txt');
 if (robots.res.ok && robots.text.includes('Allow: /'))
 	pass('robots.txt', String(robots.res.status));

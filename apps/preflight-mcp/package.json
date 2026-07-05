@@ -1,9 +1,10 @@
 {
   "name": "preflight-mcp",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "bin": {
+    "deploylint-mcp": "./dist/index.js",
     "preflight-mcp": "./dist/index.js"
   },
   "scripts": {
@@ -11,15 +12,16 @@
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
     "check": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "verify": "npm run check && npm run test && npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1"
   },
   "devDependencies": {
     "@types/node": "^26.1.0",
-    "tsx": "^4.19.4",
-    "typescript": "^6.0.2",
+    "tsx": "^4.22.5",
+    "typescript": "^6.0.3",
     "vitest": "^4.1.9"
   }
 }

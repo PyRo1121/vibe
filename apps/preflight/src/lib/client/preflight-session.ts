@@ -238,8 +238,18 @@ export function buildUnlockOffer(report: ScanReport): UnlockOffer | null {
 export function buildShareText(report: ScanReport, appUrl: string): string {
 	const verdict =
 		report.verdict === 'go' ? 'GO' : report.verdict === 'conditional' ? 'CONDITIONAL GO' : 'NO-GO';
-
-	return `I ran Deploylint before posting my URL — ${report.score}/100 (${verdict}).\nCheck yours before you share publicly: ${appUrl.replace(/\/$/, '')}\n${report.finalUrl}`;
+	const base = appUrl.replace(/\/$/, '');
+	const risk = report.launchBrief?.embarrassmentRisks?.[0];
+	const hook = risk
+		? `Deploylint caught this before I posted publicly:\n“${risk.slice(0, 140)}${risk.length > 140 ? '…' : ''}”`
+		: `I ran Deploylint before posting my URL — ${report.score}/100 (${verdict}).`;
+	const permalink = report.reportId ? `${base}/r/${report.reportId}` : null;
+	const lines = [
+		hook,
+		permalink ? `Report: ${permalink}` : `Score: ${report.score}/100 · ${report.finalUrl}`,
+		`Check yours free: ${base}`
+	];
+	return lines.join('\n');
 }
 
 export function clearCheckoutQuery(): void {

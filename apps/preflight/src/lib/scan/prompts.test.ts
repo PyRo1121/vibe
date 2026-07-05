@@ -74,6 +74,7 @@ describe('fixPrompt coverage for new check ids', () => {
 		'title-brand-dupe',
 		'form-security',
 		'sri',
+		'permissions-policy-header',
 		'noopener',
 		'wp-exposure',
 		'mailto-exposure',

@@ -289,7 +289,6 @@ describe('scanUrl', () => {
 			'home',
 			'privacy',
 			'terms',
-			'sitemap',
 			'sitemap'
 		]);
 		const placeholder = report.checks.find((c) => c.id === 'placeholder-copy');
@@ -509,16 +508,17 @@ describe('scanUrl', () => {
 	});
 
 	it('samples scripts from crawled sub-pages', async () => {
-		const pricingHtml = `${GOOD_HTML}<script src="/pricing-only.js"></script>`;
+		const termsHtml = `${GOOD_HTML}<script src="/terms-only.js"></script>`;
 		const report = await scanUrl('https://app.test', {
 			fetchHtml: routedFetchHtml({
-				'/': { html: `${GOOD_HTML}<a href="/pricing">Pricing</a>` },
-				'/pricing': { html: pricingHtml }
+				'/': { html: `${GOOD_HTML}<a href="/privacy">Privacy</a><a href="/terms">Terms</a>` },
+				'/privacy': { html: LEGAL_PAGE_HTML },
+				'/terms': { html: termsHtml }
 			}),
 			headOk: async () => true,
 			headProbe: mockDeps.headProbe,
 			fetchText: async (url) =>
-				url.endsWith('/pricing-only.js') ? 'const key = "sk_live_1234567890123456789012";' : null
+				url.endsWith('/terms-only.js') ? 'const key = "sk_live_1234567890123456789012";' : null
 		});
 		const secrets = report.checks.find((c) => c.id === 'secrets');
 		expect(secrets?.status).toBe('fail');

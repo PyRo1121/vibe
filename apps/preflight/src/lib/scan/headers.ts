@@ -4,6 +4,7 @@ export interface ResponseSecurityHeaders {
 	xFrameOptions: string | null;
 	xContentTypeOptions: string | null;
 	referrerPolicy: string | null;
+	permissionsPolicy: string | null;
 }
 
 export function pickSecurityHeaders(res: Response): ResponseSecurityHeaders {
@@ -12,7 +13,8 @@ export function pickSecurityHeaders(res: Response): ResponseSecurityHeaders {
 		csp: res.headers.get('content-security-policy'),
 		xFrameOptions: res.headers.get('x-frame-options'),
 		xContentTypeOptions: res.headers.get('x-content-type-options'),
-		referrerPolicy: res.headers.get('referrer-policy')
+		referrerPolicy: res.headers.get('referrer-policy'),
+		permissionsPolicy: res.headers.get('permissions-policy')
 	};
 }
 
@@ -45,4 +47,8 @@ export function clickjackStatus(headers: ResponseSecurityHeaders): 'pass' | 'war
 
 export function referrerPolicyStatus(headers: ResponseSecurityHeaders): 'pass' | 'warn' {
 	return headers.referrerPolicy?.trim() ? 'pass' : 'warn';
+}
+
+export function permissionsPolicyStatus(headers: ResponseSecurityHeaders): 'pass' | 'warn' {
+	return headers.permissionsPolicy?.trim() ? 'pass' : 'warn';
 }

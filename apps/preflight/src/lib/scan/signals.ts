@@ -138,6 +138,17 @@ export function llmsTxtLooksValid(text: string | null): boolean {
 	return true;
 }
 
+/** RFC 9116 — Contact and security disclosure for researchers. */
+export function securityTxtLooksValid(text: string | null): boolean {
+	if (!text) return false;
+	const trimmed = text.trim();
+	if (trimmed.length < 10) return false;
+	if (/^<!DOCTYPE|<html\b/i.test(trimmed)) return false;
+	return (
+		/Contact:/im.test(trimmed) || /Policy:/im.test(trimmed) || /Acknowledgments:/im.test(trimmed)
+	);
+}
+
 export function isImageContentType(contentType: string | null): boolean {
 	if (!contentType) return false;
 	return contentType.split(';')[0]?.trim().toLowerCase().startsWith('image/') ?? false;

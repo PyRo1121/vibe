@@ -1,4 +1,6 @@
 import type { Handle } from '@sveltejs/kit';
+import { isHttpError } from '@sveltejs/kit';
+import { applySecurityHeaders, enforceEdgeSecurity } from '$lib/server/edge-security';
 
 const REDIRECT_HOSTS = new Set(['deploylint.com', 'www.deploylint.com']);
 
@@ -12,5 +14,26 @@ export const handle: Handle = async ({ event, resolve }) => {
 		return Response.redirect(target.href, 301);
 	}
 
-	return resolve(event);
+	try {
+		const blocked = await enforceEdgeSecurity(event.platform?.env?.REPORTS, event.request);
+		if (blocked) return applySecurityHeaders(blocked, event.url.href);
+	} catch (err) {
+		if (isHttpError(err)) {
+			const message =
+				typeof err.body === 'object' && err.body && 'message' in err.body
+					? String((err.body as { message: string }).message)
+					: 'Too Many Requests';
+			return applySecurityHeaders(
+				new Response(message, {
+					status: err.status,
+					headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+				}),
+				event.url.href
+			);
+		}
+		throw err;
+	}
+
+	const response = await resolve(event);
+	return applySecurityHeaders(response, event.url.href);
 };

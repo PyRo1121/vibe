@@ -11,6 +11,19 @@ import { saveUnlock } from '$lib/billing/unlock-store';
 import { requireStripeWebhookSecretKey } from '$lib/server/env';
 import { logFunnelEvent } from '$lib/metrics/funnel';
 
+const WEBHOOK_DEDUP_TTL_SECONDS = 60 * 60 * 24 * 7;
+
+async function isDuplicateWebhookEvent(kv: KVNamespace, eventId: string): Promise<boolean> {
+	const key = `webhook:event:${eventId}`;
+	try {
+		if (await kv.get(key)) return true;
+		await kv.put(key, '1', { expirationTtl: WEBHOOK_DEDUP_TTL_SECONDS });
+		return false;
+	} catch {
+		error(503, 'Webhook processing temporarily unavailable');
+	}
+}
+
 export const POST: RequestHandler = async ({ request, platform }) => {
 	const webhookSecret = requireStripeWebhookSecretKey(platform?.env);
 
@@ -30,6 +43,12 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 		event = parseStripeWebhookEvent(payload);
 	} catch {
 		error(400, 'Invalid webhook payload');
+	}
+
+	if (event.id && platform?.env?.REPORTS) {
+		if (await isDuplicateWebhookEvent(platform.env.REPORTS, event.id)) {
+			return json({ received: true, duplicate: true });
+		}
 	}
 
 	if (isCheckoutSessionFulfilled(event)) {

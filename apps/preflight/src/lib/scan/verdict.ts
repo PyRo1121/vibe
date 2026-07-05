@@ -1,23 +1,10 @@
 import type { ScanCheck } from '$lib/scan/types';
+import { P0_ID_SET } from '$lib/scan/p0-ids';
 
 export type CheckPriority = 'p0' | 'p1' | 'p2';
 export type LaunchVerdict = 'go' | 'conditional' | 'no-go';
 
-const P0_IDS = new Set([
-	'reachable',
-	'fetch',
-	'https',
-	'secrets',
-	'privacy',
-	'noindex',
-	'robots-block',
-	'env-committed',
-	// Only fails when a form posts over plain HTTP or a password field sits on
-	// an http page — unambiguously a launch blocker.
-	'form-security',
-	'exposed-env',
-	'exposed-git'
-]);
+const P0_IDS = P0_ID_SET;
 const P1_IDS = new Set([
 	'viewport',
 	'open-graph',

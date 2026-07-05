@@ -18,6 +18,7 @@
 		"dev:preflight": "turbo run dev --filter=preflight",
 		"dev:tcg-vault": "turbo run dev --filter=tcg-vault",
 		"verify:preflight": "turbo run verify --filter=preflight",
+		"verify:mcp": "npm run verify -w preflight-mcp",
 		"verify:tcg-vault": "turbo run verify --filter=tcg-vault",
 		"deploy:preflight": "turbo run deploy --filter=preflight",
 		"deploy:tcg-vault": "turbo run deploy --filter=tcg-vault",

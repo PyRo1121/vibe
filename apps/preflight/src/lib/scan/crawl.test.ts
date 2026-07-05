@@ -22,8 +22,7 @@ describe('selectCrawlTargets', () => {
 		const targets = selectCrawlTargets(links, base);
 		expect(targets).toEqual([
 			{ role: 'privacy', url: 'https://app.test/privacy' },
-			{ role: 'terms', url: 'https://app.test/terms' },
-			{ role: 'pricing', url: 'https://app.test/pricing' }
+			{ role: 'terms', url: 'https://app.test/terms' }
 		]);
 	});
 
@@ -72,10 +71,7 @@ describe('selectSitemapCrawlTargets', () => {
 		];
 		const claimed = new Set(['https://app.test/', 'https://app.test/privacy']);
 		const targets = selectSitemapCrawlTargets(locs, base, claimed);
-		expect(targets).toEqual([
-			{ role: 'sitemap', url: 'https://app.test/about' },
-			{ role: 'sitemap', url: 'https://app.test/contact' }
-		]);
+		expect(targets).toEqual([{ role: 'sitemap', url: 'https://app.test/about' }]);
 	});
 
 	it('skips asset URLs and cross-origin entries', () => {
