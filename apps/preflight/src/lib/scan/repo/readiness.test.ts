@@ -234,6 +234,72 @@ jobs:
 		});
 	});
 
+	it('passes dependency review and update automation when configured', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/dependency-review.yml',
+				text: `
+name: Dependency Review
+on: [pull_request]
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
+`
+			},
+			{
+				path: '.github/dependabot.yml',
+				text: `
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'dependency-review-action')).toMatchObject({
+			status: 'pass'
+		});
+		expect(findings.find((finding) => finding.id === 'dependabot-config')).toMatchObject({
+			status: 'pass'
+		});
+	});
+
+	it('warns when dependency review and update automation are missing', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/ci.yml',
+				text: `
+name: CI
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm test
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'dependency-review-action')).toMatchObject({
+			status: 'warn'
+		});
+		expect(findings.find((finding) => finding.id === 'dependabot-config')).toMatchObject({
+			status: 'warn'
+		});
+	});
+
 	it('warns when GitHub Actions workflows do not declare token permissions', () => {
 		const findings = analyzeCiWorkflows([
 			{
@@ -282,6 +348,36 @@ jobs:
 		expect(findings.find((finding) => finding.id === 'workflow-action-pinning')).toMatchObject({
 			status: 'warn'
 		});
+	});
+
+	it('fails pull_request_target workflows that opt into unsafe fork checkout', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/pr.yml',
+				text: `
+on: pull_request_target
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: \${{ github.event.pull_request.head.sha }}
+          repository: \${{ github.event.pull_request.head.repo.full_name }}
+          allow-unsafe-pr-checkout: true
+      - run: npm test
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'workflow-pull-request-target')).toMatchObject(
+			{
+				status: 'fail',
+				launchImpact: 'blocker'
+			}
+		);
 	});
 
 	it('ignores commented-out quality gates and floating action refs', () => {

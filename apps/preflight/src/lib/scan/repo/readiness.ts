@@ -479,12 +479,34 @@ function hasRiskyPullRequestTarget(text: string): boolean {
 	);
 }
 
+function hasUnsafePullRequestTargetCheckout(text: string): boolean {
+	return (
+		hasWorkflowEvent(text, 'pull_request_target') &&
+		/\buses\s*:\s*actions\/checkout@/i.test(text) &&
+		(/allow-unsafe-pr-checkout\s*:\s*true/i.test(text) ||
+			/ref\s*:\s*(refs\/pull\/|.*github\.event\.pull_request\.head\.(sha|ref))/i.test(text) ||
+			/repository\s*:\s*.*github\.event\.pull_request\.head\.repo\.full_name/i.test(text))
+	);
+}
+
 function hasFloatingThirdPartyAction(text: string): boolean {
 	for (const { action, ref } of workflowUsesRefs(text)) {
 		if (action.startsWith('actions/')) continue;
 		if (/^(main|master|latest|HEAD)$/i.test(ref)) return true;
 	}
 	return false;
+}
+
+function hasDependencyReviewAction(text: string): boolean {
+	return workflowUsesRefs(text).some(({ action }) => action === 'actions/dependency-review-action');
+}
+
+function dependencyUpdateConfig(files: RepoFileEvidence[]): RepoFileEvidence | undefined {
+	return hasFile(files, [
+		/^\.github\/dependabot\.ya?ml$/,
+		/(^|\/)renovate\.json5?$/,
+		/(^|\/)\.renovaterc(\.json)?$/
+	]);
 }
 
 export function analyzeCiWorkflows(files: RepoFileEvidence[]): RepoReadinessFinding[] {
@@ -506,8 +528,10 @@ export function analyzeCiWorkflows(files: RepoFileEvidence[]): RepoReadinessFind
 	const missing = ['lint', 'typecheck', 'test', 'build'].filter((gate) => !gates.includes(gate));
 	const writeAll = workflows.some((file) => hasWriteAllPermissions(file.text ?? ''));
 	const hasPermissions = workflows.some((file) => hasWorkflowPermissions(file.text ?? ''));
-	const riskyTarget = hasRiskyPullRequestTarget(text);
+	const riskyTarget = hasRiskyPullRequestTarget(text) || hasUnsafePullRequestTargetCheckout(text);
 	const floatingAction = hasFloatingThirdPartyAction(text);
+	const dependencyReview = hasDependencyReviewAction(text);
+	const updateConfig = dependencyUpdateConfig(files);
 	const evidencePath = workflows[0]?.path;
 
 	return [
@@ -552,6 +576,26 @@ export function analyzeCiWorkflows(files: RepoFileEvidence[]): RepoReadinessFind
 				? 'Third-party GitHub Action uses a floating ref such as main, master, or latest.'
 				: 'No floating third-party GitHub Action refs detected.',
 			{ path: evidencePath },
+			'security'
+		),
+		finding(
+			'dependency-review-action',
+			'Dependency review action',
+			dependencyReview ? 'pass' : 'warn',
+			dependencyReview
+				? 'GitHub Actions runs dependency review on pull requests.'
+				: 'No GitHub dependency review action found; vulnerable dependency changes may reach review unnoticed.',
+			{ path: evidencePath },
+			'security'
+		),
+		finding(
+			'dependabot-config',
+			'Dependency update automation',
+			updateConfig ? 'pass' : 'warn',
+			updateConfig
+				? `Dependency update automation configured at ${updateConfig.path}.`
+				: 'No Dependabot or Renovate configuration found for dependency update automation.',
+			{ path: updateConfig?.path ?? evidencePath },
 			'security'
 		)
 	];
