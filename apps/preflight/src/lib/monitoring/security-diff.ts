@@ -14,6 +14,7 @@ export interface SecuritySnapshot {
 	url: string;
 	finalUrl: string;
 	scannedAt: string;
+	score: number;
 	issues: SecurityIssueSnapshot[];
 }
 
@@ -61,6 +62,7 @@ export function snapshotSecurityIssues(report: ScanReport): SecuritySnapshot {
 		url: report.url,
 		finalUrl: report.finalUrl,
 		scannedAt: report.scannedAt,
+		score: report.score,
 		issues: report.checks.filter(isAlertWorthySecurityIssue).map((check) => ({
 			id: check.id,
 			title: check.title,
