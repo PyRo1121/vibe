@@ -1,0 +1,33 @@
+import { describe, expect, it } from 'vitest';
+import { PUBLIC_SITE_ROUTES, buildLlmsTxt, buildSitemapXml } from './crawler-surfaces';
+
+describe('crawler-facing website surfaces', () => {
+	it('keeps public website routes in one crawlable registry', () => {
+		expect(PUBLIC_SITE_ROUTES.map((route) => route.path)).toEqual([
+			'/',
+			'/checks',
+			'/compare',
+			'/developers',
+			'/changelog',
+			'/privacy',
+			'/terms'
+		]);
+	});
+
+	it('generates a sitemap that includes the check catalog', () => {
+		const xml = buildSitemapXml('https://deploylint.com');
+
+		expect(xml).toContain('<loc>https://deploylint.com/checks</loc>');
+		expect(xml).toContain('<loc>https://deploylint.com/compare</loc>');
+		expect(xml).not.toContain('/api/');
+		expect(xml).not.toContain('/r/');
+	});
+
+	it('generates llms.txt from the same website route list', () => {
+		const text = buildLlmsTxt('https://deploylint.com');
+
+		expect(text).toContain('- Check catalog: https://deploylint.com/checks');
+		expect(text).toContain('Alpha access: all scan output is currently free');
+		expect(text).not.toContain('GitHub');
+	});
+});
