@@ -1,5 +1,5 @@
-import worker from '../.svelte-kit/cloudflare/_worker.sk.js';
 import { runScheduledSync } from '../src/lib/server/scheduled.ts';
+import worker from './_worker.sk.js';
 
 export default {
 	fetch: worker.fetch,

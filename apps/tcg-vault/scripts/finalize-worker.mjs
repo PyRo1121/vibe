@@ -19,7 +19,7 @@ execSync(
 		'--format=esm',
 		'--platform=neutral',
 		'--external:cloudflare:workers',
-		'--external:../.svelte-kit/cloudflare/_worker.sk.js'
+		'--external:./_worker.sk.js'
 	].join(' '),
 	{ cwd: appRoot, stdio: 'inherit' }
 );
