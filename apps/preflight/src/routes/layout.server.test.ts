@@ -7,20 +7,22 @@ function loadLayout(env: Partial<Env>) {
 }
 
 describe('layout analytics config', () => {
-	it('emits a domain-scoped Plausible proxy URL to bust stale script caches', () => {
-		expect(loadLayout({ PUBLIC_PLAUSIBLE_DOMAIN: ' deploylint.com ' })).toEqual({
+	it('emits the new Deploylint Plausible personalized script URL', () => {
+		expect(
+			loadLayout({
+				PUBLIC_PLAUSIBLE_DOMAIN: ' deploylint.com ',
+				PUBLIC_PLAUSIBLE_SCRIPT: ' https://plausible.io/js/pa-kDKT3UQlQwf5rMj8gkKwW.js '
+			})
+		).toEqual({
 			plausibleDomain: 'deploylint.com',
-			plausibleProxy: {
-				script: '/s/script.js?site=deploylint.com',
-				endpoint: '/s/event'
-			}
+			plausibleScript: 'https://plausible.io/js/pa-kDKT3UQlQwf5rMj8gkKwW.js'
 		});
 	});
 
 	it('omits Plausible when no public analytics domain is configured', () => {
 		expect(loadLayout({ PUBLIC_PLAUSIBLE_DOMAIN: ' ' })).toEqual({
 			plausibleDomain: null,
-			plausibleProxy: null
+			plausibleScript: null
 		});
 	});
 });

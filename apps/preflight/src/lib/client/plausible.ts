@@ -29,9 +29,8 @@ function markReady(): void {
 }
 
 /** Inline init stub for SSR — verifier looks for plausible.init in page source. */
-export function plausibleInitSnippet(domain: string, endpoint: string): string {
-	const opts = JSON.stringify({ domain, endpoint });
-	return `<script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)};plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init(${opts})</script>`;
+export function plausibleInitSnippet(): string {
+	return `<script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>`;
 }
 
 /** Wait for the deferred Plausible script tag to expose window.plausible. */

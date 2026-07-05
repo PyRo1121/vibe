@@ -13,12 +13,12 @@
 		children: import('svelte').Snippet;
 		data: {
 			plausibleDomain?: string | null;
-			plausibleProxy?: { script: string; endpoint: string } | null;
+			plausibleScript?: string | null;
 		};
 	} = $props();
 
 	onMount(() => {
-		if (data.plausibleDomain) watchPlausible();
+		if (data.plausibleScript) watchPlausible();
 	});
 
 	onNavigate((navigation) => {
@@ -33,11 +33,11 @@
 </script>
 
 <svelte:head>
-	{#if data.plausibleDomain && data.plausibleProxy}
+	{#if data.plausibleDomain && data.plausibleScript}
 		<meta name="plausible-domain" content={data.plausibleDomain} />
+		<script async src={data.plausibleScript}></script>
 		<!-- eslint-disable-next-line svelte/no-at-html-tags -- init stub built server-side -->
-		{@html plausibleInitSnippet(data.plausibleDomain, data.plausibleProxy.endpoint)}
-		<script defer src={data.plausibleProxy.script}></script>
+		{@html plausibleInitSnippet()}
 	{/if}
 </svelte:head>
 
