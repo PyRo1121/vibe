@@ -1,4 +1,5 @@
 import { expect, type Page } from '@playwright/test';
+
 import type { ScanReport } from '../src/lib/scan/types';
 
 export async function mockScanApi(page: Page, report: ScanReport | 'error', status = 200) {

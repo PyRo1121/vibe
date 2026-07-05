@@ -1,7 +1,11 @@
 import { isDeploylintPlanId, type DeploylintPlanId } from '$lib/product/plans';
 
 export type FunnelEventName =
-	'scan_completed' | 'rescan_completed' | 'checkout_started' | 'checkout_paid' | 'unlock_click';
+	| 'scan_completed'
+	| 'rescan_completed'
+	| 'checkout_started'
+	| 'checkout_paid'
+	| 'unlock_click';
 
 export interface FunnelPayload {
 	verdict?: string;

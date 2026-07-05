@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
+
 import type { DeploylintPlanId } from '$lib/product/plans';
 import { assertPublicHttpUrl } from '$lib/scan/url-guard';
 

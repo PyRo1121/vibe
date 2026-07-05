@@ -1,11 +1,11 @@
-import type { ScanCheck } from '$lib/scan/types';
 import { fixPrompt } from '$lib/scan/prompts';
 import { makeCheck } from '$lib/scan/score';
+import type { ScanCheck } from '$lib/scan/types';
 
 const FIELD_TYPES = new Set(['text', 'email', 'password', 'tel', 'url', 'search', 'number']);
 
 function stripBlocks(html: string): string {
-	return html.replace(/<(script|style|svg)\b[\s\S]*?<\/\1\s*>/gi, '');
+	return html.replaceAll(/<(script|style|svg)\b[\s\S]*?<\/\1\s*>/gi, '');
 }
 
 function attr(tag: string, name: string): string | null {
@@ -78,8 +78,8 @@ function pushFormLabelsCheck(checks: ScanCheck[], html: string, ctx: { url: stri
 
 function visibleText(tag: string): string {
 	return tag
-		.replace(/<[^>]+>/g, '')
-		.replace(/\s+/g, ' ')
+		.replaceAll(/<[^>]+>/g, '')
+		.replaceAll(/\s+/g, ' ')
 		.trim();
 }
 

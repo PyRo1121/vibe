@@ -58,7 +58,7 @@ async function reserveDurableBudget(
  * Fails open when storage is unavailable.
  */
 export async function assertDailyScanBudget(
-	kv: KVNamespace | undefined,
+	kv?: KVNamespace,
 	limiter?: DurableObjectNamespace
 ): Promise<void> {
 	const key = dayKey('budget:scans');

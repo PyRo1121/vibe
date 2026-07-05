@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { CHECK_CATALOG, catalogEntries, getCheckCatalogEntry } from './catalog';
 import { P0_CHECK_IDS } from './p0-ids';
 
@@ -98,7 +99,7 @@ describe('check catalog', () => {
 		const ids = catalogEntries().map((entry) => entry.id);
 
 		expect(new Set(ids).size).toBe(ids.length);
-		expect(Object.keys(CHECK_CATALOG)).toEqual([...ids].sort());
+		expect(Object.keys(CHECK_CATALOG)).toEqual([...ids].toSorted());
 	});
 
 	it('returns null for checks that are not cataloged yet', () => {

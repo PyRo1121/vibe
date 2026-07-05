@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { buildCatalogGroups, catalogTitle } from './catalog-view';
+
 import { catalogEntries } from './catalog';
+import { buildCatalogGroups, catalogTitle } from './catalog-view';
 
 describe('catalog view helpers', () => {
 	it('groups catalog entries by check priority', () => {

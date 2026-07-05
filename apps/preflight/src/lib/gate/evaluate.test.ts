@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
-import { evaluateGate } from './evaluate';
 import type { ScanReport } from '$lib/scan/types';
+import { describe, expect, it } from 'vitest';
+
+import { evaluateGate } from './evaluate';
 
 function report(overrides: Partial<ScanReport> = {}): ScanReport {
 	return {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { parsePsiResult, psiUrl } from './web-vitals';
 
 describe('psiUrl', () => {

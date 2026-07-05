@@ -1,5 +1,12 @@
 export type GameSlug =
-	'mtg' | 'yugioh' | 'pokemon' | 'lorcana' | 'one-piece' | 'digimon' | 'fab' | 'swu';
+	| 'mtg'
+	| 'yugioh'
+	| 'pokemon'
+	| 'lorcana'
+	| 'one-piece'
+	| 'digimon'
+	| 'fab'
+	| 'swu';
 
 export interface GameMeta {
 	slug: GameSlug;

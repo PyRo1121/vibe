@@ -1,12 +1,12 @@
-import { json } from '@sveltejs/kit';
-import { UrlValidationError } from '$lib/scan/url-guard';
 import {
 	isFunnelEventName,
 	logFunnelEvent,
 	sanitizeFunnelPayload,
 	type FunnelEventName
 } from '$lib/metrics/funnel';
+import { UrlValidationError } from '$lib/scan/url-guard';
 import { readJsonBody } from '$lib/server/api';
+import { json } from '@sveltejs/kit';
 
 export async function handleEventsPost(request: Request) {
 	const body = await readJsonBody(request, 2048);

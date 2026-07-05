@@ -1,6 +1,6 @@
-import { error } from '@sveltejs/kit';
 import type { DeploylintPlanId } from '$lib/product/plans';
 import { DEPLOYLINT_PLANS } from '$lib/product/plans';
+import { error } from '@sveltejs/kit';
 
 export function requireStripeSecretKey(env: Env | undefined): string {
 	const key = env?.STRIPE_SECRET_KEY;

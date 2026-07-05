@@ -1,4 +1,3 @@
-import type { ScanReport } from '$lib/scan/types';
 import { buildContentChecks, type ScanContext } from '$lib/scan/analyze';
 import { buildBlockedHomepageChecks, isBlockedHomepageStatus } from '$lib/scan/coverage';
 import {
@@ -29,6 +28,7 @@ import {
 import { fixPrompt } from '$lib/scan/prompts';
 import { buildReport, makeCheck } from '$lib/scan/score';
 import { detectStack } from '$lib/scan/stack';
+import type { ScanReport } from '$lib/scan/types';
 import { assertPublicHttpUrl } from '$lib/scan/url-guard';
 
 /**

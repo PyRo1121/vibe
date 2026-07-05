@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
-import { diffSecuritySnapshots, snapshotSecurityIssues } from './security-diff';
 import type { ScanCheck, ScanReport } from '$lib/scan/types';
+import { describe, expect, it } from 'vitest';
+
+import { diffSecuritySnapshots, snapshotSecurityIssues } from './security-diff';
 
 function check(id: string, status: ScanCheck['status'], message = `${id} message`): ScanCheck {
 	return {

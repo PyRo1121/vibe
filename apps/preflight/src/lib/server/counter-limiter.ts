@@ -14,14 +14,14 @@ const DurableObjectBase =
 		globalThis as typeof globalThis & {
 			DurableObject?: new (state: DurableObjectState, env: Env) => object;
 		}
-	).DurableObject ?? class {};
+	).DurableObject ?? (Object as unknown as new (state: DurableObjectState, env: Env) => object);
 
 export class CounterLimiter extends DurableObjectBase {
-	constructor(
-		private readonly state: DurableObjectState,
-		env: Env
-	) {
+	private readonly state: DurableObjectState;
+
+	constructor(state: DurableObjectState, env: Env) {
 		super(state, env);
+		this.state = state;
 	}
 
 	async fetch(request: Request): Promise<Response> {

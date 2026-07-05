@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { badgeColor, buildBadgeSvg } from './badge';
 
 describe('badgeColor', () => {

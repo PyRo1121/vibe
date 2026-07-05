@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import {
 	assertDailyScanBudget,
 	assertPlausibleEventBudget,
@@ -9,8 +10,8 @@ import {
 function fakeKv(initial: Record<string, string> = {}) {
 	const store = new Map(Object.entries(initial));
 	return {
-		get: vi.fn(async (key: string) => store.get(key) ?? null),
-		put: vi.fn(async (key: string, value: string) => {
+		get: vi.fn<(key: string) => Promise<string | null>>(async (key) => store.get(key) ?? null),
+		put: vi.fn<(key: string, value: string) => Promise<void>>(async (key, value) => {
 			store.set(key, value);
 		}),
 		store
@@ -35,7 +36,7 @@ function fakeLimiter() {
 
 describe('assertDailyScanBudget', () => {
 	it('skips without KV', async () => {
-		await expect(assertDailyScanBudget(undefined)).resolves.toBeUndefined();
+		await expect(assertDailyScanBudget()).resolves.toBeUndefined();
 	});
 
 	it('uses the limiter binding for concurrent daily scan budget', async () => {

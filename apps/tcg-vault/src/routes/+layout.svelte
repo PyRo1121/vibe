@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { page } from '$app/state';
 	import { onNavigate } from '$app/navigation';
+	import { page } from '$app/state';
+
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 
@@ -35,7 +36,7 @@
 
 <a
 	href="#main"
-	class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:bg-amber-400 focus:px-4 focus:py-2 focus:text-zinc-950 focus:font-medium"
+	class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:bg-amber-400 focus:px-4 focus:py-2 focus:font-medium focus:text-zinc-950"
 >
 	Skip to content
 </a>

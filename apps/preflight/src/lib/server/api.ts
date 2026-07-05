@@ -1,6 +1,6 @@
-import { error } from '@sveltejs/kit';
 import { UrlValidationError } from '$lib/scan/url-guard';
 import { parseScanRequestBody } from '$lib/scan/validate';
+import { error } from '@sveltejs/kit';
 
 export function rejectValidation(err: unknown): never {
 	if (err instanceof UrlValidationError) error(400, err.message);

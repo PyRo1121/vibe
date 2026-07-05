@@ -4,10 +4,9 @@
  * Run: npm run count:checks -w preflight
  */
 import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 
-const scanDir = join(dirname(fileURLToPath(import.meta.url)), '../src/lib/scan');
+const scanDir = join(import.meta.dirname, '../src/lib/scan');
 
 function walk(dir, out = []) {
 	for (const name of readdirSync(dir)) {
@@ -24,6 +23,6 @@ for (const file of walk(scanDir)) {
 	for (const m of text.matchAll(/makeCheck\(\s*['"]([a-z0-9-]+)['"]/g)) ids.add(m[1]);
 }
 
-const sorted = [...ids].sort();
+const sorted = [...ids].toSorted();
 console.log(`Unique check IDs: ${sorted.length}`);
 console.log(sorted.join('\n'));

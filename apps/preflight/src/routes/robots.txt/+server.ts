@@ -1,5 +1,6 @@
-import type { RequestHandler } from './$types';
 import { DEFAULT_DEPLOYLINT_API } from '@vibe/deploylint-shared';
+
+import type { RequestHandler } from './$types';
 
 const BODY = `User-agent: *
 Allow: /

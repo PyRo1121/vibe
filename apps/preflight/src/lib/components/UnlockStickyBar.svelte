@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { ScanReport } from '$lib/scan/types';
 	import { buildUnlockOffer } from '$lib/client/preflight-session';
 	import type { DeploylintPlanId } from '$lib/product/plans';
+	import type { ScanReport } from '$lib/scan/types';
 
 	let {
 		report,

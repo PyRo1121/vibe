@@ -1,19 +1,19 @@
-import { json, error } from '@sveltejs/kit';
-import { createScanDeps } from '$lib/scan/fetchers';
+import { sanitizeReport } from '$lib/billing/report';
+import { logFunnelEvent } from '$lib/metrics/funnel';
+import { ALPHA_FREE_UNLOCK } from '$lib/product/alpha';
 import { scanUrl } from '$lib/scan/engine';
+import { createScanDeps } from '$lib/scan/fetchers';
 import { parseRepoUrl } from '$lib/scan/repo/parse';
 import { scanRepo } from '$lib/scan/repo/scan';
 import { parseScanJsonBody, rejectValidation } from '$lib/server/api';
-import { appendHistory, computeScanDiff, issueMap, saveReport } from '$lib/server/report-store';
 import { buildCopyReview } from '$lib/server/copy-review';
-import { sanitizeReport } from '$lib/billing/report';
-import { resolveUnlock } from '$lib/server/resolve-unlock';
-import { logFunnelEvent } from '$lib/metrics/funnel';
 import { assertScanRateLimit, clientIp } from '$lib/server/rate-limit';
+import { appendHistory, computeScanDiff, issueMap, saveReport } from '$lib/server/report-store';
+import { resolveUnlock } from '$lib/server/resolve-unlock';
 import { assertDailyScanBudget, reserveAiCopyReview } from '$lib/server/usage-budget';
-import { ALPHA_FREE_UNLOCK } from '$lib/product/alpha';
+import { json, error } from '@sveltejs/kit';
 
-export async function handleScanPost(request: Request, env: Env | undefined) {
+export async function handleScanPost(request: Request, env?: Env) {
 	await assertDailyScanBudget(env?.REPORTS, env?.LIMITER);
 	await assertScanRateLimit(env?.REPORTS, clientIp(request), env?.LIMITER);
 
@@ -66,7 +66,7 @@ export async function handleScanPost(request: Request, env: Env | undefined) {
 				sanitized.history = previous
 					.slice(-5)
 					.map(({ id, score, verdict, at }) => ({ id, score, verdict, at }));
-				const lastIssues = previous[previous.length - 1]?.issues;
+				const lastIssues = previous.at(-1)?.issues;
 				if (lastIssues) sanitized.scanDiff = computeScanDiff(lastIssues, report.checks);
 			}
 		}
@@ -98,7 +98,7 @@ export async function handleScanPost(request: Request, env: Env | undefined) {
 		score: sanitized.score,
 		issueCount,
 		unlocked,
-		...(sanitized.scoreDelta != null ? { scoreDelta: sanitized.scoreDelta } : {})
+		...(sanitized.scoreDelta == null ? {} : { scoreDelta: sanitized.scoreDelta })
 	});
 
 	return json(sanitized);

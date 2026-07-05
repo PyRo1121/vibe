@@ -1,9 +1,10 @@
 import { dev } from '$app/environment';
-import { json, error } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
-import { requireSyncAuth } from '$lib/server/sync-auth';
 import { requireDb } from '$lib/server/require-db';
+import { requireSyncAuth } from '$lib/server/sync-auth';
 import { importScryfallSet, listScryfallMtgSets } from '$lib/server/sync/scryfall';
+import { json, error } from '@sveltejs/kit';
+
+import type { RequestHandler } from './$types';
 
 /** POST /api/sync/scryfall?set=CODE — import one MTG set from Scryfall */
 export const POST: RequestHandler = async ({ platform, url, request }) => {

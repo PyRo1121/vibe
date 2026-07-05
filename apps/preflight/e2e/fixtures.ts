@@ -84,13 +84,13 @@ export const mockScanReport: ScanReport = {
 		{ url: 'https://demo-app.test/privacy', role: 'privacy', status: 404 }
 	],
 	stack: ['SvelteKit', 'Cloudflare'],
-	reportId: 'e2e-demo-report'
+	reportId: 'e2e-demo-report',
+	unlocked: true,
+	masterPrompt: 'Fix all launch blockers for https://demo-app.test in one pass.'
 };
 
 export const mockUnlockedReport: ScanReport = {
-	...mockScanReport,
-	unlocked: true,
-	masterPrompt: 'Fix all launch blockers for https://demo-app.test in one pass.'
+	...mockScanReport
 };
 
 export const mockScanError = {

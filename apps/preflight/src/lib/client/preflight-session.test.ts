@@ -1,11 +1,12 @@
+import type { ScanCheck, ScanReport } from '$lib/scan/types';
 import { describe, expect, it } from 'vitest';
+
 import {
 	buildShareText,
 	buildUnlockOffer,
 	computeFixProgress,
 	toCheckSnapshots
 } from './preflight-session';
-import type { ScanCheck, ScanReport } from '$lib/scan/types';
 
 function check(id: string, status: ScanCheck['status']): ScanCheck {
 	return {

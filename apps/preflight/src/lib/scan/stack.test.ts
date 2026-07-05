@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { detectStack } from './stack';
 
 const URL_PLAIN = new URL('https://example.com/');

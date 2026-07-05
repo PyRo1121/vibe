@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { buildAgentScanPayload, formatScanMarkdown } from './format.js';
 import type { ScanReport } from './types.js';
 

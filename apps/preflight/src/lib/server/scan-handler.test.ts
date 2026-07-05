@@ -1,8 +1,14 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
+
 import { handleScanPost } from './scan-handler';
 
+type ResolveUnlock = typeof import('$lib/server/resolve-unlock').resolveUnlock;
+type SanitizeReport = typeof import('$lib/billing/report').sanitizeReport;
+type ScanUrl = typeof import('$lib/scan/engine').scanUrl;
+type VerifyCheckoutSession = typeof import('$lib/billing/stripe').verifyCheckoutSession;
+
 vi.mock('$lib/scan/engine', () => ({
-	scanUrl: vi.fn(async () => ({
+	scanUrl: vi.fn<ScanUrl>(async () => ({
 		url: 'https://app.test',
 		finalUrl: 'https://app.test/',
 		scannedAt: new Date().toISOString(),
@@ -15,15 +21,15 @@ vi.mock('$lib/scan/engine', () => ({
 }));
 
 vi.mock('$lib/billing/stripe', () => ({
-	verifyCheckoutSession: vi.fn(async () => true)
+	verifyCheckoutSession: vi.fn<VerifyCheckoutSession>(async () => true)
 }));
 
 vi.mock('$lib/server/resolve-unlock', () => ({
-	resolveUnlock: vi.fn(async () => true)
+	resolveUnlock: vi.fn<ResolveUnlock>(async () => true)
 }));
 
 vi.mock('$lib/billing/report', () => ({
-	sanitizeReport: vi.fn((report, unlocked) => ({ ...report, unlocked }))
+	sanitizeReport: vi.fn<SanitizeReport>((report, unlocked) => ({ ...report, unlocked }))
 }));
 
 import { scanUrl } from '$lib/scan/engine';
@@ -33,6 +39,14 @@ afterEach(() => {
 	vi.clearAllMocks();
 });
 
+function makeScanRequest() {
+	return new Request('http://localhost/api/scan', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ url: 'https://app.test' })
+	});
+}
+
 describe('handleScanPost', () => {
 	it('returns sanitized report for valid scan', async () => {
 		const request = new Request('http://localhost/api/scan', {
@@ -41,7 +55,7 @@ describe('handleScanPost', () => {
 			body: JSON.stringify({ url: 'https://app.test' })
 		});
 
-		const res = await handleScanPost(request, undefined);
+		const res = await handleScanPost(request);
 		expect(res.status).toBe(200);
 		expect(scanUrl).toHaveBeenCalledWith('https://app.test', expect.any(Object));
 	});
@@ -53,7 +67,7 @@ describe('handleScanPost', () => {
 			body: JSON.stringify({ url: 'https://app.test' })
 		});
 
-		const res = await handleScanPost(request, undefined);
+		const res = await handleScanPost(request);
 		const body = (await res.json()) as { unlocked?: boolean };
 		expect(body.unlocked).toBe(true);
 		expect(resolveUnlock).not.toHaveBeenCalled();
@@ -105,20 +119,17 @@ describe('handleScanPost', () => {
 			}
 		} as unknown as KVNamespace;
 
-		const makeRequest = () =>
-			new Request('http://localhost/api/scan', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ url: 'https://app.test' })
-			});
-
-		const first = (await (await handleScanPost(makeRequest(), { REPORTS: kv } as Env)).json()) as {
+		const first = (await (
+			await handleScanPost(makeScanRequest(), { REPORTS: kv } as Env)
+		).json()) as {
 			reportId?: string;
 			history?: Array<{ id: string; score: number }>;
 		};
 		expect(first.history).toBeUndefined();
 
-		const second = (await (await handleScanPost(makeRequest(), { REPORTS: kv } as Env)).json()) as {
+		const second = (await (
+			await handleScanPost(makeScanRequest(), { REPORTS: kv } as Env)
+		).json()) as {
 			history?: Array<{ id: string; score: number }>;
 		};
 		expect(second.history).toHaveLength(1);

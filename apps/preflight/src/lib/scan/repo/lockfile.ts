@@ -1,5 +1,5 @@
-import type { DetectedLibrary } from '$lib/scan/types';
 import { describeNpmDependency } from '$lib/scan/license';
+import type { DetectedLibrary } from '$lib/scan/types';
 
 /**
  * Lockfile analysis — the full transitive dependency tree, not just the

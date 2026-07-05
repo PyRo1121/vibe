@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import type { RepoTreeEntry } from '$lib/scan/repo/github';
 import {
 	findCiConfig,
 	findLockfile,
@@ -6,7 +6,7 @@ import {
 	nodeVersionPinned,
 	parseTsconfigStrict
 } from '$lib/scan/repo/quality';
-import type { RepoTreeEntry } from '$lib/scan/repo/github';
+import { describe, expect, it } from 'vitest';
 
 const blob = (path: string): RepoTreeEntry => ({ path, type: 'blob' });
 

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { isFunnelEventName, sanitizeFunnelPayload } from './funnel';
 
 describe('funnel metrics', () => {

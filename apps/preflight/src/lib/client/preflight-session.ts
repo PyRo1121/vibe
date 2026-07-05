@@ -1,8 +1,8 @@
+import { buildMasterPrompt } from '$lib/scan/prompts';
+import { scoreChecks } from '$lib/scan/score';
 import type { ScanCheck, ScanReport } from '$lib/scan/types';
 import type { CheckPriority } from '$lib/scan/verdict';
 import { checkPriority, resolvePriority, sortChecksByPriority } from '$lib/scan/verdict';
-import { scoreChecks } from '$lib/scan/score';
-import { buildMasterPrompt } from '$lib/scan/prompts';
 
 export const STORAGE = {
 	scanUrl: 'preflight_scan_url',
@@ -190,7 +190,7 @@ export function buildUnlockOffer(report: ScanReport): UnlockOffer | null {
 			? `${lockedPromptCount} Cursor prompt${lockedPromptCount === 1 ? '' : 's'}`
 			: 're-scan proof';
 	const deltaPart =
-		projectedScore != null ? ` · re-scan could show ${report.score} → ${projectedScore}` : '';
+		projectedScore == null ? '' : ` · re-scan could show ${report.score} → ${projectedScore}`;
 
 	if (report.verdict === 'no-go') {
 		headline =

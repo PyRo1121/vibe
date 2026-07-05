@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
 import type { ScanCheck } from '$lib/scan/types';
+import { describe, expect, it } from 'vitest';
+
 import { pushPerfStaticChecks } from './perf-static';
 
 const CTX = { url: 'https://app.test/' };

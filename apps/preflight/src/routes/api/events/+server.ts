@@ -1,6 +1,7 @@
-import type { RequestHandler } from './$types';
-import { handleEventsPost } from '$lib/server/events-handler';
 import { rejectValidation } from '$lib/server/api';
+import { handleEventsPost } from '$lib/server/events-handler';
+
+import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request }) => {
 	try {

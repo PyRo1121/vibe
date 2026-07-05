@@ -1,6 +1,6 @@
+import { describeNpmDependency } from '$lib/scan/license';
 import type { RepoTreeEntry } from '$lib/scan/repo/github';
 import type { DetectedLibrary } from '$lib/scan/types';
-import { describeNpmDependency } from '$lib/scan/license';
 
 /** Pure repo-analysis helpers — no network, fully unit-testable. */
 
@@ -43,7 +43,7 @@ export function selectSourceSamples(entries: RepoTreeEntry[]): string[] {
 
 	return candidates
 		.map((e) => e.path)
-		.sort((a, b) => score(a) - score(b))
+		.toSorted((a, b) => score(a) - score(b))
 		.slice(0, MAX_SAMPLE_FILES);
 }
 

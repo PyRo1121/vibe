@@ -130,6 +130,6 @@ const counted = results.filter((r) => !r.skipped);
 
 console.log('\n--- Summary ---');
 console.log(
-	`${counted.length - failed.length}/${counted.length} passed${skipped.length ? ` (${skipped.length} skipped)` : ''}`
+	`${counted.length - failed.length}/${counted.length} passed${skipped.length > 0 ? ` (${skipped.length} skipped)` : ''}`
 );
-if (failed.length) process.exit(1);
+if (failed.length > 0) process.exit(1);

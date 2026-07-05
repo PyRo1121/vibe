@@ -1,4 +1,6 @@
+import { LEGAL_PAGE_HTML, STUB_PAGE_HTML } from '$lib/test/fixtures/legal-html';
 import { describe, expect, it } from 'vitest';
+
 import {
 	crawlPages,
 	selectCrawlTargets,
@@ -6,7 +8,6 @@ import {
 	selectSitemapCrawlTargets,
 	visibleWordCount
 } from './crawl';
-import { LEGAL_PAGE_HTML, STUB_PAGE_HTML } from '$lib/test/fixtures/legal-html';
 
 const base = new URL('https://app.test/');
 

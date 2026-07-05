@@ -1,15 +1,16 @@
-import { json, error, text } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
+import { canonicalScanUrl } from '$lib/billing/stripe';
+import { saveUnlock } from '$lib/billing/unlock-store';
 import {
 	isCheckoutSessionFulfilled,
 	MAX_WEBHOOK_BYTES,
 	parseStripeWebhookEvent,
 	verifyStripeWebhookSignature
 } from '$lib/billing/webhook';
-import { canonicalScanUrl } from '$lib/billing/stripe';
-import { saveUnlock } from '$lib/billing/unlock-store';
-import { requireStripeWebhookSecretKey } from '$lib/server/env';
 import { logFunnelEvent } from '$lib/metrics/funnel';
+import { requireStripeWebhookSecretKey } from '$lib/server/env';
+import { json, error, text } from '@sveltejs/kit';
+
+import type { RequestHandler } from './$types';
 
 const WEBHOOK_DEDUP_TTL_SECONDS = 60 * 60 * 24 * 7;
 

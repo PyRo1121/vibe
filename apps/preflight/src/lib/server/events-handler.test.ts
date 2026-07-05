@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { handleEventsPost } from './events-handler';
 
 describe('handleEventsPost', () => {
@@ -24,6 +25,6 @@ describe('handleEventsPost', () => {
 					body: JSON.stringify({ event: 'page_view' })
 				})
 			)
-		).rejects.toThrow();
+		).rejects.toThrow('Unknown event');
 	});
 });

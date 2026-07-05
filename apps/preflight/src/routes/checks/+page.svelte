@@ -3,6 +3,7 @@
 	import { catalogEntries } from '$lib/scan/catalog';
 	import { buildCatalogGroups, catalogTitle } from '$lib/scan/catalog-view';
 	import { buildPageJsonLd, buildSeoTitle, defaultSeoImage } from '$lib/site/seo-metadata';
+
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();

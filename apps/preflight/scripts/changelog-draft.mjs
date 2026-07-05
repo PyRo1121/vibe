@@ -11,11 +11,10 @@
  */
 import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = join(__dirname, '..');
+const currentDir = import.meta.dirname;
+const ROOT = join(currentDir, '..');
 const CHANGELOG = join(ROOT, 'CHANGELOG.md');
 
 const SKIP_TYPES = new Set(['chore', 'ci', 'test', 'build', 'style', 'revert']);
@@ -152,10 +151,8 @@ for (const line of subjects) {
 const order = ['Added', 'Changed', 'Deprecated', 'Removed', 'Fixed', 'Security'];
 const lines = [];
 
-lines.push(`# Changelog draft (since ${sinceLabel})`);
-lines.push('');
-lines.push('Paste into CHANGELOG.md [Unreleased] and rewrite for users.');
-lines.push('');
+lines.push(`# Changelog draft (since ${sinceLabel})`, '');
+lines.push('Paste into CHANGELOG.md [Unreleased] and rewrite for users.', '');
 
 if (grouped.size === 0) {
 	lines.push('_No conventional commits in scope. Use manual bullets or widen --since._');
@@ -163,8 +160,7 @@ if (grouped.size === 0) {
 	for (const section of order) {
 		const bullets = grouped.get(section);
 		if (!bullets?.length) continue;
-		lines.push(`### ${section}`);
-		lines.push('');
+		lines.push(`### ${section}`, '');
 		for (const b of bullets) lines.push(b);
 		lines.push('');
 	}

@@ -6,7 +6,7 @@ const socialImage = `${baseUrl}/og.png`;
 const pages = [
 	{
 		path: '/',
-		title: 'Deploylint - Launch readiness checker for vibe-coded apps',
+		title: 'Launch readiness checker for AI-built apps - Deploylint',
 		description:
 			'Run 90+ launch checks before you share a URL. Deploylint finds broken previews, exposed secrets, SEO blockers, legal gaps, and gives Cursor-ready fix prompts.',
 		canonical: `${baseUrl}/`,
@@ -37,7 +37,7 @@ const pages = [
 		path: '/privacy',
 		title: 'Privacy Policy - Deploylint',
 		description:
-			'Deploylint privacy policy for public URL scans, payment unlocks, analytics, and data handling.',
+			'Deploylint privacy policy for public URL scans, subscriptions, analytics, and data handling.',
 		canonical: `${baseUrl}/privacy`,
 		heading: /Privacy Policy/i,
 		jsonLdTypes: ['WebPage'],
@@ -47,7 +47,7 @@ const pages = [
 		path: '/terms',
 		title: 'Terms of Service - Deploylint',
 		description:
-			'Deploylint terms for automated launch-readiness scans, paid fix-prompt unlocks, acceptable use, and refund handling.',
+			'Deploylint terms for automated launch-readiness scans, paid subscriptions, acceptable use, and refund handling.',
 		canonical: `${baseUrl}/terms`,
 		heading: /Terms of Service/i,
 		jsonLdTypes: ['WebPage'],
@@ -62,11 +62,63 @@ const pages = [
 		heading: /Changelog/i,
 		jsonLdTypes: ['WebPage'],
 		staticPage: true
+	},
+	{
+		path: '/guides/ai-app-launch-checker',
+		title: 'AI app launch checker for vibe-coded products - Deploylint',
+		description:
+			'Use Deploylint to check AI-built apps for launch blockers, SEO mistakes, security leaks, legal gaps, and broken social previews before sharing a URL.',
+		canonical: `${baseUrl}/guides/ai-app-launch-checker`,
+		heading: /AI app launch checker/i,
+		jsonLdTypes: ['Article', 'FAQPage'],
+		staticPage: true
+	},
+	{
+		path: '/guides/website-launch-checklist',
+		title: 'Website launch checklist for small SaaS products - Deploylint',
+		description:
+			'Run a practical website launch checklist for SEO, security headers, legal pages, social previews, crawler access, and conversion basics before launch day.',
+		canonical: `${baseUrl}/guides/website-launch-checklist`,
+		heading: /Website launch checklist/i,
+		jsonLdTypes: ['Article', 'FAQPage'],
+		staticPage: true
+	},
+	{
+		path: '/guides/lighthouse-alternative',
+		title: 'Deploylint vs Lighthouse for launch readiness',
+		description:
+			'Compare Deploylint and Lighthouse: Lighthouse measures lab performance, while Deploylint checks launch blockers, SEO visibility, social previews, and agent-ready fixes.',
+		canonical: `${baseUrl}/guides/lighthouse-alternative`,
+		heading: /Deploylint vs Lighthouse/i,
+		jsonLdTypes: ['Article', 'FAQPage'],
+		staticPage: true
 	}
 ] as const;
 
 async function meta(page: import('@playwright/test').Page, selector: string, attr = 'content') {
 	return page.locator(selector).first().getAttribute(attr);
+}
+
+function collectJsonLdTypes(value: unknown, types = new Set<string>()): Set<string> {
+	if (!value || typeof value !== 'object') return types;
+	const record = value as Record<string, unknown>;
+	const type = record['@type'];
+	if (typeof type === 'string') types.add(type);
+	if (Array.isArray(type)) {
+		for (const item of type) {
+			if (typeof item === 'string') types.add(item);
+		}
+	}
+
+	for (const nested of Object.values(record)) {
+		if (Array.isArray(nested)) {
+			for (const item of nested) collectJsonLdTypes(item, types);
+		} else {
+			collectJsonLdTypes(nested, types);
+		}
+	}
+
+	return types;
 }
 
 test.describe('SEO metadata', () => {
@@ -91,9 +143,12 @@ test.describe('SEO metadata', () => {
 			await expect(meta(page, 'meta[name="twitter:description"]')).resolves.toBe(route.description);
 			await expect(meta(page, 'meta[name="twitter:image"]')).resolves.toBe(socialImage);
 
-			const jsonLd = await page.locator('script[type="application/ld+json"]').allTextContents();
+			const jsonLd = (
+				await page.locator('script[type="application/ld+json"]').allTextContents()
+			).map((body) => JSON.parse(body) as unknown);
+			const jsonLdTypes = new Set(jsonLd.flatMap((entry) => [...collectJsonLdTypes(entry)]));
 			for (const type of route.jsonLdTypes) {
-				expect(jsonLd.some((body) => body.includes(`"@type":"${type}"`))).toBe(true);
+				expect(jsonLdTypes.has(type)).toBe(true);
 			}
 
 			if (route.staticPage) {

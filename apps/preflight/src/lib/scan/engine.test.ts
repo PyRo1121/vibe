@@ -1,4 +1,8 @@
+import { GOOD_HTML } from '$lib/test/fixtures/good-html';
+import { LEGAL_PAGE_HTML, STUB_PAGE_HTML } from '$lib/test/fixtures/legal-html';
+import { STRONG_HEADERS } from '$lib/test/fixtures/scan-headers';
 import { describe, expect, it } from 'vitest';
+
 import {
 	collectSitemapLocs,
 	discoverSitemapLocs,
@@ -6,9 +10,6 @@ import {
 	extractSitemapLocs,
 	scanUrl
 } from './engine';
-import { GOOD_HTML } from '$lib/test/fixtures/good-html';
-import { LEGAL_PAGE_HTML, STUB_PAGE_HTML } from '$lib/test/fixtures/legal-html';
-import { STRONG_HEADERS } from '$lib/test/fixtures/scan-headers';
 
 const mockDeps = {
 	headOk: async () => true,
@@ -404,7 +405,7 @@ describe('scanUrl', () => {
 				}),
 				...mockDeps
 			})
-		).rejects.toThrow();
+		).rejects.toThrow('That URL cannot be scanned');
 	});
 
 	it('skips content checks when homepage returns 403', async () => {

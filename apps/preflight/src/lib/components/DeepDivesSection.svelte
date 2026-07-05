@@ -1,16 +1,22 @@
 <script lang="ts">
 	import type { ScanReport } from '$lib/scan/types';
+
 	import DeepDive from './DeepDive.svelte';
-	import SocialPreviewPanel from './SocialPreviewPanel.svelte';
 	import LicenseAuditPanel from './LicenseAuditPanel.svelte';
+	import SocialPreviewPanel from './SocialPreviewPanel.svelte';
 	import WebVitalsPanel from './WebVitalsPanel.svelte';
 
 	let { report }: { report: ScanReport } = $props();
 
-	const SOCIAL_CHECK_IDS = ['open-graph', 'twitter-card', 'og-image-live', 'og-image-type'];
+	const SOCIAL_CHECK_IDS = new Set([
+		'open-graph',
+		'twitter-card',
+		'og-image-live',
+		'og-image-type'
+	]);
 
 	const socialIssues = $derived(
-		report.checks.filter((c) => SOCIAL_CHECK_IDS.includes(c.id) && c.status !== 'pass').length
+		report.checks.filter((c) => SOCIAL_CHECK_IDS.has(c.id) && c.status !== 'pass').length
 	);
 	const licenseFlagged = $derived(
 		report.licenseAudit

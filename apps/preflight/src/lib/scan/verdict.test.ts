@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { makeCheck } from './score';
 import { checkPriority, computeVerdict, sortChecksByPriority, tagCheckPriorities } from './verdict';
 

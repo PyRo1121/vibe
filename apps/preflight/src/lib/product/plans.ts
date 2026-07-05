@@ -60,7 +60,7 @@ export function isDeploylintPlanId(value: unknown): value is DeploylintPlanId {
 	return typeof value === 'string' && value in DEPLOYLINT_PLANS;
 }
 
-export function resolveDeploylintPlan(value: unknown): DeploylintPlan {
+export function resolveDeploylintPlan(value?: unknown): DeploylintPlan {
 	if (isDeploylintPlanId(value)) return DEPLOYLINT_PLANS[value];
 	return DEPLOYLINT_PLANS[DEFAULT_DEPLOYLINT_PLAN_ID];
 }

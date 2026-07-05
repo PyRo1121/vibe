@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
-import { readJsonBody } from '$lib/server/api';
 import { UrlValidationError } from '$lib/scan/url-guard';
+import { readJsonBody } from '$lib/server/api';
+import { describe, expect, it } from 'vitest';
 
 describe('readJsonBody', () => {
 	it('parses valid JSON within size limit', async () => {

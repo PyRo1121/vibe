@@ -1,7 +1,7 @@
-import type { CategoryScore, LaunchBrief, ScanCheck, ScanReport } from '$lib/scan/types';
-import { categoryLabels } from '$lib/ui/scan-styles';
 import { scoreChecks } from '$lib/scan/score';
+import type { CategoryScore, LaunchBrief, ScanCheck, ScanReport } from '$lib/scan/types';
 import { resolvePriority } from '$lib/scan/verdict';
+import { categoryLabels } from '$lib/ui/scan-styles';
 
 const EMBARRASSMENT: Record<string, string> = {
 	privacy: 'Someone will ask where your privacy policy is before they trust you.',
@@ -81,7 +81,7 @@ export function scoreByCategory(checks: ScanCheck[]): CategoryScore[] {
 				pass: items.filter((c) => c.status === 'pass').length
 			};
 		})
-		.sort((a, b) => a.score - b.score);
+		.toSorted((a, b) => a.score - b.score);
 }
 
 export function buildLaunchBrief(report: ScanReport): LaunchBrief {
@@ -103,7 +103,7 @@ export function buildLaunchBrief(report: ScanReport): LaunchBrief {
 	const failing = report.checks.filter((c) => c.status === 'fail');
 	const p0Fails = failing.filter((c) => resolvePriority(c) === 'p0');
 	const embarrassmentRisks = [...failing, ...report.checks.filter((c) => c.status === 'warn')]
-		.sort((a, b) => {
+		.toSorted((a, b) => {
 			const rank = { fail: 0, warn: 1, pass: 2 };
 			return rank[a.status] - rank[b.status];
 		})

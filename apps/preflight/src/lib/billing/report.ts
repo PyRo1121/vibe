@@ -1,5 +1,5 @@
-import type { ScanCheck, ScanReport } from '$lib/scan/types';
 import { buildMasterPrompt, pickSamplePromptCheck } from '$lib/scan/prompts';
+import type { ScanCheck, ScanReport } from '$lib/scan/types';
 
 export interface SanitizeOptions {
 	previousScore?: number;

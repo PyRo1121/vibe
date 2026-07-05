@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
+
 import { plausibleUpstreamScript, proxyPlausibleScript } from './plausible-proxy';
 
 describe('plausibleUpstreamScript', () => {
 	it('falls back to default script URL', () => {
-		expect(plausibleUpstreamScript(undefined)).toBe('https://plausible.io/js/script.js');
+		expect(plausibleUpstreamScript()).toBe('https://plausible.io/js/script.js');
 	});
 
 	it('uses env override', () => {

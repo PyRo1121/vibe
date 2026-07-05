@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
 import type { ScanCheck } from '$lib/scan/types';
+import { describe, expect, it } from 'vitest';
+
 import { pushTrustChecks } from './trust';
 
 const NOW = new Date('2026-07-04T12:00:00Z');

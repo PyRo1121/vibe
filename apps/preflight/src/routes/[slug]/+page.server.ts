@@ -1,5 +1,6 @@
-import { error, redirect } from '@sveltejs/kit';
 import { getSeoLegacyRedirect } from '$lib/site/seo-redirects';
+import { error, redirect } from '@sveltejs/kit';
+
 import type { PageServerLoad } from './$types';
 
 export const csr = false;

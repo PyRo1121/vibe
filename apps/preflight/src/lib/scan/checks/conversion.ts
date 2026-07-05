@@ -1,7 +1,7 @@
-import type { ScanCheck } from '$lib/scan/types';
-import { visibleText } from '$lib/scan/signals';
 import { fixPrompt } from '$lib/scan/prompts';
 import { makeCheck } from '$lib/scan/score';
+import { visibleText } from '$lib/scan/signals';
+import type { ScanCheck } from '$lib/scan/types';
 
 const PRODUCT_SIGNALS = [
 	/\bpricing\b|\bprice\b|\/mo\b|\bper month\b/i,
@@ -19,13 +19,13 @@ function bodyMarkup(html: string): string {
 }
 
 function stripForScan(html: string): string {
-	return html.replace(/<(script|style|svg)\b[\s\S]*?<\/\1\s*>/gi, '');
+	return html.replaceAll(/<(script|style|svg)\b[\s\S]*?<\/\1\s*>/gi, '');
 }
 
 function elementText(inner: string): string {
 	return inner
-		.replace(/<[^>]+>/g, ' ')
-		.replace(/\s+/g, ' ')
+		.replaceAll(/<[^>]+>/g, ' ')
+		.replaceAll(/\s+/g, ' ')
 		.trim();
 }
 
@@ -108,7 +108,7 @@ function pushCtaCompetitionCheck(checks: ScanCheck[], html: string, ctx: { url: 
 	const markup = stripForScan(bodyMarkup(html));
 	const seen = new Set<string>();
 	for (const cta of findCtas(markup)) {
-		seen.add(cta.text.toLowerCase().replace(/\s+/g, ' ').trim());
+		seen.add(cta.text.toLowerCase().replaceAll(/\s+/g, ' ').trim());
 	}
 	if (seen.size === 0) return;
 

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { ScanCheck, ScanReport } from '$lib/scan/types';
 	import { buildUnlockOffer } from '$lib/client/preflight-session';
 	import { getCheckCatalogEntry } from '$lib/scan/catalog';
+	import type { ScanCheck, ScanReport } from '$lib/scan/types';
 	import { sortChecksByPriority } from '$lib/scan/verdict';
 	import { categoryLabels, priorityClass, statusClass, statusIcon } from '$lib/ui/scan-styles';
 
@@ -31,7 +31,7 @@
 		const groups: Array<{ priority: string; items: ScanCheck[] }> = [];
 		for (const item of items) {
 			const priority = item.priority ?? 'p2';
-			const last = groups[groups.length - 1];
+			const last = groups.at(-1);
 			if (last && last.priority === priority) last.items.push(item);
 			else groups.push({ priority, items: [item] });
 		}
@@ -100,7 +100,7 @@
 								<div class="flex flex-wrap items-center gap-2">
 									<span class="font-medium text-white">{item.title}</span>
 									<span
-										class="rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] uppercase text-zinc-400"
+										class="rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] text-zinc-400 uppercase"
 									>
 										{categoryLabels[item.category] ?? item.category}
 									</span>
@@ -157,7 +157,7 @@
 									<div
 										class="relative mt-3 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950 p-3"
 									>
-										<p class="blur-sm select-none text-xs text-zinc-500">
+										<p class="text-xs text-zinc-500 blur-sm select-none">
 											Cursor-ready fix prompt for {item.title.toLowerCase()}…
 										</p>
 										<div
@@ -199,7 +199,7 @@
 							<span class="shrink-0 font-medium text-zinc-300">{item.title}</span>
 							<span class="min-w-0 truncate text-xs text-zinc-500">{item.message}</span>
 							<span
-								class="ml-auto shrink-0 rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] uppercase text-zinc-500"
+								class="ml-auto shrink-0 rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] text-zinc-500 uppercase"
 							>
 								{categoryLabels[item.category] ?? item.category}
 							</span>

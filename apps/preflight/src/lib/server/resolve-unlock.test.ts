@@ -1,11 +1,12 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
+
 import { resolveUnlock } from './resolve-unlock';
 
 vi.mock('$lib/billing/stripe', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('$lib/billing/stripe')>();
 	return {
 		...actual,
-		verifyCheckoutSession: vi.fn(async () => true)
+		verifyCheckoutSession: vi.fn<() => Promise<boolean>>(async () => true)
 	};
 });
 

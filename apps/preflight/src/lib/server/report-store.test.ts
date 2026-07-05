@@ -1,4 +1,6 @@
+import type { ScanReport } from '$lib/scan/types';
 import { describe, expect, it } from 'vitest';
+
 import {
 	appendHistory,
 	computeScanDiff,
@@ -8,7 +10,6 @@ import {
 	newReportId,
 	saveReport
 } from './report-store';
-import type { ScanReport } from '$lib/scan/types';
 
 function fakeKv() {
 	const store = new Map<string, string>();
@@ -28,6 +29,15 @@ function fakeKv() {
 }
 
 const REPORT = { url: 'https://app.test', score: 88, checks: [] } as unknown as ScanReport;
+
+function historyEntry(n: number) {
+	return {
+		id: `id${n}`,
+		score: 70 + n,
+		verdict: 'go',
+		at: `2026-07-0${n}T00:00:00Z`
+	};
+}
 
 describe('report store', () => {
 	it('generates url-safe ids', () => {
@@ -70,16 +80,14 @@ describe('report store', () => {
 
 	it('appends history and returns prior entries oldest-first', async () => {
 		const { kv } = fakeKv();
-		const entry = (n: number) => ({
-			id: `id${n}`,
-			score: 70 + n,
-			verdict: 'go',
-			at: `2026-07-0${n}T00:00:00Z`
-		});
-
-		expect(await appendHistory(kv, 'https://app.test/', entry(1))).toEqual([]);
-		expect(await appendHistory(kv, 'https://app.test/', entry(2))).toEqual([entry(1)]);
-		expect(await appendHistory(kv, 'https://app.test/', entry(3))).toEqual([entry(1), entry(2)]);
+		expect(await appendHistory(kv, 'https://app.test/', historyEntry(1))).toEqual([]);
+		expect(await appendHistory(kv, 'https://app.test/', historyEntry(2))).toEqual([
+			historyEntry(1)
+		]);
+		expect(await appendHistory(kv, 'https://app.test/', historyEntry(3))).toEqual([
+			historyEntry(1),
+			historyEntry(2)
+		]);
 	});
 
 	it('caps history at 20 entries', async () => {

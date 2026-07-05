@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { ScanReport } from '$lib/scan/types';
 	import { ALPHA_FREE_UNLOCK } from '$lib/product/alpha';
+	import type { ScanReport } from '$lib/scan/types';
 
 	let {
 		report,

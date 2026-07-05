@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { ScanReport } from '$lib/scan/types';
 	import { buildUnlockOffer } from '$lib/client/preflight-session';
 	import type { DeploylintPlanId } from '$lib/product/plans';
+	import type { ScanReport } from '$lib/scan/types';
 
 	let {
 		report,
@@ -95,7 +95,7 @@
 				{/each}
 
 				<div
-					class="absolute inset-x-0 bottom-0 flex items-end justify-center bg-gradient-to-t from-zinc-950 via-zinc-950/95 to-transparent pb-3 pt-10"
+					class="absolute inset-x-0 bottom-0 flex items-end justify-center bg-gradient-to-t from-zinc-950 via-zinc-950/95 to-transparent pt-10 pb-3"
 				>
 					<button
 						type="button"

@@ -1,5 +1,5 @@
-import type { ScanCheck } from '$lib/scan/types';
 import { fixPrompt } from '$lib/scan/prompts';
+import type { ScanCheck } from '$lib/scan/types';
 
 /** Homepage returned 4xx/5xx — skip content checks; error body is not the real site. */
 export function isBlockedHomepageStatus(status: number): boolean {

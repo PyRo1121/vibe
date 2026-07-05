@@ -2,15 +2,15 @@
 
 function escapeHtml(text: string): string {
 	return text
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;');
+		.replaceAll(/&/g, '&amp;')
+		.replaceAll(/</g, '&lt;')
+		.replaceAll(/>/g, '&gt;')
+		.replaceAll(/"/g, '&quot;');
 }
 
 function inlineMarkdown(text: string): string {
 	const escaped = escapeHtml(text);
-	return escaped.replace(
+	return escaped.replaceAll(
 		/\[([^\]]+)\]\(([^)]+)\)/g,
 		'<a class="text-sky-400 hover:underline" href="$2">$1</a>'
 	);

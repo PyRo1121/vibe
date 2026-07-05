@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+
 import { describe, expect, it } from 'vitest';
 
 const source = readFileSync(fileURLToPath(new URL('./SeoHead.svelte', import.meta.url)), 'utf8');

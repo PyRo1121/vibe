@@ -1,9 +1,9 @@
-import type { ScanCheck } from '$lib/scan/types';
-import type { PageMeta } from '$lib/scan/parse';
-import { WEIGHT_LIMITS } from '$lib/scan/constants';
 import type { CheckCtx } from '$lib/scan/checks/helpers';
+import { WEIGHT_LIMITS } from '$lib/scan/constants';
+import type { PageMeta } from '$lib/scan/parse';
 import { fixPrompt } from '$lib/scan/prompts';
 import { makeCheck } from '$lib/scan/score';
+import type { ScanCheck } from '$lib/scan/types';
 
 function normalizePath(url: URL): string {
 	const path = url.pathname.replace(/\/$/, '') || '/';

@@ -1,8 +1,11 @@
-import type { RepoRef } from '$lib/scan/repo/parse';
-import type { RepoFetchers, RepoMeta, RepoTreeEntry } from '$lib/scan/repo/github';
-import type { ScanCheck, ScanReport, RepoInfo } from '$lib/scan/types';
-import { repoHtmlUrl } from '$lib/scan/repo/parse';
-import { githubFetchers, RepoScanError } from '$lib/scan/repo/github';
+import {
+	buildLicenseAudit,
+	classifySpdx,
+	licenseCheckStatus,
+	mergeLibraries
+} from '$lib/scan/license';
+import { findSecrets } from '$lib/scan/parse';
+import { fixPrompt } from '$lib/scan/prompts';
 import {
 	findCommittedEnvFiles,
 	selectSourceSamples,
@@ -13,19 +16,14 @@ import {
 	MAX_DEP_LOOKUPS,
 	type NpmLicenseFetcher
 } from '$lib/scan/repo/audit';
+import { mergeRepoFindings } from '$lib/scan/repo/findings';
+import type { RepoFetchers, RepoMeta, RepoTreeEntry } from '$lib/scan/repo/github';
+import { githubFetchers, RepoScanError } from '$lib/scan/repo/github';
 import { parsePackageLock, screenTransitiveLicenses } from '$lib/scan/repo/lockfile';
-import { auditVulnerabilities, type OsvAudit } from '$lib/scan/repo/osv';
 import type { LockPackage } from '$lib/scan/repo/lockfile';
-import {
-	buildLicenseAudit,
-	classifySpdx,
-	licenseCheckStatus,
-	mergeLibraries
-} from '$lib/scan/license';
-import { findSecrets } from '$lib/scan/parse';
-import { visibleText } from '$lib/scan/signals';
-import { makeCheck, buildReport } from '$lib/scan/score';
-import { fixPrompt } from '$lib/scan/prompts';
+import { auditVulnerabilities, type OsvAudit } from '$lib/scan/repo/osv';
+import type { RepoRef } from '$lib/scan/repo/parse';
+import { repoHtmlUrl } from '$lib/scan/repo/parse';
 import {
 	findCiConfig,
 	findLockfile,
@@ -45,7 +43,9 @@ import {
 	type RepoFileEvidence,
 	type RepoReadinessFinding
 } from '$lib/scan/repo/readiness';
-import { mergeRepoFindings } from '$lib/scan/repo/findings';
+import { makeCheck, buildReport } from '$lib/scan/score';
+import { visibleText } from '$lib/scan/signals';
+import type { ScanCheck, ScanReport, RepoInfo } from '$lib/scan/types';
 
 /**
  * Repository scan: audits a public GitHub repo pre-deploy — committed env

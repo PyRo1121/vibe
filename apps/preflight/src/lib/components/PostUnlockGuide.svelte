@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { ScanReport } from '$lib/scan/types';
-	import ScoreDeltaBadge from '$lib/components/ScoreDeltaBadge.svelte';
 	import { computeFixProgress, loadBaselineChecks } from '$lib/client/preflight-session';
+	import ScoreDeltaBadge from '$lib/components/ScoreDeltaBadge.svelte';
+	import type { ScanReport } from '$lib/scan/types';
 
 	let { report }: { report: ScanReport } = $props();
 

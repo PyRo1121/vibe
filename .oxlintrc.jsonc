@@ -1,0 +1,103 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"env": {
+		"browser": true,
+		"builtin": true,
+		"node": true,
+		"serviceworker": true,
+		"svelte": true,
+		"vitest": true,
+		"worker": true
+	},
+	"categories": {
+		"correctness": "error",
+		"perf": "off",
+		"pedantic": "off",
+		"style": "off",
+		"suspicious": "error"
+	},
+	"plugins": ["import", "node", "promise", "typescript", "unicorn", "vitest"],
+	"options": {
+		"reportUnusedDisableDirectives": "error"
+	},
+	"ignorePatterns": [
+		"**/node_modules/**",
+		"**/.svelte-kit/**",
+		"**/.wrangler/**",
+		"**/build/**",
+		"**/dist/**",
+		"**/.turbo/**",
+		"**/coverage/**",
+		"**/test-results/**",
+		"**/playwright-report/**",
+		"**/blob-report/**",
+		"tmp/**"
+	],
+	"rules": {
+		"no-console": "off",
+		"no-debugger": "error",
+		"no-warning-comments": "off",
+		"promise/no-multiple-resolved": "error",
+		"promise/param-names": "error",
+		"promise/valid-params": "error",
+		"typescript/await-thenable": "error",
+		"typescript/no-array-delete": "error",
+		"typescript/no-deprecated": "warn",
+		"typescript/no-duplicate-enum-values": "error",
+		"typescript/no-duplicate-type-constituents": "error",
+		"typescript/no-floating-promises": "error",
+		"typescript/no-for-in-array": "error",
+		"typescript/no-misused-promises": "error",
+		"typescript/no-unnecessary-type-assertion": "error",
+		"typescript/no-unsafe-function-type": "error",
+		"typescript/no-unsafe-unary-minus": "error",
+		"typescript/prefer-as-const": "error",
+		"typescript/require-array-sort-compare": "error",
+		"typescript/restrict-plus-operands": "error",
+		"typescript/restrict-template-expressions": "error",
+		"typescript/triple-slash-reference": "error",
+		"typescript/unbound-method": "error",
+		"unicorn/consistent-function-scoping": "off",
+		"unicorn/no-array-sort": "error",
+		"unicorn/no-invalid-fetch-options": "error",
+		"unicorn/no-invalid-remove-event-listener": "error",
+		"unicorn/no-single-promise-in-promise-methods": "error",
+		"unicorn/prefer-add-event-listener": "error",
+		"unicorn/require-post-message-target-origin": "error",
+		"vitest/expect-expect": "error",
+		"vitest/no-commented-out-tests": "error",
+		"vitest/no-conditional-expect": "error",
+		"vitest/no-conditional-tests": "error",
+		"vitest/no-disabled-tests": "error",
+		"vitest/no-focused-tests": "error",
+		"vitest/no-standalone-expect": "error",
+		"vitest/require-awaited-expect-poll": "error",
+		"vitest/require-mock-type-parameters": "error",
+		"vitest/require-to-throw-message": "error",
+		"vitest/valid-describe-callback": "error",
+		"vitest/valid-expect": "error",
+		"vitest/valid-expect-in-promise": "error",
+		"vitest/valid-title": "error"
+	},
+	"overrides": [
+		{
+			"files": ["**/*.test.ts", "**/*.spec.ts", "**/e2e/**/*.ts"],
+			"rules": {
+				"no-console": "off",
+				"typescript/no-explicit-any": "off"
+			}
+		},
+		{
+			"files": ["**/*.svelte"],
+			"rules": {
+				"import/no-unassigned-import": "off"
+			}
+		},
+		{
+			"files": ["**/*.d.ts"],
+			"rules": {
+				"unicorn/require-module-specifiers": "off"
+			}
+		}
+	]
+}

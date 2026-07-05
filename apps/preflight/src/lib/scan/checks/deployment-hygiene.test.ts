@@ -1,7 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import type { ScanCheck } from '$lib/scan/types';
 import type { PageMeta } from '$lib/scan/parse';
 import { parsePageMeta } from '$lib/scan/parse';
+import type { ScanCheck } from '$lib/scan/types';
+import { describe, it, expect } from 'vitest';
+
 import { pushDeploymentHygieneChecks } from './deployment-hygiene';
 
 const ctx = { url: 'https://app.example.com' };

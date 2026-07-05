@@ -1,6 +1,6 @@
-import type { ScanCheck } from '$lib/scan/types';
 import { fixPrompt } from '$lib/scan/prompts';
 import { makeCheck } from '$lib/scan/score';
+import type { ScanCheck } from '$lib/scan/types';
 
 const SOCIAL_HOST =
 	/(?:^|\/\/)(?:www\.)?(twitter\.com|x\.com|github\.com|linkedin\.com|instagram\.com|facebook\.com|youtube\.com|discord\.gg|discord\.com\/invite|t\.me)\b/i;
@@ -20,9 +20,9 @@ const TEMPLATE_TITLES = new Set([
 
 function stripForText(html: string): string {
 	return html
-		.replace(/<(script|style|svg)\b[\s\S]*?<\/\1\s*>/gi, '')
-		.replace(/<[^>]+>/g, ' ')
-		.replace(/\s+/g, ' ')
+		.replaceAll(/<(script|style|svg)\b[\s\S]*?<\/\1\s*>/gi, '')
+		.replaceAll(/<[^>]+>/g, ' ')
+		.replaceAll(/\s+/g, ' ')
 		.trim();
 }
 
@@ -118,7 +118,7 @@ function pushDeadSocialLinksCheck(checks: ScanCheck[], html: string, ctx: { url:
 }
 
 function anchorTargetExists(html: string, id: string): boolean {
-	const escaped = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	const escaped = id.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
 	return (
 		new RegExp(`\\bid\\s*=\\s*(["'])${escaped}\\1`, 'i').test(html) ||
 		new RegExp(`\\bname\\s*=\\s*(["'])${escaped}\\1`, 'i').test(html)

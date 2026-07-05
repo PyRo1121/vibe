@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import {
 	assertPublicHttpUrl,
 	assertPublicResolvedUrl,
@@ -21,12 +22,14 @@ describe('assertPublicHttpUrl', () => {
 	});
 
 	it('rejects invalid hostnames', () => {
-		expect(() => assertPublicHttpUrl('not a url !!!')).toThrow();
+		expect(() => assertPublicHttpUrl('not a url !!!')).toThrow('Invalid URL');
 	});
 
 	it('rejects metadata and loopback targets', () => {
-		expect(() => assertPublicHttpUrl('https://169.254.169.254')).toThrow();
-		expect(() => assertPublicHttpUrl('https://127.0.0.1')).toThrow();
+		expect(() => assertPublicHttpUrl('https://169.254.169.254')).toThrow(
+			'That URL cannot be scanned'
+		);
+		expect(() => assertPublicHttpUrl('https://127.0.0.1')).toThrow('That URL cannot be scanned');
 	});
 
 	it('rejects localhost', () => {

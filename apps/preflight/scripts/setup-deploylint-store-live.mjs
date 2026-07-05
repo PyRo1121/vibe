@@ -10,10 +10,9 @@
  */
 import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const currentDir = import.meta.dirname;
 const WEBHOOK_URL = 'https://deploylint.com/api/webhooks/stripe';
 const CURRENCY = 'usd';
 const TAX_CODE = 'txcd_10701401';
@@ -51,7 +50,7 @@ const PLANS = [
 function parseArgs() {
 	const fileIdx = process.argv.indexOf('--api-key-file');
 	if (fileIdx !== -1 && process.argv[fileIdx + 1]) {
-		return readFileSync(resolve(__dirname, '..', process.argv[fileIdx + 1]), 'utf8').trim();
+		return readFileSync(resolve(currentDir, '..', process.argv[fileIdx + 1]), 'utf8').trim();
 	}
 	return process.env.STRIPE_SECRET_KEY?.trim() ?? '';
 }
@@ -187,7 +186,7 @@ async function ensureMonthlyPrice(secretKey, plan, product) {
 function verifyWorkerSecrets() {
 	try {
 		const raw = execSync('npx wrangler secret list', {
-			cwd: resolve(__dirname, '..'),
+			cwd: resolve(currentDir, '..'),
 			encoding: 'utf8',
 			stdio: 'pipe'
 		});

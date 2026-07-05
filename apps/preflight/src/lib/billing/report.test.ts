@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
 import type { ScanReport } from '$lib/scan/types';
+import { describe, expect, it } from 'vitest';
+
 import { sanitizeReport } from './report';
 
 const sample: ScanReport = {

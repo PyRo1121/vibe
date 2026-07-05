@@ -80,7 +80,7 @@ export async function buildCopyReview(
 				messages: [{ role: 'user', content: buildPrompt(input) }],
 				max_tokens: 512
 			}),
-			new Promise<never>((_, reject) =>
+			new Promise<never>((_resolve, reject) =>
 				setTimeout(() => reject(new Error('AI timeout')), TIMEOUT_MS)
 			)
 		]);

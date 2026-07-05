@@ -1,9 +1,10 @@
+import { GOOD_HTML } from '$lib/test/fixtures/good-html';
+import { STRONG_HEADERS } from '$lib/test/fixtures/scan-headers';
 import { describe, expect, it } from 'vitest';
+
 import { buildContentChecks } from './analyze';
 import { extractLinks } from './parse';
 import { clarityScore, scoreChecks, buildReport, makeCheck } from './score';
-import { GOOD_HTML } from '$lib/test/fixtures/good-html';
-import { STRONG_HEADERS } from '$lib/test/fixtures/scan-headers';
 
 describe('clarityScore', () => {
 	it('passes when title, description, and h1 are solid', () => {

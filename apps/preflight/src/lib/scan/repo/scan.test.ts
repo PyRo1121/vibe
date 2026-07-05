@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest';
-import { scanRepo } from '$lib/scan/repo/scan';
 import type { RepoFetchers, RepoMeta, RepoTreeEntry } from '$lib/scan/repo/github';
 import { RepoScanError } from '$lib/scan/repo/github';
+import { scanRepo } from '$lib/scan/repo/scan';
+import { describe, expect, it } from 'vitest';
 
 const REF = { owner: 'acme', repo: 'launchpad' };
 

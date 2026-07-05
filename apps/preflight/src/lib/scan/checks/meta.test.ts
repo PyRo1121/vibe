@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest';
-import type { ScanCheck } from '$lib/scan/types';
 import type { PageMeta } from '$lib/scan/parse';
 import { parsePageMeta } from '$lib/scan/parse';
+import type { ScanCheck } from '$lib/scan/types';
+import { describe, expect, it } from 'vitest';
+
 import { pushMetaChecks } from './meta';
 
 const checkCtx = { url: 'https://app.test/' };

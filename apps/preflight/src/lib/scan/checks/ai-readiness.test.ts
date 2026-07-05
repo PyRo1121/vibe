@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
 import type { ScanCheck } from '$lib/scan/types';
+import { describe, expect, it } from 'vitest';
+
 import { aiCrawlerAccess, pushAiReadinessChecks } from './ai-readiness';
 
 const CTX = { url: 'https://app.test' };
@@ -27,7 +28,7 @@ function findCheck(checks: ScanCheck[], id: string): ScanCheck | undefined {
 describe('aiCrawlerAccess', () => {
 	it('blocks every AI crawler when the * group disallows the whole site', () => {
 		const res = aiCrawlerAccess('User-agent: *\nDisallow: /');
-		expect([...res.blocked].sort()).toEqual([...ALL_AI_CRAWLERS].sort());
+		expect([...res.blocked].toSorted()).toEqual([...ALL_AI_CRAWLERS].toSorted());
 		expect(res.allowed).toEqual([]);
 	});
 
@@ -42,14 +43,14 @@ describe('aiCrawlerAccess', () => {
 	it('applies one rule block to every agent in a multi User-agent group', () => {
 		const text = 'User-agent: GPTBot\nUser-agent: ClaudeBot\nDisallow: /';
 		const res = aiCrawlerAccess(text);
-		expect([...res.blocked].sort()).toEqual(['ClaudeBot', 'GPTBot']);
+		expect([...res.blocked].toSorted()).toEqual(['ClaudeBot', 'GPTBot']);
 		expect(res.allowed).toContain('PerplexityBot');
 	});
 
 	it('does not count partial-path disallows as a full block', () => {
 		const res = aiCrawlerAccess('User-agent: *\nDisallow: /private');
 		expect(res.blocked).toEqual([]);
-		expect([...res.allowed].sort()).toEqual([...ALL_AI_CRAWLERS].sort());
+		expect([...res.allowed].toSorted()).toEqual([...ALL_AI_CRAWLERS].toSorted());
 	});
 
 	it('matches agents and directives case-insensitively', () => {

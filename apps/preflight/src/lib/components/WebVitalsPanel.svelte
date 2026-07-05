@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { ScanReport } from '$lib/scan/types';
 	import {
 		parsePsiResult,
 		psiUrl,
@@ -7,6 +6,7 @@
 		type VitalRating,
 		type WebVitalsResult
 	} from '$lib/client/web-vitals';
+	import type { ScanReport } from '$lib/scan/types';
 
 	let { report }: { report: ScanReport } = $props();
 

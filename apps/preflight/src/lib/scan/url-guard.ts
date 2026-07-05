@@ -35,7 +35,7 @@ function isPrivateIpv4(octets: number[]): boolean {
 }
 
 function isPrivateIpv6(host: string): boolean {
-	const h = host.toLowerCase().replace(/^\[|\]$/g, '');
+	const h = host.toLowerCase().replaceAll(/^\[|\]$/g, '');
 	if (h === '::1') return true;
 	const mappedIpv4 = h.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
 	if (mappedIpv4) {
@@ -51,7 +51,7 @@ function isBlockedHost(host: string): boolean {
 	const lower = host
 		.toLowerCase()
 		.replace(/\.$/, '')
-		.replace(/^\[|\]$/g, '');
+		.replaceAll(/^\[|\]$/g, '');
 	if (BLOCKED_HOSTS.has(lower)) return true;
 	if (lower.endsWith('.localhost')) return true;
 	if (lower.endsWith('.local')) return true;

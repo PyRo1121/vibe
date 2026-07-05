@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { resolveAppUrl } from './env';
 
 describe('resolveAppUrl', () => {
@@ -18,8 +19,16 @@ describe('resolveAppUrl', () => {
 	});
 
 	it('fails closed without PUBLIC_APP_URL on non-local origins', () => {
-		expect(() =>
-			resolveAppUrl({ STRIPE_SECRET_KEY: 'sk_live_x' } as Env, 'https://evil.test')
-		).toThrow();
+		let thrown: unknown;
+		try {
+			resolveAppUrl({ STRIPE_SECRET_KEY: 'sk_live_x' } as Env, 'https://evil.test');
+		} catch (err) {
+			thrown = err;
+		}
+
+		expect(thrown).toMatchObject({
+			status: 503,
+			body: { message: 'PUBLIC_APP_URL is required for checkout' }
+		});
 	});
 });

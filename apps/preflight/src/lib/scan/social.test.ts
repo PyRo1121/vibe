@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { buildSocialPreview, applyOgImageReachability } from './social';
 
 const HTML = `<!DOCTYPE html>

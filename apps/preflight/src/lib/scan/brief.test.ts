@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
-import { buildLaunchBrief, embarrassmentLine } from './brief';
 import type { ScanCheck, ScanReport } from '$lib/scan/types';
+import { describe, expect, it } from 'vitest';
+
+import { buildLaunchBrief, embarrassmentLine } from './brief';
 
 function check(
 	id: string,

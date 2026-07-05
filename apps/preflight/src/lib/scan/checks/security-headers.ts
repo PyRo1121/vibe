@@ -1,4 +1,3 @@
-import type { ScanCheck } from '$lib/scan/types';
 import type { CheckCtx } from '$lib/scan/checks/helpers';
 import {
 	clickjackStatus,
@@ -11,6 +10,7 @@ import {
 } from '$lib/scan/headers';
 import { fixPrompt } from '$lib/scan/prompts';
 import { makeCheck } from '$lib/scan/score';
+import type { ScanCheck } from '$lib/scan/types';
 
 export function pushHeaderChecks(
 	checks: ScanCheck[],

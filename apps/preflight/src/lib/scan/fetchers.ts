@@ -1,3 +1,4 @@
+import type { OgImageProbe } from '$lib/scan/checks/context';
 import {
 	FETCH_TIMEOUT_MS,
 	MAX_HTML_BYTES,
@@ -5,7 +6,6 @@ import {
 	MAX_SCRIPT_BYTES,
 	USER_AGENT
 } from '$lib/scan/constants';
-import type { OgImageProbe } from '$lib/scan/checks/context';
 import { pickSecurityHeaders } from '$lib/scan/headers';
 import { isImageContentType } from '$lib/scan/signals';
 import {
@@ -320,7 +320,7 @@ async function resolveTxt(name: string): Promise<string[]> {
 		const body = (await res.json()) as { Answer?: Array<{ type: number; data: string }> };
 		return (body.Answer ?? [])
 			.filter((a) => a.type === 16)
-			.map((a) => a.data.replace(/^"|"$/g, '').replace(/"\s*"/g, ''));
+			.map((a) => a.data.replaceAll(/^"|"$/g, '').replaceAll(/"\s*"/g, ''));
 	} catch {
 		return [];
 	}

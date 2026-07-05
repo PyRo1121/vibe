@@ -1,6 +1,6 @@
-import type { ScanCheck } from '$lib/scan/types';
 import { fixPrompt } from '$lib/scan/prompts';
 import { makeCheck } from '$lib/scan/score';
+import type { ScanCheck } from '$lib/scan/types';
 
 const BLOAT_THRESHOLD = 150 * 1024;
 

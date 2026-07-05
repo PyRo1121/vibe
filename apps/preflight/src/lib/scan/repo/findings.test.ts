@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { mergeRepoFindings, normalizeRepoFinding, type RepoFinding } from './findings';
 
 describe('repo findings', () => {

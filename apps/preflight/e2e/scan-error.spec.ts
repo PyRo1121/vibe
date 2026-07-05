@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+
 import { mockScanApi } from './helpers';
 
 test.describe('scan error', () => {

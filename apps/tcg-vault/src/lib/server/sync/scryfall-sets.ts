@@ -37,7 +37,7 @@ export async function listScryfallMtgSets(): Promise<ScryfallSetSummary[]> {
 		.filter((set) => !SCRYFALL_EXCLUDED_SET_TYPES.has(set.set_type))
 		.filter((set) => set.card_count > 0)
 		.filter((set) => !set.digital)
-		.sort((a, b) => {
+		.toSorted((a, b) => {
 			const aDate = a.released_at ?? '';
 			const bDate = b.released_at ?? '';
 			return bDate.localeCompare(aDate) || a.name.localeCompare(b.name);

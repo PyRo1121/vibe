@@ -1,10 +1,10 @@
-import { json, error } from '@sveltejs/kit';
 import { createCheckoutSession } from '$lib/billing/stripe';
-import { readJsonBody, rejectValidation } from '$lib/server/api';
-import { requireStripePriceId, requireStripeSecretKey, resolveAppUrl } from '$lib/server/env';
 import { logFunnelEvent } from '$lib/metrics/funnel';
 import { resolveDeploylintPlan } from '$lib/product/plans';
 import { parseScanRequestBody } from '$lib/scan/validate';
+import { readJsonBody, rejectValidation } from '$lib/server/api';
+import { requireStripePriceId, requireStripeSecretKey, resolveAppUrl } from '$lib/server/env';
+import { json, error } from '@sveltejs/kit';
 
 export async function handleCheckoutPost(
 	request: Request,
@@ -12,7 +12,7 @@ export async function handleCheckoutPost(
 	requestOrigin: string
 ) {
 	let scanUrlValue: string;
-	let plan = resolveDeploylintPlan(undefined);
+	let plan = resolveDeploylintPlan();
 	try {
 		const body = await readJsonBody(request);
 		scanUrlValue = parseScanRequestBody(body).url;

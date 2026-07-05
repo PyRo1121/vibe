@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { MAX_LOCK_PACKAGES, parsePackageLock, screenTransitiveLicenses } from './lockfile';
 
 describe('parsePackageLock', () => {

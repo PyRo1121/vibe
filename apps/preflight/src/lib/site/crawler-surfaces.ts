@@ -1,5 +1,5 @@
-import { DEFAULT_DEPLOYLINT_API } from '@vibe/deploylint-shared';
 import { GUIDES } from '$lib/site/guides';
+import { DEFAULT_DEPLOYLINT_API } from '@vibe/deploylint-shared';
 
 export interface PublicSiteRoute {
 	path: string;

@@ -1,8 +1,8 @@
-import type { ScanCheck } from '$lib/scan/types';
-import type { CrawledPage } from '$lib/scan/crawl';
 import { pagePath, type CheckCtx } from '$lib/scan/checks/helpers';
+import type { CrawledPage } from '$lib/scan/crawl';
 import { fixPrompt } from '$lib/scan/prompts';
 import { makeCheck } from '$lib/scan/score';
+import type { ScanCheck } from '$lib/scan/types';
 
 /**
  * SEO-depth checks: signals beyond the basics (title/description/canonical/OG
@@ -13,11 +13,11 @@ import { makeCheck } from '$lib/scan/score';
 /** Decode &amp; last so double-encoded sequences don't decode twice. */
 function decodeEntities(text: string): string {
 	return text
-		.replace(/&lt;/gi, '<')
-		.replace(/&gt;/gi, '>')
-		.replace(/&quot;/gi, '"')
-		.replace(/&#39;/g, "'")
-		.replace(/&amp;/gi, '&');
+		.replaceAll(/&lt;/gi, '<')
+		.replaceAll(/&gt;/gi, '>')
+		.replaceAll(/&quot;/gi, '"')
+		.replaceAll(/&#39;/g, "'")
+		.replaceAll(/&amp;/gi, '&');
 }
 
 function extractTitle(html: string): string | null {
@@ -40,7 +40,7 @@ function metaContent(html: string, name: string): string | null {
 
 /** Remove blocks whose headings are not part of the document outline. */
 function stripNonContent(html: string): string {
-	return html.replace(/<(script|style|svg|template)\b[\s\S]*?<\/\1\s*>/gi, '');
+	return html.replaceAll(/<(script|style|svg|template)\b[\s\S]*?<\/\1\s*>/gi, '');
 }
 
 function headingLevels(html: string): number[] {

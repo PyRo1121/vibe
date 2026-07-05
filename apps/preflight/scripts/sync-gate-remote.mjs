@@ -4,11 +4,10 @@
  * from src/lib/scan/p0-ids.ts (run after changing P0_CHECK_IDS).
  */
 import { readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const root = join(__dirname, '..');
+const currentDir = import.meta.dirname;
+const root = join(currentDir, '..');
 
 const p0Source = readFileSync(join(root, 'src/lib/scan/p0-ids.ts'), 'utf8');
 const match = p0Source.match(/export const P0_CHECK_IDS = \[([\s\S]*?)\] as const/);

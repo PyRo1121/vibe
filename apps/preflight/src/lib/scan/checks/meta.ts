@@ -1,11 +1,11 @@
-import type { ScanCheck } from '$lib/scan/types';
+import { lengthStatus, pagePath, tierFromCount, type CheckCtx } from '$lib/scan/checks/helpers';
+import { LEGAL_STUB_MIN_WORDS, SEO_LIMITS } from '$lib/scan/constants';
 import type { CrawledPage } from '$lib/scan/crawl';
 import type { PageMeta } from '$lib/scan/parse';
-import { LEGAL_STUB_MIN_WORDS, SEO_LIMITS } from '$lib/scan/constants';
-import { lengthStatus, pagePath, tierFromCount, type CheckCtx } from '$lib/scan/checks/helpers';
+import { hasUtf8Charset } from '$lib/scan/parse';
 import { fixPrompt } from '$lib/scan/prompts';
 import { clarityScore, makeCheck } from '$lib/scan/score';
-import { hasUtf8Charset } from '$lib/scan/parse';
+import type { ScanCheck } from '$lib/scan/types';
 
 const LEGAL_CHECKS = [
 	{

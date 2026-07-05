@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { assertScanRateLimit, clientIp } from './rate-limit';
 
 function fakeLimiter() {
@@ -45,8 +46,8 @@ describe('assertScanRateLimit', () => {
 
 	it('allows scans under the limit', async () => {
 		const kv = {
-			get: vi.fn(async () => '2'),
-			put: vi.fn(async () => undefined)
+			get: vi.fn<(key: string) => Promise<string | null>>(async () => '2'),
+			put: vi.fn<(key: string, value: string) => Promise<void>>(async () => {})
 		} as unknown as KVNamespace;
 
 		await assertScanRateLimit(kv, '203.0.113.1');
@@ -55,10 +56,10 @@ describe('assertScanRateLimit', () => {
 
 	it('fails closed on KV errors when configured', async () => {
 		const kv = {
-			get: vi.fn(async () => {
+			get: vi.fn<() => Promise<string | null>>(async () => {
 				throw new Error('kv down');
 			}),
-			put: vi.fn()
+			put: vi.fn<(key: string, value: string) => Promise<void>>()
 		} as unknown as KVNamespace;
 
 		const { assertIpRateLimit } = await import('./rate-limit');

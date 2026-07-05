@@ -1,3 +1,4 @@
+import type { LinkCheckResult, OgImageProbe } from '$lib/scan/checks/context';
 import {
 	MAX_LINK_CHECKS,
 	MAX_SCRIPT_FETCHES,
@@ -7,7 +8,6 @@ import {
 	EXPOSED_PATH_PROBE_PATHS,
 	HEALTH_PROBE_PATHS
 } from '$lib/scan/constants';
-import type { LinkCheckResult, OgImageProbe } from '$lib/scan/checks/context';
 import type { ScanDeps } from '$lib/scan/fetchers';
 import { auditScriptText } from '$lib/scan/license';
 import {
@@ -254,7 +254,7 @@ export async function collectSitemapLocs(
 	if (/<sitemapindex/i.test(xml)) {
 		const childSitemaps: string[] = [];
 		for (const match of xml.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/gi)) {
-			const raw = match[1].replace(/&amp;/g, '&');
+			const raw = match[1].replaceAll(/&amp;/g, '&');
 			try {
 				const url = new URL(raw);
 				if (url.origin !== finalUrl.origin) continue;
@@ -284,7 +284,7 @@ export async function collectSitemapLocs(
 export function extractSitemapLocs(xml: string, finalUrl: URL, max = 3): string[] {
 	const locs: string[] = [];
 	for (const match of xml.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/gi)) {
-		const raw = match[1].replace(/&amp;/g, '&');
+		const raw = match[1].replaceAll(/&amp;/g, '&');
 		try {
 			const url = new URL(raw);
 			if (url.origin !== finalUrl.origin) continue;

@@ -1,5 +1,5 @@
-import type { ScanCheck } from '$lib/scan/types';
 import { normalizeRepoFinding, type RepoFinding } from '$lib/scan/repo/findings';
+import type { ScanCheck } from '$lib/scan/types';
 
 export type RepoReadinessFinding = RepoFinding;
 

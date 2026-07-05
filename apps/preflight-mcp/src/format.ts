@@ -1,6 +1,6 @@
 import { reportUrl } from './api.js';
-import type { OutputFormat, ScanCheck, ScanReport } from './types.js';
 import type { GateResult } from './gate.js';
+import type { OutputFormat, ScanCheck, ScanReport } from './types.js';
 
 export interface AgentIssue {
 	id: string;
@@ -44,7 +44,7 @@ export interface AgentGatePayload extends AgentScanPayload {
 function nonPassingChecks(report: ScanReport, maxIssues: number): ScanCheck[] {
 	return report.checks
 		.filter((c) => c.status !== 'pass')
-		.sort((a, b) => priorityRank(a) - priorityRank(b))
+		.toSorted((a, b) => priorityRank(a) - priorityRank(b))
 		.slice(0, maxIssues);
 }
 
@@ -69,8 +69,7 @@ function toAgentIssue(check: ScanCheck): AgentIssue {
 function unlockHint(report: ScanReport): string | null {
 	if (report.unlocked) return null;
 	const hasRedacted = report.checks.some(
-		(c) =>
-			c.status === 'fail' && !c.fixPrompt?.trim() && c.id !== report.samplePromptId
+		(c) => c.status === 'fail' && !c.fixPrompt?.trim() && c.id !== report.samplePromptId
 	);
 	if (!hasRedacted) return null;
 	return `More fix prompts are available after unlock ($9) at ${reportUrl(report) ?? 'Deploylint'}. Pass unlock_session_id from Stripe checkout to this tool.`;
@@ -132,15 +131,15 @@ export function formatScanMarkdown(report: ScanReport, maxIssues = 25): string {
 	if (payload.reportUrl) lines.push(`- **Report:** ${payload.reportUrl}`);
 	if (payload.scoreDelta != null && payload.previousScore != null) {
 		const sign = payload.scoreDelta >= 0 ? '+' : '';
-		lines.push(`- **Score delta:** ${payload.previousScore} → ${payload.score} (${sign}${payload.scoreDelta})`);
+		lines.push(
+			`- **Score delta:** ${payload.previousScore} → ${payload.score} (${sign}${payload.scoreDelta})`
+		);
 	}
 	if (payload.repo) {
 		lines.push(`- **Repo:** ${payload.repo.owner}/${payload.repo.repo}@${payload.repo.branch}`);
 	}
 	if (payload.pagesScanned?.length) {
-		lines.push(
-			`- **Pages scanned:** ${payload.pagesScanned.map((p) => p.role).join(', ')}`
-		);
+		lines.push(`- **Pages scanned:** ${payload.pagesScanned.map((p) => p.role).join(', ')}`);
 	}
 
 	lines.push('', payload.verdictMessage);
@@ -158,7 +157,9 @@ export function formatScanMarkdown(report: ScanReport, maxIssues = 25): string {
 	if (payload.issues.length > 0) {
 		lines.push('', `## Issues (${payload.summary.fail + payload.summary.warn} non-passing)`, '');
 		for (const issue of payload.issues) {
-			lines.push(`### ${issue.title} (${issue.status}${issue.priority ? ` · ${issue.priority}` : ''})`);
+			lines.push(
+				`### ${issue.title} (${issue.status}${issue.priority ? ` · ${issue.priority}` : ''})`
+			);
 			lines.push(issue.message);
 			if (issue.fixPrompt) {
 				lines.push('', '**Fix prompt:**', '```', issue.fixPrompt, '```', '');

@@ -55,9 +55,7 @@ if (!scan.res.ok) {
 		'multipage crawl',
 		`scan blocked for ${MULTIPAGE_URL} — set SMOKE_MULTIPAGE_URL to another site with legal links`
 	);
-} else if (!scan.json?.pagesScanned) {
-	fail('multipage scan API', `missing pagesScanned for ${MULTIPAGE_URL}`);
-} else {
+} else if (scan.json?.pagesScanned) {
 	const roles = scan.json.pagesScanned.map((p) => p.role);
 	pass('pagesScanned present', roles.join(', '));
 
@@ -76,6 +74,8 @@ if (!scan.res.ok) {
 	} else {
 		fail('privacy check verified content', privacy?.status ?? 'missing');
 	}
+} else {
+	fail('multipage scan API', `missing pagesScanned for ${MULTIPAGE_URL}`);
 }
 
 // Self-scan dogfood — same-zone fetch uses the SELF service binding (Phase 21).
@@ -93,4 +93,4 @@ if (selfScan.res.ok && selfScan.json?.scanCoverage === 'blocked') {
 const failed = results.filter((r) => !r.ok);
 const counted = results.filter((r) => !r.skipped);
 console.log(`\n${counted.length - failed.length}/${counted.length} passed`);
-if (failed.length) process.exit(1);
+if (failed.length > 0) process.exit(1);

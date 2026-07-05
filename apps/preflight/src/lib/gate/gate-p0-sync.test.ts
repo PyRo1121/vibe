@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { describe, expect, it } from 'vitest';
-import { P0_CHECK_IDS } from '$lib/scan/p0-ids';
+import { join } from 'node:path';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const root = join(__dirname, '..', '..', '..');
+import { P0_CHECK_IDS } from '$lib/scan/p0-ids';
+import { describe, expect, it } from 'vitest';
+
+const currentDir = import.meta.dirname;
+const root = join(currentDir, '..', '..', '..');
 const repoRoot = join(root, '..', '..');
 const mcpGatePath = join(root, '..', 'preflight-mcp', 'src', 'gate.ts');
 const actionPath = join(repoRoot, '.github', 'actions', 'deploylint-gate', 'action.yml');
@@ -25,23 +25,23 @@ function extractMcpP0Ids(): string[] {
 }
 
 describe('gate P0 sync', () => {
-	const canonical = [...P0_CHECK_IDS].sort();
+	const canonical = [...P0_CHECK_IDS].toSorted();
 
 	it('scripts/gate-remote.mjs matches verdict P0 list', () => {
-		expect(extractGateP0Ids('scripts/gate-remote.mjs').sort()).toEqual(canonical);
+		expect(extractGateP0Ids('scripts/gate-remote.mjs').toSorted()).toEqual(canonical);
 	});
 
 	it('static/gate-remote.mjs matches verdict P0 list', () => {
-		expect(extractGateP0Ids('static/gate-remote.mjs').sort()).toEqual(canonical);
+		expect(extractGateP0Ids('static/gate-remote.mjs').toSorted()).toEqual(canonical);
 	});
 
 	it('preflight-mcp gate.ts matches verdict P0 list', () => {
-		expect(extractMcpP0Ids().sort()).toEqual(canonical);
+		expect(extractMcpP0Ids().toSorted()).toEqual(canonical);
 	});
 
 	it('vendored GitHub Action gate script matches verdict P0 list', () => {
 		expect(
-			extractGateP0Ids('../../.github/actions/deploylint-gate/gate-remote.mjs').sort()
+			extractGateP0Ids('../../.github/actions/deploylint-gate/gate-remote.mjs').toSorted()
 		).toEqual(canonical);
 	});
 

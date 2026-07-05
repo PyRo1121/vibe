@@ -1,3 +1,4 @@
+import { applySecurityHeaders, enforceEdgeSecurity } from '$lib/server/edge-security';
 import type { Handle } from '@sveltejs/kit';
 import { isHttpError } from '@sveltejs/kit';
 import {
@@ -5,7 +6,6 @@ import {
 	DEPLOYLINT_LEGACY_HOST,
 	DEPLOYLINT_WWW_HOST
 } from '@vibe/deploylint-shared';
-import { applySecurityHeaders, enforceEdgeSecurity } from '$lib/server/edge-security';
 
 export { CounterLimiter } from '$lib/server/counter-limiter';
 

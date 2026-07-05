@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
 import type { Handle } from '@sveltejs/kit';
+import { describe, expect, it } from 'vitest';
+
 import { handle } from './hooks.server';
 
 const resolve: Parameters<Handle>[0]['resolve'] = async () => new Response('ok');

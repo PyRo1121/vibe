@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { auditVulnerabilities, normalizeSeverity, parseBatchResults } from './osv';
 import type { FetchLike } from './osv';
 
@@ -13,6 +14,10 @@ function jsonResponse(body: unknown, ok = true): Response {
 		json: async () => body
 	} as unknown as Response;
 }
+
+const unreachableFetch: FetchLike = async () => {
+	throw new Error('network down');
+};
 
 describe('parseBatchResults', () => {
 	it('maps vulns back to their package by index', () => {
@@ -35,7 +40,7 @@ describe('normalizeSeverity', () => {
 		expect(normalizeSeverity('CRITICAL')).toBe('critical');
 		expect(normalizeSeverity('Moderate')).toBe('moderate');
 		expect(normalizeSeverity('bogus')).toBeNull();
-		expect(normalizeSeverity(undefined)).toBeNull();
+		expect(normalizeSeverity()).toBeNull();
 	});
 
 	it('maps CVSS vectors to severity buckets', () => {
@@ -75,10 +80,7 @@ describe('auditVulnerabilities', () => {
 	});
 
 	it('returns null when OSV is unreachable — check is skipped, not faked', async () => {
-		const fetchImpl: FetchLike = async () => {
-			throw new Error('network down');
-		};
-		expect(await auditVulnerabilities(PACKAGES, fetchImpl)).toBeNull();
+		expect(await auditVulnerabilities(PACKAGES, unreachableFetch)).toBeNull();
 		expect(await auditVulnerabilities(PACKAGES, async () => jsonResponse({}, false))).toBeNull();
 	});
 

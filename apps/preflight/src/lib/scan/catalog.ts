@@ -406,5 +406,5 @@ export function getCheckCatalogEntry(id: string): CheckCatalogEntry | null {
 }
 
 export function catalogEntries(): CheckCatalogEntry[] {
-	return Object.values(CHECK_CATALOG).sort((a, b) => a.id.localeCompare(b.id));
+	return Object.values(CHECK_CATALOG).toSorted((a, b) => a.id.localeCompare(b.id));
 }

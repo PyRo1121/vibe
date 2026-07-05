@@ -74,6 +74,6 @@ const failed = results.filter((r) => !r.ok);
 const skipped = results.filter((r) => r.skipped);
 const counted = results.filter((r) => !r.skipped);
 console.log(
-	`\n${counted.length - failed.length}/${counted.length} passed${skipped.length ? ` (${skipped.length} skipped)` : ''}`
+	`\n${counted.length - failed.length}/${counted.length} passed${skipped.length > 0 ? ` (${skipped.length} skipped)` : ''}`
 );
-if (failed.length) process.exit(1);
+if (failed.length > 0) process.exit(1);

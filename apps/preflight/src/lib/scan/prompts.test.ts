@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { makeCheck } from './score';
+
 import { buildMasterPrompt, fixPrompt, pickSamplePromptCheck } from './prompts';
+import { makeCheck } from './score';
 
 describe('buildMasterPrompt', () => {
 	it('orders p0 before p2', () => {

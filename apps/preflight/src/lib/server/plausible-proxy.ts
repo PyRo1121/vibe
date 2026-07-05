@@ -2,9 +2,7 @@ const PLAUSIBLE_EVENT_URL = 'https://plausible.io/api/event';
 const DEFAULT_UPSTREAM_SCRIPT = 'https://plausible.io/js/script.js';
 const SCRIPT_CACHE_SECONDS = 60 * 60 * 24 * 30;
 
-export function plausibleUpstreamScript(
-	env: { PUBLIC_PLAUSIBLE_SCRIPT?: string } | undefined
-): string {
+export function plausibleUpstreamScript(env?: { PUBLIC_PLAUSIBLE_SCRIPT?: string }): string {
 	return env?.PUBLIC_PLAUSIBLE_SCRIPT?.trim() || DEFAULT_UPSTREAM_SCRIPT;
 }
 

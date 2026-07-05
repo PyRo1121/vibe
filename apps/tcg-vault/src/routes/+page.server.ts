@@ -1,6 +1,7 @@
-import type { PageServerLoad } from './$types';
 import { GAMES } from '$lib/games';
 import { countCatalog } from '$lib/server/db';
+
+import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ platform }) => {
 	const db = platform?.env?.DB;

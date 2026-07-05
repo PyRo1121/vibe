@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import type { ScanReport } from '$lib/scan/types';
 	import {
 		buildShareText,
 		clearCheckoutQuery,
@@ -9,24 +8,26 @@
 		toCheckSnapshots
 	} from '$lib/client/preflight-session';
 	import { trackFunnel } from '$lib/client/track';
-	import VerdictBanner from '$lib/components/VerdictBanner.svelte';
-	import ScanIncompleteBanner from '$lib/components/ScanIncompleteBanner.svelte';
-	import PagesScannedStrip from '$lib/components/PagesScannedStrip.svelte';
-	import RepoSummaryPanel from '$lib/components/RepoSummaryPanel.svelte';
-	import LaunchBriefPanel from '$lib/components/LaunchBriefPanel.svelte';
-	import ReportSummary from '$lib/components/ReportSummary.svelte';
-	import MasterPromptPanel from '$lib/components/MasterPromptPanel.svelte';
 	import AiCopyReviewPanel from '$lib/components/AiCopyReviewPanel.svelte';
-	import PostUnlockGuide from '$lib/components/PostUnlockGuide.svelte';
 	import Checklist from '$lib/components/Checklist.svelte';
-	import UnlockPanel from '$lib/components/UnlockPanel.svelte';
-	import UnlockComparePanel from '$lib/components/UnlockComparePanel.svelte';
-	import UnlockStickyBar from '$lib/components/UnlockStickyBar.svelte';
 	import DeepDivesSection from '$lib/components/DeepDivesSection.svelte';
+	import LaunchBriefPanel from '$lib/components/LaunchBriefPanel.svelte';
+	import MasterPromptPanel from '$lib/components/MasterPromptPanel.svelte';
+	import PagesScannedStrip from '$lib/components/PagesScannedStrip.svelte';
+	import PostUnlockGuide from '$lib/components/PostUnlockGuide.svelte';
+	import ReportSummary from '$lib/components/ReportSummary.svelte';
+	import RepoSummaryPanel from '$lib/components/RepoSummaryPanel.svelte';
+	import ScanIncompleteBanner from '$lib/components/ScanIncompleteBanner.svelte';
 	import SeoHead from '$lib/components/SeoHead.svelte';
+	import UnlockComparePanel from '$lib/components/UnlockComparePanel.svelte';
+	import UnlockPanel from '$lib/components/UnlockPanel.svelte';
+	import UnlockStickyBar from '$lib/components/UnlockStickyBar.svelte';
+	import VerdictBanner from '$lib/components/VerdictBanner.svelte';
 	import { ALPHA_DISCLAIMER, ALPHA_FREE_UNLOCK, ALPHA_PRICE_PREVIEW } from '$lib/product/alpha';
 	import type { DeploylintPlanId } from '$lib/product/plans';
+	import type { ScanReport } from '$lib/scan/types';
 	import { buildDeploylintJsonLd, buildSeoTitle, defaultSeoImage } from '$lib/site/seo-metadata';
+
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -155,7 +156,7 @@
 				score: report.score,
 				unlocked: report.unlocked,
 				issueCount,
-				...(report.scoreDelta != null ? { scoreDelta: report.scoreDelta } : {})
+				...(report.scoreDelta == null ? {} : { scoreDelta: report.scoreDelta })
 			});
 		} catch (err) {
 			if (err instanceof DOMException && err.name === 'AbortError') return;

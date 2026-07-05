@@ -1,9 +1,9 @@
-import type { ScanCheck } from '$lib/scan/types';
-import type { DebugSignals, ExposedPathResult, HealthEndpointResult } from '$lib/scan/probes';
 import type { CheckCtx } from '$lib/scan/checks/helpers';
+import type { PageMeta } from '$lib/scan/parse';
+import type { DebugSignals, ExposedPathResult, HealthEndpointResult } from '$lib/scan/probes';
 import { fixPrompt } from '$lib/scan/prompts';
 import { makeCheck } from '$lib/scan/score';
-import type { PageMeta } from '$lib/scan/parse';
+import type { ScanCheck } from '$lib/scan/types';
 
 export function pushDeploymentHygieneChecks(
 	checks: ScanCheck[],

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { parseScanRequestBody, assertJsonBodySize } from './validate';
+
 import { UrlValidationError } from './url-guard';
+import { parseScanRequestBody, assertJsonBodySize } from './validate';
 
 describe('parseScanRequestBody', () => {
 	it('returns trimmed https url', () => {

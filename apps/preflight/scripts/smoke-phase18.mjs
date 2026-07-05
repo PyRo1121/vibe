@@ -98,9 +98,7 @@ if (
 
 // 2. Exit criterion 1 — scan with issues shows embarrassment + prompts/unlock state
 const scan = await post('/api/scan', { url: 'https://example.com' });
-if (!scan.res.ok) {
-	fail('scan example.com', `${scan.res.status} ${scan.text.slice(0, 120)}`);
-} else {
+if (scan.res.ok) {
 	const r = scan.json;
 	if (r.launchBrief?.embarrassmentRisks?.length > 0)
 		pass('embarrassment brief', `${r.launchBrief.embarrassmentRisks.length} risks`);
@@ -134,6 +132,8 @@ if (!scan.res.ok) {
 	} else {
 		fail('pages scanned', `pagesScanned=${JSON.stringify(r.pagesScanned)}`);
 	}
+} else {
+	fail('scan example.com', `${scan.res.status} ${scan.text.slice(0, 120)}`);
 }
 
 // 3. Exit criterion 3 — broken og:image fails og-image-live + social preview warning.
@@ -249,9 +249,9 @@ const failed = results.filter((r) => !r.ok);
 const skipped = results.filter((r) => r.skipped);
 const asserted = results.length - skipped.length;
 console.log(
-	`${asserted - failed.length}/${asserted} passed${skipped.length ? ` (${skipped.length} skipped)` : ''}`
+	`${asserted - failed.length}/${asserted} passed${skipped.length > 0 ? ` (${skipped.length} skipped)` : ''}`
 );
-if (failed.length) {
+if (failed.length > 0) {
 	console.log('\nManual next steps:');
 	for (const f of failed) console.log(`  • ${f.name}: ${f.detail}`);
 	process.exit(1);

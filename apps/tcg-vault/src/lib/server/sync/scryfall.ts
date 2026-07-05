@@ -143,7 +143,7 @@ export async function importScryfallSet(db: Db, setCode: string): Promise<Scryfa
 		await flush();
 
 		url = page.has_more ? page.next_page : undefined;
-		if (url) await new Promise((r) => setTimeout(r, 100));
+		if (url) await new Promise((resolve) => setTimeout(resolve, 100));
 	}
 
 	await db.prepare(`UPDATE sets SET card_count = ? WHERE id = ?`).bind(cardsImported, setId).run();

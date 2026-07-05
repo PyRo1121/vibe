@@ -12,11 +12,10 @@
  *   gh release create deploylint-v0.35.0 --title "Deploylint v0.35.0" --notes-file apps/preflight/.release-notes.md
  */
 import { readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = join(__dirname, '..');
+const currentDir = import.meta.dirname;
+const ROOT = join(currentDir, '..');
 const CHANGELOG = join(ROOT, 'CHANGELOG.md');
 const RELEASE_NOTES = join(ROOT, '.release-notes.md');
 
@@ -91,7 +90,7 @@ const notes = [
 	subtitle ? `\n${subtitle}\n` : '',
 	unreleasedBody,
 	'',
-	`Full changelog: https://github.com/PyRo1121/vibe/blob/main/apps/preflight/CHANGELOG.md#${version.replace(/\./g, '')}-${today.replace(/-/g, '')}`
+	`Full changelog: https://github.com/PyRo1121/vibe/blob/main/apps/preflight/CHANGELOG.md#${version.replaceAll(/\./g, '')}-${today.replaceAll(/-/g, '')}`
 ].join('\n');
 
 writeFileSync(RELEASE_NOTES, notes);

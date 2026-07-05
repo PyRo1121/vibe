@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import {
 	appHostname,
 	buildScanDeps,
@@ -7,6 +8,8 @@ import {
 	readBoundedText,
 	wrapSameZoneFetch
 } from './fetchers';
+
+type SiteFetch = typeof fetch;
 
 describe('appHostname', () => {
 	it('parses configured app URL', () => {
@@ -20,8 +23,8 @@ describe('appHostname', () => {
 
 describe('wrapSameZoneFetch', () => {
 	it('routes same-host requests through the service binding', async () => {
-		const self = { fetch: vi.fn(async () => new Response('ok', { status: 200 })) };
-		const external = vi.fn(async () => new Response('external', { status: 200 }));
+		const self = { fetch: vi.fn<SiteFetch>(async () => new Response('ok', { status: 200 })) };
+		const external = vi.fn<SiteFetch>(async () => new Response('external', { status: 200 }));
 		const siteFetch = wrapSameZoneFetch(self as unknown as Fetcher, 'app.test', external);
 
 		await siteFetch('https://app.test/privacy');
@@ -84,7 +87,7 @@ describe('buildScanDeps', () => {
 	});
 
 	it('blocks redirects to resolved private addresses before fetching them', async () => {
-		const siteFetch = vi.fn(async (url: RequestInfo | URL) => {
+		const siteFetch = vi.fn<SiteFetch>(async (url) => {
 			const href = String(url);
 			if (href === 'https://example.com/') {
 				return new Response('', {

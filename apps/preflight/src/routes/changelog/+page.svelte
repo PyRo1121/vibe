@@ -1,6 +1,7 @@
 <script lang="ts">
 	import SeoHead from '$lib/components/SeoHead.svelte';
 	import { buildPageJsonLd, buildSeoTitle, defaultSeoImage } from '$lib/site/seo-metadata';
+
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();

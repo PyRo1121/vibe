@@ -40,7 +40,7 @@
 		: 'down'} {Math.abs(scoreDelta)} points"
 >
 	<span class={arrowClass} aria-hidden="true">{arrow}</span>
-	<span class="tabular-nums text-white">
+	<span class="text-white tabular-nums">
 		{previousScore} → {score}
 	</span>
 	<span class="tabular-nums {arrowClass}">

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { hasUnlock, legacyUnlockKey, loadUnlock, saveUnlock, unlockKey } from './unlock-store';
 
 function mockKv() {

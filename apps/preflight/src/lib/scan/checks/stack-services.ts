@@ -1,9 +1,9 @@
-import type { ScanCheck } from '$lib/scan/types';
-import type { CrawledPage } from '$lib/scan/crawl';
 import type { CheckCtx } from '$lib/scan/checks/helpers';
+import type { CrawledPage } from '$lib/scan/crawl';
 import { mentionsStack, type PageMeta } from '$lib/scan/parse';
 import { fixPrompt } from '$lib/scan/prompts';
 import { makeCheck } from '$lib/scan/score';
+import type { ScanCheck } from '$lib/scan/types';
 
 type StackSignals = ReturnType<typeof mentionsStack>;
 

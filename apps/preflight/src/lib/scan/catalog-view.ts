@@ -1,4 +1,5 @@
 import type { CheckPriority } from '$lib/scan/types';
+
 import type { CheckCatalogEntry } from './catalog';
 import { checkPriority } from './verdict';
 
@@ -39,7 +40,7 @@ export function buildCatalogGroups(entries: CheckCatalogEntry[]): CatalogGroup[]
 				priority,
 				label: copy.label,
 				description: copy.description,
-				entries: (groups.get(priority) ?? []).sort((a, b) => a.id.localeCompare(b.id))
+				entries: (groups.get(priority) ?? []).toSorted((a, b) => a.id.localeCompare(b.id))
 			};
 		})
 		.filter((group) => group.entries.length > 0);

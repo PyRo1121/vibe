@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { SEO_LEGACY_REDIRECTS, getSeoLegacyRedirect } from './seo-redirects';
 
 describe('SEO legacy redirects', () => {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { PUBLIC_SITE_ROUTES, buildLlmsTxt, buildSitemapXml } from './crawler-surfaces';
 
 describe('crawler-facing website surfaces', () => {

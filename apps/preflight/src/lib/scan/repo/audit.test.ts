@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import {
 	findCommittedEnvFiles,
 	selectSourceSamples,
@@ -7,6 +6,7 @@ import {
 	auditNpmDependencies
 } from '$lib/scan/repo/audit';
 import type { RepoTreeEntry } from '$lib/scan/repo/github';
+import { describe, expect, it } from 'vitest';
 
 const blob = (path: string, size?: number): RepoTreeEntry => ({ path, type: 'blob', size });
 

@@ -39,7 +39,7 @@
 			<ul class="mt-6 divide-y divide-zinc-800">
 				{#each audit.libraries as lib (lib.name)}
 					<li class="flex flex-wrap items-start justify-between gap-3 py-3">
-						<div class="min-w-0 max-w-xl">
+						<div class="max-w-xl min-w-0">
 							<p class="text-sm font-medium text-zinc-200">
 								{lib.name}{#if lib.version}<span class="text-zinc-500"> · v{lib.version}</span>{/if}
 							</p>

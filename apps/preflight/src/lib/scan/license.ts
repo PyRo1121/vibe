@@ -1,3 +1,4 @@
+import { canonicalName, HOST_RULES, KNOWN, SPDX_FAMILIES, UNKNOWN_LIB } from '$lib/scan/license-db';
 import type {
 	DetectedLibrary,
 	LicenseAudit,
@@ -5,7 +6,6 @@ import type {
 	CheckStatus,
 	Sellability
 } from '$lib/scan/types';
-import { canonicalName, HOST_RULES, KNOWN, SPDX_FAMILIES, UNKNOWN_LIB } from '$lib/scan/license-db';
 
 /**
  * License & sell-rights audit.
@@ -177,6 +177,10 @@ export function describeNpmDependency(
 
 const SELLABLE_RANK: Record<Sellability, number> = { yes: 0, conditions: 1, unknown: 2, risk: 3 };
 
+function pluralLibraries(count: number): string {
+	return `${count} ${count === 1 ? 'library' : 'libraries'}`;
+}
+
 export function mergeLibraries(...groups: DetectedLibrary[][]): DetectedLibrary[] {
 	const map = new Map<string, DetectedLibrary>();
 	for (const group of groups) {
@@ -184,7 +188,9 @@ export function mergeLibraries(...groups: DetectedLibrary[][]): DetectedLibrary[
 			if (!map.has(lib.name)) map.set(lib.name, lib);
 		}
 	}
-	return [...map.values()].sort((a, b) => SELLABLE_RANK[b.sellable] - SELLABLE_RANK[a.sellable]);
+	return [...map.values()].toSorted(
+		(a, b) => SELLABLE_RANK[b.sellable] - SELLABLE_RANK[a.sellable]
+	);
 }
 
 export function buildLicenseAudit(libraries: DetectedLibrary[]): LicenseAudit {
@@ -204,16 +210,15 @@ export function buildLicenseAudit(libraries: DetectedLibrary[]): LicenseAudit {
 
 	const count = (s: Sellability) => libraries.filter((l) => l.sellable === s).length;
 	const total = libraries.length;
-	const libs = (n: number) => `${n} ${n === 1 ? 'library' : 'libraries'}`;
 
 	const summary =
 		worst === 'risk'
-			? `${count('risk')} of ${libs(total)} detected put commercial use at risk — resolve before charging money.`
+			? `${count('risk')} of ${pluralLibraries(total)} detected put commercial use at risk — resolve before charging money.`
 			: worst === 'unknown'
-				? `${count('unknown')} of ${libs(total)} detected have unverified licenses — check them before selling.`
+				? `${count('unknown')} of ${pluralLibraries(total)} detected have unverified licenses — check them before selling.`
 				: worst === 'conditions'
-					? `All ${libs(total)} detected allow selling — ${count('conditions')} with conditions to meet.`
-					: `All ${libs(total)} detected permit commercial use. Nothing here blocks selling this product.`;
+					? `All ${pluralLibraries(total)} detected allow selling — ${count('conditions')} with conditions to meet.`
+					: `All ${pluralLibraries(total)} detected permit commercial use. Nothing here blocks selling this product.`;
 
 	return { libraries, sellable: worst, summary };
 }

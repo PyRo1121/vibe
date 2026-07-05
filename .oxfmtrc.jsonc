@@ -1,0 +1,24 @@
+{
+	"$schema": "./node_modules/oxfmt/configuration_schema.json",
+	"useTabs": true,
+	"singleQuote": true,
+	"trailingComma": "none",
+	"endOfLine": "lf",
+	"printWidth": 100,
+	"svelte": true,
+	"sortImports": true,
+	"sortTailwindcss": true,
+	"ignorePatterns": [
+		"**/node_modules/**",
+		"**/.svelte-kit/**",
+		"**/.wrangler/**",
+		"**/build/**",
+		"**/dist/**",
+		"**/.turbo/**",
+		"**/coverage/**",
+		"**/test-results/**",
+		"**/playwright-report/**",
+		"**/blob-report/**",
+		"tmp/**"
+	]
+}

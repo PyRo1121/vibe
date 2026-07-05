@@ -1,8 +1,8 @@
-import type { ScanCheck } from '$lib/scan/types';
 import type { ScanContext } from '$lib/scan/checks/context';
 import type { CheckCtx } from '$lib/scan/checks/helpers';
 import { fixPrompt } from '$lib/scan/prompts';
 import { makeCheck } from '$lib/scan/score';
+import type { ScanCheck } from '$lib/scan/types';
 
 /** Response time, soft-404 handling, and email deliverability — parity with dedicated launch checkers. */
 export function pushOperationalChecks(
@@ -93,11 +93,11 @@ export function pushOperationalChecks(
 		if (!host.resolves) {
 			status = 'warn';
 			message = `${host.altHost} does not resolve — anyone typing it gets an error instead of your site`;
-		} else if (!host.sameSite) {
+		} else if (host.sameSite) {
+			message = `${host.altHost} reaches this site`;
+		} else {
 			status = 'warn';
 			message = `${host.altHost} serves a different site instead of redirecting here`;
-		} else {
-			message = `${host.altHost} reaches this site`;
 		}
 		checks.push(
 			makeCheck(

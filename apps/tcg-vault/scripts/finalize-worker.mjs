@@ -1,5 +1,5 @@
-import { renameSync } from 'node:fs';
 import { execSync } from 'node:child_process';
+import { renameSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 

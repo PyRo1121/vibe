@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { parseRepoUrl } from '$lib/scan/repo/parse';
+import { describe, expect, it } from 'vitest';
 
 describe('parseRepoUrl', () => {
 	it('parses a plain repo URL', () => {

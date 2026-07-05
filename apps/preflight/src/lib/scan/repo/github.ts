@@ -1,5 +1,5 @@
-import type { RepoRef } from '$lib/scan/repo/parse';
 import { USER_AGENT } from '$lib/scan/constants';
+import type { RepoRef } from '$lib/scan/repo/parse';
 
 /** GitHub fetch layer — injectable so tests and future sources need no network. */
 

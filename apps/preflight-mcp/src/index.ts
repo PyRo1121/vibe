@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
+
 import { fetchScan } from './api.js';
 import {
 	buildAgentGatePayload,
@@ -17,9 +18,7 @@ const formatSchema = z
 	.describe('Response format: markdown (default) or json for agent parsing');
 
 const scanZod = z.object({
-	url: z
-		.string()
-		.describe('HTTPS site URL or github.com/owner/repo to audit for launch readiness'),
+	url: z.string().describe('HTTPS site URL or github.com/owner/repo to audit for launch readiness'),
 	format: formatSchema,
 	max_issues: z
 		.number()

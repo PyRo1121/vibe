@@ -1,8 +1,8 @@
 <script lang="ts">
+	import { computeFixProgress, loadBaselineChecks } from '$lib/client/preflight-session';
+	import ScoreDeltaBadge from '$lib/components/ScoreDeltaBadge.svelte';
 	import type { ScanReport } from '$lib/scan/types';
 	import { scoreColor } from '$lib/ui/scan-styles';
-	import ScoreDeltaBadge from '$lib/components/ScoreDeltaBadge.svelte';
-	import { computeFixProgress, loadBaselineChecks } from '$lib/client/preflight-session';
 
 	let {
 		report,

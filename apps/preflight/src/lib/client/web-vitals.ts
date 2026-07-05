@@ -88,7 +88,7 @@ export function parsePsiResult(body: PsiResponse): WebVitalsResult {
 	const fieldCls = fieldMetrics['CUMULATIVE_LAYOUT_SHIFT_SCORE']?.percentile;
 	const labCls = audits['cumulative-layout-shift']?.numericValue;
 	// CrUX reports CLS ×100 as an integer percentile.
-	const cls = fieldCls != null ? fieldCls / 100 : labCls;
+	const cls = fieldCls == null ? labCls : fieldCls / 100;
 	if (cls != null) {
 		metrics.push({
 			id: 'cls',
@@ -123,7 +123,7 @@ export function parsePsiResult(body: PsiResponse): WebVitalsResult {
 
 	const rawScore = body.lighthouseResult?.categories?.performance?.score;
 	return {
-		performanceScore: rawScore != null ? Math.round(rawScore * 100) : null,
+		performanceScore: rawScore == null ? null : Math.round(rawScore * 100),
 		metrics,
 		fetchedAt: new Date().toISOString()
 	};

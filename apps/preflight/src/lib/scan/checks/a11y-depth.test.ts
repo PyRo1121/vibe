@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
 import type { ScanCheck } from '$lib/scan/types';
+import { describe, expect, it } from 'vitest';
+
 import { pushA11yDepthChecks } from './a11y-depth';
 
 function run(html: string): ScanCheck[] {

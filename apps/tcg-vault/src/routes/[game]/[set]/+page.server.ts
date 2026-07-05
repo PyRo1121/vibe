@@ -1,8 +1,9 @@
-import { error } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types';
 import { getGame } from '$lib/games';
 import { getSet, listCardsInSet } from '$lib/server/db';
 import { requireDb } from '$lib/server/require-db';
+import { error } from '@sveltejs/kit';
+
+import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, platform }) => {
 	const game = getGame(params.game);

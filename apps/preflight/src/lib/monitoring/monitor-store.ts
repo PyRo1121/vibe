@@ -1,4 +1,5 @@
 import { stableStorageKey } from '$lib/server/storage-key';
+
 import type { SecuritySnapshot } from './security-diff';
 
 export type MonitorPlan = 'alpha-free' | 'paid';

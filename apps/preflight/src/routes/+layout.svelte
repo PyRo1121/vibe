@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { onNavigate } from '$app/navigation';
 	import { watchPlausible, plausibleInitSnippet } from '$lib/client/plausible';
 	import { ALPHA_FREE_UNLOCK } from '$lib/product/alpha';
+	import { onMount } from 'svelte';
+
 	import './layout.css';
 
 	let {

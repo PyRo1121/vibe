@@ -1,4 +1,5 @@
 import { getPlatformProxy } from 'wrangler';
+
 import { importScryfallSet, listScryfallMtgSets } from '../src/lib/server/sync/scryfall.ts';
 
 const force = process.argv.includes('--force');

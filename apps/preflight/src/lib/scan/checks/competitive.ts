@@ -1,7 +1,6 @@
-import type { ScanCheck } from '$lib/scan/types';
-import type { CrawledPage } from '$lib/scan/crawl';
 import type { LinkCheckResult, ScanContext } from '$lib/scan/checks/context';
 import { pagePath, type CheckCtx } from '$lib/scan/checks/helpers';
+import type { CrawledPage } from '$lib/scan/crawl';
 import { fixPrompt } from '$lib/scan/prompts';
 import { makeCheck } from '$lib/scan/score';
 import {
@@ -13,6 +12,7 @@ import {
 	robotsBlocksAllCrawlers,
 	type AnalyticsStack
 } from '$lib/scan/signals';
+import type { ScanCheck } from '$lib/scan/types';
 
 export function sitemapCheck(
 	sitemapOk: boolean,

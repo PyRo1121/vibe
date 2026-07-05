@@ -1,15 +1,16 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import VerdictBanner from '$lib/components/VerdictBanner.svelte';
-	import ScoreDeltaBadge from '$lib/components/ScoreDeltaBadge.svelte';
-	import RepoSummaryPanel from '$lib/components/RepoSummaryPanel.svelte';
-	import ScanIncompleteBanner from '$lib/components/ScanIncompleteBanner.svelte';
-	import PagesScannedStrip from '$lib/components/PagesScannedStrip.svelte';
-	import ReportSummary from '$lib/components/ReportSummary.svelte';
-	import LaunchBriefPanel from '$lib/components/LaunchBriefPanel.svelte';
 	import Checklist from '$lib/components/Checklist.svelte';
 	import DeepDivesSection from '$lib/components/DeepDivesSection.svelte';
+	import LaunchBriefPanel from '$lib/components/LaunchBriefPanel.svelte';
+	import PagesScannedStrip from '$lib/components/PagesScannedStrip.svelte';
+	import ReportSummary from '$lib/components/ReportSummary.svelte';
+	import RepoSummaryPanel from '$lib/components/RepoSummaryPanel.svelte';
+	import ScanIncompleteBanner from '$lib/components/ScanIncompleteBanner.svelte';
+	import ScoreDeltaBadge from '$lib/components/ScoreDeltaBadge.svelte';
+	import VerdictBanner from '$lib/components/VerdictBanner.svelte';
 	import { verdictLabels } from '$lib/ui/scan-styles';
+
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();

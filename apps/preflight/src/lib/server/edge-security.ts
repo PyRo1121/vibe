@@ -1,5 +1,5 @@
-import { isHttpError } from '@sveltejs/kit';
 import { assertIpRateLimit, clientIp } from '$lib/server/rate-limit';
+import { isHttpError } from '@sveltejs/kit';
 
 /** Common exploit paths — block before the Worker does real work. */
 const BLOCKED_PATH_SNIPPETS = [

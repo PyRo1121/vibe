@@ -1,5 +1,5 @@
-import { hasUnlock, saveUnlock } from '$lib/billing/unlock-store';
 import { verifyCheckoutSession } from '$lib/billing/stripe';
+import { hasUnlock, saveUnlock } from '$lib/billing/unlock-store';
 
 /**
  * Resolve paid unlock for a scan URL + Stripe session id.

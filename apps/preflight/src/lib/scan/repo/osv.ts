@@ -46,8 +46,9 @@ export function parseBatchResults(packages: LockPackage[], body: BatchResponse):
 }
 
 const SEVERITY_RANK: Record<OsvSeverity, number> = { low: 0, moderate: 1, high: 2, critical: 3 };
+const CVSS_IMPACT_METRICS: Record<string, number> = { H: 0.56, L: 0.22, N: 0 };
 
-export function normalizeSeverity(raw: string | undefined): OsvSeverity | null {
+export function normalizeSeverity(raw?: string): OsvSeverity | null {
 	const value = raw?.toLowerCase();
 	if (value === 'critical' || value === 'high' || value === 'moderate' || value === 'low') {
 		return value;
@@ -66,6 +67,10 @@ function severityFromScore(score: number): OsvSeverity | null {
 	return null;
 }
 
+function cvssImpactMetric(value: string | undefined): number | undefined {
+	return CVSS_IMPACT_METRICS[value ?? ''];
+}
+
 function severityFromCvss3(vector: string): OsvSeverity | null {
 	const metrics = Object.fromEntries(
 		vector
@@ -81,10 +86,9 @@ function severityFromCvss3(vector: string): OsvSeverity | null {
 		? { N: 0.85, L: 0.68, H: 0.5 }[metrics.PR ?? '']
 		: { N: 0.85, L: 0.62, H: 0.27 }[metrics.PR ?? ''];
 	const ui = { N: 0.85, R: 0.62 }[metrics.UI ?? ''];
-	const impactMetric = (v: string | undefined) => ({ H: 0.56, L: 0.22, N: 0 })[v ?? ''];
-	const c = impactMetric(metrics.C);
-	const i = impactMetric(metrics.I);
-	const a = impactMetric(metrics.A);
+	const c = cvssImpactMetric(metrics.C);
+	const i = cvssImpactMetric(metrics.I);
+	const a = cvssImpactMetric(metrics.A);
 	if ([av, ac, pr, ui, c, i, a].some((v) => v == null)) return null;
 	const [avScore, acScore, prScore, uiScore, cScore, iScore, aScore] = [
 		av,

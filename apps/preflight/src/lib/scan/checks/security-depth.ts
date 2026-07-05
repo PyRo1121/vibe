@@ -1,6 +1,6 @@
-import type { ScanCheck } from '$lib/scan/types';
 import { fixPrompt } from '$lib/scan/prompts';
 import { makeCheck } from '$lib/scan/score';
+import type { ScanCheck } from '$lib/scan/types';
 
 function attr(tag: string, name: string): string | null {
 	const re = new RegExp(
@@ -13,7 +13,7 @@ function attr(tag: string, name: string): string | null {
 }
 
 function stripBlocks(html: string): string {
-	return html.replace(/<(script|style)\b[\s\S]*?<\/\1\s*>/gi, '');
+	return html.replaceAll(/<(script|style)\b[\s\S]*?<\/\1\s*>/gi, '');
 }
 
 function resolveUrl(href: string, base: URL): URL | null {

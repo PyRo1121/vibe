@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+
 import { mockScanReport } from './fixtures';
 import { mockScanApi, runMockScan } from './helpers';
 

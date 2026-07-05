@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
-import type { ScanCheck } from '$lib/scan/types';
 import type { CrawledPage } from '$lib/scan/crawl';
+import type { ScanCheck } from '$lib/scan/types';
+import { describe, expect, it } from 'vitest';
+
 import { pushSeoDepthChecks } from './seo-depth';
 
 function run(html: string, opts: { finalUrl?: string; pages?: CrawledPage[] } = {}): ScanCheck[] {

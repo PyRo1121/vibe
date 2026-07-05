@@ -22,10 +22,10 @@ const PLACEHOLDER_PATTERNS: { re: RegExp; label: string }[] = [
 
 export function visibleText(html: string): string {
 	return html
-		.replace(/<script[\s\S]*?<\/script>/gi, ' ')
-		.replace(/<style[\s\S]*?<\/style>/gi, ' ')
-		.replace(/<[^>]+>/g, ' ')
-		.replace(/\s+/g, ' ')
+		.replaceAll(/<script[\s\S]*?<\/script>/gi, ' ')
+		.replaceAll(/<style[\s\S]*?<\/style>/gi, ' ')
+		.replaceAll(/<[^>]+>/g, ' ')
+		.replaceAll(/\s+/g, ' ')
 		.trim();
 }
 
@@ -112,7 +112,7 @@ export function detectConsentTool(html: string): string | null {
 
 /** True when User-agent: * blocks the entire site (common staging mistake). */
 export function robotsBlocksAllCrawlers(text: string): boolean {
-	const normalized = text.replace(/\r\n/g, '\n');
+	const normalized = text.replaceAll(/\r\n/g, '\n');
 	const sections = normalized.split(/^User-agent:\s*/gim).slice(1);
 
 	for (const section of sections) {

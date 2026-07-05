@@ -1,3 +1,7 @@
+import { buildLaunchBrief } from '$lib/scan/brief';
+import { SEO_LIMITS } from '$lib/scan/constants';
+import { blockedScanMessage } from '$lib/scan/coverage';
+import { buildSocialPreview, applyOgImageReachability } from '$lib/scan/social';
 import type {
 	LicenseAudit,
 	RepoInfo,
@@ -6,10 +10,6 @@ import type {
 	ScanReport,
 	ScannedPage
 } from '$lib/scan/types';
-import { blockedScanMessage } from '$lib/scan/coverage';
-import { SEO_LIMITS } from '$lib/scan/constants';
-import { buildSocialPreview, applyOgImageReachability } from '$lib/scan/social';
-import { buildLaunchBrief } from '$lib/scan/brief';
 import { computeVerdict, tagCheckPriorities } from '$lib/scan/verdict';
 
 export function clarityScore(

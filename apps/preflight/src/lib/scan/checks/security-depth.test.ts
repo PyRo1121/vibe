@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
 import type { ScanCheck } from '$lib/scan/types';
+import { describe, expect, it } from 'vitest';
+
 import { pushSecurityDepthChecks } from './security-depth';
 
 function run(html: string, finalUrl = 'https://app.test/'): ScanCheck[] {

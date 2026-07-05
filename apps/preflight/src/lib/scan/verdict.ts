@@ -1,5 +1,5 @@
-import type { CheckPriority, LaunchVerdict, ScanCheck } from '$lib/scan/types';
 import { P0_ID_SET } from '$lib/scan/p0-ids';
+import type { CheckPriority, LaunchVerdict, ScanCheck } from '$lib/scan/types';
 
 export type { CheckPriority, LaunchVerdict } from '$lib/scan/types';
 
@@ -49,7 +49,7 @@ export function compareChecksByPriority(a: ScanCheck, b: ScanCheck): number {
 
 /** Non-passing checks sorted for display and prompt generation. */
 export function sortChecksByPriority(checks: ScanCheck[]): ScanCheck[] {
-	return checks.filter((c) => c.status !== 'pass').sort(compareChecksByPriority);
+	return checks.filter((c) => c.status !== 'pass').toSorted(compareChecksByPriority);
 }
 
 export function tagCheckPriorities(checks: ScanCheck[]): ScanCheck[] {

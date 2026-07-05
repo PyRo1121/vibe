@@ -1,6 +1,6 @@
-import type { ScanCheck } from '$lib/scan/types';
 import { fixPrompt } from '$lib/scan/prompts';
 import { makeCheck } from '$lib/scan/score';
+import type { ScanCheck } from '$lib/scan/types';
 
 const AI_CRAWLERS = [
 	'GPTBot',
@@ -74,10 +74,10 @@ export function aiCrawlerAccess(robotsText: string): { blocked: string[]; allowe
 
 function stripForText(html: string): string {
 	return html
-		.replace(/<!--[\s\S]*?-->/g, '')
-		.replace(/<(script|style|svg|noscript)\b[\s\S]*?<\/\1\s*>/gi, '')
-		.replace(/<[^>]+>/g, ' ')
-		.replace(/\s+/g, ' ')
+		.replaceAll(/<!--[\s\S]*?-->/g, '')
+		.replaceAll(/<(script|style|svg|noscript)\b[\s\S]*?<\/\1\s*>/gi, '')
+		.replaceAll(/<[^>]+>/g, ' ')
+		.replaceAll(/\s+/g, ' ')
 		.trim();
 }
 
@@ -262,8 +262,8 @@ function pushAnswerSignalsCheck(checks: ScanCheck[], html: string, ctx: { url: s
 		);
 		for (const m of afterH1.matchAll(/<(?:p|div)\b[^>]*>([\s\S]*?)<\/(?:p|div)>/gi)) {
 			const text = m[1]
-				.replace(/<[^>]+>/g, '')
-				.replace(/\s+/g, ' ')
+				.replaceAll(/<[^>]+>/g, '')
+				.replaceAll(/\s+/g, ' ')
 				.trim();
 			if (text.length >= 40 && text.length <= 300) {
 				checks.push(

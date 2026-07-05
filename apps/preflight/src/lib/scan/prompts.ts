@@ -151,7 +151,7 @@ export function buildMasterPrompt(
 	opts: { scanCoverage?: ScanCoverage; httpStatus?: number } = {}
 ): string {
 	if (opts.scanCoverage === 'blocked') {
-		const statusLabel = opts.httpStatus != null ? `HTTP ${opts.httpStatus}` : 'fetch failed';
+		const statusLabel = opts.httpStatus == null ? 'fetch failed' : `HTTP ${opts.httpStatus}`;
 		const reachability = checks.find((c) => c.id === 'reachable' || c.id === 'fetch');
 		return [
 			`Site: ${url}`,

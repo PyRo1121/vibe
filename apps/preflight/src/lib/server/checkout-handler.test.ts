@@ -1,8 +1,9 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
+
 import { handleCheckoutPost } from './checkout-handler';
 
 vi.mock('$lib/billing/stripe', () => ({
-	createCheckoutSession: vi.fn(async () => ({
+	createCheckoutSession: vi.fn<() => Promise<{ id: string; url: string }>>(async () => ({
 		id: 'cs_test_abc',
 		url: 'https://checkout.stripe.com/x'
 	}))

@@ -1,4 +1,5 @@
 #!/usr/bin/env npx tsx
+import { evaluateGate, formatGateReport } from '../src/lib/gate/evaluate';
 /**
  * CI / local gate — scan a URL and exit non-zero when launch blockers remain.
  *
@@ -12,7 +13,6 @@
  *   PREFLIGHT_MIN_SCORE Minimum score (default 80)
  */
 import type { ScanReport } from '../src/lib/scan/types';
-import { evaluateGate, formatGateReport } from '../src/lib/gate/evaluate';
 
 const apiBase = (
 	process.env.DEPLOYLINT_API ??
