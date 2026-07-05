@@ -16,8 +16,8 @@
 
 ## Verification
 
-- **480 tests** — `npm run verify:preflight`
-- Phase 18 smoke — `npm run smoke:phase18 -w preflight` (14 checks)
+- **486 tests** — `npm run verify:preflight`
+- Phase 18 smoke — `npm run smoke:phase18 -w preflight` (18 checks)
 - Phase 19 smoke — `npm run smoke:phase19 -w preflight` (7 checks)
 - Phase 20 smoke — `npm run smoke:phase20 -w preflight` (multi-page crawl)
 - Phase 23 smoke — `npm run smoke:phase23 -w preflight` (sitemap dogfood + self-scan)
@@ -174,6 +174,7 @@ When `charges_enabled` flips true: run one $9 checkout → confirm webhook → r
 | `/changelog` public page | ✅ |
 | `deploylint.com` 301 redirect hook (wire DNS + wrangler route when registered) | ✅ code ready |
 | Plausible first-party proxy | ✅ |
+| **v0.35.0** — tag `deploylint-v0.35.0`, [GitHub release](https://github.com/PyRo1121/vibe/releases/tag/deploylint-v0.35.0) | ✅ |
 
 ### Phase 26+ — Parallel with validation
 
