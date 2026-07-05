@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
  * Phase 18 production smoke — run: node scripts/smoke-phase18.mjs
- * Optional: PREFLIGHT_BASE=https://lint.latham.cloud
+ * Optional: PREFLIGHT_BASE=https://deploylint.com
  */
 const BASE = (
 	process.env.DEPLOYLINT_BASE ??
 	process.env.PREFLIGHT_BASE ??
-	'https://lint.latham.cloud'
+	'https://deploylint.com'
 ).replace(/\/$/, '');
 
 const results = [];
@@ -58,7 +58,7 @@ const securityTxt = await get('/.well-known/security.txt');
 if (
 	securityTxt.res.ok &&
 	securityTxt.text.includes('Contact:') &&
-	securityTxt.text.includes('lint.latham.cloud')
+	securityTxt.text.includes('deploylint.com')
 ) {
 	pass('security.txt', String(securityTxt.res.status));
 } else fail('security.txt', `${securityTxt.res.status} ${securityTxt.text.slice(0, 40)}`);
@@ -76,7 +76,7 @@ if (home.res.ok && home.text.includes('og:image') && home.text.includes('applica
 if (
 	home.text.includes('/s/script.js') &&
 	home.text.includes('plausible.init') &&
-	home.text.includes('lint.latham.cloud')
+	home.text.includes('deploylint.com')
 ) {
 	pass('Plausible', 'first-party proxy snippet in HTML (/s/script.js + plausible.init)');
 } else fail('Plausible', 'expected /s/script.js proxy + plausible.init in HTML');

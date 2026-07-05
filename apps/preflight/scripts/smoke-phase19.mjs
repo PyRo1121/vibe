@@ -6,7 +6,7 @@
 const BASE = (
 	process.env.DEPLOYLINT_BASE ??
 	process.env.PREFLIGHT_BASE ??
-	'https://lint.latham.cloud'
+	'https://deploylint.com'
 ).replace(/\/$/, '');
 
 const results = [];
