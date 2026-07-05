@@ -132,7 +132,7 @@ function manifestEvidence(paths: string[], texts: (string | null)[]): PackageMan
 }
 
 function repoReadinessChecks(url: string, findings: RepoReadinessFinding[]): ScanCheck[] {
-	return findings.map((item) =>
+	return mergeReadinessFindings(findings).map((item) =>
 		makeCheck(
 			item.id,
 			item.category,
@@ -145,6 +145,23 @@ function repoReadinessChecks(url: string, findings: RepoReadinessFinding[]): Sca
 			})
 		)
 	);
+}
+
+function findingSeverity(finding: RepoReadinessFinding): number {
+	if (finding.status === 'fail') return 3;
+	if (finding.status === 'warn') return 2;
+	return 1;
+}
+
+function mergeReadinessFindings(findings: RepoReadinessFinding[]): RepoReadinessFinding[] {
+	const merged = new Map<string, RepoReadinessFinding>();
+	for (const finding of findings) {
+		const existing = merged.get(finding.id);
+		if (!existing || findingSeverity(finding) >= findingSeverity(existing)) {
+			merged.set(finding.id, finding);
+		}
+	}
+	return [...merged.values()];
 }
 
 function uniqueLockPackages(packages: LockPackage[]): LockPackage[] {

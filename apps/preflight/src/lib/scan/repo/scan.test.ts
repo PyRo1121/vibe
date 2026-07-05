@@ -537,6 +537,9 @@ jobs:
 		expect(byId['ci-runs-quality-gates'].status).toBe('pass');
 		expect(byId['workflow-permissions'].status).toBe('pass');
 		expect(byId['deploy-config'].status).toBe('pass');
+		expect(report.checks.map((check) => check.id)).toHaveLength(
+			new Set(report.checks.map((check) => check.id)).size
+		);
 		expect(report.repo?.filesSampled).toContain('wrangler.jsonc');
 	});
 
