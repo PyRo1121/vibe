@@ -17,7 +17,7 @@ const PAYMENT_PROVIDER_DEPENDENCIES = [
 ];
 
 const PAYMENT_TEXT_PATTERN =
-	/(?:\b(?:stripe\.checkout|checkout\.sessions\.create|stripe\.webhooks|billingPortal\.sessions\.create|PaymentIntent|price_[A-Za-z0-9]+|loadStripe|redirectToCheckout|pk_(?:test|live)_[A-Za-z0-9_]+|Paddle|initializePaddle|paddle|lemon\s*squeezy|lemonsqueezy|LemonSqueezy|variant_[A-Za-z0-9]+)\b|\bStripe\()/i;
+	/(?:\b(?:stripe\.checkout|checkout\.sessions\.create|paymentIntents\.create|stripe\.webhooks|billingPortal\.sessions\.create|PaymentIntent|price_[A-Za-z0-9]+|loadStripe|redirectToCheckout|pk_(?:test|live)_[A-Za-z0-9_]+|Paddle|initializePaddle|paddle|lemon\s*squeezy|lemonsqueezy|LemonSqueezy|variant_[A-Za-z0-9]+)\b|\bStripe\()/i;
 const PAYMENT_PATH_PATTERN =
 	/(^|\/)(stripe|payment|payments|billing|checkout|subscription|subscriptions|paddle|lemon|lemonsqueezy)(\/|\.|-|$)/i;
 const LIVE_PAYMENT_SECRET_PATTERN = /\b(?:sk_live|rk_live)_[A-Za-z0-9_]{20,}\b/;
@@ -104,9 +104,7 @@ function firstPaymentFile(
 }
 
 function hasServerOwnedCheckout(files: RepoFileEvidence[]): boolean {
-	return /\b(checkout\.sessions\.create|billingPortal\.sessions\.create)\b/i.test(
-		combinedFileText(files)
-	);
+	return /\b(checkout\.sessions\.create|paymentIntents\.create)\b/i.test(combinedFileText(files));
 }
 
 function hasClientOnlyStripeCheckout(files: RepoFileEvidence[]): boolean {
@@ -138,9 +136,7 @@ function webhookSignal(files: RepoFileEvidence[]): RepoFileEvidence | undefined 
 
 function hasWebhookSignatureVerification(files: RepoFileEvidence[]): boolean {
 	const text = combinedFileText(files);
-	return /stripe\.webhooks\.constructEvent(?:Async)?\b|constructEventAsync\b|STRIPE_WEBHOOK_SECRET|webhookSecret/i.test(
-		text
-	);
+	return /stripe\.webhooks\.constructEvent(?:Async)?\b|constructEventAsync\b/i.test(text);
 }
 
 function webhookCoverageGaps(files: RepoFileEvidence[]): string[] {
@@ -220,16 +216,14 @@ export function analyzeBillingReadiness(
 			'Server-owned checkout',
 			serverOwnedCheckout ? 'pass' : clientOnlyCheckout ? 'fail' : 'warn',
 			serverOwnedCheckout
-				? 'Checkout or billing portal session creation is handled server-side.'
+				? 'Checkout or payment creation is handled server-side.'
 				: clientOnlyCheckout
 					? 'Stripe checkout appears to be initialized only from client-side code; create checkout sessions on the server.'
-					: 'Payment provider code was found, but no server-side checkout session creation was detected.',
+					: 'Payment provider code was found, but no server-side checkout or payment creation was detected.',
 			{
 				path:
-					firstPaymentFile(
-						files,
-						/\b(checkout\.sessions\.create|billingPortal\.sessions\.create)\b/i
-					)?.path ??
+					firstPaymentFile(files, /\b(checkout\.sessions\.create|paymentIntents\.create)\b/i)
+						?.path ??
 					firstPaymentFile(
 						files,
 						/\b(loadStripe|redirectToCheckout)\b|@stripe\/stripe-js|\bpk_(?:test|live)_/i

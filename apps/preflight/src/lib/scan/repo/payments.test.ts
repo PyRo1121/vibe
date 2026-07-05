@@ -69,6 +69,68 @@ await stripe?.redirectToCheckout({ lineItems: [{ price: 'price_123' }] });
 		expect(findings['checkout-server-owned']).toMatchObject({ status: 'pass' });
 	});
 
+	it('passes server-side payment intent creation as checkout ownership', () => {
+		const findings = byId(
+			analyzeBillingReadiness(
+				[manifest({ stripe: '^20.0.0' })],
+				[
+					file(
+						'src/routes/api/payments/+server.ts',
+						'await stripe.paymentIntents.create({ amount: 2000, currency: "usd" });'
+					)
+				]
+			)
+		);
+
+		expect(findings['checkout-server-owned']).toMatchObject({ status: 'pass' });
+	});
+
+	it('does not pass checkout ownership from a billing portal route alone', () => {
+		const findings = byId(
+			analyzeBillingReadiness(
+				[manifest({ stripe: '^20.0.0' })],
+				[
+					file(
+						'src/routes/account/billing/+server.ts',
+						'await stripe.billingPortal.sessions.create({ customer, return_url });'
+					)
+				]
+			)
+		);
+
+		expect(findings['checkout-server-owned']).toMatchObject({ status: 'warn' });
+		expect(findings['billing-portal']).toMatchObject({ status: 'pass' });
+	});
+
+	it('fails client-only Stripe checkout even when a billing portal route exists', () => {
+		const findings = byId(
+			analyzeBillingReadiness(
+				[manifest({ stripe: '^20.0.0', '@stripe/stripe-js': '^7.0.0' })],
+				[
+					file(
+						'src/routes/checkout/+page.ts',
+						`
+import { loadStripe } from '@stripe/stripe-js';
+
+const stripe = await loadStripe('pk_test_123');
+await stripe?.redirectToCheckout({ lineItems: [{ price: 'price_123' }] });
+`
+					),
+					file(
+						'src/routes/account/billing/+server.ts',
+						'await stripe.billingPortal.sessions.create({ customer, return_url });'
+					)
+				]
+			)
+		);
+
+		expect(findings['checkout-server-owned']).toMatchObject({
+			status: 'fail',
+			launchImpact: 'blocker'
+		});
+		expect(findings['billing-portal']).toMatchObject({ status: 'pass' });
+	});
+
 	it('fails webhook handlers without signature verification', () => {
 		const findings = byId(
 			analyzeBillingReadiness(
@@ -90,6 +152,32 @@ export async function POST({ request }) {
 		expect(findings['webhook-signature-missing']).toMatchObject({
 			status: 'fail',
 			category: 'payments',
+			launchImpact: 'blocker'
+		});
+	});
+
+	it('fails webhook handlers that reference a webhook secret without constructEvent verification', () => {
+		const findings = byId(
+			analyzeBillingReadiness(
+				[manifest({ stripe: '^20.0.0' })],
+				[
+					file(
+						'src/routes/api/webhooks/stripe/+server.ts',
+						`
+export async function POST({ request, locals }) {
+  const event = await request.json();
+  const secret = locals.env.STRIPE_WEBHOOK_SECRET;
+  if (!secret) throw new Error('Missing webhook secret');
+  if (event.type === 'checkout.session.completed') return new Response('ok');
+}
+`
+					)
+				]
+			)
+		);
+
+		expect(findings['webhook-signature-missing']).toMatchObject({
+			status: 'fail',
 			launchImpact: 'blocker'
 		});
 	});
