@@ -1,16 +1,7 @@
 import type { ScanCheck } from '$lib/scan/types';
+import { normalizeRepoFinding, type RepoFinding } from '$lib/scan/repo/findings';
 
-export interface RepoReadinessFinding {
-	id: string;
-	category: ScanCheck['category'];
-	title: string;
-	status: ScanCheck['status'];
-	message: string;
-	evidence?: {
-		path?: string;
-		snippet?: string;
-	};
-}
+export type RepoReadinessFinding = RepoFinding;
 
 export interface PackageManifestEvidence {
 	path: string;
@@ -42,7 +33,7 @@ function finding(
 	evidence?: RepoReadinessFinding['evidence'],
 	category: ScanCheck['category'] = 'launch'
 ): RepoReadinessFinding {
-	return { id, category, title, status, message, evidence };
+	return normalizeRepoFinding({ id, category, title, status, message, evidence });
 }
 
 const CORE_SCRIPT_NAMES = ['lint', 'test', 'build'] as const;

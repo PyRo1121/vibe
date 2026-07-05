@@ -35,7 +35,12 @@ describe('repo readiness analyzer', () => {
 		expect(findings.find((finding) => finding.id === 'package-scripts')).toMatchObject({
 			category: 'launch',
 			title: 'Package scripts',
-			status: 'pass'
+			status: 'pass',
+			engine: 'deploylint-static',
+			confidence: 'high',
+			launchImpact: 'watch',
+			ruleId: 'package-scripts',
+			fixPromptId: 'package-scripts'
 		});
 	});
 
