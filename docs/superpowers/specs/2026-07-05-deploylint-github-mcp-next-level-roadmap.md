@@ -1,23 +1,26 @@
-# Deploylint GitHub + MCP Next-Level Roadmap
+# Deploylint Product-First Next-Level Roadmap
 
-**Status:** Draft strategy from live competitor research on 2026-07-05  
-**Host:** https://deploylint.com  
-**Goal:** Make Deploylint the easiest launch-readiness gate to install in GitHub and the most useful MCP tool for agents fixing launch blockers.
+**Status:** Revised strategy from live competitor research on 2026-07-05
+**Host:** https://deploylint.com
+**Goal:** Make the core Deploylint scan/report experience world-class before using GitHub Actions and MCP as distribution multipliers.
 
 ---
 
 ## Executive Bet
 
-Deploylint should own this promise:
+Deploylint should own this promise first:
 
-> Paste your URL, get a launch verdict, then install the same verdict in GitHub and your coding agent in under five minutes.
+> Paste a URL and know, with painful clarity, whether it is safe to launch and exactly what to fix next.
 
 Preflight.sh is the strongest verified competitor for local project scanning: CLI distribution, broad service detection, agent skill, dashboard history, config, and CI. Deploylint should not copy the whole product immediately. The sharper wedge is **hosted URL judgment + GitHub install + MCP fix loop**.
 
-The first public launch should make these two installs feel real:
+The revised priority is:
 
-1. **GitHub Action:** one copy-paste workflow, polished PR comment, job summary, advisory mode, and clear marketplace-style install story.
-2. **MCP:** installable npm package, clean JSON outputs, agent prompts/resources, and fix-plan tools that help Cursor/Codex/Claude go from finding to patch plan.
+1. **Core product quality:** richer scan coverage, fewer false positives, clearer report hierarchy, better fix prompts, and a proof loop users trust.
+2. **Product-led install:** after the report feels excellent, make GitHub installation the natural next action.
+3. **Agent tooling:** after the core output is strong, MCP should expose that judgment and fix plan to agents.
+
+GitHub and MCP still matter, but they should not be the next thing if the product itself is not yet "I would send this to another builder" good.
 
 ---
 
@@ -111,6 +114,12 @@ Already present:
 
 Main gaps:
 
+- Scan/report depth is not yet obviously better than the best competitor claim.
+- Report UX can do more to explain why an issue matters and what to fix first.
+- Alpha free mode needs copy consistency across app, MCP, skill, docs, terms, and privacy.
+- Fix prompts need quality passes by check family.
+- False-positive handling and "scan incomplete" guidance need to be more polished.
+- Re-scan proof should feel like a core product loop, not an unlocked extra bolted on.
 - No installable public GitHub Action package/story yet.
 - MCP install requires local monorepo paths and `tsx`.
 - MCP copy still references paid unlock sessions despite alpha mode.
@@ -133,7 +142,8 @@ Deploylint is:
 ### What We Should Avoid
 
 - Competing head-on with Preflight.sh as a general local CLI in the next sprint.
-- Building a large dashboard before install/distribution works.
+- Building GitHub/MCP distribution before the scan/report is excellent.
+- Building a large dashboard before scan quality and user pull are proven.
 - Adding broad MCP tools that can mutate repos without explicit user review.
 - Over-claiming competitor gaps we cannot verify.
 
@@ -141,7 +151,168 @@ Deploylint is:
 
 ## Roadmap
 
-### Phase 1: GitHub Install That Feels Real
+### Phase 1: Core Scan Depth And Trust
+
+**Objective:** Make the scan feel materially deeper and more trustworthy before pushing installation.
+
+Deliverables:
+
+- Add high-signal competitor-gap checks:
+  - Web manifest.
+  - Health endpoint.
+  - Cookie consent.
+  - ads.txt and humans.txt as low-priority checks.
+  - WWW redirect consistency.
+  - Large image detection.
+  - Structured data quality.
+- Expand service detection:
+  - Payments: Paddle, Lemon Squeezy.
+  - Error tracking: Sentry, LogRocket.
+  - Analytics: Plausible, PostHog, GA4.
+  - Auth: Clerk, Auth0, WorkOS.
+  - AI: OpenAI, Anthropic, Replicate, Hugging Face.
+- Expand repo scan:
+  - GitHub Actions workflow safety.
+  - Missing CI.
+  - Unpinned Actions versions.
+  - Over-broad workflow permissions.
+  - Missing license and README quality.
+- Add a check catalog page or hidden data source so every marketed check has:
+  - ID.
+  - Category.
+  - Priority.
+  - Why it matters.
+  - How it is detected.
+  - Common false positives.
+
+Acceptance criteria:
+
+- Every new check has unit tests.
+- Check count is generated or verified, not hand-counted.
+- P0 list stays small and defensible.
+- `/compare`, README, homepage, and `llms.txt` use the verified count.
+- Full preflight verifier passes.
+
+Why this is next:
+
+- Tooling spreads the product. The product needs to feel sharp first.
+
+### Phase 2: World-Class Report UX
+
+**Objective:** Make the report feel like an expert launch review, not a generic checklist.
+
+Deliverables:
+
+- Rebuild the report hierarchy around:
+  - Launch blockers.
+  - Conversion killers.
+  - Trust/legal gaps.
+  - SEO/social share risks.
+  - Security/deployment hygiene.
+  - Polish.
+- Add "why this matters" copy for each non-passing check.
+- Add "first three fixes" summary above the full checklist.
+- Add scan confidence:
+  - Full scan.
+  - Partial scan.
+  - Blocked scan.
+  - Repo-only scan.
+- Add evidence snippets for checks where safe:
+  - Header value.
+  - Missing path.
+  - Response status.
+  - Matched service.
+  - Repo file path.
+- Add false-positive affordance:
+  - "This might be okay if..."
+  - Copyable ignore rationale for future CI/tooling.
+- Update alpha banner to say full reports are free while the product is in active development.
+
+Acceptance criteria:
+
+- A user can understand the top 3 fixes without scrolling through every check.
+- Blocked/incomplete scans do not imply false certainty.
+- Report page remains mobile-polished.
+- Existing report permalink and badge behavior still work.
+
+Why this is next:
+
+- Users will forgive missing tooling if the report feels valuable. They will not forgive a confusing report.
+
+### Phase 3: Fix Prompt Quality And Proof Loop
+
+**Objective:** Make "fix and prove" the emotional center of the product.
+
+Deliverables:
+
+- Review and improve fix prompts by family:
+  - P0 launch blockers.
+  - SEO/social previews.
+  - Legal/trust.
+  - Security headers/exposed surfaces.
+  - Repo hygiene.
+  - GitHub Actions.
+- Add a "master repair prompt" quality pass:
+  - Ordered by P0/P1/P2.
+  - Avoids over-fixing.
+  - Explains what not to change.
+- Make re-scan proof visible:
+  - Score delta.
+  - Fixed blocker count.
+  - Regressions.
+  - Before/after issue list.
+- Add report share text that highlights one embarrassing catch.
+- Add sample scans or fixtures for common app types:
+  - SaaS landing page.
+  - GitHub repo.
+  - Blocked enterprise site.
+  - Missing legal pages.
+
+Acceptance criteria:
+
+- Re-scan after a fixture improvement shows meaningful score delta.
+- Prompt text is specific enough to paste into Cursor/Codex without rewriting.
+- Report sharing does not leak private prompt details.
+- Alpha full-prompt behavior is consistent across app and API.
+
+Why this matters:
+
+- This is the unique Deploylint loop: find the launch risk, fix it, prove it improved.
+
+### Phase 4: Product Reliability, Limits, And Alpha Feedback
+
+**Objective:** Make the alpha feel stable even while actively developed.
+
+Deliverables:
+
+- Add public alpha known-issues copy or changelog section.
+- Add structured error messages:
+  - Rate limited.
+  - Daily capacity reached.
+  - Host blocked scanner.
+  - Invalid URL.
+  - Repo private/not found.
+- Add lightweight feedback CTA on reports.
+- Add operational smoke coverage for:
+  - Homepage.
+  - `/api/scan`.
+  - Report permalink.
+  - Badge.
+  - `robots.txt`, `llms.txt`, `security.txt`.
+- Add regression fixtures for high-risk scan failures.
+
+Acceptance criteria:
+
+- Failed scans explain the user's next move.
+- Alpha disclaimer is visible but not alarming.
+- Smoke tests cover the public product path.
+- Full deploy verify remains green.
+
+Why this comes before tooling:
+
+- GitHub/MCP users are less forgiving than homepage users. The API needs clear failure semantics first.
+
+### Phase 5: GitHub Install That Feels Real
 
 **Objective:** A user can install Deploylint in a public repo without vendoring this monorepo.
 
@@ -171,9 +342,9 @@ Acceptance criteria:
 
 Why this is next:
 
-- The current vendored action works for our repo, but outside users need trust and copy-paste simplicity.
+- After the product output is strong, the current vendored action needs a public install path with trust and copy-paste simplicity.
 
-### Phase 2: GitHub Output That Developers Actually Use
+### Phase 6: GitHub Output That Developers Actually Use
 
 **Objective:** Make Deploylint failures readable in GitHub without opening the app.
 
@@ -215,7 +386,7 @@ Why this matters:
 
 - GitHub users judge tools by PR signal quality. A gate that fails but does not explain itself gets disabled.
 
-### Phase 3: MCP Package That Installs Cleanly
+### Phase 7: MCP Package That Installs Cleanly
 
 **Objective:** `npx deploylint-mcp` works without cloning the monorepo.
 
@@ -256,7 +427,7 @@ Why this is next:
 
 - MCP is useless as a growth channel if install starts with "clone my monorepo."
 
-### Phase 4: MCP Tools For Fixing, Not Just Scanning
+### Phase 8: MCP Tools For Fixing, Not Just Scanning
 
 **Objective:** Agents can convert a scan into an ordered repair plan.
 
@@ -305,7 +476,7 @@ Why this can beat generic MCP servers:
 
 - Generic MCP tools expose data. Deploylint can expose **launch judgment plus next action**.
 
-### Phase 5: Hosted Remote MCP On Cloudflare
+### Phase 9: Hosted Remote MCP On Cloudflare
 
 **Objective:** Remove local MCP install friction for compatible clients.
 
@@ -328,61 +499,36 @@ Why not Phase 1:
 
 - Remote MCP is a distribution upgrade, not the core value. The local npm package must be solid first.
 
-### Phase 6: Competitor Depth Without Losing Focus
-
-**Objective:** Close the most visible Preflight.sh feature gaps that matter to launch readiness.
-
-Prioritized checks:
-
-- Web manifest.
-- Health endpoint.
-- Cookie consent.
-- ads.txt and humans.txt as low-priority checks.
-- Service detection expansion:
-  - Payments: Paddle, Lemon Squeezy.
-  - Error tracking: Sentry, LogRocket.
-  - Analytics: Plausible, PostHog, GA4.
-  - Auth: Clerk, Auth0, WorkOS.
-  - AI: OpenAI, Anthropic, Replicate, Hugging Face.
-- Repo scan additions:
-  - GitHub Actions workflow safety.
-  - Missing CI.
-  - Unpinned Actions versions.
-  - Over-broad workflow permissions.
-
-Acceptance criteria:
-
-- Checks remain launch-readiness oriented.
-- P0 list stays small.
-- Marketing count can move from "90+" to a verified count without hand-waving.
-
-Why this later:
-
-- More checks help comparison pages, but install/distribution needs to work first.
-
 ---
 
 ## Recommended Execution Order
 
-1. **Action package + `/developers` rewrite**
-   - Highest distribution value.
-   - Makes alpha users able to install something real.
+1. **Core scan depth and trust**
+   - Add high-signal checks, check catalog, generated/verified count, and better repo scan depth.
 
-2. **MCP npm package**
-   - Removes monorepo install friction.
-   - Lets us say "works in Cursor/Codex/Claude" honestly.
+2. **World-class report UX**
+   - Top-three fixes, evidence snippets, confidence state, false-positive guidance.
 
-3. **MCP fix-plan tools/resources/prompts**
-   - Turns MCP from report reader into launch assistant.
+3. **Fix prompts and proof loop**
+   - Better prompts, master repair prompt, re-scan delta, fixed blockers, regressions.
 
-4. **GitHub annotations + JSON schema + optional SARIF**
+4. **Reliability and alpha feedback**
+   - Better errors, known issues, smoke tests, public path hardening.
+
+5. **Action package + `/developers` rewrite**
+   - Distribution once the output is worth installing.
+
+6. **GitHub annotations + JSON schema + optional SARIF**
    - Makes CI output feel professional.
 
-5. **Remote MCP**
-   - Big platform move after schemas stabilize.
+7. **MCP npm package**
+   - Removes monorepo install friction after scan/report semantics are stable.
 
-6. **Preflight.sh depth gap checks**
-   - Better compare page and stronger scan output.
+8. **MCP fix-plan tools/resources/prompts**
+   - Turns MCP from report reader into launch assistant.
+
+9. **Remote MCP**
+   - Big platform move after schemas stabilize.
 
 ---
 
@@ -450,6 +596,7 @@ Primary agent command:
 
 | Risk | Guardrail |
 |------|-----------|
+| Tooling spreads a mediocre product | Product-first phases block GitHub/MCP work until scan/report/prompt quality improves |
 | MCP security concerns | Read-only tools first; no arbitrary command execution; typed outputs; structured errors |
 | GitHub Action permissions scare users | Default to `contents: read`; PR comments opt-in via documented permissions |
 | Competitor check-count arms race | Market verified high-signal checks, not raw count alone |
@@ -463,11 +610,12 @@ Primary agent command:
 
 | Horizon | Signal |
 |---------|--------|
-| 1 week | External repo can install action from public path and get job summary |
-| 2 weeks | MCP installs via `npx deploylint-mcp` in a fresh repo |
-| 3 weeks | Agent can call scan, gate, fix_plan, and github_workflow without reading docs |
-| 4 weeks | 5 external repos have installed action or MCP during alpha |
-| 6 weeks | 1 public README badge or PR comment screenshot used in marketing |
+| 1 week | Check catalog exists; top report issues explain impact and evidence |
+| 2 weeks | New high-signal checks land with tests; verified check count replaces hand-wavy count |
+| 3 weeks | Re-scan proof loop clearly shows fixed blockers, regressions, and score delta |
+| 4 weeks | Public alpha feedback path and smoke coverage exist |
+| 5 weeks | External repo can install action from public path and get job summary |
+| 6 weeks | MCP installs via `npx deploylint-mcp` in a fresh repo |
 
 ---
 
@@ -489,6 +637,7 @@ Primary agent command:
 
 Recommendation:
 
-- Use a separate public action repo for trust and Marketplace readiness.
+- Treat GitHub/MCP as Phase 5+ distribution, not Phase 1 product work.
+- Use a separate public action repo for trust and Marketplace readiness when product phases are done.
 - Use unscoped `deploylint-mcp` if available; otherwise `@deploylint/mcp`.
 - Delay remote MCP until stdio schemas and tools stabilize.
