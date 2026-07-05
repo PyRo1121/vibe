@@ -47,7 +47,13 @@ export type RepoFindingInput = Omit<
 	Partial<
 		Pick<
 			RepoFinding,
-			'ruleId' | 'engine' | 'confidence' | 'launchImpact' | 'references' | 'fixPromptId' | 'fingerprint'
+			| 'ruleId'
+			| 'engine'
+			| 'confidence'
+			| 'launchImpact'
+			| 'references'
+			| 'fixPromptId'
+			| 'fingerprint'
 		>
 	>;
 
@@ -85,7 +91,9 @@ const IMPACT_RANK: Record<RepoFindingLaunchImpact, number> = {
 	blocker: 2
 };
 
-export function defaultLaunchImpact(input: Pick<RepoFindingInput, 'id' | 'status'>): RepoFindingLaunchImpact {
+export function defaultLaunchImpact(
+	input: Pick<RepoFindingInput, 'id' | 'status'>
+): RepoFindingLaunchImpact {
 	if (input.status === 'pass') return 'watch';
 	if (input.status === 'fail' && BLOCKER_RULE_IDS.has(input.id)) return 'blocker';
 	if (FIX_SOON_RULE_IDS.has(input.id)) return 'fix-soon';

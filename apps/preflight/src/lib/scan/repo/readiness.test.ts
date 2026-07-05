@@ -560,9 +560,10 @@ const event = stripe.webhooks.constructEvent(await request.text(), signature, en
 	});
 
 	it('does not emit billing findings when no payment provider is detected', () => {
-		const findings = analyzeBillingReadiness([rootManifest], [
-			{ path: 'src/routes/api/webhooks/github/+server.ts', text: 'export const POST = () => {};' }
-		]);
+		const findings = analyzeBillingReadiness(
+			[rootManifest],
+			[{ path: 'src/routes/api/webhooks/github/+server.ts', text: 'export const POST = () => {};' }]
+		);
 
 		expect(findings).toEqual([]);
 	});

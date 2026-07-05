@@ -603,10 +603,7 @@ export function analyzeCiWorkflows(files: RepoFileEvidence[]): RepoReadinessFind
 
 const PAYMENT_PROVIDER_DEPENDENCIES = ['stripe', '@stripe/stripe-js', '@stripe/react-stripe-js'];
 
-function manifestsHaveDependency(
-	manifests: PackageManifestEvidence[],
-	names: string[]
-): boolean {
+function manifestsHaveDependency(manifests: PackageManifestEvidence[], names: string[]): boolean {
 	return manifests.some((manifest) => hasDependency(manifest, names));
 }
 
@@ -651,7 +648,9 @@ function hasBillingPortalSignal(files: RepoFileEvidence[]): boolean {
 	const text = combinedFileText(files);
 	return (
 		/\b(billingPortal\.sessions\.create|billing_portal|customer portal)\b/i.test(text) ||
-		files.some((file) => /(^|\/)(account\/billing|settings\/billing|billing)(\/|$)/i.test(file.path))
+		files.some((file) =>
+			/(^|\/)(account\/billing|settings\/billing|billing)(\/|$)/i.test(file.path)
+		)
 	);
 }
 
