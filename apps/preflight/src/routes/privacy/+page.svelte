@@ -5,7 +5,7 @@
 	const base = 'https://deploylint.com';
 	const title = buildSeoTitle('Privacy Policy');
 	const description =
-		'Deploylint privacy policy for public URL scans, payment unlocks, analytics, and data handling.';
+		'Deploylint privacy policy for public URL scans, subscriptions, analytics, and data handling.';
 	const canonical = `${base}/privacy`;
 	const jsonLd = [buildPageJsonLd({ base, canonical, title, description })];
 </script>
@@ -26,7 +26,8 @@
 		<li>The URL you submit for scanning</li>
 		<li>Basic request metadata (timestamp, IP) via our hosting provider</li>
 		<li>
-			Payment status from Stripe if you purchase a fix-prompt unlock (no card data on our servers)
+			Payment and subscription status from Stripe if you purchase a paid plan (no card data on our
+			servers)
 		</li>
 	</ul>
 

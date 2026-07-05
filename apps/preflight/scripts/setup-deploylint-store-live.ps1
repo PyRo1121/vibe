@@ -1,4 +1,4 @@
-# Deploylint live store — uses sk_live_ (not CLI rk_live restricted key).
+# Deploylint live store setup. Uses sk_live_ (not the Stripe CLI rk_live restricted key).
 $ErrorActionPreference = 'Stop'
 $Root = Split-Path -Parent $PSScriptRoot
 $KeyFile = Join-Path $Root '.stripe-live.key'
@@ -16,10 +16,10 @@ if (Test-Path $KeyFile) {
 }
 
 Write-Host ''
-Write-Host 'Deploylint live setup needs your sk_live_ secret key.' -ForegroundColor Yellow
-Write-Host 'Stripe CLI is logged in but live mode uses restricted rk_live keys.' -ForegroundColor Yellow
+Write-Host 'Deploylint live subscription setup needs your sk_live_ secret key.' -ForegroundColor Yellow
+Write-Host 'Stripe CLI is logged in, but live mode uses restricted rk_live keys.' -ForegroundColor Yellow
 Write-Host ''
-Write-Host 'Option A — paste once (saved to .stripe-live.key, gitignored):' -ForegroundColor Cyan
+Write-Host 'Paste once. The key will be saved to .stripe-live.key, which is gitignored.' -ForegroundColor Cyan
 $secure = Read-Host 'sk_live_ secret key' -AsSecureString
 $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
 $key = [Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)

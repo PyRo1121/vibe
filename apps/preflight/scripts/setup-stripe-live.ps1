@@ -5,8 +5,8 @@ $ErrorActionPreference = 'Stop'
 
 Write-Host ''
 Write-Host '*** LIVE MODE — REAL CHARGES ***' -ForegroundColor Red
-Write-Host 'This script configures Stripe live keys and a production webhook.' -ForegroundColor Red
-Write-Host 'Customers will be charged $9 for unlock checkouts. Continue only when ready.' -ForegroundColor Red
+Write-Host 'This legacy script configures Stripe live keys and a production webhook only.' -ForegroundColor Red
+Write-Host 'Use npm run setup:deploylint-store:live for subscription Products and Prices.' -ForegroundColor Red
 Write-Host ''
 
 $stripe = Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Links\stripe.exe'

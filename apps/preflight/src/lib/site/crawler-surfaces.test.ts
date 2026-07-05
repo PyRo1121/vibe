@@ -33,7 +33,7 @@ describe('crawler-facing website surfaces', () => {
 		expect(text).not.toContain('/launch-readiness-checker');
 		expect(text).not.toContain('/ai-app-launch-checker');
 		expect(text).not.toContain('/vibe-code-launch-checklist');
-		expect(text).toContain('Alpha access: all scan output is currently free');
+		expect(text).toContain('Paid monthly plans start with Solo at $9/mo');
 		expect(text).not.toContain('GitHub');
 	});
 

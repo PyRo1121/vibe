@@ -164,7 +164,7 @@
 											class="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-zinc-950/85 px-3 text-center"
 										>
 											<p class="text-xs font-medium text-sky-300">Unlock to copy this fix</p>
-											<p class="text-[10px] text-zinc-500">Included in $9 fix & verify</p>
+											<p class="text-[10px] text-zinc-500">Included in Solo from $9/mo</p>
 										</div>
 									</div>
 								{/if}

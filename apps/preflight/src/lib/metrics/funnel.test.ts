@@ -14,4 +14,9 @@ describe('funnel metrics', () => {
 			scoreDelta: 13
 		});
 	});
+
+	it('allows only known plan ids', () => {
+		expect(sanitizeFunnelPayload({ plan: 'builder' })).toEqual({ plan: 'builder' });
+		expect(sanitizeFunnelPayload({ plan: 'enterprise' })).toEqual({});
+	});
 });

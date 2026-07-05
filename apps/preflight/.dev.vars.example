@@ -1,6 +1,9 @@
 # Copy to .dev.vars (gitignored) for local checkout testing
 STRIPE_SECRET_KEY=sk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRICE_SOLO=price_test_solo
+STRIPE_PRICE_BUILDER=price_test_builder
+STRIPE_PRICE_AGENCY=price_test_agency
 PUBLIC_APP_URL=http://localhost:5173
 
 # Stripe Dashboard webhook (production):

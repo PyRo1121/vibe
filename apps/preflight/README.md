@@ -8,7 +8,7 @@ Lint your launch before the internet does — GO/NO-GO verdict, embarrassment ra
 ## Product
 
 - **Free:** verdict, embarrassment brief, social preview, one sample fix prompt
-- **Paid ($9):** all fix prompts, master repair paste, unlimited re-scans with score delta
+- **Paid subscriptions:** Solo $9/mo, Builder $29/mo, Agency $149/mo for prompts, MCP access, monitoring, and re-scan proof
 - **CI gate** — zero-install script (`/gate-remote.mjs`). See [/developers](https://deploylint.com/developers).
 
 ## Dev

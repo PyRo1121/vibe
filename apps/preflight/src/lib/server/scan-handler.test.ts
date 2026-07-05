@@ -46,7 +46,7 @@ describe('handleScanPost', () => {
 		expect(scanUrl).toHaveBeenCalledWith('https://app.test', expect.any(Object));
 	});
 
-	it('unlocks scans without checkout while alpha free unlock is enabled', async () => {
+	it('keeps scans unlocked while free access is active', async () => {
 		const request = new Request('http://localhost/api/scan', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
@@ -59,14 +59,14 @@ describe('handleScanPost', () => {
 		expect(resolveUnlock).not.toHaveBeenCalled();
 	});
 
-	it('accepts legacy unlock session ids without Stripe while alpha is free', async () => {
+	it('does not require checkout verification while free access is active', async () => {
 		const request = new Request('http://localhost/api/scan', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ url: 'https://app.test', unlockSessionId: 'cs_test_abc123' })
 		});
 
-		const res = await handleScanPost(request, undefined);
+		const res = await handleScanPost(request, { STRIPE_SECRET_KEY: 'sk_test_x' } as Env);
 		const body = (await res.json()) as { unlocked?: boolean };
 		expect(body.unlocked).toBe(true);
 		expect(resolveUnlock).not.toHaveBeenCalled();
@@ -126,7 +126,7 @@ describe('handleScanPost', () => {
 		expect(second.history?.[0].score).toBe(80);
 	});
 
-	it('attaches AI copy review to alpha-unlocked scans', async () => {
+	it('attaches AI copy review to free unlocked web scans', async () => {
 		const ai = {
 			run: async () => ({
 				response:
@@ -161,7 +161,7 @@ describe('handleScanPost', () => {
 		expect(unlocked.aiCopyReview?.headline).toBe('Better headline');
 	});
 
-	it('does not call Stripe unlock verification while alpha free unlock is enabled', async () => {
+	it('uses free access for re-scan score deltas without checkout verification', async () => {
 		const request = new Request('http://localhost/api/scan', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },

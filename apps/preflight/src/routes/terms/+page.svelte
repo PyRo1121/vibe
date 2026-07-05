@@ -5,7 +5,7 @@
 	const base = 'https://deploylint.com';
 	const title = buildSeoTitle('Terms of Service');
 	const description =
-		'Deploylint terms for automated launch-readiness scans, paid fix-prompt unlocks, acceptable use, and refund handling.';
+		'Deploylint terms for automated launch-readiness scans, paid subscriptions, acceptable use, and refund handling.';
 	const canonical = `${base}/terms`;
 	const jsonLd = [buildPageJsonLd({ base, canonical, title, description })];
 </script>
@@ -29,9 +29,8 @@
 
 	<h2 class="mb-3 text-xl font-semibold text-white">Payments</h2>
 	<p class="mb-6">
-		During alpha, paid report features are included free while Deploylint is under active
-		development. After alpha, paid plans are recurring subscriptions for the selected tier. Refunds
-		are handled case by case via support.
+		Paid plans are recurring monthly subscriptions for the selected tier. Free scans remain
+		available. Refunds and cancellations are handled case by case via support.
 	</p>
 
 	<h2 class="mb-3 text-xl font-semibold text-white">Disclaimer</h2>

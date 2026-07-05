@@ -164,7 +164,7 @@ export function buildUnlockOffer(report: ScanReport): UnlockOffer | null {
 			subhead:
 				'We only saw an error page. Unlock gives reachability guidance, not SEO fixes. Re-scan after your homepage returns HTTP 200 to us.',
 			valuePitch: 'Full audit unlock after a successful scan — not for bot-blocked error pages',
-			ctaLabel: 'Unlock reachability guide — $9',
+			ctaLabel: 'Start Solo - $9/mo',
 			projectedScore: null,
 			masterPreviewLines: buildMasterPromptPreview(report),
 			masterPromptLineCount: estimateMasterPromptLineCount(report)
@@ -198,26 +198,27 @@ export function buildUnlockOffer(report: ScanReport): UnlockOffer | null {
 				? `Don't post yet — ${blockerCount} launch blocker${blockerCount === 1 ? '' : 's'} need fixes`
 				: "Don't post yet — unlock Cursor-ready fixes before you share";
 		subhead =
-			'Free scan told you what is wrong. Paid unlock is the fix loop: paste prompts into Cursor, deploy, re-scan to prove it.';
+			'Free scan told you what is wrong. Solo is the fix loop: paste prompts into Cursor, deploy, re-scan to prove it.';
 		valuePitch = `Unlock ${promptPart} + 1 master paste${deltaPart}`;
-		ctaLabel = lockedPromptCount > 0 ? `Fix & verify — $9` : 'Unlock re-scan proof — $9';
+		ctaLabel = lockedPromptCount > 0 ? 'Start Solo - $9/mo' : 'Start Solo for re-scan proof';
 	} else if (report.verdict === 'conditional') {
 		headline = 'Almost shareable — fix the rest before Product Hunt or Reddit';
 		subhead =
-			'One free sample prompt is not enough for a public launch. Unlock everything, paste once, re-scan until verdict is GO.';
+			'One free sample prompt is not enough for a public launch. Start Solo, paste once, re-scan until verdict is GO.';
 		valuePitch = `Unlock ${promptPart} + master paste${deltaPart}`;
-		ctaLabel = 'Unlock all fixes — $9';
+		ctaLabel = 'Start Solo - $9/mo';
 	} else if (lockedPromptCount > 0) {
 		headline = 'Verdict is GO — unlock polish prompts + proof';
 		subhead =
-			'Optional warnings remain. Unlock if you want every fix prompt and a before/after score on re-scan.';
+			'Optional warnings remain. Start Solo if you want every fix prompt and a before/after score on re-scan.';
 		valuePitch = `${lockedPromptCount} polish prompts + master paste${deltaPart}`;
-		ctaLabel = 'Unlock polish & proof — $9';
+		ctaLabel = 'Start Solo - $9/mo';
 	} else {
 		headline = 'Unlock re-scan proof for your launch post';
-		subhead = 'Everything passed. Unlock unlimited re-scans on this URL after last-minute edits.';
-		valuePitch = 'Unlimited re-scans with score delta on this URL';
-		ctaLabel = 'Unlock re-scans — $9';
+		subhead =
+			'Everything passed. Start Solo for recurring monitoring and re-scans after last-minute edits.';
+		valuePitch = 'Re-scans with score delta on this URL';
+		ctaLabel = 'Start Solo - $9/mo';
 	}
 
 	return {

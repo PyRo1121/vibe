@@ -1,3 +1,5 @@
+import { isDeploylintPlanId, type DeploylintPlanId } from '$lib/product/plans';
+
 export type FunnelEventName =
 	'scan_completed' | 'rescan_completed' | 'checkout_started' | 'checkout_paid' | 'unlock_click';
 
@@ -7,6 +9,7 @@ export interface FunnelPayload {
 	issueCount?: number;
 	unlocked?: boolean;
 	scoreDelta?: number;
+	plan?: DeploylintPlanId;
 }
 
 const ALLOWED_EVENTS = new Set<FunnelEventName>([
@@ -37,6 +40,7 @@ export function sanitizeFunnelPayload(raw: Record<string, unknown>): FunnelPaylo
 	if (typeof raw.scoreDelta === 'number' && Number.isFinite(raw.scoreDelta)) {
 		payload.scoreDelta = Math.round(raw.scoreDelta);
 	}
+	if (isDeploylintPlanId(raw.plan)) payload.plan = raw.plan;
 
 	return payload;
 }

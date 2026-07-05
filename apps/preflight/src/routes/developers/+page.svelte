@@ -232,7 +232,8 @@ node gate-remote.mjs https://your-app.com`);
 				<code class="text-sky-300">advisory: true</code> for non-blocking reports
 			</li>
 			<li>
-				<code class="text-sky-300">unlock_session_id</code> — after $9 checkout, pass Stripe
+				<code class="text-sky-300">unlock_session_id</code> — after subscription checkout, pass
+				Stripe
 				<code class="text-sky-300">cs_live_…</code> for all prompts + master paste
 			</li>
 			<li>
@@ -273,7 +274,7 @@ node gate-remote.mjs https://your-app.com`);
 			<li>
 				Scan free at <a class="text-sky-400 hover:underline" href="/">deploylint.com</a>
 			</li>
-			<li>Unlock fix prompts ($9) → paste into Cursor</li>
+			<li>Start Solo ($9/mo) → paste every fix prompt into Cursor</li>
 			<li>Re-scan to prove score delta</li>
 			<li>Wire this gate into CI so regressions never ship</li>
 		</ol>

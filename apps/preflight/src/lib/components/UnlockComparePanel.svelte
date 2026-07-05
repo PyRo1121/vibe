@@ -1,20 +1,16 @@
 <script lang="ts">
 	import type { ScanReport } from '$lib/scan/types';
-
 	import { buildUnlockOffer } from '$lib/client/preflight-session';
+	import type { DeploylintPlanId } from '$lib/product/plans';
 
 	let {
 		report,
-
 		checkoutLoading,
-
 		onCheckout
 	}: {
 		report: ScanReport;
-
 		checkoutLoading: boolean;
-
-		onCheckout: () => void;
+		onCheckout: (plan: DeploylintPlanId) => void;
 	} = $props();
 
 	const offer = $derived(buildUnlockOffer(report));
@@ -25,14 +21,14 @@
 		class="mb-10 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6"
 		aria-labelledby="unlock-compare-heading"
 	>
-		<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Why pay later?</p>
+		<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Why subscribe?</p>
 
 		<h2 id="unlock-compare-heading" class="mt-2 text-xl font-bold text-white">
 			Fix everything in one Cursor paste
 		</h2>
 
 		<p class="mt-2 text-sm text-zinc-400">
-			Free tells you what's wrong. Paid will give you saved report history, every fix prompt, and
+			Free tells you what's wrong. Solo adds every fix prompt, MCP access, recurring monitoring, and
 			one master repair prompt you paste once.
 		</p>
 
@@ -41,51 +37,44 @@
 		<div class="mt-6 grid gap-4 md:grid-cols-2">
 			<div class="rounded-xl border border-zinc-700 bg-zinc-950/80 p-5">
 				<p class="text-xs font-semibold tracking-wider text-zinc-500 uppercase">
-					Free alpha (you have this)
+					Free scan (you have this)
 				</p>
 
 				<ul class="mt-3 space-y-2 text-sm text-zinc-400">
-					<li>✓ GO / NO-GO verdict + score ({report.score}/100)</li>
-
-					<li>✓ Embarrassment brief + social preview</li>
-
-					<li>✓ Full checklist - what's failing</li>
-
+					<li>+ GO / NO-GO verdict + score ({report.score}/100)</li>
+					<li>+ Embarrassment brief + social preview</li>
+					<li>+ Full checklist - what's failing</li>
 					<li>
-						✓ 1 sample Cursor prompt{#if offer.hasSample}{/if}
+						+ 1 sample Cursor prompt{#if offer.hasSample}{/if}
 					</li>
 				</ul>
 			</div>
 
 			<div class="rounded-xl border border-sky-500/40 bg-sky-500/5 p-5">
 				<p class="text-xs font-semibold tracking-wider text-sky-400 uppercase">
-					$9/mo Solo (fix loop)
+					$9/mo Solo (fix + watch)
 				</p>
 
 				<ul class="mt-3 space-y-2 text-sm text-zinc-200">
 					<li>
-						✓ <strong class="text-white">{offer.lockedPromptCount || offer.issueCount}</strong> copy-paste
-						fix prompts for Cursor / Claude
+						+ <strong class="text-white">{offer.lockedPromptCount || offer.issueCount}</strong>
+						copy-paste fix prompts for Cursor / Claude
 					</li>
-
 					<li>
-						✓ <strong class="text-white">Fix all issues in one Cursor paste</strong>
+						+ <strong class="text-white">Fix all issues in one Cursor paste</strong>
 						{#if offer.masterPromptLineCount > 0}
 							- {offer.masterPromptLineCount}-line repair prompt
 						{/if}
 					</li>
-
 					<li>
-						✓ <strong class="text-white">Monthly re-scans</strong>
-
+						+ <strong class="text-white">Weekly monitoring</strong>
 						{#if offer.projectedScore != null}
 							- e.g. {report.score} -> {offer.projectedScore} after fixes
 						{:else}
 							- before/after score delta
 						{/if}
 					</li>
-
-					<li>✓ 10 full reports/month - saved re-scan history - cancel anytime</li>
+					<li>+ 1 monitored project - MCP access - cancel anytime</li>
 				</ul>
 			</div>
 		</div>
@@ -112,9 +101,9 @@
 						type="button"
 						disabled={checkoutLoading}
 						class="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500 disabled:opacity-50"
-						onclick={onCheckout}
+						onclick={() => onCheckout('solo')}
 					>
-						{checkoutLoading ? 'Redirecting...' : offer.ctaLabel}
+						{checkoutLoading ? 'Redirecting...' : 'Start Solo - $9/mo'}
 					</button>
 				</div>
 			</div>

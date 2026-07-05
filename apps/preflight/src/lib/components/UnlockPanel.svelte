@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ScanReport } from '$lib/scan/types';
 	import { buildUnlockOffer } from '$lib/client/preflight-session';
+	import { DEPLOYLINT_PLAN_LIST, type DeploylintPlanId } from '$lib/product/plans';
 
 	let {
 		report,
@@ -9,7 +10,7 @@
 	}: {
 		report: ScanReport;
 		checkoutLoading: boolean;
-		onCheckout: () => void;
+		onCheckout: (plan: DeploylintPlanId) => void;
 	} = $props();
 
 	const offer = $derived(buildUnlockOffer(report));
@@ -67,31 +68,49 @@
 			</li>
 			<li class="flex gap-2 text-sm text-zinc-300">
 				<span class="text-sky-400">✓</span>
-				Unlimited re-scans during alpha - prove score went up before you post
+				Re-scan proof - show the score moved before you post
 			</li>
 			<li class="flex gap-2 text-sm text-zinc-300">
 				<span class="text-sky-400">✓</span>
-				Solo plan will start at $9/mo after alpha
+				Monitoring, MCP access, and deploy gate by plan
 			</li>
 		</ul>
 
-		<div class="mt-8 flex flex-wrap items-center gap-4">
-			<div>
-				<p class="text-3xl font-bold text-white">$9/mo</p>
-				<p class="text-sm text-zinc-500">Solo - 10 full reports/month after alpha</p>
-			</div>
-			<button
-				type="button"
-				disabled={checkoutLoading}
-				class="rounded-xl bg-sky-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-sky-900/30 hover:bg-sky-500 disabled:opacity-50"
-				onclick={onCheckout}
-			>
-				{checkoutLoading ? 'Redirecting to checkout...' : offer.ctaLabel}
-			</button>
+		<div class="mt-8 grid gap-3 lg:grid-cols-3">
+			{#each DEPLOYLINT_PLAN_LIST as plan (plan.id)}
+				<div
+					class="rounded-xl border p-4 {plan.id === 'solo'
+						? 'border-sky-500/50 bg-sky-500/10'
+						: 'border-zinc-800 bg-zinc-950/70'}"
+				>
+					<div class="flex items-baseline justify-between gap-2">
+						<p class="font-semibold text-white">{plan.name}</p>
+						<p class="text-xl font-bold text-white">{plan.priceLabel}</p>
+					</div>
+					<p class="mt-1 text-xs text-zinc-500">{plan.limits} - {plan.cadence}</p>
+					<p class="mt-2 text-sm text-zinc-400">{plan.tagline}</p>
+					<ul class="mt-3 space-y-1.5 text-xs text-zinc-400">
+						{#each plan.features as feature (feature)}
+							<li class="flex gap-2">
+								<span class="text-sky-400">+</span>
+								<span>{feature}</span>
+							</li>
+						{/each}
+					</ul>
+					<button
+						type="button"
+						disabled={checkoutLoading}
+						class="mt-4 w-full rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-500 disabled:opacity-50"
+						onclick={() => onCheckout(plan.id)}
+					>
+						{checkoutLoading ? 'Redirecting...' : plan.ctaLabel}
+					</button>
+				</div>
+			{/each}
 		</div>
 		<p class="mt-4 text-xs text-zinc-600">
-			During alpha this is free. Later, subscribe when you want saved reports, fix prompts, monthly
-			re-scans, and security notifications.
+			Subscriptions use Stripe Checkout. Free scans stay available; paid plans unlock all prompts,
+			MCP workflow access, and recurring launch monitoring for the selected project limit.
 		</p>
 	</section>
 {/if}

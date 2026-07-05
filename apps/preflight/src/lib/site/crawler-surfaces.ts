@@ -96,7 +96,7 @@ export function buildLlmsTxt(origin = DEFAULT_DEPLOYLINT_API): string {
 
 Deploylint scans a live URL for launch blockers: exposed secrets in JavaScript bundles, broken social preview images, placeholder copy, missing legal pages, robots.txt blocking Google, llms.txt, security.txt, security headers, CVE exposure, and more.
 
-Alpha access: all scan output is currently free while the product is being developed. Solo is planned at $9/mo after alpha, with higher tiers for more saved reports and monitoring.
+Free scans show the verdict and one sample fix prompt. Paid monthly plans start with Solo at $9/mo, with higher tiers for more monitored projects, saved reports, and monitoring.
 
 Public pages:
 ${pages}

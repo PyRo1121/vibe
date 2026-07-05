@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ScanReport } from '$lib/scan/types';
 	import { buildUnlockOffer } from '$lib/client/preflight-session';
+	import type { DeploylintPlanId } from '$lib/product/plans';
 
 	let {
 		report,
@@ -9,7 +10,7 @@
 	}: {
 		report: ScanReport;
 		checkoutLoading: boolean;
-		onCheckout: () => void;
+		onCheckout: (plan: DeploylintPlanId) => void;
 	} = $props();
 
 	const offer = $derived(buildUnlockOffer(report));
@@ -24,13 +25,13 @@
 		<div class="mx-auto flex max-w-5xl items-center justify-between gap-3">
 			<div class="min-w-0">
 				<p class="truncate text-sm font-medium text-white">{offer.valuePitch}</p>
-				<p class="text-xs text-zinc-500">$9 one-time</p>
+				<p class="text-xs text-zinc-500">Solo starts at $9/mo</p>
 			</div>
 			<button
 				type="button"
 				disabled={checkoutLoading}
 				class="shrink-0 rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500 disabled:opacity-50"
-				onclick={onCheckout}
+				onclick={() => onCheckout('solo')}
 			>
 				{checkoutLoading ? '…' : 'Unlock'}
 			</button>

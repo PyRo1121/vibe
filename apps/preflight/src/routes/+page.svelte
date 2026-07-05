@@ -25,6 +25,7 @@
 	import DeepDivesSection from '$lib/components/DeepDivesSection.svelte';
 	import SeoHead from '$lib/components/SeoHead.svelte';
 	import { ALPHA_DISCLAIMER, ALPHA_FREE_UNLOCK, ALPHA_PRICE_PREVIEW } from '$lib/product/alpha';
+	import type { DeploylintPlanId } from '$lib/product/plans';
 	import { buildDeploylintJsonLd, buildSeoTitle, defaultSeoImage } from '$lib/site/seo-metadata';
 	import type { PageData } from './$types';
 
@@ -143,7 +144,7 @@
 					checkoutMessage = `Verified: ${report.previousScore} → ${report.score} (${sign}${report.scoreDelta})`;
 				} else {
 					checkoutMessage = ALPHA_FREE_UNLOCK
-						? 'Alpha access active - all fix prompts are free while we build.'
+						? 'Subscription access active - all fix prompts are available.'
 						: 'Fix prompts unlocked — copy prompts below, then re-scan after fixing.';
 				}
 			}
@@ -164,13 +165,13 @@
 		}
 	}
 
-	async function startCheckout() {
+	async function startCheckout(plan: DeploylintPlanId = 'solo') {
 		if (!url.trim() || !report) return;
 		if (ALPHA_FREE_UNLOCK) {
-			checkoutMessage = 'No checkout during alpha - paid features are included free right now.';
+			checkoutMessage = 'Checkout is disabled while paid features are included free.';
 			return;
 		}
-		trackFunnel('unlock_click', { verdict: report.verdict, score: report.score });
+		trackFunnel('unlock_click', { verdict: report.verdict, score: report.score, plan });
 		checkoutLoading = true;
 		checkoutMessage = null;
 		error = null;
@@ -178,7 +179,7 @@
 			const res = await fetch('/api/checkout', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ url: url.trim() })
+				body: JSON.stringify({ url: url.trim(), plan })
 			});
 			const body = (await res.json().catch(() => null)) as {
 				message?: string;
@@ -243,16 +244,16 @@
 			public
 			<strong class="font-medium text-zinc-300">GitHub repo</strong> (committed .env files,
 			dependency licenses, sell rights). Built for apps you ship — bot-protected enterprise sites
-			may scan incomplete. Alpha: full reports are free while we build. Later:
+			may scan incomplete. Free scans show the verdict and one sample prompt. Subscribe from
 			<span class="font-medium text-zinc-300">{ALPHA_PRICE_PREVIEW.later}</span>
-			for every fix prompt, master repair paste, AI copy review, and re-scan proof.
+			for every fix prompt, master repair paste, MCP access, and recurring monitoring.
 			<a href="/compare" class="text-sky-400 hover:underline">See how we compare →</a>
 		</p>
 	</section>
 
 	<section
 		class="mx-auto mb-10 max-w-2xl rounded-2xl border border-sky-500/30 bg-sky-500/5 p-5 print:hidden"
-		aria-label="Alpha pricing notice"
+		aria-label="Pricing notice"
 	>
 		<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 			<div>
@@ -272,7 +273,7 @@
 			{#each ALPHA_PRICE_PREVIEW.hiddenLater as item (item)}
 				<li class="flex gap-2">
 					<span class="text-sky-400">+</span>
-					<span>{item} will move behind checkout later</span>
+					<span>{item}</span>
 				</li>
 			{/each}
 		</ul>
@@ -333,15 +334,14 @@
 		{#if ALPHA_FREE_UNLOCK}
 			<section
 				class="mb-6 rounded-2xl border border-sky-500/30 bg-sky-500/5 p-5 print:hidden"
-				aria-label="Alpha unlocked report notice"
+				aria-label="Unlocked report notice"
 			>
 				<p class="text-xs font-semibold tracking-widest text-sky-300 uppercase">
-					Alpha access unlocked
+					Subscription access unlocked
 				</p>
 				<p class="mt-2 text-sm text-zinc-300">
-					You are seeing the full paid report free during alpha. Later,
-					{ALPHA_PRICE_PREVIEW.later} unlocks the prompts, master paste, AI copy review, and re-scan proof
-					shown below.
+					Your plan unlocks the prompts, master paste, AI copy review, and re-scan proof shown
+					below.
 				</p>
 			</section>
 		{/if}
@@ -406,7 +406,7 @@
 			<div class="rounded-xl border border-zinc-800 p-5">
 				<p class="font-medium text-white">Fix & prove loop</p>
 				<p class="mt-1 text-sm text-zinc-500">
-					Free in alpha · later $9 for Cursor prompts + before/after re-scan delta
+					Free scan, then Solo from $9/mo for Cursor prompts and before/after re-scan proof
 				</p>
 			</div>
 			<div class="rounded-xl border border-zinc-800 p-5">

@@ -1,23 +1,52 @@
 #!/usr/bin/env node
 /**
- * Deploylint live Stripe store setup — requires full secret key (sk_live_…).
- * CLI live mode uses restricted keys (rk_live) and cannot create products/webhooks.
+ * Deploylint live Stripe store setup. Requires a full sk_live_ secret key.
+ * Stripe CLI live mode uses restricted rk_live keys and cannot create Products,
+ * Prices, or Webhook Endpoints.
  *
  * Usage:
- *   STRIPE_SECRET_KEY=sk_live_… node scripts/setup-deploylint-store-live.mjs
+ *   STRIPE_SECRET_KEY=sk_live_... node scripts/setup-deploylint-store-live.mjs
  *   node scripts/setup-deploylint-store-live.mjs --api-key-file .stripe-live.key
  */
-import { readFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const WEBHOOK_URL = 'https://deploylint.com/api/webhooks/stripe';
-const PRODUCT_NAME = 'Deploylint fix & verify';
-const PRODUCT_DESC = 'All AI fix prompts, master repair prompt, and unlimited re-scans for one URL';
-const UNIT_AMOUNT = 900;
 const CURRENCY = 'usd';
+const TAX_CODE = 'txcd_10701401';
+
+const PLANS = [
+	{
+		id: 'solo',
+		name: 'Deploylint Solo',
+		envVar: 'STRIPE_PRICE_SOLO',
+		lookupKey: 'deploylint_solo_monthly',
+		unitAmount: 900,
+		description:
+			'One monitored AI-built app with fix prompts, MCP scan access, deploy gate, and weekly launch monitoring.'
+	},
+	{
+		id: 'builder',
+		name: 'Deploylint Builder',
+		envVar: 'STRIPE_PRICE_BUILDER',
+		lookupKey: 'deploylint_builder_monthly',
+		unitAmount: 2900,
+		description:
+			'Five monitored AI-built apps with daily monitoring, saved history, re-scan deltas, and launch regression alerts.'
+	},
+	{
+		id: 'agency',
+		name: 'Deploylint Agency',
+		envVar: 'STRIPE_PRICE_AGENCY',
+		lookupKey: 'deploylint_agency_monthly',
+		unitAmount: 14900,
+		description:
+			'Twenty-five monitored AI-built apps with client-ready reports, exports, and webhook-ready alert workflows.'
+	}
+];
 
 function parseArgs() {
 	const fileIdx = process.argv.indexOf('--api-key-file');
@@ -54,87 +83,126 @@ function form(entries) {
 	return new URLSearchParams(entries);
 }
 
+function dollars(unitAmount) {
+	return `$${(unitAmount / 100).toFixed(0)}/mo`;
+}
+
 async function ensureWebhook(secretKey) {
 	const list = await stripe(secretKey, '/webhook_endpoints?limit=20');
 	const existing = list.data?.find((w) => w.url === WEBHOOK_URL && w.status === 'enabled');
+	const webhookParams = {
+		url: WEBHOOK_URL,
+		description: 'Deploylint production (live)',
+		'enabled_events[0]': 'checkout.session.completed',
+		'enabled_events[1]': 'checkout.session.async_payment_succeeded'
+	};
+
 	if (existing) {
-		console.log(`✓ Live webhook exists — ${existing.id}`);
-		if (existing.description !== 'Deploylint production (live)') {
+		console.log(`ok Live webhook exists: ${existing.id}`);
+		if (existing.description !== webhookParams.description) {
 			await stripe(
 				secretKey,
 				`/webhook_endpoints/${existing.id}`,
 				'POST',
-				form({ description: 'Deploylint production (live)' })
+				form({ description: webhookParams.description })
 			);
-			console.log('✓ Webhook description updated');
+			console.log('ok Webhook description updated');
+		}
+		return existing;
+	}
+
+	const created = await stripe(secretKey, '/webhook_endpoints', 'POST', form(webhookParams));
+	console.log(`ok Live webhook created: ${created.id}`);
+	console.log('\nWebhook signing secret. Set it on the Worker:');
+	console.log(created.secret);
+	console.log('\n  npx wrangler secret put STRIPE_WEBHOOK_SECRET');
+	return created;
+}
+
+async function ensureProduct(secretKey, plan) {
+	const list = await stripe(secretKey, '/products?limit=100&active=true');
+	const existing = list.data?.find(
+		(product) => product.metadata?.app === 'deploylint' && product.metadata?.plan === plan.id
+	);
+
+	if (existing) {
+		const updates = {};
+		if (existing.name !== plan.name) updates.name = plan.name;
+		if (existing.description !== plan.description) updates.description = plan.description;
+		if (existing.tax_code !== TAX_CODE) updates.tax_code = TAX_CODE;
+		if (Object.keys(updates).length > 0) {
+			await stripe(secretKey, `/products/${existing.id}`, 'POST', form(updates));
+			console.log(`ok Product updated: ${plan.name} (${existing.id})`);
+		} else {
+			console.log(`ok Product exists: ${plan.name} (${existing.id})`);
 		}
 		return existing;
 	}
 
 	const created = await stripe(
 		secretKey,
-		'/webhook_endpoints',
-		'POST',
-		form({
-			url: WEBHOOK_URL,
-			description: 'Deploylint production (live)',
-			'enabled_events[0]': 'checkout.session.completed',
-			'enabled_events[1]': 'checkout.session.async_payment_succeeded'
-		})
-	);
-	console.log(`✓ Live webhook created — ${created.id}`);
-	console.log(`\nWebhook signing secret (set on Worker):`);
-	console.log(created.secret);
-	console.log(`\n  npx wrangler secret put STRIPE_WEBHOOK_SECRET`);
-	return created;
-}
-
-async function ensureProduct(secretKey) {
-	const list = await stripe(secretKey, '/products?limit=100&active=true');
-	const existing = list.data?.find(
-		(p) => p.name === PRODUCT_NAME && p.metadata?.app === 'deploylint'
-	);
-	if (existing) {
-		console.log(`✓ Live product exists — ${existing.id}`);
-		if (existing.default_price) return existing;
-		const price = await stripe(
-			secretKey,
-			'/prices',
-			'POST',
-			form({
-				product: existing.id,
-				unit_amount: String(UNIT_AMOUNT),
-				currency: CURRENCY
-			})
-		);
-		console.log(`✓ Live price created — ${price.id} ($${UNIT_AMOUNT / 100})`);
-		return existing;
-	}
-
-	const product = await stripe(
-		secretKey,
 		'/products',
 		'POST',
 		form({
-			name: PRODUCT_NAME,
-			description: PRODUCT_DESC,
-			'metadata[app]': 'deploylint'
+			name: plan.name,
+			description: plan.description,
+			tax_code: TAX_CODE,
+			'metadata[app]': 'deploylint',
+			'metadata[plan]': plan.id
 		})
 	);
-	const price = await stripe(
+	console.log(`ok Product created: ${plan.name} (${created.id})`);
+	return created;
+}
+
+async function ensureMonthlyPrice(secretKey, plan, product) {
+	const prices = await stripe(secretKey, `/prices?product=${product.id}&active=true&limit=100`);
+	const existing = prices.data?.find((price) => price.lookup_key === plan.lookupKey);
+	if (existing) {
+		console.log(
+			`ok Monthly price exists: ${plan.name} ${dollars(plan.unitAmount)} (${existing.id})`
+		);
+		return existing;
+	}
+
+	const created = await stripe(
 		secretKey,
 		'/prices',
 		'POST',
 		form({
 			product: product.id,
-			unit_amount: String(UNIT_AMOUNT),
-			currency: CURRENCY
+			unit_amount: String(plan.unitAmount),
+			currency: CURRENCY,
+			lookup_key: plan.lookupKey,
+			'recurring[interval]': 'month',
+			'metadata[app]': 'deploylint',
+			'metadata[plan]': plan.id
 		})
 	);
-	await stripe(secretKey, `/products/${product.id}`, 'POST', form({ default_price: price.id }));
-	console.log(`✓ Live product created — ${product.id}`);
-	console.log(`✓ Live price created — ${price.id} ($${UNIT_AMOUNT / 100})`);
-	return product;
+	await stripe(secretKey, `/products/${product.id}`, 'POST', form({ default_price: created.id }));
+	console.log(`ok Monthly price created: ${plan.name} ${dollars(plan.unitAmount)} (${created.id})`);
+	return created;
+}
+
+function verifyWorkerSecrets() {
+	try {
+		const raw = execSync('npx wrangler secret list', {
+			cwd: resolve(__dirname, '..'),
+			encoding: 'utf8',
+			stdio: 'pipe'
+		});
+		const listed = JSON.parse(raw);
+		const names = listed.map((secret) => secret.name);
+		if (names.includes('STRIPE_SECRET_KEY') && names.includes('STRIPE_WEBHOOK_SECRET')) {
+			console.log('\nok Worker secrets STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET are present');
+		} else {
+			console.log('\nMissing Worker secrets:', names.join(', ') || '(none)');
+			console.log('  npx wrangler secret put STRIPE_SECRET_KEY');
+			console.log('  npx wrangler secret put STRIPE_WEBHOOK_SECRET');
+		}
+	} catch {
+		console.log('\nCould not verify wrangler secrets');
+	}
 }
 
 async function main() {
@@ -147,26 +215,21 @@ async function main() {
 		process.exit(1);
 	}
 
-	console.log('Deploylint live store setup (acct via API)…\n');
+	console.log('Deploylint live subscription store setup\n');
 	await ensureWebhook(secretKey);
-	await ensureProduct(secretKey);
 
-	try {
-		execSync('npx wrangler secret list', { cwd: resolve(__dirname, '..'), stdio: 'pipe' });
-		const listed = JSON.parse(
-			execSync('npx wrangler secret list', { cwd: resolve(__dirname, '..'), encoding: 'utf8' })
-		);
-		const names = listed.map((s) => s.name);
-		if (names.includes('STRIPE_SECRET_KEY') && names.includes('STRIPE_WEBHOOK_SECRET')) {
-			console.log('\n✓ Worker secrets STRIPE_SECRET_KEY + STRIPE_WEBHOOK_SECRET present');
-		} else {
-			console.log('\n⚠ Missing Worker secrets:', names.join(', ') || '(none)');
-		}
-	} catch {
-		console.log('\n⚠ Could not verify wrangler secrets');
+	const envLines = [];
+	for (const plan of PLANS) {
+		const product = await ensureProduct(secretKey, plan);
+		const price = await ensureMonthlyPrice(secretKey, plan, product);
+		envLines.push(`${plan.envVar}=${price.id}`);
 	}
 
-	console.log('\nDone. Run: npm run smoke:phase24');
+	verifyWorkerSecrets();
+
+	console.log('\nConfigure these Worker vars in wrangler.jsonc or Cloudflare dashboard:');
+	for (const line of envLines) console.log(`  ${line}`);
+	console.log('\nDone. Run: npm run verify');
 }
 
 main().catch((err) => {

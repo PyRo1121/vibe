@@ -1,8 +1,8 @@
 export const ALPHA_FREE_UNLOCK = true;
 
 export const ALPHA_PRICE_PREVIEW = {
-	current: 'Free during alpha',
-	later: '$9/mo Solo after alpha',
+	current: 'Full reports free right now',
+	later: 'Solo starts at $9/mo when billing turns on',
 	hiddenLater: [
 		'10 full reports per month on Solo',
 		'Saved report history and exports',
@@ -12,4 +12,4 @@ export const ALPHA_PRICE_PREVIEW = {
 } as const;
 
 export const ALPHA_DISCLAIMER =
-	'Alpha build: everything is free while we are coding in public. Some checks, prompts, or pages may be broken at any given time while the product is being developed.';
+	'Full reports are free while the product is still being shaped. Paid plans are already configured, but checkout stays out of the way until billing is turned on.';

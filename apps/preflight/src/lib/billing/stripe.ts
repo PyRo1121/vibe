@@ -40,7 +40,8 @@ export async function createCheckoutSession(opts: {
 		mode: 'subscription',
 		success_url: successUrl,
 		cancel_url: cancelUrl,
-		// Instant methods only — avoids async checkout.session.async_payment_* flow for $9 unlock
+		allow_promotion_codes: 'true',
+		// Keep fulfillment on card-first Checkout while unlocks are session-based.
 		'payment_method_types[0]': 'card',
 		'line_items[0][quantity]': '1',
 		'line_items[0][price]': priceId,
