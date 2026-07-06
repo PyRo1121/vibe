@@ -5,6 +5,8 @@ export type FunnelEventName =
 	| 'rescan_completed'
 	| 'checkout_started'
 	| 'checkout_paid'
+	| 'checkout_payment_failed'
+	| 'checkout_subscription_canceled'
 	| 'unlock_click';
 
 export interface FunnelPayload {
@@ -21,6 +23,8 @@ const ALLOWED_EVENTS = new Set<FunnelEventName>([
 	'rescan_completed',
 	'checkout_started',
 	'checkout_paid',
+	'checkout_payment_failed',
+	'checkout_subscription_canceled',
 	'unlock_click'
 ]);
 

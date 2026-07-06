@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import { hasUnlock, legacyUnlockKey, loadUnlock, saveUnlock, unlockKey } from './unlock-store';
+import {
+	hasUnlock,
+	legacyUnlockKey,
+	loadUnlock,
+	loadUnlockBySubscription,
+	saveUnlock,
+	setUnlockStatusBySubscription,
+	unlockKey
+} from './unlock-store';
 
 function mockKv() {
 	const store = new Map<string, string>();
@@ -64,5 +72,41 @@ describe('saveUnlock / hasUnlock', () => {
 		await expect(saveUnlock(kv, 'https://app.test', 'cs_test_abc')).rejects.toThrow(
 			'kv unavailable'
 		);
+	});
+
+	it('indexes subscription unlocks and can deactivate/reactivate access', async () => {
+		const { kv } = mockKv();
+		await saveUnlock(kv, 'https://app.test/', 'cs_test_abc', {
+			customerId: 'cus_123',
+			subscriptionId: 'sub_123',
+			plan: 'solo'
+		});
+
+		expect(await loadUnlockBySubscription(kv, 'sub_123')).toMatchObject({
+			sessionId: 'cs_test_abc',
+			scanUrl: 'https://app.test',
+			customerId: 'cus_123',
+			subscriptionId: 'sub_123',
+			plan: 'solo',
+			active: true,
+			status: 'active'
+		});
+		expect(await hasUnlock(kv, 'https://app.test', 'cs_test_abc')).toBe(true);
+
+		await setUnlockStatusBySubscription(kv, 'sub_123', {
+			active: false,
+			status: 'past_due'
+		});
+		expect(await hasUnlock(kv, 'https://app.test', 'cs_test_abc')).toBe(false);
+		expect(await loadUnlockBySubscription(kv, 'sub_123')).toMatchObject({
+			active: false,
+			status: 'past_due'
+		});
+
+		await setUnlockStatusBySubscription(kv, 'sub_123', {
+			active: true,
+			status: 'active'
+		});
+		expect(await hasUnlock(kv, 'https://app.test', 'cs_test_abc')).toBe(true);
 	});
 });

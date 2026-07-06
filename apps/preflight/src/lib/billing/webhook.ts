@@ -52,7 +52,9 @@ export interface StripeCheckoutSessionObject {
 	id?: string;
 	payment_status?: string;
 	status?: string;
-	metadata?: { scan_url?: string };
+	metadata?: { scan_url?: string; plan?: string };
+	customer?: string | { id?: string };
+	subscription?: string | { id?: string };
 }
 
 export interface StripeWebhookEvent {

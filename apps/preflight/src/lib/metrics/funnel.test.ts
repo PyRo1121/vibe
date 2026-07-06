@@ -5,6 +5,8 @@ import { isFunnelEventName, sanitizeFunnelPayload } from './funnel';
 describe('funnel metrics', () => {
 	it('accepts known events', () => {
 		expect(isFunnelEventName('scan_completed')).toBe(true);
+		expect(isFunnelEventName('checkout_payment_failed')).toBe(true);
+		expect(isFunnelEventName('checkout_subscription_canceled')).toBe(true);
 		expect(isFunnelEventName('evil')).toBe(false);
 	});
 

@@ -66,6 +66,13 @@ if (checkout.res.ok && checkout.json?.url?.includes('checkout.stripe.com')) {
 	fail('checkout session', `${checkout.res.status} ${checkout.text.slice(0, 120)}`);
 }
 
+const portal = await post('/api/billing/portal', { url: CHECKOUT_URL });
+if (portal.res.status === 400 && portal.text.includes('Missing unlockSessionId')) {
+	pass('billing portal route', 'reachable and validates paid session id');
+} else {
+	fail('billing portal route', `${portal.res.status} ${portal.text.slice(0, 120)}`);
+}
+
 const wh = await get('/api/webhooks/stripe');
 if (wh.res.ok && wh.text.trim() === 'ok') pass('webhook GET probe', 'endpoint reachable');
 else fail('webhook GET probe', `${wh.res.status} ${wh.text.slice(0, 80)}`);

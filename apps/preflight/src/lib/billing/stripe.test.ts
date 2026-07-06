@@ -2,6 +2,7 @@ import { describe, expect, it, vi, afterEach } from 'vitest';
 
 import {
 	canonicalScanUrl,
+	createBillingPortalSession,
 	createCheckoutSession,
 	isStripeLiveMode,
 	verifyCheckoutSession
@@ -180,6 +181,73 @@ describe('verifyCheckoutSession', () => {
 		expect(await verifyCheckoutSession('cs_test_abc123', 'https://app.test', 'sk_test_x')).toBe(
 			false
 		);
+	});
+});
+
+describe('createBillingPortalSession', () => {
+	it('creates a customer portal session from a paid checkout session', async () => {
+		const calls: Array<{ url: string; init?: RequestInit }> = [];
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async (url: string, init?: RequestInit) => {
+				calls.push({ url, init });
+				if (url.endsWith('/checkout/sessions/cs_test_abc123')) {
+					return {
+						ok: true,
+						json: async () => ({
+							payment_status: 'paid',
+							status: 'complete',
+							customer: 'cus_123',
+							metadata: { scan_url: 'https://app.test' }
+						})
+					};
+				}
+
+				expect(url).toBe('https://api.stripe.com/v1/billing_portal/sessions');
+				const body = init?.body as URLSearchParams;
+				expect(body.get('customer')).toBe('cus_123');
+				expect(body.get('return_url')).toBe(
+					'https://deploylint.com/?billing=return&session_id=cs_test_abc123'
+				);
+				return {
+					ok: true,
+					json: async () => ({ id: 'bps_test_123', url: 'https://billing.stripe.com/p/session' })
+				};
+			})
+		);
+
+		const session = await createBillingPortalSession({
+			sessionId: 'cs_test_abc123',
+			scanUrl: 'https://app.test/',
+			appUrl: 'https://deploylint.com',
+			secretKey: 'sk_test_x'
+		});
+
+		expect(session.url).toBe('https://billing.stripe.com/p/session');
+		expect(calls).toHaveLength(2);
+	});
+
+	it('rejects checkout sessions without a Stripe customer', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async () => ({
+				ok: true,
+				json: async () => ({
+					payment_status: 'paid',
+					status: 'complete',
+					metadata: { scan_url: 'https://app.test' }
+				})
+			}))
+		);
+
+		await expect(
+			createBillingPortalSession({
+				sessionId: 'cs_test_abc123',
+				scanUrl: 'https://app.test',
+				appUrl: 'https://deploylint.com',
+				secretKey: 'sk_test_x'
+			})
+		).rejects.toThrow('No Stripe customer');
 	});
 });
 

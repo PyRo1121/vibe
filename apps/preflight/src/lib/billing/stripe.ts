@@ -20,6 +20,31 @@ export interface CheckoutSession {
 	url: string;
 }
 
+export interface BillingPortalSession {
+	id: string;
+	url: string;
+}
+
+interface StripeCheckoutSessionResponse {
+	id?: string;
+	payment_status?: string;
+	status?: string;
+	metadata?: { scan_url?: string };
+	customer?: string | { id?: string };
+}
+
+function isCheckoutSessionId(sessionId: string): boolean {
+	return /^cs_(test|live)_[a-zA-Z0-9]+$/.test(sessionId);
+}
+
+function stripeObjectId(value: string | { id?: string } | undefined): string | null {
+	if (typeof value === 'string' && value.trim()) return value.trim();
+	if (typeof value === 'object' && typeof value.id === 'string' && value.id.trim()) {
+		return value.id.trim();
+	}
+	return null;
+}
+
 function checkoutIdempotencyKey(scanUrl: string): string {
 	const urlHash = createHash('sha256').update(canonicalScanUrl(scanUrl)).digest('hex').slice(0, 16);
 	return `checkout-${urlHash}-${randomUUID()}`;
@@ -71,35 +96,79 @@ export async function createCheckoutSession(opts: {
 	return { id: data.id, url: data.url };
 }
 
+async function retrieveCheckoutSession(
+	sessionId: string,
+	secretKey: string
+): Promise<StripeCheckoutSessionResponse | null> {
+	if (!isCheckoutSessionId(sessionId)) return null;
+
+	const res = await fetch(`${STRIPE_API}/checkout/sessions/${sessionId}`, {
+		headers: { Authorization: `Bearer ${secretKey}` }
+	});
+
+	if (!res.ok) return null;
+	return (await res.json()) as StripeCheckoutSessionResponse;
+}
+
+function checkoutSessionMatchesScan(
+	session: StripeCheckoutSessionResponse,
+	expectedScanUrl: string
+): boolean {
+	if (session.payment_status !== 'paid' || session.status !== 'complete') return false;
+
+	const metaUrl = session.metadata?.scan_url?.trim();
+	if (!metaUrl) return false;
+
+	return canonicalScanUrl(metaUrl) === canonicalScanUrl(expectedScanUrl);
+}
+
 export async function verifyCheckoutSession(
 	sessionId: string,
 	expectedScanUrl: string,
 	secretKey: string
 ): Promise<boolean> {
-	if (!/^cs_(test|live)_[a-zA-Z0-9]+$/.test(sessionId)) {
-		return false;
-	}
-
 	try {
-		const res = await fetch(`${STRIPE_API}/checkout/sessions/${sessionId}`, {
-			headers: { Authorization: `Bearer ${secretKey}` }
-		});
-
-		if (!res.ok) return false;
-
-		const data = (await res.json()) as {
-			payment_status?: string;
-			status?: string;
-			metadata?: { scan_url?: string };
-		};
-
-		if (data.payment_status !== 'paid' || data.status !== 'complete') return false;
-
-		const metaUrl = data.metadata?.scan_url?.trim();
-		if (!metaUrl) return false;
-
-		return canonicalScanUrl(metaUrl) === canonicalScanUrl(expectedScanUrl);
+		const data = await retrieveCheckoutSession(sessionId, secretKey);
+		return data ? checkoutSessionMatchesScan(data, expectedScanUrl) : false;
 	} catch {
 		return false;
 	}
+}
+
+export async function createBillingPortalSession(opts: {
+	sessionId: string;
+	scanUrl: string;
+	appUrl: string;
+	secretKey: string;
+}): Promise<BillingPortalSession> {
+	const { sessionId, scanUrl, appUrl, secretKey } = opts;
+	const checkout = await retrieveCheckoutSession(sessionId, secretKey);
+	if (!checkout || !checkoutSessionMatchesScan(checkout, scanUrl)) {
+		throw new Error('Checkout session could not be verified');
+	}
+
+	const customer = stripeObjectId(checkout.customer);
+	if (!customer) throw new Error('No Stripe customer found for checkout session');
+
+	const body = new URLSearchParams({
+		customer,
+		return_url: `${appUrl.replace(/\/$/, '')}/?billing=return&session_id=${sessionId}`
+	});
+
+	const res = await fetch(`${STRIPE_API}/billing_portal/sessions`, {
+		method: 'POST',
+		headers: {
+			Authorization: `Bearer ${secretKey}`,
+			'Content-Type': 'application/x-www-form-urlencoded'
+		},
+		body
+	});
+
+	if (!res.ok) {
+		const text = await res.text();
+		throw new Error(`Stripe billing portal failed: ${text.slice(0, 200)}`);
+	}
+
+	const data = (await res.json()) as { id: string; url: string };
+	return { id: data.id, url: data.url };
 }

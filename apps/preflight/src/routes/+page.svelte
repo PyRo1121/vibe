@@ -35,6 +35,7 @@
 	let url = $state('');
 	let loading = $state(false);
 	let checkoutLoading = $state(false);
+	let billingPortalLoading = $state(false);
 	let error = $state<string | null>(null);
 	let checkoutMessage = $state<string | null>(null);
 	let report = $state<ScanReport | null>(null);
@@ -88,6 +89,11 @@
 			checkoutMessage = 'Payment received — loading your fix prompts…';
 			clearCheckoutQuery();
 			if (url.trim()) void runScan(false);
+		}
+
+		if (data.billing === 'return') {
+			checkoutMessage = 'Billing settings updated.';
+			clearCheckoutQuery();
 		}
 	});
 
@@ -196,6 +202,33 @@
 			error = err instanceof Error ? err.message : 'Checkout failed';
 		} finally {
 			checkoutLoading = false;
+		}
+	}
+
+	async function openBillingPortal() {
+		if (!url.trim() || !unlockSessionId) return;
+		billingPortalLoading = true;
+		checkoutMessage = null;
+		error = null;
+		try {
+			const res = await fetch('/api/billing/portal', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ url: url.trim(), unlockSessionId })
+			});
+			const body = (await res.json().catch(() => null)) as {
+				message?: string;
+				url?: string;
+			} | null;
+			if (!res.ok) {
+				throw new Error(body?.message ?? `Billing portal failed (${res.status})`);
+			}
+			if (!body?.url) throw new Error('Billing portal URL missing');
+			window.location.href = body.url;
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Billing portal failed';
+		} finally {
+			billingPortalLoading = false;
 		}
 	}
 
@@ -350,6 +383,29 @@
 					Your plan unlocks the prompts, master paste, AI copy review, and re-scan proof shown
 					below.
 				</p>
+			</section>
+		{/if}
+		{#if report.unlocked && unlockSessionId && !ALPHA_FREE_UNLOCK}
+			<section
+				class="mb-6 flex flex-col gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5 sm:flex-row sm:items-center sm:justify-between print:hidden"
+				aria-label="Billing self-service"
+			>
+				<div>
+					<p class="text-xs font-semibold tracking-widest text-sky-300 uppercase">
+						Subscription active
+					</p>
+					<p class="mt-1 text-sm text-zinc-400">
+						Manage invoices, payment methods, cancellation, and plan changes in Stripe.
+					</p>
+				</div>
+				<button
+					type="button"
+					disabled={billingPortalLoading}
+					class="shrink-0 rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-2 text-sm font-semibold text-white hover:border-sky-500 hover:text-sky-200 disabled:opacity-50"
+					onclick={openBillingPortal}
+				>
+					{billingPortalLoading ? 'Opening...' : 'Manage billing'}
+				</button>
 			</section>
 		{/if}
 		<VerdictBanner {report} />
