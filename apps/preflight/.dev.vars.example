@@ -6,6 +6,9 @@ STRIPE_PRICE_BUILDER=price_test_builder
 STRIPE_PRICE_AGENCY=price_test_agency
 PUBLIC_APP_URL=http://localhost:5173
 
+# Optional local demo mode. Omit in production so scans stay paid-locked by default.
+# DEPLOYLINT_ALPHA_FREE_UNLOCK=true
+
 # Stripe Dashboard webhook (production):
 # URL: https://deploylint.com/api/webhooks/stripe
 # Events: checkout.session.completed, checkout.session.async_payment_succeeded

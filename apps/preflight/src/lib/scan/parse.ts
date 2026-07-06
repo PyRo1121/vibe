@@ -261,7 +261,9 @@ export function mentionsStack(html: string): {
 		paddle: /cdn\.paddle\.com|paddle\.js|paddle_billing|paddle\.checkout/.test(lower),
 		lemonSqueezy: /lemonsqueezy\.com|assets\.lemonsqueezy\.com|lemon\.js/.test(lower),
 		supabase: /supabase\.co|supabase\.in/.test(lower),
-		firebase: /firebase(app)?\.com|firebaseio\.com/.test(lower),
+		firebase: /firebase(app)?\.com|firebaseio\.com|firebaseconfig|@firebase\/|firebase\/app/.test(
+			lower
+		),
 		sentry: /browser\.sentry-cdn\.com|sentry\.io|@sentry\//.test(lower),
 		logRocket: /cdn\.logrocket\.io|logrocket\.init|logrocket\.com/.test(lower),
 		posthog: /app\.posthog\.com|posthog\.init|posthog-js/.test(lower),

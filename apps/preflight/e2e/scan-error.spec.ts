@@ -11,7 +11,7 @@ test.describe('scan error', () => {
 
 		await expect(page.getByRole('alert')).toContainText(/Could not reach that URL/i);
 		await expect(
-			page.getByRole('heading', { name: /Should you post this URL today/i })
+			page.getByRole('heading', { name: /Can this AI-built SaaS safely take money/i })
 		).toBeVisible();
 	});
 });

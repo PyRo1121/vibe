@@ -48,7 +48,7 @@ describe('apiBase', () => {
 	});
 
 	it('prefers DEPLOYLINT_API over PREFLIGHT_API and strips trailing slashes', () => {
-		process.env.DEPLOYLINT_API = 'https://primary.test/';
+		process.env.DEPLOYLINT_API = 'https://primary.test///';
 		process.env.PREFLIGHT_API = 'https://legacy.test/';
 
 		expect(apiBase()).toBe('https://primary.test');

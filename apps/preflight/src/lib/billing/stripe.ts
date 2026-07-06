@@ -67,8 +67,6 @@ export async function createCheckoutSession(opts: {
 		success_url: successUrl,
 		cancel_url: cancelUrl,
 		allow_promotion_codes: 'true',
-		// Keep fulfillment on card-first Checkout while unlocks are session-based.
-		'payment_method_types[0]': 'card',
 		'line_items[0][quantity]': '1',
 		'line_items[0][price]': priceId,
 		'metadata[plan]': plan,

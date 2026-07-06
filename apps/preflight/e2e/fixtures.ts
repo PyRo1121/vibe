@@ -95,12 +95,14 @@ export const mockScanReport: ScanReport = {
 	],
 	stack: ['SvelteKit', 'Cloudflare'],
 	reportId: 'e2e-demo-report',
-	unlocked: true,
-	masterPrompt: 'Fix all launch blockers for https://demo-app.test in one pass.'
+	unlocked: false,
+	masterPrompt: undefined
 };
 
 export const mockUnlockedReport: ScanReport = {
-	...mockScanReport
+	...mockScanReport,
+	unlocked: true,
+	masterPrompt: 'Fix all launch blockers for https://demo-app.test in one pass.'
 };
 
 export const mockScanError = {

@@ -14,6 +14,7 @@ describe('layout analytics config', () => {
 				PUBLIC_PLAUSIBLE_SCRIPT: ' https://plausible.io/js/pa-kDKT3UQlQwf5rMj8gkKwW.js '
 			})
 		).toEqual({
+			alphaFreeUnlock: false,
 			plausibleDomain: 'deploylint.com',
 			plausibleScript: 'https://plausible.io/js/pa-kDKT3UQlQwf5rMj8gkKwW.js'
 		});
@@ -21,8 +22,15 @@ describe('layout analytics config', () => {
 
 	it('omits Plausible when no public analytics domain is configured', () => {
 		expect(loadLayout({ PUBLIC_PLAUSIBLE_DOMAIN: ' ' })).toEqual({
+			alphaFreeUnlock: false,
 			plausibleDomain: null,
 			plausibleScript: null
+		});
+	});
+
+	it('enables alpha free unlock only from the explicit env flag', () => {
+		expect(loadLayout({ DEPLOYLINT_ALPHA_FREE_UNLOCK: 'true' })).toMatchObject({
+			alphaFreeUnlock: true
 		});
 	});
 });

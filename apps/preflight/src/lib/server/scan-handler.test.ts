@@ -7,6 +7,8 @@ type SanitizeReport = typeof import('$lib/billing/report').sanitizeReport;
 type ScanUrl = typeof import('$lib/scan/engine').scanUrl;
 type VerifyCheckoutSession = typeof import('$lib/billing/stripe').verifyCheckoutSession;
 
+const alphaEnv = { DEPLOYLINT_ALPHA_FREE_UNLOCK: 'true' } as Env;
+
 vi.mock('$lib/scan/engine', () => ({
 	scanUrl: vi.fn<ScanUrl>(async () => ({
 		url: 'https://app.test',
@@ -60,6 +62,13 @@ describe('handleScanPost', () => {
 		expect(scanUrl).toHaveBeenCalledWith('https://app.test', expect.any(Object));
 	});
 
+	it('keeps scans locked by default until checkout is verified', async () => {
+		const res = await handleScanPost(makeScanRequest());
+		const body = (await res.json()) as { unlocked?: boolean };
+		expect(body.unlocked).toBe(false);
+		expect(resolveUnlock).not.toHaveBeenCalled();
+	});
+
 	it('keeps scans unlocked while free access is active', async () => {
 		const request = new Request('http://localhost/api/scan', {
 			method: 'POST',
@@ -67,7 +76,7 @@ describe('handleScanPost', () => {
 			body: JSON.stringify({ url: 'https://app.test' })
 		});
 
-		const res = await handleScanPost(request);
+		const res = await handleScanPost(request, alphaEnv);
 		const body = (await res.json()) as { unlocked?: boolean };
 		expect(body.unlocked).toBe(true);
 		expect(resolveUnlock).not.toHaveBeenCalled();
@@ -80,10 +89,31 @@ describe('handleScanPost', () => {
 			body: JSON.stringify({ url: 'https://app.test', unlockSessionId: 'cs_test_abc123' })
 		});
 
-		const res = await handleScanPost(request, { STRIPE_SECRET_KEY: 'sk_test_x' } as Env);
+		const res = await handleScanPost(request, {
+			...alphaEnv,
+			STRIPE_SECRET_KEY: 'sk_test_x'
+		} as Env);
 		const body = (await res.json()) as { unlocked?: boolean };
 		expect(body.unlocked).toBe(true);
 		expect(resolveUnlock).not.toHaveBeenCalled();
+	});
+
+	it('uses checkout verification when a paid scan has an unlock session', async () => {
+		const request = new Request('http://localhost/api/scan', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ url: 'https://app.test', unlockSessionId: 'cs_test_abc123' })
+		});
+
+		const res = await handleScanPost(request, { STRIPE_SECRET_KEY: 'sk_test_x' } as Env);
+		const body = (await res.json()) as { unlocked?: boolean };
+		expect(body.unlocked).toBe(true);
+		expect(resolveUnlock).toHaveBeenCalledWith({
+			kv: undefined,
+			stripeKey: 'sk_test_x',
+			scanUrl: 'https://app.test',
+			sessionId: 'cs_test_abc123'
+		});
 	});
 
 	it('stores the report and returns a permalink id when KV is bound', async () => {
@@ -137,7 +167,7 @@ describe('handleScanPost', () => {
 		expect(second.history?.[0].score).toBe(80);
 	});
 
-	it('attaches AI copy review to free unlocked web scans', async () => {
+	it('attaches AI copy review only after paid unlock or explicit alpha access', async () => {
 		const ai = {
 			run: async () => ({
 				response:
@@ -156,7 +186,20 @@ describe('handleScanPost', () => {
 		const locked = (await lockedRes.json()) as {
 			aiCopyReview?: { headline: string };
 		};
-		expect(locked.aiCopyReview?.headline).toBe('Better headline');
+		expect(locked.aiCopyReview).toBeUndefined();
+
+		const alphaRes = await handleScanPost(
+			new Request('http://localhost/api/scan', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ url: 'https://app.test' })
+			}),
+			{ ...alphaEnv, AI: ai } as unknown as Env
+		);
+		const alpha = (await alphaRes.json()) as {
+			aiCopyReview?: { headline: string };
+		};
+		expect(alpha.aiCopyReview?.headline).toBe('Better headline');
 
 		const unlockedRes = await handleScanPost(
 			new Request('http://localhost/api/scan', {
@@ -172,7 +215,7 @@ describe('handleScanPost', () => {
 		expect(unlocked.aiCopyReview?.headline).toBe('Better headline');
 	});
 
-	it('uses free access for re-scan score deltas without checkout verification', async () => {
+	it('uses alpha access for re-scan score deltas without checkout verification', async () => {
 		const request = new Request('http://localhost/api/scan', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
@@ -183,7 +226,10 @@ describe('handleScanPost', () => {
 			})
 		});
 
-		const res = await handleScanPost(request, { STRIPE_SECRET_KEY: 'sk_test_x' } as Env);
+		const res = await handleScanPost(request, {
+			...alphaEnv,
+			STRIPE_SECRET_KEY: 'sk_test_x'
+		} as Env);
 		expect(res.status).toBe(200);
 		expect(resolveUnlock).not.toHaveBeenCalled();
 	});

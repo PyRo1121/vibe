@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onNavigate } from '$app/navigation';
 	import { watchPlausible, plausibleInitSnippet } from '$lib/client/plausible';
-	import { ALPHA_FREE_UNLOCK } from '$lib/product/alpha';
 	import { onMount } from 'svelte';
 
 	import './layout.css';
@@ -12,6 +11,7 @@
 	}: {
 		children: import('svelte').Snippet;
 		data: {
+			alphaFreeUnlock: boolean;
 			plausibleDomain?: string | null;
 			plausibleScript?: string | null;
 		};
@@ -53,7 +53,7 @@
 		<div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
 			<a href="/" class="flex flex-col leading-none transition-opacity hover:opacity-90">
 				<span class="text-lg font-semibold tracking-tight text-white">Deploylint</span>
-				{#if ALPHA_FREE_UNLOCK}
+				{#if data.alphaFreeUnlock}
 					<span class="mt-0.5 text-[9px] font-semibold tracking-[0.24em] text-sky-400 uppercase">
 						Alpha
 					</span>

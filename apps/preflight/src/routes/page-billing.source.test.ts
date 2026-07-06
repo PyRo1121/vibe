@@ -11,4 +11,9 @@ describe('homepage billing self-service source', () => {
 		expect(pageSource).toContain('Manage billing');
 		expect(pageSource).toContain('billingPortalLoading');
 	});
+
+	it('uses server-provided alpha mode instead of a static free-unlock constant', () => {
+		expect(pageSource).toContain('data.alphaFreeUnlock');
+		expect(pageSource).not.toContain('ALPHA_FREE_UNLOCK');
+	});
 });

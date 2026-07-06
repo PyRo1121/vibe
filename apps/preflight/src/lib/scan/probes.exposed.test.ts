@@ -30,6 +30,46 @@ describe('probeExposedPaths', () => {
 		const r = await probeExposedPaths(new URL('https://app.example.com/'), headOk, fetchText);
 		expect(r.git.exposed).toBe(true);
 	});
+
+	it('flags exposed backup archives, env backups, SQL dumps, and package manifests', async () => {
+		const headOk = vi.fn<HeadOk>(async (url) =>
+			['/backup.zip', '/.env.bak', '/package.json', '/db.sql'].some((path) => url.endsWith(path))
+		);
+		const fetchText = vi.fn<FetchText>(async (url) => {
+			if (url.endsWith('/backup.zip')) return 'PK'.padEnd(128, 'x');
+			if (url.endsWith('/.env.bak')) return 'PASSWORD=secret\n';
+			if (url.endsWith('/package.json')) return '{"name":"public-app"}';
+			if (url.endsWith('/db.sql')) return 'CREATE TABLE users (id integer);';
+			return null;
+		});
+
+		const r = await probeExposedPaths(new URL('https://app.example.com/'), headOk, fetchText);
+
+		expect(r.backup.exposed).toBe(true);
+		expect(r.backup.url).toBe('https://app.example.com/backup.zip');
+		expect(r.packageJson.exposed).toBe(true);
+		expect(r.packageJson.url).toBe('https://app.example.com/package.json');
+	});
+
+	it('does not flag reachable sensitive-looking paths when bodies do not match proof patterns', async () => {
+		const headOk = vi.fn<HeadOk>(async () => true);
+		const fetchText = vi.fn<FetchText>(async (url) => {
+			if (url.endsWith('/.env')) return '<html>SPA fallback</html>';
+			if (url.endsWith('/.git/HEAD')) return '<html>Not found</html>';
+			if (url.endsWith('/backup.zip')) return 'short';
+			if (url.endsWith('/.env.bak')) return 'not configuration';
+			if (url.endsWith('/package.json')) return '<html>App shell</html>';
+			if (url.endsWith('/db.sql')) return 'select pricing from page copy';
+			return null;
+		});
+
+		const r = await probeExposedPaths(new URL('https://app.example.com/'), headOk, fetchText);
+
+		expect(r.env.exposed).toBe(false);
+		expect(r.git.exposed).toBe(false);
+		expect(r.backup.exposed).toBe(false);
+		expect(r.packageJson.exposed).toBe(false);
+	});
 });
 
 describe('probeHealthEndpoints', () => {

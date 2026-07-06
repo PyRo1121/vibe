@@ -66,6 +66,11 @@ describe('dead-social-links', () => {
 		const html = page('<a href="https://github.com/yourhandle">GitHub</a>');
 		expect(get(run(html), 'dead-social-links')?.status).toBe('warn');
 	});
+
+	it('treats malformed social hrefs as placeholder links', () => {
+		const html = page('<a href="https://x.com:bad/profile">X</a>');
+		expect(get(run(html), 'dead-social-links')?.status).toBe('warn');
+	});
 });
 
 describe('broken-anchor-nav', () => {
@@ -140,6 +145,85 @@ describe('last-updated-staleness', () => {
 		const check = get(run(html), 'last-updated-staleness');
 		expect(check?.status).toBe('warn');
 		expect(check?.message).toContain('stale timestamps');
+	});
+});
+
+describe('legal-links', () => {
+	it('warns when a commercial page has no privacy or terms links', () => {
+		const html = page(
+			'<main><h1>Acme</h1><p>Plans start at $19/mo. Sign up today.</p>' +
+				'<form><input type="email" required></form></main>'
+		);
+
+		const check = get(run(html), 'legal-links');
+
+		expect(check?.status).toBe('warn');
+		expect(check?.message).toContain('No privacy or terms links');
+	});
+
+	it('names the one missing legal link on commercial pages', () => {
+		const missingTerms = page(
+			'<main><p>Plans start at $19/mo. Sign up today.</p></main><footer><a href="/privacy">Privacy</a></footer>'
+		);
+		const missingPrivacy = page(
+			'<main><p>Plans start at $19/mo. Sign up today.</p></main><footer><a href="/terms">Terms</a></footer>'
+		);
+
+		expect(get(run(missingTerms), 'legal-links')?.message).toContain('Missing terms link');
+		expect(get(run(missingPrivacy), 'legal-links')?.message).toContain('Missing privacy link');
+	});
+
+	it('passes when privacy and terms links are present', () => {
+		const html = page(
+			'<main><h1>Acme</h1><p>Plans start at $19/mo. Sign up today.</p></main>' +
+				'<footer><a href="/privacy">Privacy Policy</a><a href="/terms">Terms of Service</a></footer>'
+		);
+
+		const check = get(run(html), 'legal-links');
+
+		expect(check?.status).toBe('pass');
+		expect(check?.message).toContain('Privacy and terms links present');
+	});
+});
+
+describe('support-path', () => {
+	it('warns when a support link is only a stub', () => {
+		const html = page('<footer><a href="#">Contact support</a></footer>');
+
+		const check = get(run(html), 'support-path');
+
+		expect(check?.status).toBe('warn');
+		expect(check?.message).toContain('Support link is a stub');
+	});
+
+	it('passes for a real support mailbox', () => {
+		const html = page('<footer><a href="mailto:support@acme.test">Contact support</a></footer>');
+
+		const check = get(run(html), 'support-path');
+
+		expect(check?.status).toBe('pass');
+		expect(check?.message).toContain('Support path is present');
+	});
+
+	it('warns on javascript and placeholder-domain support links', () => {
+		const js = page('<footer><a href="javascript:void(0)">Support</a></footer>');
+		const placeholder = page(
+			'<footer><a href="https://example.com/support">Help center</a></footer>'
+		);
+
+		expect(get(run(js), 'support-path')).toMatchObject({ status: 'warn' });
+		expect(get(run(placeholder), 'support-path')).toMatchObject({ status: 'warn' });
+	});
+});
+
+describe('last-updated date parsing', () => {
+	it('parses year-month and year-only freshness timestamps', () => {
+		const yearMonth = get(run(page('<p>Updated on 2026/05</p>')), 'last-updated-staleness');
+		const yearOnly = get(run(page('<p>Posted on 2024</p>')), 'last-updated-staleness');
+
+		expect(yearMonth).toMatchObject({ status: 'pass' });
+		expect(yearOnly).toMatchObject({ status: 'warn' });
+		expect(yearOnly?.message).toContain('stale timestamps');
 	});
 });
 

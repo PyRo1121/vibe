@@ -25,8 +25,10 @@ import { auditVulnerabilities, type OsvAudit } from '$lib/scan/repo/osv';
 import type { RepoRef } from '$lib/scan/repo/parse';
 import { repoHtmlUrl } from '$lib/scan/repo/parse';
 import {
+	assessTestSuiteDepth,
 	findCiConfig,
 	findLockfile,
+	findTestFilePaths,
 	hasTests,
 	nodeVersionPinned,
 	parseTsconfigStrict
@@ -228,6 +230,10 @@ export async function scanRepo(
 	const paymentFilePaths = findPaymentFilePaths(entries).filter(
 		(path) => !fetchedSourcePaths.has(path)
 	);
+	const allTestFilePaths = findTestFilePaths(entries);
+	const extraTestFilePaths = allTestFilePaths.filter(
+		(path) => !fetchedSourcePaths.has(path) && !paymentFilePaths.includes(path)
+	);
 
 	const getFile = (path: string | null, maxBytes?: number) =>
 		path ? fetchers.getFile(ref, meta.branch, path, maxBytes) : Promise.resolve(null);
@@ -241,7 +247,8 @@ export async function scanRepo(
 		envTexts,
 		sampleTexts,
 		staticConfigTexts,
-		paymentFileTexts
+		paymentFileTexts,
+		extraTestFileTexts
 	] = await Promise.all([
 		Promise.all(packageJsonPaths.map((path) => getFile(path))),
 		getFile(readmePath),
@@ -251,7 +258,8 @@ export async function scanRepo(
 		Promise.all(envFiles.slice(0, 2).map((p) => getFile(p))),
 		Promise.all(sampleFiles.map((p) => getFile(p))),
 		Promise.all(staticConfigPaths.map((path) => getFile(path, MAX_LOCKFILE_BYTES))),
-		Promise.all(paymentFilePaths.map((path) => getFile(path)))
+		Promise.all(paymentFilePaths.map((path) => getFile(path))),
+		Promise.all(extraTestFilePaths.map((path) => getFile(path)))
 	]);
 
 	const parsedManifests = packageJsonTexts.map((text) => parsePackageJson(text));
@@ -267,6 +275,20 @@ export async function scanRepo(
 	const paymentFiles: RepoFileEvidence[] = paymentFilePaths.map((path, index) => ({
 		path,
 		text: paymentFileTexts[index] ?? null
+	}));
+	const extraTestFiles: RepoFileEvidence[] = extraTestFilePaths.map((path, index) => ({
+		path,
+		text: extraTestFileTexts[index] ?? null
+	}));
+	const fetchedTextByPath = new Map(
+		[...staticFiles, ...sourceFiles, ...paymentFiles, ...extraTestFiles].map((file) => [
+			file.path,
+			file.text
+		])
+	);
+	const testFiles: RepoFileEvidence[] = allTestFilePaths.map((path) => ({
+		path,
+		text: fetchedTextByPath.get(path) ?? null
 	}));
 	const repoFiles = [
 		...new Map(
@@ -472,6 +494,9 @@ export async function scanRepo(
 			: 'No tests found — you cannot safely accept AI-generated changes or refactor without manual QA every time.'
 	);
 
+	const testDepth = assessTestSuiteDepth(entries, rootPackageJsonText, testFiles, staticFiles);
+	check('test-depth', 'launch', 'Test suite depth', testDepth.status, testDepth.message);
+
 	const committedLockfile = findLockfile(entries);
 	check(
 		'lockfile-committed',
@@ -545,7 +570,8 @@ export async function scanRepo(
 					: []),
 				...envFiles.slice(0, 2),
 				...sampleFiles,
-				...paymentFilePaths
+				...paymentFilePaths,
+				...testDepth.sampledPaths
 			])
 		],
 		depCount: hasPackageJson ? Object.keys(dependencies).length : null

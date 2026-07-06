@@ -7,7 +7,10 @@ export type FunnelEventName =
 	| 'checkout_paid'
 	| 'checkout_payment_failed'
 	| 'checkout_subscription_canceled'
-	| 'unlock_click';
+	| 'unlock_click'
+	| 'pricing_viewed'
+	| 'locked_prompt_viewed'
+	| 'billing_portal_opened';
 
 export interface FunnelPayload {
 	verdict?: string;
@@ -16,6 +19,7 @@ export interface FunnelPayload {
 	unlocked?: boolean;
 	scoreDelta?: number;
 	plan?: DeploylintPlanId;
+	mode?: 'alpha' | 'paid';
 }
 
 const ALLOWED_EVENTS = new Set<FunnelEventName>([
@@ -25,7 +29,10 @@ const ALLOWED_EVENTS = new Set<FunnelEventName>([
 	'checkout_paid',
 	'checkout_payment_failed',
 	'checkout_subscription_canceled',
-	'unlock_click'
+	'unlock_click',
+	'pricing_viewed',
+	'locked_prompt_viewed',
+	'billing_portal_opened'
 ]);
 
 export function isFunnelEventName(value: string): value is FunnelEventName {
@@ -49,6 +56,7 @@ export function sanitizeFunnelPayload(raw: Record<string, unknown>): FunnelPaylo
 		payload.scoreDelta = Math.round(raw.scoreDelta);
 	}
 	if (isDeploylintPlanId(raw.plan)) payload.plan = raw.plan;
+	if (raw.mode === 'alpha' || raw.mode === 'paid') payload.mode = raw.mode;
 
 	return payload;
 }

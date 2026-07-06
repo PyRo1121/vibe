@@ -27,4 +27,17 @@ describe('handleEventsPost', () => {
 			)
 		).rejects.toThrow('Unknown event');
 	});
+
+	it('treats client-aborted analytics events as no-content noise', async () => {
+		const request = {
+			headers: new Headers({ 'Content-Type': 'application/json' }),
+			text: async () => {
+				throw new Error('aborted');
+			}
+		} as unknown as Request;
+
+		const res = await handleEventsPost(request);
+
+		expect(res.status).toBe(204);
+	});
 });

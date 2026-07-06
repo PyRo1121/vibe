@@ -48,8 +48,10 @@ export function pushStackChecks(
 				'stripe',
 				'payments',
 				'Stripe integration',
-				/pk_(live|test)_/.test(stackHtml) ? 'pass' : 'warn',
-				'Stripe.js detected — verify Checkout/webhook setup in dashboard',
+				'warn',
+				/pk_(live|test)_/.test(stackHtml)
+					? 'Stripe publishable key detected in page HTML — Repo scan required to verify server-owned checkout, signed webhooks, entitlement fulfillment, and billing self-service'
+					: 'Stripe.js detected — Repo scan required to verify checkout, signed webhooks, fulfillment, and billing self-service before charging users',
 				fixPrompt('stripe', ctx)
 			)
 		);
@@ -61,8 +63,8 @@ export function pushStackChecks(
 				'paddle',
 				'payments',
 				'Paddle integration',
-				'pass',
-				'Paddle checkout detected — verify products, tax settings, and signed webhooks before charging',
+				'warn',
+				'Paddle checkout detected in page HTML — verify products, tax settings, signed webhooks, and fulfillment before charging',
 				fixPrompt('paddle', ctx)
 			)
 		);
@@ -74,8 +76,8 @@ export function pushStackChecks(
 				'lemon-squeezy',
 				'payments',
 				'Lemon Squeezy integration',
-				'pass',
-				'Lemon Squeezy checkout detected — verify variants, license keys, and webhook handling before launch',
+				'warn',
+				'Lemon Squeezy checkout detected in page HTML — verify variants, license keys, signed webhooks, and subscription state handling before launch',
 				fixPrompt('lemon-squeezy', ctx)
 			)
 		);
@@ -128,8 +130,8 @@ export function pushStackChecks(
 				'error-monitoring',
 				'launch',
 				'Error monitoring',
-				'pass',
-				`${monitoring.join(', ')} detected — production errors should be visible after launch`,
+				'warn',
+				`${monitoring.join(', ')} detected — trigger a production test exception and verify alert delivery before relying on it`,
 				fixPrompt('error-monitoring', { ...ctx, message: monitoring.join(', ') })
 			)
 		);

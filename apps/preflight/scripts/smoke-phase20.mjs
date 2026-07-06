@@ -6,6 +6,10 @@
  * Uses an external site with footer legal links. The Worker cannot fetch its own
  * zone (Cloudflare returns 522), so dogfooding deploylint.com is skipped.
  */
+import { installFetchRetry } from './smoke-http.mjs';
+
+installFetchRetry();
+
 const BASE = (
 	process.env.DEPLOYLINT_BASE ??
 	process.env.PREFLIGHT_BASE ??

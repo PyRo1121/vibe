@@ -6,6 +6,10 @@
  * Checkout: 503 when Stripe is not configured (skip, not fail); 200 with checkout URL when configured.
  * Webhook: GET /api/webhooks/stripe must return 200 "ok".
  */
+import { installFetchRetry } from './smoke-http.mjs';
+
+installFetchRetry();
+
 const BASE = (
 	process.env.DEPLOYLINT_BASE ??
 	process.env.PREFLIGHT_BASE ??

@@ -45,15 +45,23 @@ export function looksLikeProductPage(html: string): boolean {
 interface CtaMatch {
 	text: string;
 	index: number;
+	tag: string;
+	href: string | null;
+}
+
+function attr(tag: string, name: string): string | null {
+	const re = new RegExp(`\\b${name}\\s*=\\s*(["'])([^"']*)\\1`, 'i');
+	return tag.match(re)?.[2] ?? null;
 }
 
 function findCtas(markup: string): CtaMatch[] {
 	const ctas: CtaMatch[] = [];
-	const re = /<(?:button|a)\b[^>]*>([\s\S]*?)<\/(?:button|a)>/gi;
+	const re = /<(button|a)\b[^>]*>([\s\S]*?)<\/\1>/gi;
 	for (const m of markup.matchAll(re)) {
-		const text = elementText(m[1]);
+		const tag = m[0];
+		const text = elementText(m[2]);
 		if (text && CTA_VERB.test(text)) {
-			ctas.push({ text, index: m.index ?? 0 });
+			ctas.push({ text, index: m.index ?? 0, tag, href: attr(tag, 'href') });
 		}
 	}
 	return ctas;
@@ -100,6 +108,37 @@ function pushPrimaryCtaCheck(checks: ScanCheck[], html: string, ctx: { url: stri
 			'warn',
 			'Primary CTA appears late in the page — launch traffic decides in seconds; put one above the fold',
 			fixPrompt('primary-cta', ctx)
+		)
+	);
+}
+
+function ctaIsActionable(cta: CtaMatch): boolean {
+	if (/\bdisabled\b/i.test(cta.tag)) return false;
+	if ((attr(cta.tag, 'aria-disabled') ?? '').toLowerCase() === 'true') return false;
+	if (!/^<a\b/i.test(cta.tag)) return true;
+
+	const href = cta.href?.trim() ?? '';
+	if (!href || href === '#') return false;
+	if (/^javascript:/i.test(href)) return false;
+	return true;
+}
+
+function pushCtaAvailabilityCheck(checks: ScanCheck[], html: string, ctx: { url: string }): void {
+	const markup = stripForScan(bodyMarkup(html));
+	const ctas = findCtas(markup);
+	if (ctas.length === 0) return;
+
+	const actionable = ctas.filter(ctaIsActionable).length;
+	checks.push(
+		makeCheck(
+			'cta-availability',
+			'launch',
+			'CTA availability',
+			actionable > 0 ? 'pass' : 'warn',
+			actionable > 0
+				? `${actionable} actionable CTA${actionable === 1 ? '' : 's'} available`
+				: 'CTA cannot be activated - disabled buttons and stub links block interested buyers',
+			fixPrompt('cta-availability', ctx)
 		)
 	);
 }
@@ -175,6 +214,31 @@ function pushPricingPathCheck(checks: ScanCheck[], html: string, ctx: { url: str
 	);
 }
 
+const CONTACT_PRICING =
+	/\b(contact\s+(?:us|sales)\s+for\s+(?:pricing|a\s+quote)|contact\s+sales|talk\s+to\s+sales|request\s+(?:a\s+)?quote|custom\s+pricing|pricing\s+is\s+custom|call\s+for\s+pricing)\b/i;
+
+const CONCRETE_PRICING =
+	/[$â‚¬Â£]\s?\d+|\b\d+\s*(?:\/\s*)?(?:mo|month|monthly|yr|year|annually)\b|\bfree(?:\s+(?:plan|trial|during\s+beta))?\b/i;
+
+function pushPricingClarityCheck(checks: ScanCheck[], html: string, ctx: { url: string }): void {
+	const text = visibleText(html);
+	if (!CONTACT_PRICING.test(text)) return;
+
+	const concrete = CONCRETE_PRICING.test(text);
+	checks.push(
+		makeCheck(
+			'pricing-clarity',
+			'launch',
+			'Pricing clarity',
+			concrete ? 'pass' : 'warn',
+			concrete
+				? 'Concrete pricing is visible before the sales conversation'
+				: 'No concrete pricing - contact-sales-only pricing blocks buyers who need a budget answer before they book a call',
+			fixPrompt('pricing-clarity', ctx)
+		)
+	);
+}
+
 function hasSocialProof(text: string): boolean {
 	if (/\btestimonial\b/i.test(text)) return true;
 	if (/\btrusted by\b/i.test(text)) return true;
@@ -201,11 +265,6 @@ function pushSocialProofCheck(checks: ScanCheck[], html: string, ctx: { url: str
 			fixPrompt('social-proof', ctx)
 		)
 	);
-}
-
-function attr(tag: string, name: string): string | null {
-	const re = new RegExp(`\\b${name}\\s*=\\s*(["'])([^"']*)\\1`, 'i');
-	return tag.match(re)?.[2] ?? null;
 }
 
 function isRequiredInput(tag: string): boolean {
@@ -253,8 +312,10 @@ export function pushConversionChecks(
 	if (!looksLikeProductPage(html)) return;
 
 	pushPrimaryCtaCheck(checks, html, ctx);
+	pushCtaAvailabilityCheck(checks, html, ctx);
 	pushCtaCompetitionCheck(checks, html, ctx);
 	pushPricingPathCheck(checks, html, ctx);
+	pushPricingClarityCheck(checks, html, ctx);
 	pushSocialProofCheck(checks, html, ctx);
 	pushSignupFrictionCheck(checks, html, ctx);
 }

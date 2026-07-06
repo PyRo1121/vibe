@@ -35,7 +35,7 @@ export async function handleCheckoutPost(
 			plan: plan.id,
 			priceId
 		});
-		logFunnelEvent('checkout_started', {});
+		logFunnelEvent('checkout_started', { plan: plan.id, mode: 'paid' });
 		return json({ url: session.url, sessionId: session.id });
 	} catch {
 		error(502, 'Checkout failed — try again in a moment');

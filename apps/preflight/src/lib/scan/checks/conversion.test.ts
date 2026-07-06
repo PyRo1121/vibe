@@ -137,6 +137,61 @@ describe('pricing-path', () => {
 	});
 });
 
+describe('pricing-clarity', () => {
+	it('warns when pricing only tells buyers to contact sales', () => {
+		const html = page(
+			'<nav><a href="/features">Features</a><a href="/pricing">Pricing</a></nav>' +
+				'<h1>Acme</h1><p>All the features your team needs. Sign up or log in anytime.</p>' +
+				'<p>Pricing is custom. Contact sales for pricing.</p>' +
+				'<a href="/contact">Contact sales</a>'
+		);
+
+		const check = get(run(html), 'pricing-clarity');
+
+		expect(check?.status).toBe('warn');
+		expect(check?.message).toContain('No concrete pricing');
+	});
+
+	it('passes when contact-sales pricing still includes a public entry price', () => {
+		const html = page(
+			'<nav><a href="/features">Features</a><a href="/pricing">Pricing</a></nav>' +
+				'<h1>Acme</h1><p>Plans start at $29/mo. Contact sales for enterprise.</p>' +
+				'<a href="/signup">Get started</a>'
+		);
+
+		const check = get(run(html), 'pricing-clarity');
+
+		expect(check?.status).toBe('pass');
+		expect(check?.message).toContain('Concrete pricing');
+	});
+});
+
+describe('cta-availability', () => {
+	it('warns when every CTA is disabled or a stub link', () => {
+		const html = page(
+			'<nav><a href="/features">Features</a><a href="/pricing">Pricing</a></nav>' +
+				'<p>Pricing from $19/mo. Sign up or log in when ready.</p>' +
+				'<button disabled>Get started</button><a href="#">Book a demo</a>'
+		);
+
+		const check = get(run(html), 'cta-availability');
+
+		expect(check?.status).toBe('warn');
+		expect(check?.message).toContain('CTA cannot be activated');
+	});
+
+	it('passes when at least one CTA is actionable', () => {
+		const html = saasLanding(
+			'<button disabled>Get started</button><a href="/signup">Get started</a>'
+		);
+
+		const check = get(run(html), 'cta-availability');
+
+		expect(check?.status).toBe('pass');
+		expect(check?.message).toContain('actionable CTA');
+	});
+});
+
 describe('social-proof', () => {
 	it('passes for trusted-by copy', () => {
 		const html = saasLanding('<p>Trusted by 500+ teams</p>');

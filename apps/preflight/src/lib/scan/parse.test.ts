@@ -13,6 +13,7 @@ import {
 	hasViewport,
 	htmlLang,
 	linkHints,
+	mentionsStack,
 	normalizeUrl,
 	pickCanonical,
 	searchableSourceMapText,
@@ -21,6 +22,8 @@ import {
 	countBlockingHeadScripts,
 	countScriptTags
 } from './parse';
+
+const FAKE_STRIPE_LIVE_KEY = ['sk', 'live', '123456789012345678901234'].join('_');
 
 describe('normalizeUrl', () => {
 	it('adds https when protocol missing', () => {
@@ -137,6 +140,20 @@ describe('launch meta helpers', () => {
 	});
 });
 
+describe('mentionsStack', () => {
+	it('detects database services from common client-side configuration signatures', () => {
+		const stack = mentionsStack(`
+			<script>
+				const supabaseUrl = "https://abc.supabase.co";
+				const firebaseConfig = { projectId: "demo", apiKey: "public-browser-key" };
+			</script>
+		`);
+
+		expect(stack.supabase).toBe(true);
+		expect(stack.firebase).toBe(true);
+	});
+});
+
 describe('extractScriptSrcs', () => {
 	it('collects same-origin script and modulepreload URLs', () => {
 		const base = new URL('https://app.test/page');
@@ -175,7 +192,7 @@ describe('searchableSourceMapText', () => {
 	it('joins embedded sourcesContent for scanning', () => {
 		const map = JSON.stringify({
 			sources: ['config.ts'],
-			sourcesContent: ['const key = "sk_live_1234567890123456789012";']
+			sourcesContent: [`const key = "${FAKE_STRIPE_LIVE_KEY}";`]
 		});
 		expect(searchableSourceMapText(map)).toContain('sk_live_');
 	});
@@ -183,7 +200,7 @@ describe('searchableSourceMapText', () => {
 
 describe('findSecrets', () => {
 	it('flags stripe live keys', () => {
-		const html = '<script>const x = "sk_live_1234567890123456789012";</script>';
+		const html = `<script>const x = "${FAKE_STRIPE_LIVE_KEY}";</script>`;
 		expect(findSecrets(html)).toContain('Stripe live secret key');
 	});
 

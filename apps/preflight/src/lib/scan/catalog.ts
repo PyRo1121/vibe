@@ -493,6 +493,14 @@ const BASE_CHECK_CATALOG = {
 		falsePositive:
 			'Invite-only, sales-led, or free beta products may intentionally avoid public pricing, but the page should say that clearly.'
 	},
+	'pricing-clarity': {
+		id: 'pricing-clarity',
+		why: 'Contact-sales-only pricing can block self-serve buyers who need a budget answer before booking a call or trying the product.',
+		detectedBy:
+			'Scans visible commercial copy for contact-sales or custom-pricing language and checks whether a concrete price, free plan, or entry price is also present.',
+		falsePositive:
+			'Enterprise-only products can intentionally hide public pricing, but the page should explain the buying model and expected sales path.'
+	},
 	'primary-cta': {
 		id: 'primary-cta',
 		why: 'A launch page needs one obvious next step so visitors from search, social, and AI referrals know how to act.',
@@ -644,6 +652,14 @@ const ADDITIONAL_CHECK_CATALOG = {
 		falsePositive:
 			'Checkout may be owned by another backend service, but the scanned app should not imply that the browser creates or controls paid checkout directly.'
 	},
+	'subscription-checkout-mode': {
+		id: 'subscription-checkout-mode',
+		why: 'Subscription SaaS checkout must create recurring subscriptions, not one-time payment sessions that leave access, renewal, and cancellation state out of sync.',
+		detectedBy:
+			'Scans Stripe Checkout session creation alongside subscription lifecycle signals and checks for an explicit subscription mode.',
+		falsePositive:
+			'Usage-based or one-time-credit products may intentionally use payment mode; document that model and keep subscription webhook code out of the checkout path.'
+	},
 	'blocking-css': {
 		id: 'blocking-css',
 		why: 'Too many render-blocking stylesheets delay first paint and make a launch page feel slow before users can evaluate it.',
@@ -683,6 +699,14 @@ const ADDITIONAL_CHECK_CATALOG = {
 		falsePositive:
 			'Support may be handled inside an authenticated app or external helpdesk; link that route clearly from the public site.'
 	},
+	'support-path': {
+		id: 'support-path',
+		why: 'Buyers and early users check how to get help before committing money or data, and placeholder support links damage trust quickly.',
+		detectedBy:
+			'Finds support, help, contact-support, and customer-service anchors and warns when their hrefs are empty, hash-only, javascript-only, or obvious placeholders.',
+		falsePositive:
+			'Support can live inside an authenticated product or external helpdesk, but public marketing pages should still expose a working route or mailbox.'
+	},
 	'cookie-consent': {
 		id: 'cookie-consent',
 		why: 'Cookie-based tracking without consent controls can create privacy compliance risk and undermine trust with EU and enterprise visitors.',
@@ -706,6 +730,14 @@ const ADDITIONAL_CHECK_CATALOG = {
 			'Counts distinct action-oriented link and button labels after normalizing repeated CTA text.',
 		falsePositive:
 			'Complex apps can legitimately expose several task actions; launch homepages usually need one dominant next step.'
+	},
+	'cta-availability': {
+		id: 'cta-availability',
+		why: 'A visible CTA that is disabled, empty, or only points to a stub wastes high-intent traffic and makes the product feel unfinished.',
+		detectedBy:
+			'Parses rendered button and anchor CTAs, then flags pages where every detected action is disabled, aria-disabled, blank, hash-only, or javascript-only.',
+		falsePositive:
+			'Some gated launches intentionally disable signup until approval, but the public page should route buyers to a working waitlist or contact path.'
 	},
 	'dead-social-links': {
 		id: 'dead-social-links',
@@ -970,6 +1002,14 @@ const ADDITIONAL_CHECK_CATALOG = {
 		falsePositive:
 			'Some free or internal tools do not need full terms, but paid or account-based products should link clear terms.'
 	},
+	'legal-links': {
+		id: 'legal-links',
+		why: 'Commercial pages that collect emails, accounts, or payments need visible privacy and terms links before serious buyers trust the signup path.',
+		detectedBy:
+			'Looks for commercial signals such as pricing, plans, signup forms, checkout, and paid CTAs, then verifies privacy and terms anchors are present.',
+		falsePositive:
+			'Legal pages can be hosted on a parent company or help-center domain, but the public launch page should still link them clearly.'
+	},
 	'tests-present': {
 		id: 'tests-present',
 		why: 'Tests are the safety net that make refactoring, dependency updates, and AI-generated changes reviewable before launch.',
@@ -977,6 +1017,14 @@ const ADDITIONAL_CHECK_CATALOG = {
 			'Looks for test files or meaningful test scripts in the repository tree and root package manifest.',
 		falsePositive:
 			'Manual QA or external test suites may exist outside the repository; the scanned repo should still expose its core verification path.'
+	},
+	'test-depth': {
+		id: 'test-depth',
+		why: 'A repo can look tested while still relying on one trivial smoke assertion, no coverage gate, and no integration or end-to-end evidence.',
+		detectedBy:
+			'Samples repository test files across common JavaScript, Python, Go, Rust, Ruby, PHP, and .NET layouts, then checks for real assertions, coverage signals, and visible test breadth.',
+		falsePositive:
+			'Deep tests may live in a private companion repo or external CI service; document that path or expose the verification command in the scanned repo.'
 	},
 	'ts-strict': {
 		id: 'ts-strict',
@@ -1016,6 +1064,14 @@ const ADDITIONAL_CHECK_CATALOG = {
 			'Scans Stripe-like webhook handlers for checkout completion, async payment success or failure, invoice failure, and subscription deletion events.',
 		falsePositive:
 			'Some products use polling or provider-hosted fulfillment, but launch-critical subscription state changes still need a visible recovery path.'
+	},
+	'webhook-idempotency': {
+		id: 'webhook-idempotency',
+		why: 'Payment providers retry webhooks, so fulfillment handlers must dedupe event ids before granting, revoking, emailing, or provisioning paid access.',
+		detectedBy:
+			'Scans payment webhook handlers for idempotency, processed-event tables, event.id lookups, upserts, inserts, or conflict-safe storage before fulfillment.',
+		falsePositive:
+			'Idempotency may be enforced in a shared queue or private service not visible to the scanned repository; leave a clear processed-event handoff in payment code.'
 	},
 	'workflow-permissions': {
 		id: 'workflow-permissions',

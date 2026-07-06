@@ -31,6 +31,11 @@ function extractTitle(html: string): string | null {
 	return m?.[1]?.trim() ?? null;
 }
 
+function attr(tag: string, name: string): string | null {
+	const re = new RegExp(`\\b${name}\\s*=\\s*(["'])([^"']*)\\1`, 'i');
+	return tag.match(re)?.[2] ?? null;
+}
+
 function latestCopyrightYear(text: string): number | null {
 	const re = /(?:©|&copy;|\(c\)|copyright)\s*(\d{4})(?:\s*[-–]\s*(\d{4}))?/gi;
 	let latest: number | null = null;
@@ -65,6 +70,99 @@ function pushCopyrightYearCheck(
 	);
 }
 
+interface Anchor {
+	text: string;
+	href: string;
+}
+
+function collectAnchors(html: string): Anchor[] {
+	const anchors: Anchor[] = [];
+	for (const m of html.matchAll(/<a\b[^>]*>([\s\S]*?)<\/a>/gi)) {
+		anchors.push({
+			text: stripForText(m[1]),
+			href: attr(m[0], 'href')?.trim() ?? ''
+		});
+	}
+	return anchors;
+}
+
+function commercialSignalsPresent(html: string): boolean {
+	const text = stripForText(html);
+	return (
+		/\b(pricing|plans?|checkout|subscribe|sign\s*up|buy\s+now|start\s+(?:free\s+)?trial|book\s+(?:a\s+)?demo)\b/i.test(
+			text
+		) ||
+		/[$]\s?\d+|\b\/mo\b/i.test(text) ||
+		/<form\b[\s\S]*?<input\b[^>]*\btype\s*=\s*(["'])email\1/i.test(html)
+	);
+}
+
+function hasLegalAnchor(anchors: Anchor[], kind: 'privacy' | 'terms'): boolean {
+	const re =
+		kind === 'privacy'
+			? /\bprivacy\b/i
+			: /\bterms?\b|\bterms\s+of\s+service\b|\bterms\s+and\s+conditions\b/i;
+	return anchors.some((anchor) => re.test(`${anchor.text} ${anchor.href}`));
+}
+
+function pushLegalLinksCheck(checks: ScanCheck[], html: string, ctx: { url: string }): void {
+	if (!commercialSignalsPresent(html)) return;
+
+	const anchors = collectAnchors(html);
+	const hasPrivacy = hasLegalAnchor(anchors, 'privacy');
+	const hasTerms = hasLegalAnchor(anchors, 'terms');
+	const ok = hasPrivacy && hasTerms;
+	const missing =
+		hasPrivacy || hasTerms
+			? `Missing ${hasPrivacy ? 'terms' : 'privacy'} link`
+			: 'No privacy or terms links';
+
+	checks.push(
+		makeCheck(
+			'legal-links',
+			'launch',
+			'Legal links',
+			ok ? 'pass' : 'warn',
+			ok
+				? 'Privacy and terms links present'
+				: `${missing} - buyers and security reviewers look for policy basics before trusting a signup form`,
+			fixPrompt('legal-links', ctx)
+		)
+	);
+}
+
+function supportAnchorLooksRelevant(anchor: Anchor): boolean {
+	return /\b(contact\s+support|support|help\s+center|get\s+help|customer\s+service)\b/i.test(
+		`${anchor.text} ${anchor.href}`
+	);
+}
+
+function supportHrefIsStub(href: string): boolean {
+	if (!href || href === '#') return true;
+	if (/^javascript:/i.test(href)) return true;
+	if (/example\.com|yourdomain|your-company|yourcompany/i.test(href)) return true;
+	return false;
+}
+
+function pushSupportPathCheck(checks: ScanCheck[], html: string, ctx: { url: string }): void {
+	const supportAnchors = collectAnchors(html).filter(supportAnchorLooksRelevant);
+	if (supportAnchors.length === 0) return;
+
+	const stubCount = supportAnchors.filter((anchor) => supportHrefIsStub(anchor.href)).length;
+	checks.push(
+		makeCheck(
+			'support-path',
+			'launch',
+			'Support path',
+			stubCount === 0 ? 'pass' : 'warn',
+			stubCount === 0
+				? 'Support path is present'
+				: `Support link is a stub (${stubCount} found) - buyers check how they get help before they commit`,
+			fixPrompt('support-path', ctx)
+		)
+	);
+}
+
 function socialPathLooksPlaceholder(href: string): boolean {
 	if (!href || href === '#') return true;
 	try {
@@ -74,7 +172,7 @@ function socialPathLooksPlaceholder(href: string): boolean {
 		if (/yourhandle|username|example/i.test(href)) return true;
 		return false;
 	} catch {
-		return href === '#';
+		return true;
 	}
 }
 
@@ -272,4 +370,6 @@ export function pushTrustChecks(
 	pushBrokenAnchorNavCheck(checks, html, ctx);
 	pushDefaultFaviconTitleCheck(checks, html, ctx);
 	pushLastUpdatedStalenessCheck(checks, html, ctx, now);
+	pushLegalLinksCheck(checks, html, ctx);
+	pushSupportPathCheck(checks, html, ctx);
 }

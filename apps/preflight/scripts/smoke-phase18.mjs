@@ -4,6 +4,9 @@
  * Optional: PREFLIGHT_BASE=https://deploylint.com
  */
 import { hasPlausibleHtmlSnippet } from './smoke-assertions.mjs';
+import { installFetchRetry } from './smoke-http.mjs';
+
+installFetchRetry();
 
 const BASE = (
 	process.env.DEPLOYLINT_BASE ??

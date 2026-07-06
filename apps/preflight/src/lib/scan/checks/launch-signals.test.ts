@@ -21,6 +21,36 @@ function doc(head = '', body = '<h1>Acme</h1>'): string {
 	return `<!doctype html><html><head>${head}</head><body>${body}</body></html>`;
 }
 
+describe('noindex', () => {
+	it('fails when the homepage explicitly blocks indexing and passes otherwise', () => {
+		const blocked = run(doc('<meta name="robots" content="noindex,nofollow">'));
+		const indexable = run(doc());
+
+		expect(get(blocked, 'noindex')?.status).toBe('fail');
+		expect(get(blocked, 'noindex')?.message).toContain('noindex');
+		expect(get(indexable, 'noindex')?.status).toBe('pass');
+	});
+});
+
+describe('canonical', () => {
+	it('passes when canonical matches the final URL', () => {
+		const checks = run(doc('<link rel="canonical" href="https://app.test/">'));
+
+		expect(get(checks, 'canonical')?.status).toBe('pass');
+	});
+
+	it('warns when canonical is missing, invalid, or points elsewhere', () => {
+		const missing = run(doc());
+		const invalid = run(doc('<link rel="canonical" href="https://">'));
+		const elsewhere = run(doc('<link rel="canonical" href="https://other.test/">'));
+
+		expect(get(missing, 'canonical')?.status).toBe('warn');
+		expect(get(invalid, 'canonical')?.status).toBe('warn');
+		expect(get(elsewhere, 'canonical')?.status).toBe('warn');
+		expect(get(elsewhere, 'canonical')?.message).toContain('elsewhere');
+	});
+});
+
 describe('twitter-card', () => {
 	it('warns when Open Graph tags exist without twitter-card', () => {
 		const checks = run(

@@ -7,6 +7,10 @@
  * Legal pages come from homepage link crawl; /compare and /developers may appear
  * as role=sitemap when listed in sitemap.xml but not linked from the homepage.
  */
+import { installFetchRetry } from './smoke-http.mjs';
+
+installFetchRetry();
+
 const BASE = (
 	process.env.DEPLOYLINT_BASE ??
 	process.env.PREFLIGHT_BASE ??

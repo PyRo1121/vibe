@@ -46,6 +46,12 @@ const LEGAL_ROUTES = {
 	'/terms': { html: LEGAL_PAGE_HTML }
 };
 
+function checksById(report: Awaited<ReturnType<typeof scanUrl>>) {
+	return Object.fromEntries(report.checks.map((check) => [check.id, check]));
+}
+
+const FAKE_STRIPE_LIVE_KEY = ['sk', 'live', '123456789012345678901234'].join('_');
+
 describe('extractRobotsSitemapUrls', () => {
 	const origin = new URL('https://app.test/');
 
@@ -160,6 +166,259 @@ describe('scanUrl', () => {
 		expect(report.verdict).toBe('go');
 		expect(report.socialPreview?.title).toBe('Acme Launch');
 		expect(report.launchBrief?.headline).toBeTruthy();
+	});
+
+	it('catches a hostile launch across SEO, security, trust, conversion, and ops in one scan', async () => {
+		const badHtml = `<!doctype html>
+<html>
+<head>
+  <title>Vite App</title>
+  <meta name="description" content="Welcome">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta property="og:title" content="Demo">
+  <meta property="og:description" content="Demo">
+  <meta property="og:image" content="/og.png">
+  <link rel="canonical" href="https://other.test/">
+  <script src="https://js.stripe.com/v3"></script>
+  <script>const supabaseUrl = "https://demo.supabase.co";</script>
+</head>
+<body>
+  <div tabindex="2">Trap focus</div>
+  <h1>Launch app</h1>
+  <h3>Skipped heading</h3>
+  <p>Lorem ipsum TODO your product name here. Plans start at $19/mo. Sign up today.</p>
+  <form><input type="email" placeholder="Email"><button disabled>Get started</button></form>
+  <a href="/privacy">Privacy</a>
+  <a href="/terms">Terms</a>
+  <a href="/dead">Dead link</a>
+  <a href="#">Book a demo</a>
+  <a href="https://twitter.com/">X</a>
+  <img src="/a.png"><img src="/b.png"><img src="/c.png"><img src="/d.png">
+</body>
+</html>`;
+		const fetchHtml = async (url: URL) => {
+			if (url.hostname === 'www.app.test') {
+				return {
+					html: badHtml,
+					finalUrl: url,
+					status: 200,
+					headers: STRONG_HEADERS,
+					redirectHops: 0
+				};
+			}
+			if (url.pathname === '/privacy') {
+				return {
+					html: STUB_PAGE_HTML,
+					finalUrl: url,
+					status: 200,
+					headers: STRONG_HEADERS,
+					redirectHops: 0
+				};
+			}
+			if (url.pathname === '/terms') {
+				return {
+					html: 'missing',
+					finalUrl: url,
+					status: 404,
+					headers: STRONG_HEADERS,
+					redirectHops: 0
+				};
+			}
+			return {
+				html: badHtml,
+				finalUrl: url,
+				status: 200,
+				headers: STRONG_HEADERS,
+				redirectHops: 0
+			};
+		};
+		const headOk = async (url: string) =>
+			url.endsWith('/robots.txt') ||
+			url.endsWith('/.env') ||
+			url.endsWith('/.git/HEAD') ||
+			url.endsWith('/backup.zip') ||
+			url.endsWith('/package.json') ||
+			url.endsWith('/privacy');
+		const fetchText = async (url: string) => {
+			if (url.endsWith('/robots.txt')) return 'User-agent: *\nDisallow: /';
+			if (url.endsWith('/.env')) return `STRIPE_SECRET_KEY=${FAKE_STRIPE_LIVE_KEY}`;
+			if (url.endsWith('/.git/HEAD')) return 'ref: refs/heads/main\n';
+			if (url.endsWith('/backup.zip')) return 'PK'.padEnd(128, 'x');
+			if (url.endsWith('/package.json')) return '{"name":"leaky-app"}';
+			return null;
+		};
+
+		const report = await scanUrl('https://app.test', {
+			fetchHtml,
+			headOk,
+			headProbe: async () => ({ reachable: true, isImage: false, contentType: 'text/html' }),
+			fetchText
+		});
+		const byId = checksById(report);
+		const expectedStatuses = {
+			noindex: 'fail',
+			canonical: 'warn',
+			'og-image-live': 'fail',
+			'og-image-type': 'fail',
+			'robots-block': 'fail',
+			'exposed-env': 'fail',
+			'exposed-git': 'fail',
+			'exposed-backup': 'fail',
+			'exposed-package': 'warn',
+			'not-found-page': 'warn',
+			links: 'warn',
+			privacy: 'warn',
+			terms: 'fail',
+			'placeholder-copy': 'fail',
+			'form-labels': 'warn',
+			'positive-tabindex': 'warn',
+			landmarks: 'warn',
+			'health-endpoint': 'warn',
+			stripe: 'warn',
+			supabase: 'warn',
+			'dead-social-links': 'warn',
+			'default-favicon-title': 'warn',
+			'cta-availability': 'warn'
+		} as const;
+
+		for (const [id, status] of Object.entries(expectedStatuses)) {
+			expect(byId[id]?.status).toBe(status);
+		}
+		expect(byId['privacy']?.message).toContain('stub');
+		expect(byId['terms']?.message).toContain('HTTP 404');
+		expect(byId['exposed-env']?.message).toContain('/.env');
+		expect(report.verdict).toBe('no-go');
+		expect(
+			report.checks.filter((check) => check.status === 'fail').map((check) => check.id)
+		).toEqual(
+			expect.arrayContaining([
+				'noindex',
+				'og-image-live',
+				'og-image-type',
+				'robots-block',
+				'exposed-env',
+				'exposed-git',
+				'exposed-backup',
+				'terms',
+				'placeholder-copy'
+			])
+		);
+	});
+
+	it('does not invent blockers on a launch-ready site with crawl, SEO, security, and email evidence', async () => {
+		const healthyHtml = `<!doctype html>
+<html lang="en">
+<head>
+  <title>Deploylint Launch Readiness Scanner</title>
+  <meta name="description" content="Deploylint checks SEO, security, payments, legal pages, and production readiness before a public launch.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta property="og:title" content="Deploylint">
+  <meta property="og:description" content="Launch readiness scanner">
+  <meta property="og:image" content="https://app.test/og.png">
+  <meta property="og:url" content="https://app.test/">
+  <meta property="og:site_name" content="Deploylint">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="https://app.test/">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="preconnect" href="https://plausible.io">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Deploylint"}</script>
+  <script async src="https://plausible.io/js/script.js"></script>
+</head>
+<body>
+  <a href="#main">Skip to content</a>
+  <nav><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/pricing">Pricing</a></nav>
+  <main id="main">
+    <h1>Scan before you ship</h1>
+    <p>Deploylint is a launch readiness scanner for app builders who need a trustworthy preflight check before they publish.</p>
+    <a href="/signup">Get started</a>
+    <p>Plans start at $19/mo. Trusted by 500+ builders.</p>
+    <img src="/hero.png" width="1200" height="800" alt="Deploylint report">
+    <img src="/a.png" width="100" height="100" alt="A">
+    <img src="/b.png" width="100" height="100" alt="B">
+    <img src="/c.png" width="100" height="100" loading="lazy" alt="C">
+  </main>
+  <footer><a href="mailto:support@app.test">Contact support</a><a href="https://x.com/deploylint">X</a></footer>
+</body>
+</html>`;
+		const report = await scanUrl('https://app.test', {
+			fetchHtml: routedFetchHtml({
+				'/': { html: healthyHtml },
+				'/privacy': { html: LEGAL_PAGE_HTML },
+				'/terms': { html: LEGAL_PAGE_HTML },
+				'/pricing': { html: LEGAL_PAGE_HTML },
+				'/about': { html: LEGAL_PAGE_HTML }
+			}),
+			headOk: async (url: string) =>
+				[
+					'/robots.txt',
+					'/sitemap.xml',
+					'/llms.txt',
+					'/.well-known/security.txt',
+					'/health',
+					'/privacy',
+					'/terms',
+					'/pricing',
+					'/signup',
+					'/about'
+				].some((path) => url.endsWith(path)),
+			headProbe: async () => ({ reachable: true, isImage: true, contentType: 'image/png' }),
+			fetchText: async (url: string) => {
+				if (url.endsWith('/robots.txt')) return 'User-agent: *\nAllow: /';
+				if (url.endsWith('/sitemap.xml'))
+					return '<urlset><url><loc>https://app.test/pricing</loc></url><url><loc>https://app.test/about</loc></url></urlset>';
+				if (url.endsWith('/llms.txt'))
+					return '# Deploylint\nLaunch readiness scanner for production apps.';
+				if (url.endsWith('/.well-known/security.txt')) return 'Contact: mailto:security@app.test';
+				return null;
+			},
+			resolveTxt: async (name: string) => {
+				if (name === 'app.test') return ['v=spf1 include:_spf.example.com ~all'];
+				if (name === '_dmarc.app.test') return ['v=DMARC1; p=none'];
+				if (name === 'default._domainkey.app.test') return ['v=DKIM1; k=rsa; p=MIIB'];
+				return [];
+			}
+		});
+		const byId = checksById(report);
+
+		expect(
+			report.checks.filter((check) => check.status === 'fail').map((check) => check.id)
+		).toEqual([]);
+		for (const id of [
+			'noindex',
+			'canonical',
+			'open-graph',
+			'og-image-live',
+			'og-image-type',
+			'robots-block',
+			'sitemap',
+			'llms-txt',
+			'security-txt',
+			'web-manifest',
+			'not-found-page',
+			'email-auth',
+			'dkim-dns',
+			'privacy',
+			'terms',
+			'placeholder-copy',
+			'img-dimensions',
+			'img-lazy',
+			'dead-social-links',
+			'support-path',
+			'legal-links'
+		]) {
+			expect(byId[id]?.status).toBe('pass');
+		}
+		expect(report.verdict).not.toBe('no-go');
+		expect(report.pagesScanned?.map((page) => page.role)).toEqual([
+			'home',
+			'privacy',
+			'terms',
+			'pricing',
+			'sitemap'
+		]);
 	});
 
 	it('samples sitemap URLs and warns when they are dead', async () => {
@@ -474,7 +733,7 @@ describe('scanUrl', () => {
 			headOk: async () => true,
 			headProbe: mockDeps.headProbe,
 			fetchText: async (url) =>
-				url.endsWith('/app.js') ? 'const key = "sk_live_1234567890123456789012";' : null
+				url.endsWith('/app.js') ? `const key = "${FAKE_STRIPE_LIVE_KEY}";` : null
 		});
 		const secrets = report.checks.find((c) => c.id === 'secrets');
 		expect(secrets?.status).toBe('fail');
@@ -485,7 +744,7 @@ describe('scanUrl', () => {
 		const html = `${GOOD_HTML}<script src="/app.js"></script>`;
 		const map = JSON.stringify({
 			sources: ['config.ts'],
-			sourcesContent: ['export const key = "sk_live_1234567890123456789012";']
+			sourcesContent: [`export const key = "${FAKE_STRIPE_LIVE_KEY}";`]
 		});
 		const report = await scanUrl('https://app.test', {
 			fetchHtml: async () => ({
@@ -519,7 +778,7 @@ describe('scanUrl', () => {
 			headOk: async () => true,
 			headProbe: mockDeps.headProbe,
 			fetchText: async (url) =>
-				url.endsWith('/terms-only.js') ? 'const key = "sk_live_1234567890123456789012";' : null
+				url.endsWith('/terms-only.js') ? `const key = "${FAKE_STRIPE_LIVE_KEY}";` : null
 		});
 		const secrets = report.checks.find((c) => c.id === 'secrets');
 		expect(secrets?.status).toBe('fail');

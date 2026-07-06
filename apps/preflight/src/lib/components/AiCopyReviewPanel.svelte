@@ -1,13 +1,14 @@
 <script lang="ts">
-	import { ALPHA_FREE_UNLOCK } from '$lib/product/alpha';
 	import type { ScanReport } from '$lib/scan/types';
 
 	let {
 		report,
+		alphaFreeUnlock = false,
 		copied,
 		onCopy
 	}: {
 		report: ScanReport;
+		alphaFreeUnlock?: boolean;
 		copied: boolean;
 		onCopy: (text: string) => void;
 	} = $props();
@@ -26,7 +27,7 @@
 			<span
 				class="rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] font-semibold tracking-wider text-violet-300 uppercase"
 			>
-				{ALPHA_FREE_UNLOCK ? 'Free in alpha' : 'Included with unlock'}
+				{alphaFreeUnlock ? 'Free in alpha' : 'Included with unlock'}
 			</span>
 		</div>
 		<ul class="mt-3 space-y-2 text-sm text-zinc-300">

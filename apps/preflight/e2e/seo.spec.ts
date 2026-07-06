@@ -6,11 +6,11 @@ const socialImage = `${baseUrl}/og.png`;
 const pages = [
 	{
 		path: '/',
-		title: 'Launch readiness checker for AI-built apps - Deploylint',
+		title: 'Payment readiness checker for AI-built SaaS - Deploylint',
 		description:
-			'Run 90+ launch checks before you share a URL. Deploylint finds broken previews, exposed secrets, SEO blockers, legal gaps, and gives Cursor-ready fix prompts.',
+			'Scan an AI-built SaaS before charging users. Deploylint checks checkout, signed webhooks, entitlements, billing self-service, exposed secrets, SEO blockers, and launch polish.',
 		canonical: `${baseUrl}/`,
-		heading: /Should you post this URL today/i,
+		heading: /Can this AI-built SaaS safely take money/i,
 		jsonLdTypes: ['WebApplication', 'Organization']
 	},
 	{

@@ -3,6 +3,10 @@
  * Phase 19 production smoke — CI deploy gate wedge
  * Run: npm run smoke:phase19 (from apps/preflight)
  */
+import { installFetchRetry } from './smoke-http.mjs';
+
+installFetchRetry();
+
 const BASE = (
 	process.env.DEPLOYLINT_BASE ??
 	process.env.PREFLIGHT_BASE ??

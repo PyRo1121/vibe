@@ -7,7 +7,7 @@ export function apiBase(): string {
 		process.env.DEPLOYLINT_API ??
 		process.env.PREFLIGHT_API ??
 		DEFAULT_DEPLOYLINT_API
-	).replace(/\/$/, '');
+	).replace(/\/+$/, '');
 }
 
 export function reportUrl(report: ScanReport): string | null {

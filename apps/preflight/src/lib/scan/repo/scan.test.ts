@@ -57,6 +57,8 @@ describe('scanRepo', () => {
 			{ path: 'package-lock.json', type: 'blob' },
 			{ path: '.github/workflows/ci.yml', type: 'blob' },
 			{ path: 'src/index.test.ts', type: 'blob' },
+			{ path: 'src/lib/billing.test.ts', type: 'blob' },
+			{ path: 'e2e/checkout.spec.ts', type: 'blob' },
 			{ path: '.nvmrc', type: 'blob' },
 			{ path: 'tsconfig.json', type: 'blob' },
 			{ path: 'eslint.config.js', type: 'blob' },
@@ -74,7 +76,8 @@ describe('scanRepo', () => {
 					lint: 'eslint .',
 					format: 'prettier --write .',
 					typecheck: 'tsc --noEmit',
-					test: 'vitest run',
+					test: 'vitest run --coverage',
+					'test:e2e': 'playwright test',
 					build: 'vite build'
 				}
 			}),
@@ -102,7 +105,22 @@ jobs:
       - run: npm run build
 `,
 			'src/index.test.ts':
-				'import { expect, it } from "vitest";\nit("works", () => expect(1).toBe(1));',
+				'import { expect, it } from "vitest";\nimport { hello } from "./index";\nit("exports the launch value", () => expect(hello).toBe(1));',
+			'src/lib/billing.test.ts': `
+import { expect, it } from "vitest";
+import { canAccessPlan } from "./billing";
+it("does not grant access to canceled subscribers", () => {
+  expect(canAccessPlan({ status: "canceled", plan: "pro" })).toEqual({ allowed: false, reason: "canceled" });
+});
+`,
+			'e2e/checkout.spec.ts': `
+import { expect, test } from "@playwright/test";
+test("pricing CTA reaches checkout", async ({ page }) => {
+  await page.goto("/pricing");
+  await page.getByRole("button", { name: "Subscribe" }).click();
+  await expect(page).toHaveURL(/checkout/);
+});
+`,
 			'.nvmrc': '22\n',
 			'tsconfig.json': JSON.stringify({ compilerOptions: { strict: true } }),
 			'eslint.config.js': 'export default [];',
@@ -137,6 +155,7 @@ jobs:
 		expect(byId['license-risk'].status).toBe('pass');
 		expect(byId.readme.status).toBe('pass');
 		expect(byId['package-scripts'].status).toBe('pass');
+		expect(byId['test-depth'].status).toBe('pass');
 		expect(byId['ci-runs-quality-gates'].status).toBe('pass');
 		expect(byId['deploy-config'].status).toBe('pass');
 		expect(report.licenseAudit?.sellable).toBe('yes');
@@ -753,9 +772,126 @@ if (event.type === 'checkout.session.completed') return new Response('ok');
 		const byId = Object.fromEntries(report.checks.map((c) => [c.id, c]));
 		expect(byId['ci-config'].status).toBe('warn');
 		expect(byId['tests-present'].status).toBe('warn');
+		expect(byId['test-depth'].status).toBe('warn');
 		expect(byId['lockfile-committed'].status).toBe('warn');
 		expect(byId['node-version-pinned'].status).toBe('warn');
 		expect(byId['ts-strict']).toBeUndefined();
+	});
+
+	it('surfaces a repo that only looks tested but is unsafe to launch', async () => {
+		const entries: RepoTreeEntry[] = [
+			{ path: 'package.json', type: 'blob' },
+			{ path: 'package-lock.json', type: 'blob' },
+			{ path: 'README.md', type: 'blob' },
+			{ path: '.env.production', type: 'blob' },
+			{ path: 'tsconfig.json', type: 'blob' },
+			{ path: 'wrangler.jsonc', type: 'blob' },
+			{ path: 'Dockerfile', type: 'blob' },
+			{ path: '.github/workflows/ci.yml', type: 'blob' },
+			{ path: 'src/smoke.test.ts', type: 'blob' },
+			{ path: 'src/routes/api/webhooks/stripe/+server.ts', type: 'blob' },
+			{ path: 'src/lib/server/stripe.ts', type: 'blob' }
+		];
+		const files: Record<string, string> = {
+			'package.json': JSON.stringify({
+				packageManager: 'pnpm@10.0.0',
+				dependencies: { stripe: '^20.0.0', lodash: '4.17.20' },
+				devDependencies: { typescript: '^5.0.0', '@sveltejs/kit': '^2.0.0' },
+				scripts: {
+					lint: 'true',
+					test: 'echo "no tests" && exit 0',
+					build: 'true'
+				}
+			}),
+			'package-lock.json': JSON.stringify({
+				lockfileVersion: 3,
+				packages: {
+					'node_modules/lodash': { version: '4.17.20' },
+					'node_modules/stripe': { version: '20.0.0' }
+				}
+			}),
+			'README.md': '# App\n\nTODO',
+			'.env.production': `STRIPE_SECRET_KEY=sk_live_${'a'.repeat(24)}\n`,
+			'tsconfig.json': JSON.stringify({ compilerOptions: { strict: false } }),
+			'wrangler.jsonc': '{ "compatibility_date": "2025-01-01" }',
+			Dockerfile: 'FROM node:22\nCOPY .env .env\nRUN npm ci\n',
+			'.github/workflows/ci.yml': `
+on: pull_request_target
+permissions: write-all
+jobs:
+  verify:
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: \${{ github.event.pull_request.head.sha }}
+          repository: \${{ github.event.pull_request.head.repo.full_name }}
+          allow-unsafe-pr-checkout: true
+      - uses: acme/deploy@main
+      # - run: npm run lint
+      # - run: npm test
+      # - run: npm run build
+      - run: echo "\${{ github.event.pull_request.title }}"
+`,
+			'src/smoke.test.ts':
+				'import { expect, it } from "vitest";\nit("works", () => expect(1).toBe(1));',
+			'src/routes/api/webhooks/stripe/+server.ts': `
+export async function POST({ request }) {
+  const event = await request.json();
+  if (event.type === 'checkout.session.completed') return new Response('ok');
+}
+`,
+			'src/lib/server/stripe.ts': `const stripe = new Stripe('sk_live_${'b'.repeat(24)}');`
+		};
+
+		const report = await scanRepo(REF, {
+			fetchers: fakeFetchers({ entries, files }),
+			npmLicense: async () => 'MIT',
+			vulnAuditor: async (packages) => ({
+				checked: packages.length,
+				findings: [{ package: 'lodash', version: '4.17.20', vulnIds: ['GHSA-test'] }],
+				worstSeverity: 'high'
+			})
+		});
+
+		const byId = Object.fromEntries(report.checks.map((check) => [check.id, check]));
+		const expectedStatuses = {
+			'env-committed': 'fail',
+			secrets: 'fail',
+			'gitignore-env': 'warn',
+			readme: 'warn',
+			'tests-present': 'pass',
+			'test-depth': 'warn',
+			'package-scripts': 'warn',
+			'lint-script': 'warn',
+			'build-script': 'warn',
+			'typecheck-script': 'warn',
+			'svelte-check': 'warn',
+			'package-manager-pinned': 'warn',
+			'dependency-vulns': 'fail',
+			'ci-runs-quality-gates': 'warn',
+			'workflow-permissions': 'warn',
+			'workflow-pull-request-target': 'fail',
+			'workflow-action-pinning': 'warn',
+			'dependency-review-action': 'warn',
+			'dependabot-config': 'warn',
+			'webhook-signature-missing': 'fail',
+			'webhook-event-coverage': 'warn',
+			'webhook-idempotency': 'warn',
+			'entitlement-fulfillment': 'warn',
+			'billing-portal': 'warn',
+			'payment-env-safety': 'fail',
+			'wrangler-compat-date': 'warn',
+			'docker-env-copy': 'fail',
+			'ts-strict': 'warn'
+		} as const;
+
+		for (const [id, status] of Object.entries(expectedStatuses)) {
+			expect(byId[id]?.status).toBe(status);
+		}
+		expect(byId['env-committed']?.message).toContain('Stripe live secret key');
+		expect(byId['workflow-pull-request-target']?.priority).toBe('p0');
+		expect(byId['payment-env-safety']?.priority).toBe('p0');
+		expect(report.verdict).toBe('no-go');
 	});
 
 	it('ts-strict warns but never fails even when strict is disabled', async () => {

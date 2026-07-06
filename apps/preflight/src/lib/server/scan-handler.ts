@@ -1,6 +1,6 @@
 import { sanitizeReport } from '$lib/billing/report';
 import { logFunnelEvent } from '$lib/metrics/funnel';
-import { ALPHA_FREE_UNLOCK } from '$lib/product/alpha';
+import { resolveAlphaFreeUnlock } from '$lib/product/alpha';
 import { scanUrl } from '$lib/scan/engine';
 import { createScanDeps } from '$lib/scan/fetchers';
 import { parseRepoUrl } from '$lib/scan/repo/parse';
@@ -25,18 +25,19 @@ export async function handleScanPost(request: Request, env?: Env) {
 	}
 
 	const repoRef = parseRepoUrl(parsed.url);
+	const alphaFreeUnlock = resolveAlphaFreeUnlock(env);
 	const deps = createScanDeps(env);
 	const report = repoRef
 		? await scanRepo(repoRef, { token: env?.GITHUB_TOKEN })
 		: await scanUrl(parsed.url, deps);
 	const stripeKey = env?.STRIPE_SECRET_KEY;
 
-	if (!ALPHA_FREE_UNLOCK && parsed.unlockSessionId && !stripeKey && !env?.REPORTS) {
+	if (!alphaFreeUnlock && parsed.unlockSessionId && !stripeKey && !env?.REPORTS) {
 		error(503, 'Unlock verification is not configured yet');
 	}
 
-	let unlocked = ALPHA_FREE_UNLOCK;
-	if (parsed.unlockSessionId) {
+	let unlocked = alphaFreeUnlock;
+	if (!alphaFreeUnlock && parsed.unlockSessionId) {
 		unlocked ||= await resolveUnlock({
 			kv: env?.REPORTS,
 			stripeKey,
@@ -98,6 +99,7 @@ export async function handleScanPost(request: Request, env?: Env) {
 		score: sanitized.score,
 		issueCount,
 		unlocked,
+		mode: alphaFreeUnlock ? 'alpha' : 'paid',
 		...(sanitized.scoreDelta == null ? {} : { scoreDelta: sanitized.scoreDelta })
 	});
 

@@ -68,6 +68,32 @@ function behavioralTestReferences(): Map<string, string[]> {
 	return references;
 }
 
+function behavioralStatusTestReferences(): Map<string, string[]> {
+	const references = new Map<string, string[]>();
+
+	for (const file of testFiles()) {
+		const text = readFileSync(file, 'utf8');
+		const lines = text.split(/\r?\n/);
+		for (const id of emittedCheckIds()) {
+			let hasStatusAssertion = false;
+			for (let i = 0; i < lines.length; i++) {
+				if (!lines[i].includes(id)) continue;
+				const window = lines.slice(Math.max(0, i - 4), i + 8).join('\n');
+				if (/\.status|toMatchObject\(\{\s*status|status:\s*['"](pass|warn|fail)['"]/.test(window)) {
+					hasStatusAssertion = true;
+					break;
+				}
+			}
+			if (!hasStatusAssertion) continue;
+			const files = references.get(id) ?? [];
+			files.push(relative(scanDir, file).replaceAll('\\', '/'));
+			references.set(id, files);
+		}
+	}
+
+	return references;
+}
+
 describe('check quality guardrails', () => {
 	it('catalogs every emitted static check id with detection rationale', () => {
 		const missing = emittedCheckIds().filter((id) => catalogById[id] == null);
@@ -113,5 +139,12 @@ describe('check quality guardrails', () => {
 		const untested = emittedCheckIds().filter((id) => !references.has(id));
 
 		expect(untested).toEqual([]);
+	});
+
+	it('keeps every emitted static check id anchored to status-level assertions', () => {
+		const references = behavioralStatusTestReferences();
+		const unasserted = emittedCheckIds().filter((id) => !references.has(id));
+
+		expect(unasserted).toEqual([]);
 	});
 });

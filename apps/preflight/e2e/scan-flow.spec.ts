@@ -16,10 +16,13 @@ test.describe('scan flow', () => {
 		await expect(page.getByText('1 revenue blocker', { exact: true })).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Findings' })).toBeVisible();
 		await expect(page.getByText('Privacy policy', { exact: true }).first()).toBeVisible();
-		await expect(page.getByText('Subscription access unlocked')).toBeVisible();
-		await expect(page.getByRole('heading', { name: 'Fix everything in one paste' })).toBeVisible();
-		await expect(page.getByRole('button', { name: 'Copy prompt' })).toHaveCount(3);
-		await expect(page.getByText('Start Solo - $9/mo')).not.toBeVisible();
-		await expect(page.getByText('Unlock to copy this fix')).not.toBeVisible();
+		await expect(page.getByText('Alpha access unlocked')).not.toBeVisible();
+		await expect(
+			page.getByRole('heading', { name: 'Fix everything in one paste' })
+		).not.toBeVisible();
+		await expect(page.getByRole('button', { name: 'Copy sample' })).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Copy prompt' })).toHaveCount(0);
+		await expect(page.getByRole('button', { name: 'Start Solo - $9/mo' })).toHaveCount(2);
+		await expect(page.getByText('Unlock to copy this fix')).toHaveCount(2);
 	});
 });

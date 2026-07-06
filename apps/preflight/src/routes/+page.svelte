@@ -23,7 +23,7 @@
 	import UnlockPanel from '$lib/components/UnlockPanel.svelte';
 	import UnlockStickyBar from '$lib/components/UnlockStickyBar.svelte';
 	import VerdictBanner from '$lib/components/VerdictBanner.svelte';
-	import { ALPHA_DISCLAIMER, ALPHA_FREE_UNLOCK, ALPHA_PRICE_PREVIEW } from '$lib/product/alpha';
+	import { ALPHA_DISCLAIMER, ALPHA_FREE_DISCLAIMER, ALPHA_PRICE_PREVIEW } from '$lib/product/alpha';
 	import type { DeploylintPlanId } from '$lib/product/plans';
 	import type { ScanReport } from '$lib/scan/types';
 	import { buildDeploylintJsonLd, buildSeoTitle, defaultSeoImage } from '$lib/site/seo-metadata';
@@ -46,6 +46,8 @@
 	let copyTimeouts: ReturnType<typeof setTimeout>[] = [];
 
 	let sessionHydrated = false;
+	let pricingTracked = false;
+	let lockedPromptTrackedFor: string | null = null;
 
 	const PROGRESS_STEPS = [
 		'Fetching homepage…',
@@ -104,6 +106,14 @@
 		};
 	});
 
+	const alphaFreeUnlock = $derived(data.alphaFreeUnlock);
+
+	$effect(() => {
+		if (pricingTracked) return;
+		pricingTracked = true;
+		trackFunnel('pricing_viewed', { mode: alphaFreeUnlock ? 'alpha' : 'paid' });
+	});
+
 	async function runScan(rescan = false) {
 		scanController?.abort();
 		scanController = new AbortController();
@@ -118,8 +128,8 @@
 				unlockSessionId?: string;
 				previousScore?: number;
 			} = { url: url.trim() };
-			if (unlockSessionId && !ALPHA_FREE_UNLOCK) payload.unlockSessionId = unlockSessionId;
-			if (rescan && (unlockSessionId || ALPHA_FREE_UNLOCK)) {
+			if (unlockSessionId && !alphaFreeUnlock) payload.unlockSessionId = unlockSessionId;
+			if (rescan && (unlockSessionId || alphaFreeUnlock)) {
 				const baseline = sessionStorage.getItem(STORAGE.baselineScore);
 				if (baseline) payload.previousScore = Number(baseline);
 			}
@@ -150,18 +160,28 @@
 					const sign = report.scoreDelta >= 0 ? '+' : '';
 					checkoutMessage = `Verified: ${report.previousScore} → ${report.score} (${sign}${report.scoreDelta})`;
 				} else {
-					checkoutMessage = ALPHA_FREE_UNLOCK
-						? 'Subscription access active - all fix prompts are available.'
-						: 'Fix prompts unlocked — copy prompts below, then re-scan after fixing.';
+					checkoutMessage = alphaFreeUnlock
+						? 'Alpha access active - all fix prompts are available.'
+						: 'Fix prompts unlocked - copy prompts below, then re-scan after fixing.';
 				}
 			}
 
 			const issueCount = report.checks.filter((c) => c.status !== 'pass').length;
+			if (!report.unlocked && lockedPromptTrackedFor !== report.finalUrl) {
+				lockedPromptTrackedFor = report.finalUrl;
+				trackFunnel('locked_prompt_viewed', {
+					verdict: report.verdict,
+					score: report.score,
+					issueCount,
+					mode: alphaFreeUnlock ? 'alpha' : 'paid'
+				});
+			}
 			trackFunnel(rescan && report.scoreDelta != null ? 'rescan_completed' : 'scan_completed', {
 				verdict: report.verdict,
 				score: report.score,
 				unlocked: report.unlocked,
 				issueCount,
+				mode: alphaFreeUnlock ? 'alpha' : 'paid',
 				...(report.scoreDelta == null ? {} : { scoreDelta: report.scoreDelta })
 			});
 		} catch (err) {
@@ -174,11 +194,16 @@
 
 	async function startCheckout(plan: DeploylintPlanId = 'solo') {
 		if (!url.trim() || !report) return;
-		if (ALPHA_FREE_UNLOCK) {
+		if (alphaFreeUnlock) {
 			checkoutMessage = 'Checkout is disabled while paid features are included free.';
 			return;
 		}
-		trackFunnel('unlock_click', { verdict: report.verdict, score: report.score, plan });
+		trackFunnel('unlock_click', {
+			verdict: report.verdict,
+			score: report.score,
+			plan,
+			mode: 'paid'
+		});
 		checkoutLoading = true;
 		checkoutMessage = null;
 		error = null;
@@ -197,6 +222,12 @@
 			}
 			if (!body?.url) throw new Error('Checkout URL missing');
 			sessionStorage.setItem(STORAGE.scanUrl, url.trim());
+			trackFunnel('checkout_started', {
+				verdict: report.verdict,
+				score: report.score,
+				plan,
+				mode: 'paid'
+			});
 			window.location.href = body.url;
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Checkout failed';
@@ -207,6 +238,7 @@
 
 	async function openBillingPortal() {
 		if (!url.trim() || !unlockSessionId) return;
+		trackFunnel('billing_portal_opened', { mode: 'paid' });
 		billingPortalLoading = true;
 		checkoutMessage = null;
 		error = null;
@@ -300,7 +332,9 @@
 				<p class="text-xs font-semibold tracking-widest text-sky-300 uppercase">
 					{ALPHA_PRICE_PREVIEW.current}
 				</p>
-				<p class="mt-2 text-sm text-zinc-300">{ALPHA_DISCLAIMER}</p>
+				<p class="mt-2 text-sm text-zinc-300">
+					{alphaFreeUnlock ? ALPHA_FREE_DISCLAIMER : ALPHA_DISCLAIMER}
+				</p>
 			</div>
 			<div class="shrink-0 rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3">
 				<p class="text-[10px] font-semibold tracking-wider text-zinc-400 uppercase">
@@ -371,13 +405,13 @@
 	</form>
 
 	{#if report}
-		{#if ALPHA_FREE_UNLOCK}
+		{#if alphaFreeUnlock}
 			<section
 				class="mb-6 rounded-2xl border border-sky-500/30 bg-sky-500/5 p-5 print:hidden"
 				aria-label="Unlocked report notice"
 			>
 				<p class="text-xs font-semibold tracking-widest text-sky-300 uppercase">
-					Subscription access unlocked
+					Alpha access unlocked
 				</p>
 				<p class="mt-2 text-sm text-zinc-300">
 					Your plan unlocks the prompts, master paste, AI copy review, and re-scan proof shown
@@ -385,7 +419,7 @@
 				</p>
 			</section>
 		{/if}
-		{#if report.unlocked && unlockSessionId && !ALPHA_FREE_UNLOCK}
+		{#if report.unlocked && unlockSessionId && !alphaFreeUnlock}
 			<section
 				class="mb-6 flex flex-col gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5 sm:flex-row sm:items-center sm:justify-between print:hidden"
 				aria-label="Billing self-service"
@@ -435,6 +469,7 @@
 		{/if}
 		<AiCopyReviewPanel
 			{report}
+			{alphaFreeUnlock}
 			copied={copiedId === 'ai-copy'}
 			onCopy={(text) => copyPrompt('ai-copy', text)}
 		/>

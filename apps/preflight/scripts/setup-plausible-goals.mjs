@@ -12,10 +12,13 @@ const TOKEN = process.env.PLAUSIBLE_PLUGIN_TOKEN?.trim();
 const API = 'https://plausible.io/api/plugins/v1/goals';
 
 const FUNNEL_GOALS = [
+	'pricing_viewed',
 	'scan_completed',
+	'locked_prompt_viewed',
 	'unlock_click',
 	'checkout_started',
 	'checkout_paid',
+	'billing_portal_opened',
 	'rescan_completed'
 ];
 

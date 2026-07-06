@@ -76,6 +76,48 @@ describe('pushDeploymentHygieneChecks', () => {
 		expect(checks.find((c) => c.id === 'debug-in-bundle')?.status).toBe('warn');
 	});
 
+	it('warns on missing manifest and passes quiet production bundles', () => {
+		const checks: ScanCheck[] = [];
+		pushDeploymentHygieneChecks(
+			checks,
+			'<html></html>',
+			saasMeta,
+			{
+				env: { exposed: false },
+				git: { exposed: false },
+				backup: { exposed: false },
+				packageJson: { exposed: false }
+			},
+			{ found: false },
+			{ consoleLogCount: 2, debuggerCount: 0, testIdCount: 4 },
+			ctx
+		);
+
+		expect(checks.find((c) => c.id === 'web-manifest')).toMatchObject({ status: 'warn' });
+		expect(checks.find((c) => c.id === 'debug-in-bundle')).toMatchObject({ status: 'pass' });
+	});
+
+	it('does not require a health endpoint for pages without SaaS-like stack signals', () => {
+		const checks: ScanCheck[] = [];
+		pushDeploymentHygieneChecks(
+			checks,
+			'<html><p>Marketing site</p></html>',
+			parsePageMeta('<html><p>Marketing site</p></html>', new URL(ctx.url)),
+			{
+				env: { exposed: false },
+				git: { exposed: false },
+				backup: { exposed: false },
+				packageJson: { exposed: false }
+			},
+			{ found: false },
+			{ consoleLogCount: 0, debuggerCount: 0, testIdCount: 0 },
+			ctx
+		);
+
+		expect(checks.find((c) => c.id === 'health-endpoint')).toBeUndefined();
+		expect(checks.find((c) => c.id === 'web-manifest')).toMatchObject({ status: 'warn' });
+	});
+
 	it('expects a health endpoint for auth-backed apps', () => {
 		const checks: ScanCheck[] = [];
 		pushDeploymentHygieneChecks(

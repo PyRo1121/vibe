@@ -15,6 +15,7 @@ interface Env {
 	PUBLIC_APP_URL?: string;
 	PUBLIC_PLAUSIBLE_DOMAIN?: string;
 	PUBLIC_PLAUSIBLE_SCRIPT?: string;
+	DEPLOYLINT_ALPHA_FREE_UNLOCK?: string;
 	STRIPE_SECRET_KEY?: string;
 	STRIPE_WEBHOOK_SECRET?: string;
 	STRIPE_PRICE_SOLO?: string;
@@ -35,6 +36,7 @@ declare namespace Cloudflare {
 		PUBLIC_APP_URL?: string;
 		PUBLIC_PLAUSIBLE_DOMAIN?: string;
 		PUBLIC_PLAUSIBLE_SCRIPT?: string;
+		DEPLOYLINT_ALPHA_FREE_UNLOCK?: string;
 		STRIPE_SECRET_KEY?: string;
 		STRIPE_WEBHOOK_SECRET?: string;
 		STRIPE_PRICE_SOLO?: string;

@@ -19,3 +19,11 @@ npm run verify:preflight
 npm run deploy:preflight
 npm run smoke:preflight
 ```
+
+## Verification
+
+- `npm.cmd run verify -w preflight` checks type safety, lint, unit coverage, and production build.
+- `npm.cmd run verify -w preflight-mcp` checks the MCP package.
+- `npm.cmd run test:e2e -w preflight` checks browser-level user flows.
+- `npm.cmd run smoke:preflight` checks production-facing scan, billing, crawler, and gate surfaces.
+- `npm.cmd run verify:deploylint` runs the full Deploylint confidence gate.
