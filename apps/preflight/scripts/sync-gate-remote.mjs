@@ -6,8 +6,28 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+const checkMode = process.argv.includes('--check');
+let hasDrift = false;
+
 const currentDir = import.meta.dirname;
 const root = join(currentDir, '..');
+
+function syncFile(path, content, label) {
+	const current = readFileSync(path, 'utf8');
+	if (current === content) {
+		console.log(`${checkMode ? 'checked' : 'unchanged'} ${label}`);
+		return;
+	}
+
+	if (checkMode) {
+		console.error(`${label} is out of sync. Run npm run sync:gate-remote -w preflight.`);
+		hasDrift = true;
+		return;
+	}
+
+	writeFileSync(path, content);
+	console.log(`synced ${label}`);
+}
 
 const p0Source = readFileSync(join(root, 'src/lib/scan/p0-ids.ts'), 'utf8');
 const match = p0Source.match(/export const P0_CHECK_IDS = \[([\s\S]*?)\] as const/);
@@ -22,8 +42,16 @@ const mcpBlock = `export const GATE_P0_IDS = new Set([\n${ids
 	.map((id) => `\t'${id}'`)
 	.join(',\n')}\n]);`;
 
-const gateTargets = [
-	{ rel: 'scripts/gate-remote.mjs', path: join(root, 'scripts/gate-remote.mjs') },
+const canonicalGatePath = join(root, 'scripts/gate-remote.mjs');
+let canonicalGate = readFileSync(canonicalGatePath, 'utf8');
+if (!/const P0_IDS = new Set\(\[[\s\S]*?\]\);/.test(canonicalGate)) {
+	console.error('P0_IDS block not found in scripts/gate-remote.mjs');
+	process.exit(1);
+}
+canonicalGate = canonicalGate.replace(/const P0_IDS = new Set\(\[[\s\S]*?\]\);/, gateBlock);
+syncFile(canonicalGatePath, canonicalGate, `scripts/gate-remote.mjs (${ids.length} P0 IDs)`);
+
+const gateCopies = [
 	{ rel: 'static/gate-remote.mjs', path: join(root, 'static/gate-remote.mjs') },
 	{
 		rel: '.github/actions/deploylint-gate/gate-remote.mjs',
@@ -31,15 +59,8 @@ const gateTargets = [
 	}
 ];
 
-for (const { rel, path } of gateTargets) {
-	let content = readFileSync(path, 'utf8');
-	if (!/const P0_IDS = new Set\(\[[\s\S]*?\]\);/.test(content)) {
-		console.error(`P0_IDS block not found in ${rel}`);
-		process.exit(1);
-	}
-	content = content.replace(/const P0_IDS = new Set\(\[[\s\S]*?\]\);/, gateBlock);
-	writeFileSync(path, content);
-	console.log(`synced ${rel} (${ids.length} P0 IDs)`);
+for (const { rel, path } of gateCopies) {
+	syncFile(path, canonicalGate, rel);
 }
 
 const mcpPath = join(root, '..', 'preflight-mcp', 'src', 'gate.ts');
@@ -49,5 +70,6 @@ if (!/export const GATE_P0_IDS = new Set\(\[[\s\S]*?\]\);/.test(mcpContent)) {
 	process.exit(1);
 }
 mcpContent = mcpContent.replace(/export const GATE_P0_IDS = new Set\(\[[\s\S]*?\]\);/, mcpBlock);
-writeFileSync(mcpPath, mcpContent);
-console.log(`synced preflight-mcp/src/gate.ts (${ids.length} P0 IDs)`);
+syncFile(mcpPath, mcpContent, `preflight-mcp/src/gate.ts (${ids.length} P0 IDs)`);
+
+if (checkMode && hasDrift) process.exit(1);

@@ -26,6 +26,7 @@ function extractMcpP0Ids(): string[] {
 
 describe('gate P0 sync', () => {
 	const canonical = [...P0_CHECK_IDS].toSorted();
+	const canonicalScript = readFileSync(join(root, 'scripts/gate-remote.mjs'), 'utf8');
 
 	it('scripts/gate-remote.mjs matches verdict P0 list', () => {
 		expect(extractGateP0Ids('scripts/gate-remote.mjs').toSorted()).toEqual(canonical);
@@ -45,9 +46,18 @@ describe('gate P0 sync', () => {
 		).toEqual(canonical);
 	});
 
+	it('static and vendored gate scripts match the canonical hosted script', () => {
+		expect(readFileSync(join(root, 'static/gate-remote.mjs'), 'utf8')).toBe(canonicalScript);
+		expect(
+			readFileSync(join(repoRoot, '.github/actions/deploylint-gate/gate-remote.mjs'), 'utf8')
+		).toBe(canonicalScript);
+	});
+
 	it('GitHub Action runs the vendored script instead of curling live code', () => {
 		const action = readFileSync(actionPath, 'utf8');
 		expect(action).not.toContain('curl');
 		expect(action).toContain('$GITHUB_ACTION_PATH/gate-remote.mjs');
+		expect(action).toContain('default: advisory');
+		expect(action).toContain('DEPLOYLINT_URL');
 	});
 });

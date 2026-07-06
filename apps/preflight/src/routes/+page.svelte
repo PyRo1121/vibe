@@ -282,9 +282,9 @@
 	}
 
 	const appOrigin = $derived(data.appUrl.replace(/\/$/, ''));
-	const title = buildSeoTitle('Payment readiness checker for AI-built SaaS');
+	const title = buildSeoTitle('CI hardening and builder DevOps tools');
 	const description =
-		'Scan an AI-built SaaS before charging users. Deploylint checks checkout, signed webhooks, entitlements, billing self-service, exposed secrets, SEO blockers, and launch polish.';
+		'Harden GitHub Actions, deploy gates, repo hygiene, and launch workflows before risky changes hit production. Deploylint includes CI tools plus URL and repo scans.';
 	const jsonLd = $derived(buildDeploylintJsonLd({ base: appOrigin, description, price: '0.00' }));
 </script>
 
@@ -299,21 +299,21 @@
 <div class="mx-auto max-w-5xl px-4 py-12">
 	<section class="mb-12 text-center print:hidden">
 		<p class="mb-3 text-sm font-medium tracking-widest text-sky-400 uppercase">
-			Before your AI-built SaaS charges users
+			Builder DevOps tools
 		</p>
 		<h1 class="mb-4 text-4xl font-bold tracking-tight text-white sm:text-5xl">
-			Can this AI-built SaaS safely take money?
+			Harden the path from pull request to production.
 		</h1>
 		<p class="mx-auto max-w-2xl text-lg text-zinc-400">
-			<strong class="font-medium text-zinc-300">90+ checks in seconds</strong> — {'checkout, signed webhooks, entitlements, billing self-service'},
-			exposed secrets, broken share images, robots blocking Google, and more. Paste a live URL or a
-			public
-			<strong class="font-medium text-zinc-300">GitHub repo</strong> (committed .env files,
-			dependency licenses, sell rights). Built for apps you ship — bot-protected enterprise sites
-			may scan incomplete. Free scans show the verdict and one sample prompt. Subscription unlock
-			starts from
-			<span class="font-medium text-zinc-300">{ALPHA_PRICE_PREVIEW.later}</span>
-			for every fix prompt, master repair paste, MCP access, and recurring monitoring.
+			Deploylint is pivoting into practical CI hardening, deploy gate, repo hygiene, and launch
+			workflow tools. Start with the
+			<a
+				href="/tools/github-actions-security-checker"
+				class="font-medium text-sky-300 underline underline-offset-4 hover:text-sky-200"
+			>
+				GitHub Actions Security Checker
+			</a>
+			or paste a live URL / public GitHub repo below for the existing launch-readiness scan.
 			<a
 				href="/compare"
 				class="font-medium text-sky-300 underline underline-offset-4 hover:text-sky-200"
@@ -321,6 +321,40 @@
 				See how we compare →
 			</a>
 		</p>
+	</section>
+
+	<section class="mb-10 grid gap-4 md:grid-cols-3 print:hidden">
+		<a
+			href="/tools/github-actions-security-checker"
+			class="rounded-xl border border-sky-500/40 bg-sky-500/5 p-5 text-left transition hover:border-sky-400"
+		>
+			<p class="text-xs font-semibold tracking-widest text-sky-300 uppercase">Hero tool</p>
+			<h2 class="mt-2 font-semibold text-white">GitHub Actions Security Checker</h2>
+			<p class="mt-2 text-sm leading-6 text-zinc-400">
+				Paste workflow YAML and catch risky permissions, pull_request_target usage, floating refs,
+				and missing quality gates.
+			</p>
+		</a>
+		<a
+			href="/developers"
+			class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 text-left transition hover:border-sky-500/70"
+		>
+			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Deploy gate</p>
+			<h2 class="mt-2 font-semibold text-white">Block bad deploys in CI</h2>
+			<p class="mt-2 text-sm leading-6 text-zinc-400">
+				Add a zero-install GitHub Actions gate that fails risky production launches.
+			</p>
+		</a>
+		<a
+			href="/tools"
+			class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 text-left transition hover:border-sky-500/70"
+		>
+			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Toolbox</p>
+			<h2 class="mt-2 font-semibold text-white">Builder DevOps tools</h2>
+			<p class="mt-2 text-sm leading-6 text-zinc-400">
+				See the new tool index for CI hardening, repo hygiene, and launch workflow utilities.
+			</p>
+		</a>
 	</section>
 
 	<section
@@ -485,10 +519,22 @@
 	{:else if !loading}
 		<section class="mb-8 text-center">
 			<p class="text-xs font-semibold tracking-widest text-zinc-400 uppercase">
-				What Lighthouse and OG checkers miss
+				One tool in the builder DevOps toolbox
 			</p>
 		</section>
 		<section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+			<div class="rounded-xl border border-zinc-800 p-5">
+				<p class="font-medium text-white">CI hardening</p>
+				<p class="mt-1 text-sm text-zinc-400">
+					Check GitHub Actions for risky permissions, pull_request_target, and floating refs
+				</p>
+			</div>
+			<div class="rounded-xl border border-zinc-800 p-5">
+				<p class="font-medium text-white">Deploy gates</p>
+				<p class="mt-1 text-sm text-zinc-400">
+					Fail bad deploys before production with GitHub Actions and agent-ready fixes
+				</p>
+			</div>
 			<div class="rounded-xl border border-zinc-800 p-5">
 				<p class="font-medium text-white">Launch judgment</p>
 				<p class="mt-1 text-sm text-zinc-400">
@@ -508,7 +554,7 @@
 				</p>
 			</div>
 			<div class="rounded-xl border border-zinc-800 p-5">
-				<p class="font-medium text-white">og:image content-type</p>
+				<p class="font-medium text-white">Preview safety</p>
 				<p class="mt-1 text-sm text-zinc-400">
 					Catches SPA routes returning HTML instead of a real image
 				</p>
@@ -520,9 +566,9 @@
 				</p>
 			</div>
 			<div class="rounded-xl border border-zinc-800 p-5">
-				<p class="font-medium text-white">CI deploy gate</p>
+				<p class="font-medium text-white">Repo hygiene</p>
 				<p class="mt-1 text-sm text-zinc-400">
-					Block bad deploys in CI — same GO/NO-GO in GitHub Actions before users see them
+					CI, package scripts, lockfiles, Node pins, env hygiene, and dependency signals
 				</p>
 			</div>
 		</section>

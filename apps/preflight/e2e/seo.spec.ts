@@ -6,11 +6,11 @@ const socialImage = `${baseUrl}/og.png`;
 const pages = [
 	{
 		path: '/',
-		title: 'Payment readiness checker for AI-built SaaS - Deploylint',
+		title: 'CI hardening and builder DevOps tools - Deploylint',
 		description:
-			'Scan an AI-built SaaS before charging users. Deploylint checks checkout, signed webhooks, entitlements, billing self-service, exposed secrets, SEO blockers, and launch polish.',
+			'Harden GitHub Actions, deploy gates, repo hygiene, and launch workflows before risky changes hit production. Deploylint includes CI tools plus URL and repo scans.',
 		canonical: `${baseUrl}/`,
-		heading: /Can this AI-built SaaS safely take money/i,
+		heading: /Harden the path from pull request to production/i,
 		jsonLdTypes: ['WebApplication', 'Organization']
 	},
 	{
@@ -27,19 +27,38 @@ const pages = [
 		path: '/about',
 		title: 'About Deploylint - Deploylint',
 		description:
-			'Deploylint is a launch-readiness scanner for AI-built apps, checking SEO blockers, security exposure, social previews, legal gaps, and CI gates before public release.',
+			'Deploylint builds CI hardening, deploy gate, repo hygiene, and launch workflow tools for builders shipping with GitHub Actions and AI coding agents.',
 		canonical: `${baseUrl}/about`,
 		heading: /About Deploylint/i,
 		jsonLdTypes: ['AboutPage', 'Organization'],
 		staticPage: true
 	},
 	{
-		path: '/developers',
-		title: 'Deploylint CI gate for GitHub Actions, CLI, and MCP',
+		path: '/tools',
+		title: 'Builder DevOps tools - Deploylint',
 		description:
-			'Block bad deploys with Deploylint CI gates for GitHub Actions, zero-install scripts, local CLI checks, and MCP tools for coding agents.',
+			'Deploylint tools harden GitHub Actions, deploy gates, repo hygiene, and launch workflows before risky changes hit production.',
+		canonical: `${baseUrl}/tools`,
+		heading: /Harden the path from pull request to production/i,
+		jsonLdTypes: ['CollectionPage'],
+		staticPage: true
+	},
+	{
+		path: '/tools/github-actions-security-checker',
+		title: 'GitHub Actions security checker - Deploylint',
+		description:
+			'Paste GitHub Actions workflow YAML and find risky permissions, pull_request_target usage, floating action refs, and missing quality gates.',
+		canonical: `${baseUrl}/tools/github-actions-security-checker`,
+		heading: /Check workflow YAML before it deploys risky code/i,
+		jsonLdTypes: ['SoftwareApplication']
+	},
+	{
+		path: '/developers',
+		title: 'Deploylint advisory CI report and deploy gate',
+		description:
+			'Add Deploylint to GitHub Actions as a non-blocking advisory report first, then switch to a blocking deploy gate when the signal is clean.',
 		canonical: `${baseUrl}/developers`,
-		heading: /Deploy gate for vibe-coded apps/i,
+		heading: /Deploylint CI report for pull requests/i,
 		jsonLdTypes: ['TechArticle', 'HowTo'],
 		staticPage: true
 	},

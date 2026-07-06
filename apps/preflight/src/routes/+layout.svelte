@@ -60,18 +60,23 @@
 				{/if}
 			</a>
 			<nav aria-label="Main navigation" class="flex items-center gap-4 text-xs text-zinc-300">
+				<a href="/tools" class="hover:text-white">Tools</a>
 				<a href="/compare" class="hover:text-white">Compare</a>
 				<a href="/checks" class="hover:text-white">Checks</a>
 				<a href="/guides/website-launch-checklist" class="hover:text-white">Guides</a>
 				<a href="/developers" class="hover:text-white">CI gate</a>
-				<span class="hidden text-zinc-400 sm:inline">90+ launch checks &middot; fix & re-scan</span>
+				<span class="hidden text-zinc-400 sm:inline">CI hardening &middot; deploy gates</span>
 			</nav>
 		</div>
 	</header>
 	<main id="main" class="min-h-[calc(100vh-8rem)]">{@render children()}</main>
 	<footer class="border-t border-zinc-800 py-8 text-center text-xs text-zinc-400 print:hidden">
-		<p class="mb-2">Built for builders who ship fast and hate public surprises.</p>
+		<p class="mb-2">Built for builders hardening the path from pull request to production.</p>
 		<p>
+			<a href="/tools" class="hover:text-white">Tools</a>
+			<span class="mx-2">&middot;</span>
+			<a href="/tools/github-actions-security-checker" class="hover:text-white">GitHub Actions</a>
+			<span class="mx-2">&middot;</span>
 			<a href="/" class="hover:text-white">Scanner</a>
 			<span class="mx-2">&middot;</span>
 			<a href="/about" class="hover:text-white">About</a>

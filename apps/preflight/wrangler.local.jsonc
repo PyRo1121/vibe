@@ -1,0 +1,15 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "preflight-local",
+	"compatibility_date": "2026-07-05",
+	"compatibility_flags": ["nodejs_compat", "nodejs_als"],
+	"vars": {
+		"PUBLIC_SITE_NAME": "Deploylint",
+		"PUBLIC_APP_URL": "https://deploylint.com",
+		"PUBLIC_PLAUSIBLE_DOMAIN": "deploylint.local",
+		"PUBLIC_PLAUSIBLE_SCRIPT": "",
+		"STRIPE_PRICE_SOLO": "price_local_solo",
+		"STRIPE_PRICE_BUILDER": "price_local_builder",
+		"STRIPE_PRICE_AGENCY": "price_local_agency"
+	}
+}

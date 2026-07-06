@@ -1,5 +1,5 @@
-name: Deploylint gate
-description: Block deploys when Deploylint finds launch blockers (P0 failures, low score, or NO-GO verdict).
+name: Deploylint advisory report
+description: Run Deploylint in advisory mode by default; switch to gate mode when configured launch blockers should fail CI.
 branding:
   icon: shield
   color: blue
@@ -13,26 +13,24 @@ inputs:
     required: false
     default: https://deploylint.com
   min_score:
-    description: Minimum launch score (0–100)
+    description: Minimum launch score (0-100)
     required: false
     default: "80"
   mode:
     description: gate (fail on blockers) or advisory (report only)
     required: false
-    default: gate
+    default: advisory
 
 runs:
   using: composite
   steps:
-    - name: Run Deploylint gate
+    - name: Run Deploylint
       shell: bash
       env:
-        PREFLIGHT_URL: ${{ inputs.url }}
-        PREFLIGHT_API: ${{ inputs.api }}
+        DEPLOYLINT_URL: ${{ inputs.url }}
         DEPLOYLINT_API: ${{ inputs.api }}
-        PREFLIGHT_MIN_SCORE: ${{ inputs.min_score }}
-        PREFLIGHT_MODE: ${{ inputs.mode }}
-        GITHUB_TOKEN: ${{ github.token }}
+        DEPLOYLINT_MIN_SCORE: ${{ inputs.min_score }}
+        DEPLOYLINT_MODE: ${{ inputs.mode }}
       run: |
         set -euo pipefail
-        node "$GITHUB_ACTION_PATH/gate-remote.mjs" "${PREFLIGHT_URL}"
+        node "$GITHUB_ACTION_PATH/gate-remote.mjs" "${DEPLOYLINT_URL}"

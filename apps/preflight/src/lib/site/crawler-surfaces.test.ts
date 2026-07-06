@@ -6,6 +6,8 @@ describe('crawler-facing website surfaces', () => {
 	it('keeps public website routes in one crawlable registry', () => {
 		expect(PUBLIC_SITE_ROUTES.map((route) => route.path)).toEqual([
 			'/',
+			'/tools',
+			'/tools/github-actions-security-checker',
 			'/about',
 			'/checks',
 			'/compare',
@@ -26,8 +28,12 @@ describe('crawler-facing website surfaces', () => {
 		const xml = buildSitemapXml('https://deploylint.com');
 
 		expect(xml).toContain('<loc>https://deploylint.com/checks</loc>');
+		expect(xml).toContain('<loc>https://deploylint.com/tools</loc>');
+		expect(xml).toContain(
+			'<loc>https://deploylint.com/tools/github-actions-security-checker</loc>'
+		);
 		expect(xml).toContain('<loc>https://deploylint.com/about</loc>');
-		expect(xml).toContain('<lastmod>2026-07-05</lastmod>');
+		expect(xml).toContain('<lastmod>2026-07-06</lastmod>');
 		expect(xml).toContain('<loc>https://deploylint.com/compare</loc>');
 		expect(xml).toContain('<loc>https://deploylint.com/guides/ai-app-launch-checker</loc>');
 		expect(xml).toContain('<loc>https://deploylint.com/guides/website-launch-checklist</loc>');
@@ -43,6 +49,10 @@ describe('crawler-facing website surfaces', () => {
 		const text = buildLlmsTxt('https://deploylint.com');
 
 		expect(text).toContain('- [Check catalog](https://deploylint.com/checks)');
+		expect(text).toContain('- [Builder DevOps tools](https://deploylint.com/tools)');
+		expect(text).toContain(
+			'- [GitHub Actions Security Checker](https://deploylint.com/tools/github-actions-security-checker)'
+		);
 		expect(text).toContain('- [About Deploylint](https://deploylint.com/about)');
 		expect(text).toContain(
 			'- [AI app launch checker](https://deploylint.com/guides/ai-app-launch-checker)'
@@ -54,8 +64,8 @@ describe('crawler-facing website surfaces', () => {
 		expect(text).not.toContain('https://deploylint.com/launch-readiness-checker');
 		expect(text).not.toContain('https://deploylint.com/ai-app-launch-checker');
 		expect(text).not.toContain('https://deploylint.com/vibe-code-launch-checklist');
-		expect(text).toContain('Paid monthly plans start with Solo at $9/mo');
-		expect(text).not.toContain('GitHub');
+		expect(text).toContain('CI hardening and broader builder DevOps utilities');
+		expect(text).toContain('GitHub Actions');
 	});
 
 	it('keeps SEO trend targeting out of hidden keyword fields', () => {

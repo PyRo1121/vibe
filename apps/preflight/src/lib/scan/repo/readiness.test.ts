@@ -323,6 +323,65 @@ jobs:
 		});
 	});
 
+	it('warns when any workflow omits token permissions', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/ci.yml',
+				text: `
+name: CI
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    steps:
+      - run: npm test
+`
+			},
+			{
+				path: '.github/workflows/deploy.yml',
+				text: `
+name: Deploy
+on: [push]
+jobs:
+  deploy:
+    steps:
+      - run: npm run deploy
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'workflow-permissions')).toMatchObject({
+			status: 'warn',
+			evidence: { path: '.github/workflows/deploy.yml' }
+		});
+	});
+
+	it('warns when workflows request broad write token scopes', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/release.yml',
+				text: `
+name: Release
+on: [push]
+permissions:
+  contents: write
+  packages: write
+jobs:
+  release:
+    steps:
+      - run: npm test
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'workflow-permissions')).toMatchObject({
+			status: 'warn',
+			message: expect.stringContaining('contents, packages'),
+			evidence: { path: '.github/workflows/release.yml' }
+		});
+	});
+
 	it('fails pull_request_target workflows with clear untrusted script execution', () => {
 		const findings = analyzeCiWorkflows([
 			{

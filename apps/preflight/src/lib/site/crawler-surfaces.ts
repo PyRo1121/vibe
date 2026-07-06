@@ -10,16 +10,34 @@ export interface PublicSiteRoute {
 	priority: string;
 }
 
-const SITE_LASTMOD = '2026-07-05';
+const SITE_LASTMOD = '2026-07-06';
 
 export const PUBLIC_SITE_ROUTES = [
 	{
 		path: '/',
-		title: 'Scanner',
-		description: 'Run a Deploylint launch-readiness scan for a live website.',
+		title: 'Deploylint',
+		description:
+			'Harden GitHub Actions, deploy gates, repo hygiene, and launch workflows before production.',
 		lastmod: SITE_LASTMOD,
 		changefreq: 'weekly',
 		priority: '1.0'
+	},
+	{
+		path: '/tools',
+		title: 'Builder DevOps tools',
+		description: 'Browse Deploylint tools for CI hardening, deploy gates, and repo hygiene.',
+		lastmod: SITE_LASTMOD,
+		changefreq: 'weekly',
+		priority: '0.95'
+	},
+	{
+		path: '/tools/github-actions-security-checker',
+		title: 'GitHub Actions Security Checker',
+		description:
+			'Paste workflow YAML and find risky permissions, pull_request_target usage, floating action refs, and missing quality gates.',
+		lastmod: SITE_LASTMOD,
+		changefreq: 'weekly',
+		priority: '0.95'
 	},
 	{
 		path: '/about',
@@ -48,8 +66,8 @@ export const PUBLIC_SITE_ROUTES = [
 	},
 	{
 		path: '/developers',
-		title: 'CI gate',
-		description: 'Read the deploy gate setup for teams that want automated launch blocking.',
+		title: 'Advisory CI report',
+		description: 'Add a non-blocking Deploylint CI report first, then switch to a deploy gate.',
 		lastmod: SITE_LASTMOD,
 		changefreq: 'monthly',
 		priority: '0.7'
@@ -121,15 +139,15 @@ export function buildLlmsTxt(origin = DEFAULT_DEPLOYLINT_API): string {
 
 	return `# Deploylint
 
-> Launch-readiness audit for AI-built apps: GO/NO-GO before you post a URL publicly.
+> Builder DevOps tools for hardening GitHub Actions, deploy gates, repo hygiene, and launch workflows before production.
 
-Deploylint scans a live URL for launch blockers: exposed secrets in JavaScript bundles, broken social preview images, placeholder copy, missing legal pages, robots.txt blocking Google, llms.txt, security.txt, security headers, CVE exposure, and more.
+Deploylint helps builders catch risky workflow permissions, pull_request_target hazards, floating GitHub Action refs, missing quality gates, exposed repo secrets, broken launch surfaces, and deploy blockers before they reach users.
 
-Free scans show the verdict and one sample fix prompt. Paid monthly plans start with Solo at $9/mo, with higher tiers for more monitored projects, saved reports, and monitoring.
+The current toolbox includes a GitHub Actions Security Checker, deploy gate setup, public URL launch scan, and public GitHub repo scan. The product direction is CI hardening and broader builder DevOps utilities, not a generic scanner dashboard.
 
 Public pages:
 ${pages}
 
-Built for builders using Cursor, Lovable, Bolt, and similar tools who ship fast and hate public surprises.
+Built for builders using GitHub Actions, Cursor, Claude Code, Cloudflare, Vercel, and similar tools who ship fast but still need production guardrails.
 `;
 }

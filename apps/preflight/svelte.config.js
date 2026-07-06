@@ -1,5 +1,7 @@
 import adapter from '@sveltejs/adapter-cloudflare';
 
+const platformProxyConfigPath = process.env.DEPLOYLINT_PLATFORM_PROXY_CONFIG ?? 'wrangler.jsonc';
+
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	compilerOptions: {
@@ -8,7 +10,7 @@ const config = {
 	kit: {
 		adapter: adapter({
 			platformProxy: {
-				configPath: 'wrangler.jsonc'
+				configPath: platformProxyConfigPath
 			}
 		}),
 		inlineStyleThreshold: 60_000

@@ -10,7 +10,7 @@
 	const base = 'https://deploylint.com';
 	const title = buildSeoTitle('About Deploylint');
 	const description =
-		'Deploylint is a launch-readiness scanner for AI-built apps, checking SEO blockers, security exposure, social previews, legal gaps, and CI gates before public release.';
+		'Deploylint builds CI hardening, deploy gate, repo hygiene, and launch workflow tools for builders shipping with GitHub Actions and AI coding agents.';
 	const canonical = `${base}/about`;
 	const jsonLd = [
 		...buildDeploylintJsonLd({ base, description, price: '0.00' }),
@@ -22,27 +22,29 @@
 
 <article class="mx-auto max-w-3xl px-4 py-12 text-zinc-300">
 	<p class="mb-3 text-sm font-medium tracking-widest text-sky-400 uppercase">
-		Launch readiness, not another audit score
+		Builder DevOps, not another audit score
 	</p>
 	<h1 class="mb-4 text-3xl font-bold text-white sm:text-4xl">About Deploylint</h1>
 	<p class="mb-8 text-lg leading-8 text-zinc-400">
-		Deploylint checks whether an AI-built app is ready to be shared publicly. It scans the
-		production URL and public repo surface for launch blockers that ordinary SEO checkers,
-		Lighthouse runs, and social preview debuggers often miss.
+		Deploylint helps builders harden the path from pull request to production. The toolbox starts
+		with GitHub Actions security checks, deploy gates, repo hygiene, and launch-readiness scans.
 	</p>
 
 	<section class="mb-10">
 		<h2 class="mb-3 text-xl font-semibold text-white">What Deploylint is for</h2>
 		<p class="leading-7 text-zinc-400">
-			The product is built for founders and developers shipping fast with tools like Cursor, Bolt,
-			Lovable, and similar coding agents. The report answers one practical question: should this URL
-			be posted today, or is there a launch blocker that needs fixing first?
+			The product is built for developers shipping fast with GitHub Actions, Cloudflare, Vercel,
+			Cursor, Claude Code, and similar tools. The practical question is simple: will this workflow
+			or deploy path let risky changes reach production?
 		</p>
 	</section>
 
 	<section class="mb-10">
 		<h2 class="mb-3 text-xl font-semibold text-white">What it checks</h2>
 		<ul class="list-disc space-y-2 pl-6 leading-7 text-zinc-400">
+			<li>GitHub Actions permissions, pull_request_target hazards, and floating action refs</li>
+			<li>Missing lint, typecheck, test, and build gates before deploy jobs</li>
+			<li>Repo hygiene such as committed env files, lockfiles, scripts, and runtime pins</li>
 			<li>
 				SEO blockers such as noindex, robots.txt mistakes, missing canonicals, and thin metadata
 			</li>
@@ -60,14 +62,20 @@
 	<section class="mb-10">
 		<h2 class="mb-3 text-xl font-semibold text-white">How it is different</h2>
 		<p class="leading-7 text-zinc-400">
-			Deploylint does not try to replace Lighthouse or enterprise security scanners. It turns the
-			public launch surface into a short GO, CONDITIONAL, or NO-GO verdict with fix prompts and
-			re-scan proof, so small teams can repair the issues that matter before a public release.
+			Deploylint does not try to replace enterprise AppSec, Lighthouse, or full observability
+			stacks. It turns common builder DevOps mistakes into clear findings, fixed snippets, and
+			agent-ready repair prompts that can be used before a deploy ships.
 		</p>
 	</section>
 
 	<p>
-		<a class="text-sky-400 hover:underline" href="/">Run a free scan</a>
+		<a class="text-sky-400 hover:underline" href="/tools">Browse tools</a>
+		<span class="mx-2 text-zinc-600">&middot;</span>
+		<a class="text-sky-400 hover:underline" href="/tools/github-actions-security-checker"
+			>Check GitHub Actions</a
+		>
+		<span class="mx-2 text-zinc-600">&middot;</span>
+		<a class="text-sky-400 hover:underline" href="/">Run a launch scan</a>
 		<span class="mx-2 text-zinc-600">&middot;</span>
 		<a class="text-sky-400 hover:underline" href="/checks">Browse the checks</a>
 	</p>

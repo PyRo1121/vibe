@@ -462,6 +462,60 @@ function hasWriteAllPermissions(text: string): boolean {
 	);
 }
 
+function workflowWritePermissionScopes(text: string): string[] {
+	return meaningfulWorkflowLines(text)
+		.map((line) => line.match(/^\s*([a-z-]+)\s*:\s*write\b/i)?.[1])
+		.filter((scope): scope is string => Boolean(scope));
+}
+
+function workflowPermissionFinding(workflows: RepoFileEvidence[]): RepoReadinessFinding {
+	for (const workflow of workflows) {
+		const text = workflow.text ?? '';
+		if (hasWriteAllPermissions(text)) {
+			return finding(
+				'workflow-permissions',
+				'Workflow permissions',
+				'warn',
+				'GitHub Actions workflow grants permissions: write-all.',
+				{ path: workflow.path },
+				'security'
+			);
+		}
+
+		const writeScopes = workflowWritePermissionScopes(text);
+		if (writeScopes.length > 0) {
+			return finding(
+				'workflow-permissions',
+				'Workflow permissions',
+				'warn',
+				`GitHub Actions workflow grants write token permissions: ${writeScopes.join(', ')}.`,
+				{ path: workflow.path },
+				'security'
+			);
+		}
+
+		if (!hasWorkflowPermissions(text)) {
+			return finding(
+				'workflow-permissions',
+				'Workflow permissions',
+				'warn',
+				'GitHub Actions workflow does not declare permissions; GitHub defaults may be broader than needed.',
+				{ path: workflow.path },
+				'security'
+			);
+		}
+	}
+
+	return finding(
+		'workflow-permissions',
+		'Workflow permissions',
+		'pass',
+		'Every GitHub Actions workflow declares explicit token permissions without broad write scopes.',
+		{ path: workflows[0]?.path },
+		'security'
+	);
+}
+
 function qualityGateSummary(text: string): string[] {
 	const gates: Array<[string, RegExp]> = [
 		['lint', /\b(npm|pnpm|yarn|bun)\s+(run\s+)?lint\b|\bbiome\s+check\b|\beslint\b/i],
@@ -528,8 +582,6 @@ export function analyzeCiWorkflows(files: RepoFileEvidence[]): RepoReadinessFind
 	const runText = workflows.flatMap((file) => workflowRunCommands(file.text ?? '')).join('\n');
 	const gates = qualityGateSummary(runText);
 	const missing = ['lint', 'typecheck', 'test', 'build'].filter((gate) => !gates.includes(gate));
-	const writeAll = workflows.some((file) => hasWriteAllPermissions(file.text ?? ''));
-	const hasPermissions = workflows.some((file) => hasWorkflowPermissions(file.text ?? ''));
 	const riskyTarget = hasRiskyPullRequestTarget(text) || hasUnsafePullRequestTargetCheckout(text);
 	const floatingAction = hasFloatingThirdPartyAction(text);
 	const dependencyReview = hasDependencyReviewAction(text);
@@ -546,18 +598,7 @@ export function analyzeCiWorkflows(files: RepoFileEvidence[]): RepoReadinessFind
 				: `GitHub Actions workflow is missing quality gates: ${missing.join(', ')}.`,
 			{ path: evidencePath }
 		),
-		finding(
-			'workflow-permissions',
-			'Workflow permissions',
-			writeAll || !hasPermissions ? 'warn' : 'pass',
-			writeAll
-				? 'GitHub Actions workflow grants permissions: write-all.'
-				: hasPermissions
-					? 'GitHub Actions workflow declares explicit token permissions.'
-					: 'GitHub Actions workflow does not declare permissions; GitHub defaults may be broader than needed.',
-			{ path: evidencePath },
-			'security'
-		),
+		workflowPermissionFinding(workflows),
 		finding(
 			'workflow-pull-request-target',
 			'pull_request_target safety',
