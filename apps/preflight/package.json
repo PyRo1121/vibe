@@ -48,7 +48,7 @@
 		"@vibe/deploylint-shared": "file:../deploylint-shared"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^5.20260705.1",
+		"@cloudflare/workers-types": "^5.20260706.1",
 		"@playwright/test": "^1.60.0",
 		"@sveltejs/adapter-cloudflare": "^7.2.9",
 		"@sveltejs/kit": "^2.69.1",
