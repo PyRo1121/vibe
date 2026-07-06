@@ -3,6 +3,7 @@
 
 	import DeepDive from './DeepDive.svelte';
 	import LicenseAuditPanel from './LicenseAuditPanel.svelte';
+	import PaymentReadinessPanel from './PaymentReadinessPanel.svelte';
 	import SocialPreviewPanel from './SocialPreviewPanel.svelte';
 	import WebVitalsPanel from './WebVitalsPanel.svelte';
 
@@ -23,6 +24,18 @@
 			? report.licenseAudit.libraries.filter((l) => l.sellable !== 'yes').length
 			: 0
 	);
+	const paymentReadiness = $derived(report.paymentReadiness ?? null);
+
+	function paymentBadgeLabel(): string {
+		if (!paymentReadiness) return 'not detected';
+		if (paymentReadiness.fail > 0) {
+			return `${paymentReadiness.fail} blocker${paymentReadiness.fail === 1 ? '' : 's'}`;
+		}
+		if (paymentReadiness.warn > 0) {
+			return `${paymentReadiness.warn} warning${paymentReadiness.warn === 1 ? '' : 's'}`;
+		}
+		return 'ready';
+	}
 </script>
 
 {#if report.scanCoverage !== 'blocked'}
@@ -50,6 +63,19 @@
 				open={licenseFlagged > 0}
 			>
 				<LicenseAuditPanel {report} />
+			</DeepDive>
+		{/if}
+		{#if paymentReadiness && paymentReadiness.status !== 'not-detected'}
+			<DeepDive
+				title="Payment readiness"
+				hint="Checkout, webhooks, fulfillment, and customer access"
+				badge={{
+					label: paymentBadgeLabel(),
+					tone: paymentReadiness.status === 'ready' ? 'ok' : 'warn'
+				}}
+				open={paymentReadiness.status !== 'ready'}
+			>
+				<PaymentReadinessPanel {paymentReadiness} />
 			</DeepDive>
 		{/if}
 		{#if !report.repo}
