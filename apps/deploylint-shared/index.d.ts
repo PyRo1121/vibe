@@ -37,6 +37,19 @@ export interface ScanCheck {
 	fixPrompt: string;
 }
 
+export type PaymentReadinessStatus = 'ready' | 'needs-attention' | 'blocked' | 'not-detected';
+
+export interface PaymentReadinessSummary {
+	status: PaymentReadinessStatus;
+	headline: string;
+	pass: number;
+	warn: number;
+	fail: number;
+	checked: string[];
+	blockers: string[];
+	warnings: string[];
+}
+
 export interface ScanReport {
 	url: string;
 	finalUrl: string;
@@ -46,6 +59,7 @@ export interface ScanReport {
 	verdictMessage: string;
 	checks: ScanCheck[];
 	summary: { pass: number; warn: number; fail: number };
+	paymentReadiness?: PaymentReadinessSummary;
 	socialPreview?: SocialPreview;
 	launchBrief?: LaunchBrief;
 	masterPrompt?: string;

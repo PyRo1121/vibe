@@ -53,6 +53,16 @@ export const mockScanReport: ScanReport = {
 		}
 	],
 	summary: { pass: 2, warn: 2, fail: 1 },
+	paymentReadiness: {
+		status: 'blocked',
+		headline: 'Payment readiness blocked by 1 revenue blocker.',
+		pass: 0,
+		warn: 1,
+		fail: 1,
+		checked: ['checkout-server-owned', 'billing-portal'],
+		blockers: ['Server-owned checkout: Checkout is browser-owned.'],
+		warnings: ['Customer billing portal: No billing portal route.']
+	},
 	samplePromptId: 'privacy',
 	socialPreview: {
 		title: 'Demo App — Ship faster',

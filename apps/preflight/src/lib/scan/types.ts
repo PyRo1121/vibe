@@ -8,6 +8,8 @@ export type {
 	LaunchVerdict,
 	LicenseAudit,
 	LicenseCategory,
+	PaymentReadinessSummary,
+	PaymentReadinessStatus,
 	RepoInfo,
 	ScanCheck,
 	ScanCoverage,

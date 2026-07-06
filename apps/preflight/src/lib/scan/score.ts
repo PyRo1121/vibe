@@ -1,6 +1,7 @@
 import { buildLaunchBrief } from '$lib/scan/brief';
 import { SEO_LIMITS } from '$lib/scan/constants';
 import { blockedScanMessage } from '$lib/scan/coverage';
+import { buildPaymentReadinessSummary } from '$lib/scan/payment-readiness';
 import { buildSocialPreview, applyOgImageReachability } from '$lib/scan/social';
 import type {
 	LicenseAudit,
@@ -100,6 +101,7 @@ export function buildReport(
 		verdictMessage,
 		checks: tagged,
 		summary,
+		paymentReadiness: buildPaymentReadinessSummary(tagged),
 		scanCoverage: blocked ? 'blocked' : 'full',
 		...(blocked ? { scanCoverageMessage: blockedMessage } : {}),
 		...(opts?.licenseAudit ? { licenseAudit: opts.licenseAudit } : {}),

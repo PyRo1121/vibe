@@ -25,6 +25,8 @@ export interface AgentScanPayload {
 	pagesScanned: ScanReport['pagesScanned'];
 	embarrassmentRisks: string[];
 	launchHeadline: string | null;
+	paymentReadiness: ScanReport['paymentReadiness'] | null;
+	revenueBlockers: string[];
 	issues: AgentIssue[];
 	masterPrompt: string | null;
 	samplePromptId: string | null;
@@ -91,6 +93,8 @@ export function buildAgentScanPayload(report: ScanReport, maxIssues = 25): Agent
 		pagesScanned: report.pagesScanned,
 		embarrassmentRisks: report.launchBrief?.embarrassmentRisks ?? [],
 		launchHeadline: report.launchBrief?.headline ?? null,
+		paymentReadiness: report.paymentReadiness ?? null,
+		revenueBlockers: report.paymentReadiness?.blockers ?? [],
 		issues,
 		masterPrompt: report.masterPrompt?.trim() ? report.masterPrompt : null,
 		samplePromptId: report.samplePromptId ?? null,
@@ -151,6 +155,18 @@ export function formatScanMarkdown(report: ScanReport, maxIssues = 25): string {
 		lines.push('', '## Embarrassment radar', '');
 		for (const risk of payload.embarrassmentRisks.slice(0, 5)) {
 			lines.push(`- ${risk}`);
+		}
+	}
+
+	if (payload.paymentReadiness && payload.paymentReadiness.status !== 'not-detected') {
+		lines.push('', '## Payment readiness', '', payload.paymentReadiness.headline);
+		if (payload.paymentReadiness.blockers.length > 0) {
+			lines.push('', '**Revenue blockers:**');
+			for (const blocker of payload.paymentReadiness.blockers) lines.push(`- ${blocker}`);
+		}
+		if (payload.paymentReadiness.warnings.length > 0) {
+			lines.push('', '**Payment warnings:**');
+			for (const warning of payload.paymentReadiness.warnings) lines.push(`- ${warning}`);
 		}
 	}
 

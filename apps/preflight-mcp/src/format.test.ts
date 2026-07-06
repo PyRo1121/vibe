@@ -39,6 +39,16 @@ function report(overrides: Partial<ScanReport> = {}): ScanReport {
 			headline: 'Launch risk',
 			embarrassmentRisks: ['Missing privacy policy is a trust killer on Product Hunt.']
 		},
+		paymentReadiness: {
+			status: 'blocked',
+			headline: 'Payment readiness blocked by 1 revenue blocker.',
+			pass: 0,
+			warn: 1,
+			fail: 1,
+			checked: ['checkout-server-owned', 'billing-portal'],
+			blockers: ['Server-owned checkout: Checkout is browser-owned.'],
+			warnings: ['Customer billing portal: No billing portal route.']
+		},
 		reportId: 'abc12345',
 		samplePromptId: 'privacy',
 		...overrides
@@ -52,6 +62,8 @@ describe('buildAgentScanPayload', () => {
 		expect(payload.issues.find((i) => i.id === 'privacy')?.fixPrompt).toContain('/privacy');
 		expect(payload.reportUrl).toContain('/r/abc12345');
 		expect(payload.unlockHint).toBeNull();
+		expect(payload.paymentReadiness?.status).toBe('blocked');
+		expect(payload.revenueBlockers).toEqual(['Server-owned checkout: Checkout is browser-owned.']);
 	});
 
 	it('hints unlock when prompts are redacted', () => {
@@ -126,6 +138,8 @@ describe('formatScanMarkdown', () => {
 		const md = formatScanMarkdown(report());
 		expect(md).toContain('Embarrassment radar');
 		expect(md).toContain('Add a /privacy page');
+		expect(md).toContain('Payment readiness');
+		expect(md).toContain('Server-owned checkout');
 	});
 
 	it('renders optional repo, page, delta, and master prompt context', () => {

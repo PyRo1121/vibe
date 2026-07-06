@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { computeFixProgress, loadBaselineChecks } from '$lib/client/preflight-session';
 	import ScoreDeltaBadge from '$lib/components/ScoreDeltaBadge.svelte';
-	import type { ScanReport } from '$lib/scan/types';
+	import type { PaymentReadinessStatus, ScanReport } from '$lib/scan/types';
 	import { scoreColor } from '$lib/ui/scan-styles';
 
 	let {
@@ -21,6 +21,7 @@
 	} = $props();
 
 	const categories = $derived(report.launchBrief?.categoryScores ?? []);
+	const paymentReadiness = $derived(report.paymentReadiness ?? null);
 
 	const fixProgress = $derived.by(() => {
 		const baseline = loadBaselineChecks();
@@ -65,6 +66,16 @@
 		if (score >= 80) return 'bg-emerald-500';
 		if (score >= 60) return 'bg-amber-500';
 		return 'bg-red-500';
+	}
+
+	function paymentTone(status: PaymentReadinessStatus): string {
+		if (status === 'ready') return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200';
+		if (status === 'needs-attention') return 'border-amber-500/30 bg-amber-500/10 text-amber-200';
+		return 'border-red-500/30 bg-red-500/10 text-red-200';
+	}
+
+	function blockerLabel(count: number): string {
+		return `${count} revenue blocker${count === 1 ? '' : 's'}`;
 	}
 </script>
 
@@ -147,6 +158,22 @@
 					>
 				{/if}
 			</div>
+
+			{#if paymentReadiness && paymentReadiness.status !== 'not-detected'}
+				<div class="mt-4 rounded-xl border p-3 {paymentTone(paymentReadiness.status)}">
+					<p class="text-[10px] font-semibold tracking-wider uppercase">Payment readiness</p>
+					<p class="mt-1 text-sm font-medium">{paymentReadiness.headline}</p>
+					<div class="mt-2 flex flex-wrap gap-2 text-xs">
+						<span>{blockerLabel(paymentReadiness.fail)}</span>
+						{#if paymentReadiness.warn > 0}
+							<span>{paymentReadiness.warn} warning{paymentReadiness.warn === 1 ? '' : 's'}</span>
+						{/if}
+						{#if paymentReadiness.pass > 0}
+							<span>{paymentReadiness.pass} passed</span>
+						{/if}
+					</div>
+				</div>
+			{/if}
 
 			<p class="mt-4 truncate text-xs text-zinc-500" title={report.finalUrl}>
 				{report.finalUrl} · {new Date(report.scannedAt).toLocaleString()}

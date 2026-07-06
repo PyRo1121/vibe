@@ -12,6 +12,8 @@ test.describe('scan flow', () => {
 		await expect(page.getByText('CONDITIONAL GO')).toBeVisible();
 		await expect(page.getByText('Launch score')).toBeVisible();
 		await expect(page.getByText('72', { exact: true }).first()).toBeVisible();
+		await expect(page.getByText('Payment readiness', { exact: true })).toBeVisible();
+		await expect(page.getByText('1 revenue blocker', { exact: true })).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Findings' })).toBeVisible();
 		await expect(page.getByText('Privacy policy', { exact: true }).first()).toBeVisible();
 		await expect(page.getByText('Subscription access unlocked')).toBeVisible();
