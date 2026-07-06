@@ -3,6 +3,8 @@
  * Phase 18 production smoke — run: node scripts/smoke-phase18.mjs
  * Optional: PREFLIGHT_BASE=https://deploylint.com
  */
+import { hasPlausibleHtmlSnippet } from './smoke-assertions.mjs';
+
 const BASE = (
 	process.env.DEPLOYLINT_BASE ??
 	process.env.PREFLIGHT_BASE ??
@@ -74,13 +76,9 @@ if (home.res.ok && home.text.includes('og:image') && home.text.includes('applica
 	pass('homepage meta', 'og + json-ld in HTML');
 } else fail('homepage meta');
 
-if (
-	home.text.includes('/s/script.js') &&
-	home.text.includes('plausible.init') &&
-	home.text.includes(BASE_HOST)
-) {
-	pass('Plausible', 'first-party proxy snippet in HTML (/s/script.js + plausible.init)');
-} else fail('Plausible', 'expected /s/script.js proxy + plausible.init in HTML');
+if (hasPlausibleHtmlSnippet(home.text, BASE_HOST)) {
+	pass('Plausible', 'personalized or proxy snippet in HTML with plausible.init');
+} else fail('Plausible', 'expected Plausible script + domain meta + plausible.init in HTML');
 
 const proxyScript = await get('/s/script.js');
 if (proxyScript.res.ok && proxyScript.text.includes('plausible')) {
