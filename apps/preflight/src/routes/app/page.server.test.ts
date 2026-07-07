@@ -43,5 +43,14 @@ describe('/app server load', () => {
 			email: 'olen@example.com'
 		});
 		expect(pageData.workspace.ownerLabel).toBe("Olen's workspace");
+		expect(pageData.activation.nextAction).toMatchObject({
+			id: 'workflow',
+			ctaLabel: 'Copy workflow'
+		});
+		expect(pageData.activation.progress).toEqual({
+			completed: 1,
+			total: 4,
+			percentage: 25
+		});
 	});
 });

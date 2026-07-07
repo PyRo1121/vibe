@@ -1,5 +1,9 @@
 import { resolveAlphaFreeUnlock } from '$lib/product/alpha';
-import { buildAdvisoryWorkflow, buildDemoWorkspace } from '$lib/product/workspace';
+import {
+	buildAdvisoryWorkflow,
+	buildDemoWorkspace,
+	buildWorkspaceActivation
+} from '$lib/product/workspace';
 import { buildLoginRedirect } from '$lib/server/auth-config';
 import { redirect } from '@sveltejs/kit';
 
@@ -20,6 +24,7 @@ export const load: PageServerLoad = ({ locals, platform, url }) => {
 		ownerLabel: `${ownerName}'s workspace`
 	});
 	const project = workspace.projects[0];
+	const activation = buildWorkspaceActivation(workspace);
 
 	return {
 		appUrl: appUrl.replace(/\/$/, ''),
@@ -30,10 +35,13 @@ export const load: PageServerLoad = ({ locals, platform, url }) => {
 			image: locals.user.image
 		},
 		workspace,
-		advisoryWorkflow: buildAdvisoryWorkflow({
-			appUrl,
-			projectId: project.id,
-			deployUrl: project.deployUrl
-		})
+		activation,
+		advisoryWorkflow: project
+			? buildAdvisoryWorkflow({
+					appUrl,
+					projectId: project.id,
+					deployUrl: project.deployUrl
+				})
+			: ''
 	};
 };
