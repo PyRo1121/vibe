@@ -9,6 +9,7 @@
 		"directory": ".svelte-kit/cloudflare",
 		"run_worker_first": [
 			"/",
+			"/app",
 			"/about",
 			"/changelog",
 			"/checks",

@@ -16,4 +16,9 @@ describe('homepage billing self-service source', () => {
 		expect(pageSource).toContain('data.alphaFreeUnlock');
 		expect(pageSource).not.toContain('ALPHA_FREE_UNLOCK');
 	});
+
+	it('points the primary product path at the workspace', () => {
+		expect(pageSource).toContain("resolve('/app')");
+		expect(pageSource).toContain('Create project');
+	});
 });

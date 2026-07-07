@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { resolve } from '$app/paths';
 	import {
 		buildShareText,
 		clearCheckoutQuery,
@@ -329,14 +330,14 @@ jobs:
 				pull_request_target hazards, floating actions, missing quality gates, repo hygiene, and the
 				last public checks that should block a bad deploy. Start with the
 				<a
-					href="/tools/github-actions-security-checker"
+					href={resolve('/tools/github-actions-security-checker')}
 					class="font-medium text-sky-300 underline underline-offset-4 hover:text-sky-200"
 				>
 					GitHub Actions Security Checker
 				</a>
 				or add Deploylint to CI as an advisory report first.
 				<a
-					href="/compare"
+					href={resolve('/compare')}
 					class="font-medium text-sky-300 underline underline-offset-4 hover:text-sky-200"
 				>
 					See how we compare →
@@ -344,16 +345,16 @@ jobs:
 			</p>
 			<div class="mt-6 flex flex-col gap-3 sm:flex-row">
 				<a
-					href="/tools/github-actions-security-checker"
+					href={resolve('/app')}
 					class="rounded-xl bg-sky-500 px-5 py-3 text-center text-sm font-semibold text-zinc-950 hover:bg-sky-400"
 				>
-					Check workflow YAML
+					Create project
 				</a>
 				<a
-					href="/developers"
+					href={resolve('/tools/github-actions-security-checker')}
 					class="rounded-xl border border-zinc-700 px-5 py-3 text-center text-sm font-semibold text-white hover:border-sky-500 hover:text-sky-200"
 				>
-					Add CI advisory report
+					Check workflow YAML
 				</a>
 			</div>
 		</div>
@@ -362,7 +363,7 @@ jobs:
 
 	<section class="mb-8 grid gap-4 md:grid-cols-3 print:hidden">
 		<a
-			href="/tools/github-actions-security-checker"
+			href={resolve('/tools/github-actions-security-checker')}
 			class="rounded-xl border border-sky-500/40 bg-sky-500/5 p-5 text-left transition hover:border-sky-400"
 		>
 			<p class="text-xs font-semibold tracking-widest text-sky-300 uppercase">Workflow risk</p>
@@ -373,7 +374,7 @@ jobs:
 			</p>
 		</a>
 		<a
-			href="/developers"
+			href={resolve('/developers')}
 			class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 text-left transition hover:border-sky-500/70"
 		>
 			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Deploy gate</p>
@@ -383,7 +384,7 @@ jobs:
 			</p>
 		</a>
 		<a
-			href="/tools"
+			href={resolve('/tools')}
 			class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 text-left transition hover:border-sky-500/70"
 		>
 			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Repo hygiene</p>
@@ -418,7 +419,10 @@ jobs:
 		<div class="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
 			<div class="mb-3 flex items-center justify-between gap-3">
 				<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Copy into CI</p>
-				<a class="text-xs font-semibold text-sky-300 hover:text-sky-200" href="/developers">
+				<a
+					class="text-xs font-semibold text-sky-300 hover:text-sky-200"
+					href={resolve('/developers')}
+				>
 					Full setup →
 				</a>
 			</div>
@@ -621,7 +625,7 @@ jobs:
 				</p>
 			</div>
 			<a
-				href="/compare"
+				href={resolve('/compare')}
 				class="mt-4 inline-block shrink-0 rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-600 sm:mt-0"
 			>
 				Compare tools →
