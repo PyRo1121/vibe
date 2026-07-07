@@ -86,8 +86,8 @@ jobs:
 		</p>
 	</section>
 
-	<div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
-		<section>
+	<div class="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
+		<section class="min-w-0">
 			<div class="mb-3 flex items-center justify-between gap-3">
 				<label for="workflow-yaml" class="text-sm font-semibold text-white">Workflow YAML</label>
 				<button
@@ -103,7 +103,7 @@ jobs:
 				bind:value={yaml}
 				maxlength={maxWorkflowYamlLength}
 				spellcheck="false"
-				class="min-h-[520px] w-full resize-y rounded-xl border border-zinc-800 bg-zinc-950 p-4 font-mono text-sm leading-6 text-zinc-200 outline-none focus:border-sky-500"
+				class="min-h-[520px] w-full min-w-0 resize-y rounded-xl border border-zinc-800 bg-zinc-950 p-4 font-mono text-sm leading-6 text-zinc-200 outline-none focus:border-sky-500"
 			></textarea>
 			<p class="mt-2 text-xs text-zinc-500">
 				Checks up to {maxWorkflowYamlLength.toLocaleString()} characters. Large repos should use the repo
@@ -111,7 +111,7 @@ jobs:
 			</p>
 		</section>
 
-		<aside class="space-y-4">
+		<aside class="min-w-0 space-y-4">
 			<section class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
 				<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Hardening score</p>
 				<div class="mt-2 flex items-end justify-between gap-4">
@@ -238,20 +238,20 @@ jobs:
 	<section class="mt-10 grid gap-4 md:grid-cols-3">
 		<a
 			href="/developers"
-			class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 hover:border-sky-500/70"
+			class="rounded-xl border border-sky-500/40 bg-sky-500/5 p-5 hover:border-sky-400"
 		>
-			<p class="font-semibold text-white">Add an advisory CI report</p>
+			<p class="font-semibold text-white">Install in GitHub Actions</p>
 			<p class="mt-2 text-sm leading-6 text-zinc-400">
-				Wire Deploylint into GitHub Actions without blocking builds on the first run.
+				Turn this check into a non-blocking PR report, then switch to a deploy gate.
 			</p>
 		</a>
 		<a
 			href="/"
 			class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 hover:border-sky-500/70"
 		>
-			<p class="font-semibold text-white">Scan a repo</p>
+			<p class="font-semibold text-white">Audit a deploy target</p>
 			<p class="mt-2 text-sm leading-6 text-zinc-400">
-				Check package scripts, lockfiles, env files, dependency risk, and payment code.
+				Check the live URL or public repo after the workflow path is under control.
 			</p>
 		</a>
 		<a

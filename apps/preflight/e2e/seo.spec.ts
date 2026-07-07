@@ -6,18 +6,18 @@ const socialImage = `${baseUrl}/og.png`;
 const pages = [
 	{
 		path: '/',
-		title: 'CI hardening and builder DevOps tools - Deploylint',
+		title: 'CI hardening for fast builders - Deploylint',
 		description:
-			'Harden GitHub Actions, deploy gates, repo hygiene, and launch workflows before risky changes hit production. Deploylint includes CI tools plus URL and repo scans.',
+			'Find risky GitHub Actions permissions, missing quality gates, and deploy blockers before production. Deploylint is CI hardening for builders shipping with agents.',
 		canonical: `${baseUrl}/`,
-		heading: /Harden the path from pull request to production/i,
+		heading: /Stop risky workflows before they reach deploy/i,
 		jsonLdTypes: ['WebApplication', 'Organization']
 	},
 	{
 		path: '/compare',
-		title: 'Deploylint vs ShipReady, WebsiteReady, PageLens, and Lighthouse',
+		title: 'Deploylint vs CI security tools',
 		description:
-			'Compare Deploylint with ShipReady, WebsiteReady, PageLens, and Lighthouse for launch readiness, embarrassment prevention, CI gating, and agent-ready fixes.',
+			'Compare Deploylint with manual checklists, GitHub-native controls, SAST and IaC scanners, and Lighthouse for CI hardening, deploy gates, and repo hygiene.',
 		canonical: `${baseUrl}/compare`,
 		heading: /How Deploylint compares/i,
 		jsonLdTypes: ['WebPage'],
@@ -35,11 +35,11 @@ const pages = [
 	},
 	{
 		path: '/tools',
-		title: 'Builder DevOps tools - Deploylint',
+		title: 'CI hardening tools - Deploylint',
 		description:
-			'Deploylint tools harden GitHub Actions, deploy gates, repo hygiene, and launch workflows before risky changes hit production.',
+			'Deploylint tools harden GitHub Actions, deploy gates, repo hygiene, and deploy workflows before risky changes hit production.',
 		canonical: `${baseUrl}/tools`,
-		heading: /Harden the path from pull request to production/i,
+		heading: /One adoption loop for safer agent-built deploys/i,
 		jsonLdTypes: ['CollectionPage'],
 		staticPage: true
 	},
@@ -54,11 +54,11 @@ const pages = [
 	},
 	{
 		path: '/developers',
-		title: 'Deploylint advisory CI report and deploy gate',
+		title: 'Install Deploylint in GitHub Actions - Deploylint',
 		description:
-			'Add Deploylint to GitHub Actions as a non-blocking advisory report first, then switch to a blocking deploy gate when the signal is clean.',
+			'Install Deploylint in GitHub Actions as an advisory PR report first, then switch to a blocking deploy gate when the signal is clean.',
 		canonical: `${baseUrl}/developers`,
-		heading: /Deploylint CI report for pull requests/i,
+		heading: /Add a deploy-risk report to every pull request/i,
 		jsonLdTypes: ['TechArticle', 'HowTo'],
 		staticPage: true
 	},
@@ -76,7 +76,7 @@ const pages = [
 		path: '/terms',
 		title: 'Terms of Service - Deploylint',
 		description:
-			'Deploylint terms for automated launch-readiness scans, paid subscriptions, acceptable use, and refund handling.',
+			'Deploylint terms for CI hardening tools, deploy target audits, paid subscriptions, acceptable use, and refund handling.',
 		canonical: `${baseUrl}/terms`,
 		heading: /Terms of Service/i,
 		jsonLdTypes: ['WebPage'],
@@ -86,7 +86,7 @@ const pages = [
 		path: '/changelog',
 		title: 'Deploylint Changelog - Product updates and release notes',
 		description:
-			'Deploylint release notes for launch-readiness checks, CI gates, MCP tools, payment unlocks, and product changes.',
+			'Deploylint release notes for CI hardening, deploy gates, repo checks, MCP tools, payment unlocks, and product changes.',
 		canonical: `${baseUrl}/changelog`,
 		heading: /Changelog/i,
 		jsonLdTypes: ['WebPage'],

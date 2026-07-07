@@ -49,7 +49,7 @@ describe('crawler-facing website surfaces', () => {
 		const text = buildLlmsTxt('https://deploylint.com');
 
 		expect(text).toContain('- [Check catalog](https://deploylint.com/checks)');
-		expect(text).toContain('- [Builder DevOps tools](https://deploylint.com/tools)');
+		expect(text).toContain('- [CI hardening tools](https://deploylint.com/tools)');
 		expect(text).toContain(
 			'- [GitHub Actions Security Checker](https://deploylint.com/tools/github-actions-security-checker)'
 		);
@@ -64,6 +64,7 @@ describe('crawler-facing website surfaces', () => {
 		expect(text).not.toContain('https://deploylint.com/launch-readiness-checker');
 		expect(text).not.toContain('https://deploylint.com/ai-app-launch-checker');
 		expect(text).not.toContain('https://deploylint.com/vibe-code-launch-checklist');
+		expect(text).toContain('advisory PR reports');
 		expect(text).toContain('CI hardening and broader builder DevOps utilities');
 		expect(text).toContain('GitHub Actions');
 	});

@@ -7,9 +7,9 @@
 	let { data }: { data: PageData } = $props();
 
 	const base = $derived(data.appUrl.replace(/\/$/, ''));
-	const title = buildSeoTitle('Deploylint vs ShipReady, WebsiteReady, PageLens, and Lighthouse');
+	const title = buildSeoTitle('Deploylint vs CI security tools');
 	const description =
-		'Compare Deploylint with ShipReady, WebsiteReady, PageLens, and Lighthouse for launch readiness, embarrassment prevention, CI gating, and agent-ready fixes.';
+		'Compare Deploylint with manual checklists, GitHub-native controls, SAST and IaC scanners, and Lighthouse for CI hardening, deploy gates, and repo hygiene.';
 	const canonical = $derived(`${base}/compare`);
 	const jsonLd = $derived([buildPageJsonLd({ base, canonical, title, description })]);
 
@@ -18,115 +18,79 @@
 	const rows: Array<{
 		feature: string;
 		deploylint: Cell;
-		shipReady: Cell;
-		websiteReady: Cell;
-		pageLens: Cell;
+		checklists: Cell;
+		githubNative: Cell;
+		securityScanners: Cell;
 		note?: string;
 	}> = [
 		{
-			feature: 'GO / NO-GO launch verdict',
+			feature: 'GitHub Actions workflow risk review',
 			deploylint: 'yes',
-			shipReady: 'partial',
-			websiteReady: 'partial',
-			pageLens: 'no',
-			note: 'Deploylint answers “safe to post today?” — not “how fast is it?”'
+			checklists: 'partial',
+			githubNative: 'partial',
+			securityScanners: 'partial',
+			note: 'Focuses on risky permissions, pull_request_target, floating refs, and missing quality gates.'
 		},
 		{
-			feature: 'Embarrassment brief (public failure modes)',
+			feature: 'Advisory CI report before blocking',
 			deploylint: 'yes',
-			shipReady: 'no',
-			websiteReady: 'no',
-			pageLens: 'no'
+			checklists: 'no',
+			githubNative: 'partial',
+			securityScanners: 'partial',
+			note: 'Start non-blocking, then gate once the signal is trusted.'
 		},
 		{
-			feature: 'Re-scan score proof (before/after delta)',
+			feature: 'Deploy gate for builder launch blockers',
 			deploylint: 'yes',
-			shipReady: 'partial',
-			websiteReady: 'partial',
-			pageLens: 'yes'
+			checklists: 'no',
+			githubNative: 'partial',
+			securityScanners: 'partial'
 		},
 		{
-			feature: 'fix prompts + master paste',
+			feature: 'Repo hygiene for agent-built apps',
 			deploylint: 'yes',
-			shipReady: 'no',
-			websiteReady: 'no',
-			pageLens: 'no'
+			checklists: 'partial',
+			githubNative: 'no',
+			securityScanners: 'partial',
+			note: 'Checks scripts, lockfiles, runtime pins, env mistakes, dependency signals, and license risk.'
 		},
 		{
-			feature: 'SPF / DMARC / DKIM email auth probes',
+			feature: 'Public deploy target checks',
 			deploylint: 'yes',
-			shipReady: 'partial',
-			websiteReady: 'no',
-			pageLens: 'no',
-			note: 'DKIM selector DNS check when SPF is present'
+			checklists: 'partial',
+			githubNative: 'no',
+			securityScanners: 'no',
+			note: 'Covers crawler, trust, payment, preview, legal, and public exposure issues after CI is under control.'
 		},
 		{
-			feature: 'Exposed .env / .git path probes',
+			feature: 'Agent-ready fix prompts and snippets',
 			deploylint: 'yes',
-			shipReady: 'partial',
-			websiteReady: 'no',
-			pageLens: 'no',
-			note: 'Read-only same-origin checks — catches deployment mistakes before launch day'
+			checklists: 'no',
+			githubNative: 'no',
+			securityScanners: 'partial'
 		},
 		{
-			feature: 'Secrets in live JS bundles',
+			feature: 'Before and after proof for fixes',
 			deploylint: 'yes',
-			shipReady: 'partial',
-			websiteReady: 'no',
-			pageLens: 'no'
+			checklists: 'no',
+			githubNative: 'partial',
+			securityScanners: 'partial'
 		},
 		{
-			feature: 'CI deploy gate + MCP for agents',
-			deploylint: 'yes',
-			shipReady: 'no',
-			websiteReady: 'no',
-			pageLens: 'no'
-		},
-		{
-			feature: 'GitHub repo scan (licenses, OSV vulns)',
-			deploylint: 'yes',
-			shipReady: 'no',
-			websiteReady: 'no',
-			pageLens: 'no'
-		},
-		{
-			feature: 'security.txt (RFC 9116 disclosure)',
-			deploylint: 'yes',
-			shipReady: 'partial',
-			websiteReady: 'no',
-			pageLens: 'no'
-		},
-		{
-			feature: 'Shareable report permalink + README badge',
-			deploylint: 'yes',
-			shipReady: 'partial',
-			websiteReady: 'partial',
-			pageLens: 'yes',
-			note: 'OG badge on /r/[id] — prove score without screenshots'
-		},
-		{
-			feature: 'Visual screenshots / page capture',
-			deploylint: 'no',
-			shipReady: 'partial',
-			websiteReady: 'no',
-			pageLens: 'yes',
-			note: 'Deploylint is honest: we do not ship screenshots yet — depth is in checks, not pixels'
-		},
-		{
-			feature: 'og:image content-type validation',
-			deploylint: 'yes',
-			shipReady: 'partial',
-			websiteReady: 'partial',
-			pageLens: 'partial',
-			note: 'Catches SPA routes returning HTML instead of a real image'
-		},
-		{
-			feature: 'Core Web Vitals / Lighthouse-style perf lab',
+			feature: 'Deep code, cloud, and infrastructure analysis',
 			deploylint: 'partial',
-			shipReady: 'partial',
-			websiteReady: 'yes',
-			pageLens: 'no',
-			note: 'Deploylint links PageSpeed on demand — we do not clone Lighthouse'
+			checklists: 'no',
+			githubNative: 'partial',
+			securityScanners: 'yes',
+			note: 'Use dedicated security scanners for deep AppSec and cloud posture work.'
+		},
+		{
+			feature: 'Performance lab and Core Web Vitals',
+			deploylint: 'partial',
+			checklists: 'no',
+			githubNative: 'no',
+			securityScanners: 'no',
+			note: 'Use Lighthouse or a RUM tool for deep performance budgets.'
 		}
 	];
 
@@ -147,27 +111,28 @@
 
 <div class="mx-auto max-w-5xl px-4 py-12 text-zinc-300">
 	<p class="mb-3 text-sm font-medium tracking-widest text-sky-400 uppercase">
-		Not another audit score
+		Deploy control, not another audit score
 	</p>
 	<h1 class="mb-4 text-3xl font-bold text-white sm:text-4xl">How Deploylint compares</h1>
-	<p class="mb-8 max-w-3xl text-lg text-zinc-400">
-		<strong class="font-medium text-zinc-200">90+ checks</strong> aimed at one question: should you post
-		this URL publicly today? We name real alternatives and mark partial honestly — including where we
-		do not have screenshots yet.
+	<p class="mb-8 max-w-3xl text-lg leading-8 text-zinc-400">
+		Deploylint sits between manual checklists and heavyweight security tooling. It gives fast
+		builders a CI-first loop: review workflow risk, add an advisory report, fix the highest-risk
+		findings, then turn clean signal into a deploy gate.
 	</p>
 
 	<div class="overflow-x-auto rounded-2xl border border-zinc-800">
-		<table class="w-full min-w-[800px] border-collapse text-left text-sm">
+		<table class="w-full min-w-[860px] border-collapse text-left text-sm">
 			<caption class="sr-only">
-				Feature comparison between Deploylint, ShipReady, WebsiteReady, and PageLens
+				Feature comparison between Deploylint, manual checklists, GitHub-native controls, and
+				security scanners
 			</caption>
 			<thead>
 				<tr class="border-b border-zinc-800 bg-zinc-900/60">
 					<th scope="col" class="px-4 py-3 font-semibold text-white">What you need</th>
 					<th scope="col" class="px-4 py-3 font-semibold text-sky-300">Deploylint</th>
-					<th scope="col" class="px-4 py-3 font-semibold text-zinc-400">ShipReady</th>
-					<th scope="col" class="px-4 py-3 font-semibold text-zinc-400">WebsiteReady</th>
-					<th scope="col" class="px-4 py-3 font-semibold text-zinc-400">PageLens</th>
+					<th scope="col" class="px-4 py-3 font-semibold text-zinc-400">Manual checklists</th>
+					<th scope="col" class="px-4 py-3 font-semibold text-zinc-400">GitHub native</th>
+					<th scope="col" class="px-4 py-3 font-semibold text-zinc-400">SAST / IaC scanners</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -180,9 +145,13 @@
 							{/if}
 						</th>
 						<td class="px-4 py-3 {cellClass[row.deploylint]}">{cellLabel[row.deploylint]}</td>
-						<td class="px-4 py-3 {cellClass[row.shipReady]}">{cellLabel[row.shipReady]}</td>
-						<td class="px-4 py-3 {cellClass[row.websiteReady]}">{cellLabel[row.websiteReady]}</td>
-						<td class="px-4 py-3 {cellClass[row.pageLens]}">{cellLabel[row.pageLens]}</td>
+						<td class="px-4 py-3 {cellClass[row.checklists]}">{cellLabel[row.checklists]}</td>
+						<td class="px-4 py-3 {cellClass[row.githubNative]}">
+							{cellLabel[row.githubNative]}
+						</td>
+						<td class="px-4 py-3 {cellClass[row.securityScanners]}">
+							{cellLabel[row.securityScanners]}
+						</td>
 					</tr>
 				{/each}
 			</tbody>
@@ -191,29 +160,31 @@
 
 	<section class="mt-10 rounded-2xl border border-sky-900/40 bg-sky-950/20 p-6">
 		<h2 class="text-lg font-semibold text-white">When to use what</h2>
-		<ul class="mt-3 list-disc space-y-2 pl-6 text-sm text-zinc-400">
+		<ul class="mt-3 list-disc space-y-2 pl-6 text-sm leading-6 text-zinc-400">
 			<li>
-				<strong class="text-zinc-300">Deploylint</strong> — night before Product Hunt, Reddit, or X: embarrassment
-				radar, legal/social blockers, fix prompts, re-scan proof.
+				<strong class="text-zinc-300">Deploylint</strong>: harden GitHub Actions, add advisory CI
+				reports, gate risky deploys, and keep builder repos clean.
 			</li>
 			<li>
-				<strong class="text-zinc-300">ShipReady / WebsiteReady</strong> — broader site health or checklist-style
-				audits; weaker on agent-native fix loops and deployment probes.
+				<strong class="text-zinc-300">GitHub native controls</strong>: keep branch protection,
+				secret scanning, dependency review, and CodeQL in place.
 			</li>
 			<li>
-				<strong class="text-zinc-300">PageLens</strong> — visual page review and shareable captures; different
-				question than launch blockers.
+				<strong class="text-zinc-300">SAST and IaC scanners</strong>: use them for deep source,
+				infrastructure, and cloud posture analysis.
 			</li>
 			<li>
-				<strong class="text-zinc-300">Lighthouse</strong> (not in table) — performance budgets and deep
-				accessibility lab audits; use alongside Deploylint, not instead of it.
+				<strong class="text-zinc-300">Lighthouse</strong>: use it for performance and accessibility
+				lab testing; Deploylint is focused on deploy risk.
 			</li>
 		</ul>
 	</section>
 
 	<p class="mt-8">
-		<a class="text-sky-400 hover:underline" href="/">← Run a free scan</a>
-		<span class="mx-2 text-zinc-600">·</span>
+		<a class="text-sky-400 hover:underline" href="/tools/github-actions-security-checker"
+			>Check workflow YAML</a
+		>
+		<span class="mx-2 text-zinc-600">&middot;</span>
 		<a class="text-sky-400 hover:underline" href="/developers">CI gate setup</a>
 	</p>
 </div>

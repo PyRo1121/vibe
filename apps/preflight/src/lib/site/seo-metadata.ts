@@ -10,7 +10,7 @@ export const DEPLOYLINT_SEO = {
 		width: 1200,
 		height: 630,
 		type: 'image/png',
-		alt: 'Deploylint launch readiness scanner'
+		alt: 'Deploylint CI hardening and deploy gate tools'
 	}
 } as const;
 
@@ -108,12 +108,12 @@ export function buildDeploylintJsonLd({
 			isAccessibleForFree: true,
 			browserRequirements: 'Requires a modern browser with JavaScript enabled.',
 			featureList: [
-				'Launch readiness scanning',
-				'SEO blocker detection',
-				'Security header checks',
-				'Social preview validation',
-				'GitHub repository scanning',
-				'CI deploy gate'
+				'GitHub Actions workflow hardening',
+				'Advisory PR reports',
+				'Deploy gate checks',
+				'Repo hygiene checks',
+				'Agent-ready fix prompts',
+				'Public deploy target audits'
 			],
 			audience: {
 				'@type': 'Audience',

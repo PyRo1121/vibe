@@ -28,6 +28,6 @@ export async function mockScanApi(page: Page, report: ScanReport | 'error', stat
 
 export async function runMockScan(page: Page, url = 'https://demo-app.test') {
 	await page.getByPlaceholder('your-app.com or github.com/you/repo').fill(url);
-	await page.getByRole('button', { name: 'Scan free' }).click();
+	await page.getByRole('button', { name: 'Audit target' }).click();
 	await expect(page.getByText('Launch verdict')).toBeVisible({ timeout: 15_000 });
 }

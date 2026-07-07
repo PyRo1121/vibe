@@ -14,7 +14,7 @@
 	const total = catalogEntries().length;
 	const title = buildSeoTitle('Deploylint check catalog');
 	const description =
-		'Browse Deploylint launch-readiness checks, including launch blockers, security checks, detection notes, and false-positive guidance.';
+		'Browse Deploylint CI, repo, deploy target, security, detection, and false-positive guidance checks.';
 	const jsonLd = $derived([
 		buildPageJsonLd({ base, canonical, title, description, type: 'CollectionPage' })
 	]);
@@ -30,9 +30,9 @@
 		</h1>
 		<p class="mt-4 max-w-3xl text-sm leading-7 text-zinc-400">
 			This website catalog is the shared source of truth behind report explanations. It currently
-			documents {total} high-signal checks first: launch blockers, security headers, exposed deployment
-			surfaces, CVEs, service readiness, SEO, social previews, AI discoverability, and app polish that
-			developers can act on.
+			documents {total} high-signal checks first: workflow risk, deploy blockers, security headers, exposed
+			deployment surfaces, CVEs, service readiness, SEO, social previews, AI discoverability, and app
+			polish that developers can act on.
 		</p>
 	</section>
 

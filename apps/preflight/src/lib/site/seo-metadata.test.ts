@@ -27,7 +27,7 @@ describe('Deploylint SEO metadata', () => {
 	it('builds a reusable schema graph for the root product', () => {
 		const graph = buildDeploylintJsonLd({
 			base: 'https://deploylint.com',
-			description: 'Scan a live website before launch.',
+			description: 'Harden CI workflows before production.',
 			price: '9.00'
 		});
 
@@ -47,9 +47,12 @@ describe('Deploylint SEO metadata', () => {
 			operatingSystem: 'Web',
 			isAccessibleForFree: true,
 			featureList: expect.arrayContaining([
-				'SEO blocker detection',
-				'GitHub repository scanning',
-				'CI deploy gate'
+				'GitHub Actions workflow hardening',
+				'Advisory PR reports',
+				'Deploy gate checks',
+				'Repo hygiene checks',
+				'Agent-ready fix prompts',
+				'Public deploy target audits'
 			]),
 			offers: {
 				'@type': 'Offer',

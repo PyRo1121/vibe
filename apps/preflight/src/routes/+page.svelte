@@ -10,6 +10,7 @@
 	import { trackFunnel } from '$lib/client/track';
 	import AiCopyReviewPanel from '$lib/components/AiCopyReviewPanel.svelte';
 	import Checklist from '$lib/components/Checklist.svelte';
+	import CiReportPreview from '$lib/components/CiReportPreview.svelte';
 	import DeepDivesSection from '$lib/components/DeepDivesSection.svelte';
 	import LaunchBriefPanel from '$lib/components/LaunchBriefPanel.svelte';
 	import MasterPromptPanel from '$lib/components/MasterPromptPanel.svelte';
@@ -23,7 +24,6 @@
 	import UnlockPanel from '$lib/components/UnlockPanel.svelte';
 	import UnlockStickyBar from '$lib/components/UnlockStickyBar.svelte';
 	import VerdictBanner from '$lib/components/VerdictBanner.svelte';
-	import { ALPHA_DISCLAIMER, ALPHA_FREE_DISCLAIMER, ALPHA_PRICE_PREVIEW } from '$lib/product/alpha';
 	import type { DeploylintPlanId } from '$lib/product/plans';
 	import type { ScanReport } from '$lib/scan/types';
 	import { buildDeploylintJsonLd, buildSeoTitle, defaultSeoImage } from '$lib/site/seo-metadata';
@@ -282,10 +282,29 @@
 	}
 
 	const appOrigin = $derived(data.appUrl.replace(/\/$/, ''));
-	const title = buildSeoTitle('CI hardening and builder DevOps tools');
+	const title = buildSeoTitle('CI hardening for fast builders');
 	const description =
-		'Harden GitHub Actions, deploy gates, repo hygiene, and launch workflows before risky changes hit production. Deploylint includes CI tools plus URL and repo scans.';
+		'Find risky GitHub Actions permissions, missing quality gates, and deploy blockers before production. Deploylint is CI hardening for builders shipping with agents.';
 	const jsonLd = $derived(buildDeploylintJsonLd({ base: appOrigin, description, price: '0.00' }));
+	const quickInstallYaml = $derived(`name: Deploylint advisory report
+
+on:
+  pull_request:
+
+permissions: {}
+
+jobs:
+  deploylint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report deploy risk
+        env:
+          DEPLOYLINT_URL: \${{ secrets.DEPLOYLINT_URL }}
+          DEPLOYLINT_API: ${appOrigin}
+          DEPLOYLINT_MODE: advisory
+        run: |
+          curl -fsSL ${appOrigin}/gate-remote.mjs -o gate-remote.mjs
+          node gate-remote.mjs "$DEPLOYLINT_URL"`);
 </script>
 
 <SeoHead
@@ -297,39 +316,57 @@
 />
 
 <div class="mx-auto max-w-5xl px-4 py-12">
-	<section class="mb-12 text-center print:hidden">
-		<p class="mb-3 text-sm font-medium tracking-widest text-sky-400 uppercase">
-			Builder DevOps tools
-		</p>
-		<h1 class="mb-4 text-4xl font-bold tracking-tight text-white sm:text-5xl">
-			Harden the path from pull request to production.
-		</h1>
-		<p class="mx-auto max-w-2xl text-lg text-zinc-400">
-			Deploylint is pivoting into practical CI hardening, deploy gate, repo hygiene, and launch
-			workflow tools. Start with the
-			<a
-				href="/tools/github-actions-security-checker"
-				class="font-medium text-sky-300 underline underline-offset-4 hover:text-sky-200"
-			>
-				GitHub Actions Security Checker
-			</a>
-			or paste a live URL / public GitHub repo below for the existing launch-readiness scan.
-			<a
-				href="/compare"
-				class="font-medium text-sky-300 underline underline-offset-4 hover:text-sky-200"
-			>
-				See how we compare →
-			</a>
-		</p>
+	<section class="mb-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-end print:hidden">
+		<div>
+			<p class="mb-3 text-sm font-medium tracking-widest text-sky-400 uppercase">
+				CI hardening for agent-built apps
+			</p>
+			<h1 class="mb-4 max-w-4xl text-4xl font-bold tracking-tight text-white sm:text-5xl">
+				Stop risky workflows before they reach deploy.
+			</h1>
+			<p class="max-w-3xl text-lg leading-8 text-zinc-400">
+				Deploylint reviews the path from pull request to production: GitHub Actions permissions,
+				pull_request_target hazards, floating actions, missing quality gates, repo hygiene, and the
+				last public checks that should block a bad deploy. Start with the
+				<a
+					href="/tools/github-actions-security-checker"
+					class="font-medium text-sky-300 underline underline-offset-4 hover:text-sky-200"
+				>
+					GitHub Actions Security Checker
+				</a>
+				or add Deploylint to CI as an advisory report first.
+				<a
+					href="/compare"
+					class="font-medium text-sky-300 underline underline-offset-4 hover:text-sky-200"
+				>
+					See how we compare →
+				</a>
+			</p>
+			<div class="mt-6 flex flex-col gap-3 sm:flex-row">
+				<a
+					href="/tools/github-actions-security-checker"
+					class="rounded-xl bg-sky-500 px-5 py-3 text-center text-sm font-semibold text-zinc-950 hover:bg-sky-400"
+				>
+					Check workflow YAML
+				</a>
+				<a
+					href="/developers"
+					class="rounded-xl border border-zinc-700 px-5 py-3 text-center text-sm font-semibold text-white hover:border-sky-500 hover:text-sky-200"
+				>
+					Add CI advisory report
+				</a>
+			</div>
+		</div>
+		<CiReportPreview compact />
 	</section>
 
-	<section class="mb-10 grid gap-4 md:grid-cols-3 print:hidden">
+	<section class="mb-8 grid gap-4 md:grid-cols-3 print:hidden">
 		<a
 			href="/tools/github-actions-security-checker"
 			class="rounded-xl border border-sky-500/40 bg-sky-500/5 p-5 text-left transition hover:border-sky-400"
 		>
-			<p class="text-xs font-semibold tracking-widest text-sky-300 uppercase">Hero tool</p>
-			<h2 class="mt-2 font-semibold text-white">GitHub Actions Security Checker</h2>
+			<p class="text-xs font-semibold tracking-widest text-sky-300 uppercase">Workflow risk</p>
+			<h2 class="mt-2 font-semibold text-white">Audit GitHub Actions before merge</h2>
 			<p class="mt-2 text-sm leading-6 text-zinc-400">
 				Paste workflow YAML and catch risky permissions, pull_request_target usage, floating refs,
 				and missing quality gates.
@@ -349,46 +386,52 @@
 			href="/tools"
 			class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 text-left transition hover:border-sky-500/70"
 		>
-			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Toolbox</p>
-			<h2 class="mt-2 font-semibold text-white">Builder DevOps tools</h2>
+			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Repo hygiene</p>
+			<h2 class="mt-2 font-semibold text-white">Find deploy-path drift</h2>
 			<p class="mt-2 text-sm leading-6 text-zinc-400">
-				See the new tool index for CI hardening, repo hygiene, and launch workflow utilities.
+				Check scripts, lockfiles, runtime pins, dependency signals, and public blockers.
 			</p>
 		</a>
 	</section>
 
-	<section
-		class="mx-auto mb-10 max-w-2xl rounded-2xl border border-sky-500/30 bg-sky-500/5 p-5 print:hidden"
-		aria-label="Pricing notice"
-	>
-		<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-			<div>
-				<p class="text-xs font-semibold tracking-widest text-sky-300 uppercase">
-					{ALPHA_PRICE_PREVIEW.current}
-				</p>
-				<p class="mt-2 text-sm text-zinc-300">
-					{alphaFreeUnlock ? ALPHA_FREE_DISCLAIMER : ALPHA_DISCLAIMER}
-				</p>
-			</div>
-			<div class="shrink-0 rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3">
-				<p class="text-[10px] font-semibold tracking-wider text-zinc-400 uppercase">
-					Full release price
-				</p>
-				<p class="mt-1 text-lg font-bold text-white">{ALPHA_PRICE_PREVIEW.later}</p>
-			</div>
-		</div>
-		<ul class="mt-4 grid gap-2 text-xs text-zinc-400 sm:grid-cols-2">
-			{#each ALPHA_PRICE_PREVIEW.hiddenLater as item (item)}
-				<li class="flex gap-2">
-					<span class="text-sky-400">+</span>
-					<span>{item}</span>
+	<section class="mb-10 grid gap-4 lg:grid-cols-[minmax(0,1fr)_420px] print:hidden">
+		<div class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">
+			<p class="text-xs font-semibold tracking-widest text-sky-300 uppercase">Install path</p>
+			<h2 class="mt-2 text-2xl font-semibold tracking-tight text-white">
+				Start advisory. Turn on blocking after the signal is clean.
+			</h2>
+			<ol class="mt-5 grid gap-3 text-sm leading-6 text-zinc-300 sm:grid-cols-3 lg:grid-cols-1">
+				<li class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+					<span class="font-semibold text-white">1. Check workflow YAML</span>
+					<span class="mt-1 block text-zinc-400">Catch risky permissions and missing gates.</span>
 				</li>
-			{/each}
-		</ul>
+				<li class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+					<span class="font-semibold text-white">2. Add advisory PR report</span>
+					<span class="mt-1 block text-zinc-400">Show deploy risk without failing builds.</span>
+				</li>
+				<li class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+					<span class="font-semibold text-white">3. Switch to deploy gate</span>
+					<span class="mt-1 block text-zinc-400">Block P0 risk once the report is trusted.</span>
+				</li>
+			</ol>
+		</div>
+		<div class="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
+			<div class="mb-3 flex items-center justify-between gap-3">
+				<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Copy into CI</p>
+				<a class="text-xs font-semibold text-sky-300 hover:text-sky-200" href="/developers">
+					Full setup →
+				</a>
+			</div>
+			<pre
+				class="max-h-80 overflow-auto rounded-lg bg-zinc-900 p-3 text-xs leading-5 whitespace-pre-wrap text-zinc-300"><code
+					>{quickInstallYaml}</code
+				></pre>
+		</div>
 	</section>
 
 	<form
-		class="mx-auto mb-10 max-w-2xl print:hidden"
+		class="mx-auto mb-10 max-w-2xl rounded-xl border border-zinc-800 bg-zinc-900/30 p-5 print:hidden"
+		aria-label="Secondary deploy target scan"
 		onsubmit={(e) => {
 			e.preventDefault();
 			const trimmed = url.trim();
@@ -402,6 +445,14 @@
 			runScan(false);
 		}}
 	>
+		<div class="mb-4">
+			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Secondary utility</p>
+			<h2 class="mt-2 text-lg font-semibold text-white">Audit a URL or repo as a deploy target</h2>
+			<p class="mt-1 text-sm leading-6 text-zinc-400">
+				Use this for crawler, trust, payment, preview, and repo hygiene signals after the CI path is
+				under control.
+			</p>
+		</div>
 		<div class="flex flex-col gap-3 sm:flex-row">
 			<label for="scan-url" class="sr-only">URL to scan</label>
 			<input
@@ -419,7 +470,7 @@
 				disabled={loading || !url.trim()}
 				class="rounded-xl bg-sky-600 px-6 py-3 font-semibold text-white hover:bg-sky-500 disabled:bg-sky-900 disabled:text-sky-100"
 			>
-				{loading ? 'Scanning…' : 'Scan free'}
+				{loading ? 'Auditing…' : 'Audit target'}
 			</button>
 		</div>
 		{#if loading}
@@ -519,12 +570,12 @@
 	{:else if !loading}
 		<section class="mb-8 text-center">
 			<p class="text-xs font-semibold tracking-widest text-zinc-400 uppercase">
-				One tool in the builder DevOps toolbox
+				Deploy-control surfaces
 			</p>
 		</section>
 		<section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 			<div class="rounded-xl border border-zinc-800 p-5">
-				<p class="font-medium text-white">CI hardening</p>
+				<p class="font-medium text-white">Workflow hardening</p>
 				<p class="mt-1 text-sm text-zinc-400">
 					Check GitHub Actions for risky permissions, pull_request_target, and floating refs
 				</p>
@@ -536,39 +587,27 @@
 				</p>
 			</div>
 			<div class="rounded-xl border border-zinc-800 p-5">
-				<p class="font-medium text-white">Launch judgment</p>
-				<p class="mt-1 text-sm text-zinc-400">
-					GO / CONDITIONAL / NO-GO — ship/no-ship, not a perf score
-				</p>
-			</div>
-			<div class="rounded-xl border border-zinc-800 p-5">
-				<p class="font-medium text-white">Embarrassment radar</p>
-				<p class="mt-1 text-sm text-zinc-400">
-					Privacy gaps, placeholder copy, dead links critics click first
-				</p>
-			</div>
-			<div class="rounded-xl border border-zinc-800 p-5">
-				<p class="font-medium text-white">Fix & prove loop</p>
-				<p class="mt-1 text-sm text-zinc-400">
-					Free scan, then Solo from $9/mo for Cursor prompts and before/after re-scan proof
-				</p>
-			</div>
-			<div class="rounded-xl border border-zinc-800 p-5">
-				<p class="font-medium text-white">Preview safety</p>
-				<p class="mt-1 text-sm text-zinc-400">
-					Catches SPA routes returning HTML instead of a real image
-				</p>
-			</div>
-			<div class="rounded-xl border border-zinc-800 p-5">
-				<p class="font-medium text-white">GitHub repo scan</p>
-				<p class="mt-1 text-sm text-zinc-400">
-					Committed .env files, sell-rights licenses, OSV vulnerabilities
-				</p>
-			</div>
-			<div class="rounded-xl border border-zinc-800 p-5">
 				<p class="font-medium text-white">Repo hygiene</p>
 				<p class="mt-1 text-sm text-zinc-400">
-					CI, package scripts, lockfiles, Node pins, env hygiene, and dependency signals
+					Package scripts, lockfiles, Node pins, env hygiene, and dependency signals
+				</p>
+			</div>
+			<div class="rounded-xl border border-zinc-800 p-5">
+				<p class="font-medium text-white">Deploy target audit</p>
+				<p class="mt-1 text-sm text-zinc-400">
+					Crawler, trust, payment, preview, and repo checks after workflow risk is under control
+				</p>
+			</div>
+			<div class="rounded-xl border border-zinc-800 p-5">
+				<p class="font-medium text-white">Fix evidence</p>
+				<p class="mt-1 text-sm text-zinc-400">
+					Cursor-ready fixes, then before/after proof when the deploy path is clean
+				</p>
+			</div>
+			<div class="rounded-xl border border-zinc-800 p-5">
+				<p class="font-medium text-white">Low-noise decisions</p>
+				<p class="mt-1 text-sm text-zinc-400">
+					Clear blockers, advisory findings, and follow-up work instead of another vague score
 				</p>
 			</div>
 		</section>
@@ -576,9 +615,9 @@
 			class="mt-6 rounded-2xl border border-sky-900/50 bg-sky-950/20 p-6 text-left sm:flex sm:items-center sm:justify-between sm:gap-6"
 		>
 			<div>
-				<p class="font-medium text-white">Not Lighthouse. Not an OG debugger.</p>
+				<p class="font-medium text-white">Compare deploy-control tools.</p>
 				<p class="mt-1 text-sm text-zinc-400">
-					Honest side-by-side — where Deploylint wins and where it does not.
+					Where Deploylint fits next to manual checklists, GitHub security features, and audits.
 				</p>
 			</div>
 			<a

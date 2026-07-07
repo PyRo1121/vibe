@@ -11,8 +11,8 @@ test.describe('a11y smoke', () => {
 		const input = page.getByPlaceholder('your-app.com or github.com/you/repo');
 		await expect(input).toHaveAttribute('required', '');
 		await input.fill('https://example.test');
-		await expect(page.getByRole('button', { name: 'Scan free' })).toBeEnabled();
-		await page.getByRole('button', { name: 'Scan free' }).focus();
-		await expect(page.getByRole('button', { name: 'Scan free' })).toBeFocused();
+		await expect(page.getByRole('button', { name: 'Audit target' })).toBeEnabled();
+		await page.getByRole('button', { name: 'Audit target' }).focus();
+		await expect(page.getByRole('button', { name: 'Audit target' })).toBeFocused();
 	});
 });

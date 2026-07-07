@@ -17,15 +17,16 @@ export const PUBLIC_SITE_ROUTES = [
 		path: '/',
 		title: 'Deploylint',
 		description:
-			'Harden GitHub Actions, deploy gates, repo hygiene, and launch workflows before production.',
+			'Find risky GitHub Actions permissions, missing quality gates, and deploy blockers before production.',
 		lastmod: SITE_LASTMOD,
 		changefreq: 'weekly',
 		priority: '1.0'
 	},
 	{
 		path: '/tools',
-		title: 'Builder DevOps tools',
-		description: 'Browse Deploylint tools for CI hardening, deploy gates, and repo hygiene.',
+		title: 'CI hardening tools',
+		description:
+			'Browse Deploylint tools for workflow risk, advisory PR reports, deploy gates, and repo hygiene.',
 		lastmod: SITE_LASTMOD,
 		changefreq: 'weekly',
 		priority: '0.95'
@@ -43,7 +44,7 @@ export const PUBLIC_SITE_ROUTES = [
 		path: '/about',
 		title: 'About Deploylint',
 		description:
-			'Learn how Deploylint checks AI-built apps for launch blockers before public release.',
+			'Learn how Deploylint hardens CI workflows, deploy gates, and repo hygiene before production.',
 		lastmod: SITE_LASTMOD,
 		changefreq: 'monthly',
 		priority: '0.8'
@@ -59,15 +60,17 @@ export const PUBLIC_SITE_ROUTES = [
 	{
 		path: '/compare',
 		title: 'Comparison',
-		description: 'Compare Deploylint with Lighthouse, OG debuggers, uptime checks, and audits.',
+		description:
+			'Compare Deploylint with manual checklists, GitHub-native controls, SAST and IaC scanners, and Lighthouse.',
 		lastmod: SITE_LASTMOD,
 		changefreq: 'monthly',
 		priority: '0.8'
 	},
 	{
 		path: '/developers',
-		title: 'Advisory CI report',
-		description: 'Add a non-blocking Deploylint CI report first, then switch to a deploy gate.',
+		title: 'Install in GitHub Actions',
+		description:
+			'Install Deploylint as a non-blocking advisory PR report first, then switch to a deploy gate.',
 		lastmod: SITE_LASTMOD,
 		changefreq: 'monthly',
 		priority: '0.7'
@@ -83,7 +86,8 @@ export const PUBLIC_SITE_ROUTES = [
 	{
 		path: '/changelog',
 		title: 'Changelog',
-		description: 'Track Deploylint product changes and newly added launch-readiness checks.',
+		description:
+			'Track Deploylint product changes across CI hardening, deploy gates, and repo checks.',
 		lastmod: SITE_LASTMOD,
 		changefreq: 'weekly',
 		priority: '0.6'
@@ -139,11 +143,11 @@ export function buildLlmsTxt(origin = DEFAULT_DEPLOYLINT_API): string {
 
 	return `# Deploylint
 
-> Builder DevOps tools for hardening GitHub Actions, deploy gates, repo hygiene, and launch workflows before production.
+> CI hardening tools for GitHub Actions advisory PR reports, deploy gates, repo hygiene, and deploy workflows before production.
 
-Deploylint helps builders catch risky workflow permissions, pull_request_target hazards, floating GitHub Action refs, missing quality gates, exposed repo secrets, broken launch surfaces, and deploy blockers before they reach users.
+Deploylint helps builders catch risky workflow permissions, pull_request_target hazards, floating GitHub Action refs, missing quality gates, exposed repo secrets, broken deploy surfaces, and production blockers before they reach users.
 
-The current toolbox includes a GitHub Actions Security Checker, deploy gate setup, public URL launch scan, and public GitHub repo scan. The product direction is CI hardening and broader builder DevOps utilities, not a generic scanner dashboard.
+The current product loop includes a GitHub Actions Security Checker, advisory PR reports, deploy gate setup, repo hygiene checks, and public deploy target audits. The product direction is CI hardening and broader builder DevOps utilities, not a generic scanner dashboard.
 
 Public pages:
 ${pages}

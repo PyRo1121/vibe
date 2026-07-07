@@ -9,7 +9,7 @@
 	const base = 'https://deploylint.com';
 	const title = buildSeoTitle('Deploylint Changelog - Product updates and release notes');
 	const description =
-		'Deploylint release notes for launch-readiness checks, CI gates, MCP tools, payment unlocks, and product changes.';
+		'Deploylint release notes for CI hardening, deploy gates, repo checks, MCP tools, payment unlocks, and product changes.';
 	const canonical = `${base}/changelog`;
 	const jsonLd = [buildPageJsonLd({ base, canonical, title, description })];
 </script>

@@ -59,11 +59,16 @@
 					</span>
 				{/if}
 			</a>
-			<nav aria-label="Main navigation" class="flex items-center gap-4 text-xs text-zinc-300">
+			<nav
+				aria-label="Main navigation"
+				class="flex items-center gap-3 text-xs text-zinc-300 sm:gap-4"
+			>
 				<a href="/tools" class="hover:text-white">Tools</a>
-				<a href="/compare" class="hover:text-white">Compare</a>
-				<a href="/checks" class="hover:text-white">Checks</a>
-				<a href="/guides/website-launch-checklist" class="hover:text-white">Guides</a>
+				<a href="/compare" class="hidden hover:text-white sm:inline">Compare</a>
+				<a href="/checks" class="hidden hover:text-white sm:inline">Checks</a>
+				<a href="/guides/website-launch-checklist" class="hidden hover:text-white sm:inline"
+					>Guides</a
+				>
 				<a href="/developers" class="hover:text-white">CI gate</a>
 				<span class="hidden text-zinc-400 sm:inline">CI hardening &middot; deploy gates</span>
 			</nav>
@@ -77,7 +82,7 @@
 			<span class="mx-2">&middot;</span>
 			<a href="/tools/github-actions-security-checker" class="hover:text-white">GitHub Actions</a>
 			<span class="mx-2">&middot;</span>
-			<a href="/" class="hover:text-white">Scanner</a>
+			<a href="/" class="hover:text-white">Deploy ops</a>
 			<span class="mx-2">&middot;</span>
 			<a href="/about" class="hover:text-white">About</a>
 			<span class="mx-2">&middot;</span>

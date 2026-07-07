@@ -1,4 +1,5 @@
 <script lang="ts">
+	import CiReportPreview from '$lib/components/CiReportPreview.svelte';
 	import SeoHead from '$lib/components/SeoHead.svelte';
 	import { buildPageJsonLd, buildSeoTitle, defaultSeoImage } from '$lib/site/seo-metadata';
 
@@ -7,9 +8,9 @@
 	let { data }: { data: PageData } = $props();
 
 	const base = $derived(data.appUrl.replace(/\/$/, ''));
-	const title = buildSeoTitle('Deploylint advisory CI report and deploy gate');
+	const title = buildSeoTitle('Install Deploylint in GitHub Actions');
 	const description =
-		'Add Deploylint to GitHub Actions as a non-blocking advisory report first, then switch to a blocking deploy gate when the signal is clean.';
+		'Install Deploylint in GitHub Actions as an advisory PR report first, then switch to a blocking deploy gate when the signal is clean.';
 	const canonical = $derived(`${base}/developers`);
 	const jsonLd = $derived([
 		{
@@ -129,19 +130,28 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 
 <SeoHead {title} {description} {canonical} image={defaultSeoImage(base)} {jsonLd} />
 
-<div class="mx-auto max-w-3xl px-4 py-12 text-zinc-300">
-	<p class="mb-3 text-sm font-medium tracking-widest text-sky-400 uppercase">Start advisory</p>
-	<h1 class="mb-4 text-3xl font-bold text-white sm:text-4xl">
-		Deploylint CI report for pull requests
-	</h1>
-	<p class="mb-8 text-lg text-zinc-400">
-		Add Deploylint to GitHub Actions as a
-		<strong class="font-medium text-zinc-200">non-blocking advisory report</strong> first. Once the signal
-		is clean, switch the same scan to gate mode and block configured launch blockers.
-	</p>
+<div class="mx-auto max-w-5xl px-4 py-12 text-zinc-300">
+	<section class="mb-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-end">
+		<div>
+			<p class="mb-3 text-sm font-medium tracking-widest text-sky-400 uppercase">
+				Install in GitHub Actions
+			</p>
+			<h1 class="mb-4 max-w-3xl text-3xl font-bold text-white sm:text-5xl">
+				Add a deploy-risk report to every pull request.
+			</h1>
+			<p class="text-lg leading-8 text-zinc-400">
+				Start with a
+				<strong class="font-medium text-zinc-200">non-blocking advisory report</strong>. It shows
+				risky workflow permissions, missing quality gates, repo hygiene drift, and deploy target
+				issues without failing builds. Once the signal is clean, switch the same workflow to gate
+				mode.
+			</p>
+		</div>
+		<CiReportPreview compact />
+	</section>
 
 	<section class="mb-10 rounded-2xl border border-sky-900/50 bg-sky-950/20 p-6">
-		<h2 class="mb-2 text-xl font-semibold text-white">1. Advisory workflow</h2>
+		<h2 class="mb-2 text-xl font-semibold text-white">1. Install the advisory workflow</h2>
 		<p class="mb-4 text-sm leading-6 text-zinc-400">
 			Set a GitHub secret named
 			<code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">DEPLOYLINT_URL</code>
@@ -156,6 +166,30 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 			Start here even if you plan to block deploys later. Advisory mode lets you calibrate false
 			positives and prove the report is useful before it affects merges.
 		</p>
+	</section>
+
+	<section class="mb-10 grid gap-4 md:grid-cols-3">
+		<div class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5">
+			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Why adopt</p>
+			<p class="mt-2 font-semibold text-white">Agent-built changes get a second reviewer</p>
+			<p class="mt-2 text-sm leading-6 text-zinc-400">
+				Deploylint watches the CI and deploy path that AI coding agents commonly weaken or skip.
+			</p>
+		</div>
+		<div class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5">
+			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Why pay</p>
+			<p class="mt-2 font-semibold text-white">The value is the always-on gate</p>
+			<p class="mt-2 text-sm leading-6 text-zinc-400">
+				The free tools prove the signal; the paid workflow keeps risky deploys from shipping later.
+			</p>
+		</div>
+		<div class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5">
+			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Why trust</p>
+			<p class="mt-2 font-semibold text-white">Advisory first, blocking later</p>
+			<p class="mt-2 text-sm leading-6 text-zinc-400">
+				Teams can read reports for a few PRs before letting Deploylint fail a build.
+			</p>
+		</div>
 	</section>
 
 	<section class="mb-10 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
@@ -264,7 +298,7 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 	<section class="mb-10 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
 		<h2 class="mb-2 text-lg font-semibold text-white">What Deploylint can and cannot see</h2>
 		<ul class="list-disc space-y-2 pl-6 text-sm text-zinc-400">
-			<li>Deploylint is a heuristic launch-readiness scan, not a full security audit.</li>
+			<li>Deploylint is a CI and deploy-target signal, not a full security audit.</li>
 			<li>Advisory mode never blocks builds.</li>
 			<li>Blocking mode only blocks on Deploylint's configured score, verdict, and P0 rules.</li>
 			<li>Public repo scans inspect public files and sampled surfaces.</li>
@@ -295,6 +329,6 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 	</section>
 
 	<p>
-		<a class="text-sky-400 hover:underline" href="/">Back to scan</a>
+		<a class="text-sky-400 hover:underline" href="/">Audit a deploy target</a>
 	</p>
 </div>

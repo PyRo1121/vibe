@@ -4,12 +4,15 @@ test.describe('developers', () => {
 	test('documents the advisory-first CI setup', async ({ page }) => {
 		await page.goto('/developers');
 		await expect(
-			page.getByRole('heading', { name: /Deploylint CI report for pull requests/i })
+			page.getByRole('heading', { name: /Add a deploy-risk report to every pull request/i })
 		).toBeVisible();
 		await expect(page.getByText('DEPLOYLINT_URL').first()).toBeVisible();
-		await expect(page.getByRole('heading', { name: 'Advisory workflow' })).toBeVisible();
+		await expect(
+			page.getByRole('heading', { name: /Install the advisory workflow/i })
+		).toBeVisible();
+		await expect(page.getByText('Sample PR report')).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Switch to blocking mode' })).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Composite GitHub Action' })).toBeVisible();
-		await expect(page.getByRole('link', { name: 'Back to scan' })).toBeVisible();
+		await expect(page.getByRole('link', { name: 'Audit a deploy target' })).toBeVisible();
 	});
 });

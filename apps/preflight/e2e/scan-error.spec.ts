@@ -7,11 +7,11 @@ test.describe('scan error', () => {
 		await mockScanApi(page, 'error', 502);
 		await page.goto('/');
 		await page.getByPlaceholder('your-app.com or github.com/you/repo').fill('https://broken.test');
-		await page.getByRole('button', { name: 'Scan free' }).click();
+		await page.getByRole('button', { name: 'Audit target' }).click();
 
 		await expect(page.getByRole('alert')).toContainText(/Could not reach that URL/i);
 		await expect(
-			page.getByRole('heading', { name: /Harden the path from pull request to production/i })
+			page.getByRole('heading', { name: /Stop risky workflows before they reach deploy/i })
 		).toBeVisible();
 	});
 });
