@@ -54,7 +54,7 @@ describe('fixPrompt reachable template', () => {
 });
 
 describe('fixPrompt coverage for new check ids', () => {
-	const FALLBACK = 'Fix this launch readiness issue';
+	const FALLBACK = 'Fix this deploy readiness issue';
 	const NEW_IDS = [
 		'form-labels',
 		'accessible-names',
@@ -140,7 +140,7 @@ describe('fixPrompt coverage for new check ids', () => {
 			expect(prompt).toContain(`Check: ${id}`);
 			expect(prompt).toContain('Evidence: Evidence line');
 			expect(prompt).not.toContain(
-				'Fix this launch readiness issue before sharing the site publicly.'
+				'Fix this deploy readiness issue before enabling a required gate.'
 			);
 		}
 	});

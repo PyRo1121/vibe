@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import SeoHead from '$lib/components/SeoHead.svelte';
 	import { buildPageJsonLd, buildSeoTitle, defaultSeoImage } from '$lib/site/seo-metadata';
 
@@ -40,7 +41,7 @@
 			note: 'Start non-blocking, then gate once the signal is trusted.'
 		},
 		{
-			feature: 'Deploy gate for builder launch blockers',
+			feature: 'Deploy gate for configured production blockers',
 			deploylint: 'yes',
 			checklists: 'no',
 			githubNative: 'partial',
@@ -181,10 +182,10 @@
 	</section>
 
 	<p class="mt-8">
-		<a class="text-sky-400 hover:underline" href="/tools/github-actions-security-checker"
+		<a class="text-sky-400 hover:underline" href={resolve('/tools/github-actions-security-checker')}
 			>Check workflow YAML</a
 		>
 		<span class="mx-2 text-zinc-600">&middot;</span>
-		<a class="text-sky-400 hover:underline" href="/developers">CI gate setup</a>
+		<a class="text-sky-400 hover:underline" href={resolve('/developers')}>CI gate setup</a>
 	</p>
 </div>

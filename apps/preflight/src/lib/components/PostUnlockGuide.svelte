@@ -43,7 +43,7 @@
 				<p class="text-xs font-semibold tracking-widest text-emerald-400 uppercase">
 					Your unlock — fix & prove it
 				</p>
-				<h2 class="mt-2 text-lg font-semibold text-white">Three steps before you post publicly</h2>
+				<h2 class="mt-2 text-lg font-semibold text-white">Three steps before gate mode</h2>
 			</div>
 			<div
 				class="relative flex h-14 w-14 shrink-0 items-center justify-center"
@@ -82,7 +82,7 @@
 					class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-xs font-bold text-emerald-300"
 					>2</span
 				>
-				<span>Apply the fixes and redeploy your site.</span>
+				<span>Apply the fixes and redeploy your app.</span>
 			</li>
 			<li class="flex gap-3">
 				<span
@@ -91,7 +91,7 @@
 				>
 				<span
 					>Hit <strong class="text-white">Re-scan to verify</strong> — we'll show your score delta so
-					you can post with proof.</span
+					you can keep evidence with the gate.</span
 				>
 			</li>
 		</ol>
@@ -101,7 +101,7 @@
 		<div class="flex flex-wrap items-start justify-between gap-4">
 			<div>
 				<p class="text-xs font-semibold tracking-widest text-emerald-400 uppercase">
-					Re-scan proof — ready to share
+					Re-scan proof — ready for gate mode
 				</p>
 				<h2 class="mt-2 text-lg font-semibold text-white">Fix loop complete</h2>
 				<div class="mt-3">
@@ -167,11 +167,11 @@
 				<span>
 					Re-scanned with verified delta —
 					{#if deltaImproved}
-						score improved. Post with proof.
+						score improved. Keep the proof with the deploy.
 					{:else if deltaFlat}
 						no score change yet — keep fixing or re-scan after deploy propagates.
 					{:else}
-						score dropped — review regressions before sharing.
+						score dropped — review regressions before the next deploy.
 					{/if}
 				</span>
 			</li>

@@ -10,7 +10,7 @@ function report(overrides: Partial<ScanReport> = {}): ScanReport {
 		scannedAt: new Date().toISOString(),
 		score: 85,
 		verdict: 'go',
-		verdictMessage: 'Clear to share',
+		verdictMessage: 'Clear for deploy gate review',
 		checks: [],
 		summary: { pass: 10, warn: 0, fail: 0 },
 		...overrides

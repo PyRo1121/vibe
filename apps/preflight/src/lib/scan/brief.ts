@@ -26,7 +26,7 @@ const EMBARRASSMENT: Record<string, string> = {
 	'hsts-header': 'Missing HSTS — first visit can be downgraded before redirect.',
 	'permissions-policy-header':
 		'No Permissions-Policy — camera/mic/geo are not explicitly denied for embeds.',
-	'page-weight': 'Slow first paint makes Product Hunt comments mention performance.',
+	'page-weight': 'Slow first paint turns deploy traffic into performance complaints.',
 	'twitter-card': 'X may render a plain URL instead of a rich card.',
 	canonical: 'Duplicate URLs split SEO and confuse crawlers.',
 	'license-risk':
@@ -37,7 +37,7 @@ const EMBARRASSMENT: Record<string, string> = {
 	'repo-license': 'License questions kill deals — buyers and contributors check this first.',
 	readme: 'An empty README makes the project look abandoned to anyone who finds it.',
 	'img-alt': 'Accessibility callouts spread fast on launch threads.',
-	'response-time': 'A slow first load is the first thing Product Hunt commenters mention.',
+	'response-time': 'A slow first load is the first thing new deploy traffic notices.',
 	'not-found-page':
 		'Every broken link silently shows your homepage — you will never know what is dead.',
 	'email-auth': 'Password resets landing in spam means signups you paid for never activate.',
@@ -112,11 +112,11 @@ export function buildLaunchBrief(report: ScanReport): LaunchBrief {
 
 	let headline: string;
 	if (report.verdict === 'go') {
-		headline = 'Ready to share — polish optional items before a big launch.';
+		headline = 'Ready for gate mode — polish optional items before broad rollout.';
 	} else if (p0Fails.length > 0) {
-		headline = `${p0Fails.length} launch blocker${p0Fails.length === 1 ? '' : 's'} — fix before posting publicly.`;
+		headline = `${p0Fails.length} production blocker${p0Fails.length === 1 ? '' : 's'} — fix before gate mode.`;
 	} else {
-		headline = 'Almost there — fix important issues before Product Hunt or Reddit.';
+		headline = 'Almost there — fix important issues before paid traffic or required deploy gates.';
 	}
 
 	return {

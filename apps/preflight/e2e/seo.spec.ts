@@ -94,29 +94,29 @@ const pages = [
 	},
 	{
 		path: '/guides/ai-app-launch-checker',
-		title: 'AI app launch checker for vibe-coded products - Deploylint',
+		title: 'AI app deploy-readiness checker for vibe-coded products - Deploylint',
 		description:
-			'Use Deploylint to check AI-built apps for launch blockers, SEO mistakes, security leaks, legal gaps, and broken social previews before sharing a URL.',
+			'Use Deploylint to check AI-built apps for deploy blockers, CI gaps, security leaks, legal gaps, SEO mistakes, and broken social previews before production.',
 		canonical: `${baseUrl}/guides/ai-app-launch-checker`,
-		heading: /AI app launch checker/i,
+		heading: /AI app deploy-readiness checker/i,
 		jsonLdTypes: ['Article', 'FAQPage'],
 		staticPage: true
 	},
 	{
 		path: '/guides/website-launch-checklist',
-		title: 'Website launch checklist for small SaaS products - Deploylint',
+		title: 'Deploy readiness checklist for small SaaS products - Deploylint',
 		description:
-			'Run a practical website launch checklist for SEO, security headers, legal pages, social previews, crawler access, and conversion basics before launch day.',
+			'Run a practical deploy readiness checklist for SEO, security headers, legal pages, social previews, crawler access, CI gates, and conversion basics.',
 		canonical: `${baseUrl}/guides/website-launch-checklist`,
-		heading: /Website launch checklist/i,
+		heading: /Deploy readiness checklist/i,
 		jsonLdTypes: ['Article', 'FAQPage'],
 		staticPage: true
 	},
 	{
 		path: '/guides/lighthouse-alternative',
-		title: 'Deploylint vs Lighthouse for launch readiness',
+		title: 'Deploylint vs Lighthouse for CI hardening',
 		description:
-			'Compare Deploylint and Lighthouse: Lighthouse measures lab performance, while Deploylint checks launch blockers, SEO visibility, social previews, and agent-ready fixes.',
+			'Compare Deploylint and Lighthouse: Lighthouse measures lab performance, while Deploylint checks deploy blockers, CI gaps, SEO visibility, social previews, and agent-ready fixes.',
 		canonical: `${baseUrl}/guides/lighthouse-alternative`,
 		heading: /Deploylint vs Lighthouse/i,
 		jsonLdTypes: ['Article', 'FAQPage'],

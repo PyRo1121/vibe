@@ -25,18 +25,18 @@ export interface GuidePage {
 export const GUIDES = [
 	{
 		slug: 'ai-app-launch-checker',
-		navTitle: 'AI app launch checker',
-		title: 'AI app launch checker for vibe-coded products',
+		navTitle: 'AI deploy checker',
+		title: 'AI app deploy-readiness checker for vibe-coded products',
 		description:
-			'Use Deploylint to check AI-built apps for launch blockers, SEO mistakes, security leaks, legal gaps, and broken social previews before sharing a URL.',
-		eyebrow: 'AI app launch SEO',
-		h1: 'AI app launch checker',
+			'Use Deploylint to check AI-built apps for deploy blockers, CI gaps, security leaks, legal gaps, SEO mistakes, and broken social previews before production.',
+		eyebrow: 'AI app deploy readiness',
+		h1: 'AI app deploy-readiness checker',
 		intro:
-			'AI-built apps ship quickly, but the same speed makes public launch mistakes easy: exposed env files, thin metadata, broken previews, missing legal pages, and placeholder copy. Deploylint checks the launch surface before the URL gets posted.',
+			'AI-built apps ship quickly, but the same speed makes production mistakes easy: exposed env files, thin metadata, broken previews, missing legal pages, placeholder copy, and weak CI gates. Deploylint checks the deploy surface before risky changes reach users.',
 		sections: [
 			{
 				heading: 'What Deploylint checks first',
-				body: 'The scanner focuses on public launch blockers rather than abstract audit scores. It fetches the live URL, follows redirects, reads crawler surfaces, samples public assets, and turns the findings into a GO, CONDITIONAL, or NO-GO verdict.',
+				body: 'Deploylint focuses on deploy blockers rather than abstract audit scores. It fetches the live target, follows redirects, reads crawler surfaces, samples public assets, inspects repo signals when available, and turns findings into a GO, CONDITIONAL, or NO-GO verdict.',
 				bullets: [
 					'Indexing blockers such as noindex tags or robots.txt disallow rules',
 					'Social preview tags and og:image content-type mistakes',
@@ -46,19 +46,19 @@ export const GUIDES = [
 			},
 			{
 				heading: 'Why this is different from Lighthouse',
-				body: 'Lighthouse is useful for performance and accessibility lab work. Deploylint answers a narrower launch question: what would embarrass or block a small product when someone clicks the URL today?',
+				body: 'Lighthouse is useful for performance and accessibility lab work. Deploylint answers a different deploy question: what would block a small team from safely treating this target as production-ready?',
 				bullets: [
-					'Launch verdicts instead of only lab scores',
+					'Deploy verdicts instead of only lab scores',
 					'Fix prompts that can be pasted into Cursor or another coding agent',
-					'Re-scan proof so a builder can show the launch risk went down'
+					'Re-scan proof so a builder can show deploy risk went down'
 				]
 			}
 		],
 		checklist: [
 			'Run the production URL, not localhost or a private preview.',
-			'Fix every P0 issue before posting publicly.',
+			'Fix every P0 issue before enabling gate mode.',
 			'Re-scan after fixes and save the report link.',
-			'Wire the CI gate before the next launch push.'
+			'Wire the CI gate before the next production push.'
 		],
 		faq: [
 			{
@@ -75,14 +75,14 @@ export const GUIDES = [
 	},
 	{
 		slug: 'website-launch-checklist',
-		navTitle: 'Website launch checklist',
-		title: 'Website launch checklist for small SaaS products',
+		navTitle: 'Deploy checklist',
+		title: 'Deploy readiness checklist for small SaaS products',
 		description:
-			'Run a practical website launch checklist for SEO, security headers, legal pages, social previews, crawler access, and conversion basics before launch day.',
-		eyebrow: 'Public launch checklist',
-		h1: 'Website launch checklist',
+			'Run a practical deploy readiness checklist for SEO, security headers, legal pages, social previews, crawler access, CI gates, and conversion basics.',
+		eyebrow: 'Production readiness checklist',
+		h1: 'Deploy readiness checklist',
 		intro:
-			'A small SaaS launch needs more than a working homepage. The public URL has to be reachable, understandable, shareable, indexable, and safe enough that early users can trust it.',
+			'A small SaaS deploy needs more than a working homepage. The production target has to be reachable, understandable, shareable, indexable, and safe enough that early users can trust it.',
 		sections: [
 			{
 				heading: 'Technical discovery',
@@ -95,8 +95,8 @@ export const GUIDES = [
 				]
 			},
 			{
-				heading: 'Trust and launch safety',
-				body: 'Early users click legal, pricing, and security signals before they trust a new product. Deploylint treats missing trust surfaces as launch risk, not polish.',
+				heading: 'Trust and deploy safety',
+				body: 'Early users click legal, pricing, and security signals before they trust a new product. Deploylint treats missing trust surfaces as deploy risk, not polish.',
 				bullets: [
 					'Privacy and terms pages linked from the footer',
 					'No exposed secrets, dotenv files, or repository metadata',
@@ -127,13 +127,13 @@ export const GUIDES = [
 	{
 		slug: 'lighthouse-alternative',
 		navTitle: 'Lighthouse alternative',
-		title: 'Deploylint vs Lighthouse for launch readiness',
+		title: 'Deploylint vs Lighthouse for CI hardening',
 		description:
-			'Compare Deploylint and Lighthouse: Lighthouse measures lab performance, while Deploylint checks launch blockers, SEO visibility, social previews, and agent-ready fixes.',
+			'Compare Deploylint and Lighthouse: Lighthouse measures lab performance, while Deploylint checks deploy blockers, CI gaps, SEO visibility, social previews, and agent-ready fixes.',
 		eyebrow: 'Lighthouse alternative',
 		h1: 'Deploylint vs Lighthouse',
 		intro:
-			'Lighthouse is still useful. Deploylint is not trying to replace it. Deploylint covers the launch-readiness issues that Lighthouse does not prioritize for a small builder about to share a URL.',
+			'Lighthouse is still useful. Deploylint is not trying to replace it. Deploylint covers deploy-readiness and CI-hardening issues that Lighthouse does not prioritize for a small builder shipping with agents.',
 		sections: [
 			{
 				heading: 'Use Lighthouse for lab performance',
@@ -145,31 +145,31 @@ export const GUIDES = [
 				]
 			},
 			{
-				heading: 'Use Deploylint before public launch',
-				body: 'Deploylint looks for risks that make a launch invisible, unsafe, or embarrassing even when the page is fast.',
+				heading: 'Use Deploylint before gate mode',
+				body: 'Deploylint looks for risks that make a production deploy invisible, unsafe, or untrustworthy even when the page is fast.',
 				bullets: [
 					'Noindex, robots, sitemap, canonical, and social preview problems',
-					'Exposed secrets, .env files, .git metadata, source maps, and weak launch security',
+					'Exposed secrets, .env files, .git metadata, source maps, and weak deploy security',
 					'Missing legal pages, security.txt, llms.txt, and agent-ready fix prompts'
 				]
 			}
 		],
 		checklist: [
 			'Run Lighthouse for performance regressions.',
-			'Run Deploylint for launch blockers and public trust gaps.',
+			'Run Deploylint for deploy blockers and public trust gaps.',
 			'Fix P0 Deploylint issues before optimizing P2 polish.',
-			'Keep both reports when preparing a serious launch.'
+			'Keep both reports when preparing a serious production rollout.'
 		],
 		faq: [
 			{
 				question: 'Is Deploylint a Lighthouse replacement?',
 				answer:
-					'No. Deploylint complements Lighthouse by focusing on launch blockers, crawler visibility, trust, and agent-ready fixes.'
+					'No. Deploylint complements Lighthouse by focusing on deploy blockers, crawler visibility, trust, CI hardening, and agent-ready fixes.'
 			},
 			{
 				question: 'Which tool should run in CI?',
 				answer:
-					'Run both when possible. Use Lighthouse for performance budgets and Deploylint for GO/NO-GO launch readiness.'
+					'Run both when possible. Use Lighthouse for performance budgets and Deploylint for GO/NO-GO deploy readiness.'
 			}
 		]
 	}

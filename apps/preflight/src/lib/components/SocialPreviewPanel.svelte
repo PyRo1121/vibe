@@ -17,7 +17,7 @@
 				<div class="p-4">
 					{#if report.socialPreview.imageUrl && report.socialPreview.imageReachable === false}
 						<p class="mb-2 text-xs font-medium text-red-400">
-							Preview image URL failed to load — fix before sharing
+							Preview image URL failed to load — fix before gate mode
 						</p>
 					{/if}
 					{#if report.socialPreview.imageUrl}

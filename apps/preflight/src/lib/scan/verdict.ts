@@ -75,26 +75,26 @@ export function computeVerdict(
 			.join(', ');
 		return {
 			verdict: 'no-go',
-			verdictMessage: `Do not share publicly — ${p0Fails.length} blocker(s): ${names}`
+			verdictMessage: `Do not enable gate mode — ${p0Fails.length} production blocker(s): ${names}`
 		};
 	}
 
 	if (p1Fails.length > 0 || score < 60) {
 		return {
 			verdict: 'conditional',
-			verdictMessage: 'Fix important issues before posting on Product Hunt or Reddit.'
+			verdictMessage: 'Fix important issues before paid traffic or required deploy gates.'
 		};
 	}
 
 	if (p1Warns.length > 0 || score < 80) {
 		return {
 			verdict: 'conditional',
-			verdictMessage: 'Mostly ready — polish remaining issues before a big launch.'
+			verdictMessage: 'Mostly ready — polish remaining issues before broad rollout.'
 		};
 	}
 
 	return {
 		verdict: 'go',
-		verdictMessage: 'Clear to share your URL publicly.'
+		verdictMessage: 'Clear for deploy gate review.'
 	};
 }

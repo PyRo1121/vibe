@@ -32,7 +32,7 @@ describe('check catalog', () => {
 		}
 	});
 
-	it('documents every P0 launch blocker', () => {
+	it('documents every P0 deploy blocker', () => {
 		for (const id of P0_CHECK_IDS) {
 			const entry = getCheckCatalogEntry(id);
 			expect(entry, `missing P0 ${id}`).toBeTruthy();

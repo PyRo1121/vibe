@@ -7,7 +7,7 @@ import type { ScanCheck } from '$lib/scan/types';
 /**
  * SEO-depth checks: signals beyond the basics (title/description/canonical/OG
  * live in meta.ts). Everything here is pass/warn only — these are polish
- * issues, never launch blockers.
+ * issues, never deploy blockers.
  */
 
 /** Decode &amp; last so double-encoded sequences don't decode twice. */

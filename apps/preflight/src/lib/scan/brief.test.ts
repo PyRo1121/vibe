@@ -25,7 +25,7 @@ function report(overrides: Partial<ScanReport> = {}): ScanReport {
 		scannedAt: new Date().toISOString(),
 		score: 85,
 		verdict: 'go',
-		verdictMessage: 'Clear to share',
+		verdictMessage: 'Clear for deploy gate review',
 		checks: [check('title', 'pass'), { ...check('privacy', 'pass'), category: 'legal' }],
 		summary: { pass: 20, warn: 0, fail: 0 },
 		socialPreview: {
@@ -44,7 +44,7 @@ function report(overrides: Partial<ScanReport> = {}): ScanReport {
 describe('buildLaunchBrief', () => {
 	it('builds a positive headline for GO verdicts', () => {
 		const brief = buildLaunchBrief(report());
-		expect(brief.headline).toContain('Ready to share');
+		expect(brief.headline).toContain('Ready for gate mode');
 		expect(brief.shareReady).toBe(true);
 		expect(brief.categoryScores.length).toBeGreaterThan(0);
 	});

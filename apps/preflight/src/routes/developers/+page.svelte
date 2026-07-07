@@ -258,7 +258,9 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 	<section class="mb-10 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
 		<h2 class="mb-2 text-xl font-semibold text-white">What blocking mode checks</h2>
 		<ul class="list-disc space-y-2 pl-6 text-sm text-zinc-400">
-			<li><strong class="text-zinc-300">NO-GO</strong> verdict from configured launch blockers</li>
+			<li>
+				<strong class="text-zinc-300">NO-GO</strong> verdict from configured production blockers
+			</li>
 			<li>
 				Score below <code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300"
 					>DEPLOYLINT_MIN_SCORE</code

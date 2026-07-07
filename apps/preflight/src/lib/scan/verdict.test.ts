@@ -32,6 +32,7 @@ describe('computeVerdict', () => {
 		]);
 		const result = computeVerdict(checks, 40);
 		expect(result.verdict).toBe('no-go');
+		expect(result.verdictMessage).toContain('Do not enable gate mode');
 	});
 
 	it('tags failing server-owned checkout as p0 and returns no-go', () => {
@@ -57,6 +58,7 @@ describe('computeVerdict', () => {
 		]);
 		const result = computeVerdict(checks, 90);
 		expect(result.verdict).toBe('go');
+		expect(result.verdictMessage).toBe('Clear for deploy gate review.');
 	});
 
 	it('returns conditional for low score without p0 fails', () => {
@@ -66,6 +68,7 @@ describe('computeVerdict', () => {
 		]);
 		const result = computeVerdict(checks, 55);
 		expect(result.verdict).toBe('conditional');
+		expect(result.verdictMessage).toContain('required deploy gates');
 	});
 
 	it('returns conditional for p1 fail even with decent score', () => {

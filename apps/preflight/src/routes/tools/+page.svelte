@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import CiReportPreview from '$lib/components/CiReportPreview.svelte';
 	import SeoHead from '$lib/components/SeoHead.svelte';
 	import { buildPageJsonLd, buildSeoTitle, defaultSeoImage } from '$lib/site/seo-metadata';
@@ -32,7 +33,7 @@
 			status: 'Live',
 			kicker: 'CI gate',
 			description:
-				'Add a zero-install GitHub Actions gate that blocks deploys when production launch blockers remain.',
+				'Add a zero-install GitHub Actions gate that blocks deploys when configured production blockers remain.',
 			action: 'Wire CI advisory'
 		},
 		{
@@ -53,7 +54,7 @@
 				'Check env files, lockfiles, package scripts, Node pinning, dependency signals, and licenses.',
 			action: 'Check repo'
 		}
-	];
+	] as const;
 
 	const packages = [
 		{
@@ -94,13 +95,13 @@
 			</p>
 			<div class="mt-6 flex flex-col gap-3 sm:flex-row">
 				<a
-					href="/developers"
+					href={resolve('/developers')}
 					class="rounded-xl bg-sky-500 px-5 py-3 text-center text-sm font-semibold text-zinc-950 hover:bg-sky-400"
 				>
 					Install in GitHub Actions
 				</a>
 				<a
-					href="/tools/github-actions-security-checker"
+					href={resolve('/tools/github-actions-security-checker')}
 					class="rounded-xl border border-zinc-700 px-5 py-3 text-center text-sm font-semibold text-white hover:border-sky-500 hover:text-sky-200"
 				>
 					Check workflow YAML
@@ -121,7 +122,7 @@
 
 	<section class="mb-6">
 		<a
-			href={tools[0].href}
+			href={resolve(tools[0].href)}
 			class="block rounded-xl border border-sky-500/40 bg-sky-950/20 p-6 transition hover:border-sky-400 hover:bg-sky-950/30"
 		>
 			<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -144,7 +145,7 @@
 	<section class="grid gap-4 md:grid-cols-3">
 		{#each tools.slice(1) as tool (tool.name)}
 			<a
-				href={tool.href}
+				href={resolve(tool.href)}
 				class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 transition hover:border-sky-500/70 hover:bg-sky-950/20"
 			>
 				<div class="mb-4 flex items-center justify-between gap-3">

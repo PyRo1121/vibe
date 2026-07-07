@@ -55,10 +55,10 @@ describe('crawler-facing website surfaces', () => {
 		);
 		expect(text).toContain('- [About Deploylint](https://deploylint.com/about)');
 		expect(text).toContain(
-			'- [AI app launch checker](https://deploylint.com/guides/ai-app-launch-checker)'
+			'- [AI deploy checker](https://deploylint.com/guides/ai-app-launch-checker)'
 		);
 		expect(text).toContain(
-			'- [Website launch checklist](https://deploylint.com/guides/website-launch-checklist)'
+			'- [Deploy checklist](https://deploylint.com/guides/website-launch-checklist)'
 		);
 		expect(text).toMatch(/\[[^\]]+\]\(https:\/\/deploylint\.com\/[^)]*\)/);
 		expect(text).not.toContain('https://deploylint.com/launch-readiness-checker');

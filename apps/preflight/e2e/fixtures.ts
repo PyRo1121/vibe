@@ -9,7 +9,7 @@ export const mockScanReport: ScanReport = {
 	scannedAt,
 	score: 72,
 	verdict: 'conditional',
-	verdictMessage: 'Fix important issues before Product Hunt or paid traffic.',
+	verdictMessage: 'Fix important issues before paid traffic or required deploy gates.',
 	checks: [
 		{
 			id: 'privacy',
@@ -75,7 +75,7 @@ export const mockScanReport: ScanReport = {
 		imageReachable: true
 	},
 	launchBrief: {
-		headline: 'Almost shareable — fix privacy and social preview before posting.',
+		headline: 'Almost ready for gate mode — fix privacy and social preview before rollout.',
 		embarrassmentRisks: [
 			'Someone will ask where your privacy policy is before they trust you.',
 			'Your link will look broken when pasted on X, Slack, or Discord.'

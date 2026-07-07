@@ -22,9 +22,9 @@
 	let showPassing = $state(false);
 
 	const PRIORITY_HEADINGS: Record<string, { label: string; sub: string }> = {
-		p0: { label: 'Launch blockers', sub: 'Fix these before sharing anywhere public' },
-		p1: { label: 'Important issues', sub: 'Fix before Product Hunt, Reddit, or paid traffic' },
-		p2: { label: 'Polish', sub: 'Worth fixing — not launch-blocking' }
+		p0: { label: 'Production blockers', sub: 'Fix these before enabling gate mode' },
+		p1: { label: 'Important issues', sub: 'Fix before paid traffic or a required deploy gate' },
+		p2: { label: 'Polish', sub: 'Worth fixing, but not gate-blocking' }
 	};
 
 	function groupIssues(items: ScanCheck[]): Array<{ priority: string; items: ScanCheck[] }> {
@@ -61,7 +61,7 @@
 		<div class="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-6 text-center">
 			<p class="font-medium text-emerald-300">Every check passed.</p>
 			<p class="mt-1 text-sm text-zinc-400">
-				Re-scan after any last-minute changes before you post.
+				Re-scan after any last-minute changes before the next deploy.
 			</p>
 		</div>
 	{/if}

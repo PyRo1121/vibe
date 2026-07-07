@@ -69,4 +69,31 @@ describe('Deploylint CI workspace positioning', () => {
 			expect(fileSource).not.toContain('Clear to launch');
 		}
 	});
+
+	it('keeps core report and prompt surfaces aligned to deploy gates', () => {
+		const checklist = source('lib', 'components', 'Checklist.svelte');
+		const verdictBanner = source('lib', 'components', 'VerdictBanner.svelte');
+		const unlockGuide = source('lib', 'components', 'PostUnlockGuide.svelte');
+		const brief = source('lib', 'scan', 'brief.ts');
+		const verdict = source('lib', 'scan', 'verdict.ts');
+		const prompts = source('lib', 'scan', 'prompts.ts');
+
+		expect(verdictBanner).toContain('Deploy verdict');
+		expect(unlockGuide).toContain('Three steps before gate mode');
+		expect(checklist).toContain('Production blockers');
+		expect(brief).toContain('Ready for gate mode');
+		expect(verdict).toContain('Clear for deploy gate review');
+		expect(prompts).toContain('You are fixing deploy readiness');
+
+		for (const fileSource of [checklist, verdictBanner, unlockGuide, brief, verdict, prompts]) {
+			expect(fileSource).not.toContain('Launch verdict');
+			expect(fileSource).not.toContain('Product Hunt');
+			expect(fileSource).not.toContain('Reddit');
+			expect(fileSource).not.toContain('post publicly');
+			expect(fileSource).not.toContain('posting publicly');
+			expect(fileSource).not.toContain('before sharing');
+			expect(fileSource).not.toContain('sharing publicly');
+			expect(fileSource).not.toContain('before a big launch');
+		}
+	});
 });

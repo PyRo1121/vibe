@@ -143,9 +143,7 @@ export function fixPrompt(id: string, context: { url: string; message?: string }
 		'debug-in-bundle': `${base}Remove console.log and debugger from production bundles. Enable build stripping (esbuild drop:['console','debugger']) or ensure NODE_ENV=production removes dev noise.`
 	};
 
-	return (
-		templates[id] ?? `${base}Fix this launch readiness issue before sharing the site publicly.`
-	);
+	return templates[id] ?? `${base}Fix this deploy readiness issue before enabling a required gate.`;
 }
 
 /** One paste for Cursor/Claude — fixes all failing checks in priority order. */
@@ -166,7 +164,7 @@ export function buildMasterPrompt(
 			'',
 			reachability ? `Reachability: ${reachability.message}` : '',
 			'',
-			'If this is YOUR launch (a site you control):',
+			'If this is YOUR deploy target (an app you control):',
 			'- Confirm the homepage returns HTTP 200 in a browser and to: curl -A "Deploylint/1.0" ' +
 				url,
 			'- If using Cloudflare/WAF, allow our scanner or test on a staging URL without bot rules',
@@ -185,7 +183,7 @@ export function buildMasterPrompt(
 	const issues = sortChecksByPriority(checks);
 
 	if (issues.length === 0) {
-		return `Site: ${url}\n\nAll Deploylint checks passed. No fixes needed before sharing publicly.`;
+		return `Site: ${url}\n\nAll Deploylint checks passed. No fixes needed before deploy gate review.`;
 	}
 
 	const lines = issues.map(
@@ -193,7 +191,7 @@ export function buildMasterPrompt(
 	);
 
 	return [
-		`You are fixing launch readiness for ${url}.`,
+		`You are fixing deploy readiness for ${url}.`,
 		'',
 		'Fix these issues in order (P0 blockers first, then P1, then P2):',
 		...lines,

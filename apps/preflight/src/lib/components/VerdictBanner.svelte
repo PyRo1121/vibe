@@ -21,7 +21,7 @@
 </script>
 
 <section class="mb-6 rounded-2xl border p-6 {verdictClass(report.verdict)}">
-	<p class="text-xs font-semibold tracking-widest uppercase opacity-80">Launch verdict</p>
+	<p class="text-xs font-semibold tracking-widest uppercase opacity-80">Deploy verdict</p>
 	<p class="mt-1 text-3xl font-bold">{verdictLabels[report.verdict]}</p>
 	<p class="mt-2 text-sm opacity-90">{report.verdictMessage}</p>
 	{#if report.scoreDelta != null && report.previousScore != null}
@@ -43,7 +43,9 @@
 					No score change yet — apply fix prompts and re-scan again.
 				</p>
 			{:else}
-				<p class="mt-1 text-amber-200">Score dropped — review recent changes before sharing.</p>
+				<p class="mt-1 text-amber-200">
+					Score dropped — review recent changes before the next deploy.
+				</p>
 			{/if}
 		</div>
 	{/if}

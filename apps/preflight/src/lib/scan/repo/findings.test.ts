@@ -22,7 +22,7 @@ describe('repo findings', () => {
 		expect(finding.fingerprint).toBe('deploylint-static:ci-runs-quality-gates');
 	});
 
-	it('treats known blocker failures as launch blockers', () => {
+	it('treats known blocker failures as deploy blockers', () => {
 		const finding = normalizeRepoFinding({
 			id: 'webhook-signature-missing',
 			category: 'payments',
