@@ -10,7 +10,7 @@ test.describe('scan flow', () => {
 		await runMockScan(page);
 
 		await expect(page.getByText('CONDITIONAL GO')).toBeVisible();
-		await expect(page.getByText('Launch score')).toBeVisible();
+		await expect(page.getByText('Deploy risk score')).toBeVisible();
 		await expect(page.getByText('72', { exact: true }).first()).toBeVisible();
 		await expect(page.getByText('Payment readiness', { exact: true }).first()).toBeVisible();
 		await expect(page.getByText('1 revenue blocker', { exact: true })).toBeVisible();

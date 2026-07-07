@@ -14,6 +14,6 @@ test.describe('print', () => {
 		await page.emulateMedia({ media: 'print' });
 		await expect(page.locator('header')).toBeHidden();
 		await expect(page.getByText('Launch verdict')).toBeVisible();
-		await expect(page.getByText('Launch score')).toBeVisible();
+		await expect(page.getByText('Deploy risk score')).toBeVisible();
 	});
 });

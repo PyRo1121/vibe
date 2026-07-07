@@ -1,10 +1,15 @@
-import { createCheckoutSession } from '$lib/billing/stripe';
+import { createCheckoutSession, isStripeLiveMode } from '$lib/billing/stripe';
 import { logFunnelEvent } from '$lib/metrics/funnel';
 import { resolveDeploylintPlan } from '$lib/product/plans';
 import { parseScanRequestBody } from '$lib/scan/validate';
 import { readJsonBody, rejectValidation } from '$lib/server/api';
 import { requireStripePriceId, requireStripeSecretKey, resolveAppUrl } from '$lib/server/env';
 import { json, error } from '@sveltejs/kit';
+
+function checkoutErrorMessage(err: unknown): string {
+	const message = err instanceof Error ? err.message : String(err);
+	return message.slice(0, 300);
+}
 
 export async function handleCheckoutPost(
 	request: Request,
@@ -37,7 +42,13 @@ export async function handleCheckoutPost(
 		});
 		logFunnelEvent('checkout_started', { plan: plan.id, mode: 'paid' });
 		return json({ url: session.url, sessionId: session.id });
-	} catch {
+	} catch (err) {
+		console.error('deploylint.checkout.failed', {
+			plan: plan.id,
+			priceEnv: plan.stripePriceEnv,
+			stripeMode: isStripeLiveMode(secretKey) ? 'live' : 'test',
+			message: checkoutErrorMessage(err)
+		});
 		error(502, 'Checkout failed — try again in a moment');
 	}
 }
