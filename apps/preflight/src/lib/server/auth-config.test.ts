@@ -4,7 +4,8 @@ import {
 	AUTH_ROUTE_PREFIX,
 	buildLoginRedirect,
 	resolveAuthFeatureFlags,
-	resolveAuthSecret
+	resolveAuthSecret,
+	sanitizeRedirectTo
 } from './auth-config';
 
 describe('auth config', () => {
@@ -17,6 +18,14 @@ describe('auth config', () => {
 			'/login?redirectTo=%2Fapp%3Ftab%3Dbilling'
 		);
 		expect(buildLoginRedirect(new URL('https://deploylint.com/login'))).toBe('/login');
+	});
+
+	it('sanitizes login redirect targets before handing them to auth callbacks', () => {
+		expect(sanitizeRedirectTo('/app?tab=billing')).toBe('/app?tab=billing');
+		expect(sanitizeRedirectTo('//evil.test')).toBe('/app');
+		expect(sanitizeRedirectTo('/\\evil.test')).toBe('/app');
+		expect(sanitizeRedirectTo('/api/auth/sign-in')).toBe('/app');
+		expect(sanitizeRedirectTo('https://evil.test/app')).toBe('/app');
 	});
 
 	it('reports which auth methods can be used with the configured secrets', () => {

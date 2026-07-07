@@ -25,7 +25,9 @@ export function buildLoginRedirect(url: URL): string {
 }
 
 export function sanitizeRedirectTo(value: string | null | undefined): string {
-	if (!value || !value.startsWith('/') || value.startsWith('//')) return '/app';
+	if (!value || !value.startsWith('/') || value.startsWith('//') || value.includes('\\')) {
+		return '/app';
+	}
 	if (value.startsWith(AUTH_ROUTE_PREFIX)) return '/app';
 	return value;
 }
