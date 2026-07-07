@@ -24,6 +24,10 @@ describe('/app workspace source', () => {
 		expect(pageSource).toContain('Install in GitHub Actions');
 		expect(pageSource).toContain('Report history');
 		expect(pageSource).toContain('Gate status');
+		expect(pageSource).toContain('Branch protection handoff');
+		expect(pageSource).toContain('required status check');
+		expect(pageSource).toContain('workspaceGateHardeningSteps');
+		expect(pageSource).toContain('DEPLOYLINT_MODE');
 		expect(pageSource).toContain('navigator.clipboard.writeText');
 		expect(pageSource).toContain('data.activation');
 		expect(pageSource).toContain('data.workspace');

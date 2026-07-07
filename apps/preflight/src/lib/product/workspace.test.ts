@@ -4,7 +4,8 @@ import {
 	buildAdvisoryWorkflow,
 	buildDemoWorkspace,
 	buildWorkspaceActivation,
-	workspaceActivationSteps
+	workspaceActivationSteps,
+	workspaceGateHardeningSteps
 } from './workspace';
 
 describe('Deploylint workspace model', () => {
@@ -67,6 +68,17 @@ describe('Deploylint workspace model', () => {
 			'gate'
 		]);
 		expect(workspaceActivationSteps[2].label).toContain('first advisory report');
+	});
+
+	it('documents the handoff from advisory report to required deploy gate', () => {
+		expect(workspaceGateHardeningSteps.map((step) => step.id)).toEqual([
+			'advisory-report',
+			'required-status',
+			'gate-mode'
+		]);
+		expect(workspaceGateHardeningSteps[1].label).toContain('required status check');
+		expect(workspaceGateHardeningSteps[1].description).toContain('branch protection');
+		expect(workspaceGateHardeningSteps[2].description).toContain('DEPLOYLINT_MODE');
 	});
 
 	it('marks workflow install as the current next action before CI is installed', () => {

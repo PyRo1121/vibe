@@ -94,6 +94,28 @@ export const workspaceActivationSteps = [
 	}
 ] as const;
 
+export const workspaceGateHardeningSteps = [
+	{
+		id: 'advisory-report',
+		label: 'Run an advisory report',
+		description: 'Open a pull request and confirm Deploylint posts a readable advisory CI summary.'
+	},
+	{
+		id: 'required-status',
+		label: 'Make Deploylint a required status check',
+		description:
+			'Add the Deploylint job to branch protection after the advisory report is trusted and the job name is unique.'
+	},
+	{
+		id: 'gate-mode',
+		label: 'Switch to blocking gate mode',
+		description:
+			'Change DEPLOYLINT_MODE from advisory to gate so risky production changes fail before merge.'
+	}
+] as const;
+
+export type WorkspaceGateHardeningStep = (typeof workspaceGateHardeningSteps)[number];
+
 const ACTIVATION_CTA: Record<
 	(typeof workspaceActivationSteps)[number]['id'],
 	{ ctaLabel: string; href: string }

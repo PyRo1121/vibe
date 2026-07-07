@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import SeoHead from '$lib/components/SeoHead.svelte';
-	import type { ActivationStepStatus, ProjectInstallState } from '$lib/product/workspace';
+	import {
+		workspaceGateHardeningSteps,
+		type ActivationStepStatus,
+		type ProjectInstallState
+	} from '$lib/product/workspace';
 	import { buildPageJsonLd, buildSeoTitle, defaultSeoImage } from '$lib/site/seo-metadata';
 
 	import type { PageData } from './$types';
@@ -249,7 +253,7 @@
 		{/if}
 	</section>
 
-	<section class="grid gap-6 lg:grid-cols-2">
+	<section class="grid gap-6 lg:grid-cols-3">
 		<div id="reports" class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">
 			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Report history</p>
 			<h2 class="mt-2 text-xl font-semibold text-white">No CI reports yet</h2>
@@ -274,6 +278,34 @@
 			>
 				View gate docs
 			</a>
+		</div>
+
+		<div class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">
+			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
+				Branch protection handoff
+			</p>
+			<h2 class="mt-2 text-xl font-semibold text-white">
+				Make the check required only after trust
+			</h2>
+			<p class="mt-2 text-sm leading-6 text-zinc-400">
+				After the advisory job is trusted, make Deploylint a required status check in branch
+				protection, then set <code class="text-sky-300">DEPLOYLINT_MODE</code> to gate.
+			</p>
+			<ol class="mt-4 space-y-3">
+				{#each workspaceGateHardeningSteps as step, index (step.id)}
+					<li class="flex gap-3">
+						<span
+							class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-zinc-700 text-xs font-semibold text-zinc-400"
+						>
+							{index + 1}
+						</span>
+						<span>
+							<span class="block text-sm font-semibold text-zinc-200">{step.label}</span>
+							<span class="mt-1 block text-sm leading-5 text-zinc-500">{step.description}</span>
+						</span>
+					</li>
+				{/each}
+			</ol>
 		</div>
 	</section>
 </div>
