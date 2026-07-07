@@ -27,7 +27,7 @@ describe('Deploylint workspace model', () => {
 		});
 		expect(workspace.projects[0].latestReport).toBeNull();
 		expect(workspace.metrics).toMatchObject({
-			activeProjects: 0,
+			activeProjects: 1,
 			gatesEnabled: 0,
 			reportsThisMonth: 0
 		});

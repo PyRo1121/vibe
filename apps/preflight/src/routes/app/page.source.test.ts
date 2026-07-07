@@ -32,6 +32,11 @@ describe('/app workspace source', () => {
 		expect(pageSource).toContain('Branch protection handoff');
 		expect(pageSource).toContain('required status check');
 		expect(pageSource).toContain('workspaceGateHardeningSteps');
+		expect(pageSource).toContain('Billing status');
+		expect(pageSource).toContain('billingStatusLabel');
+		expect(pageSource).toContain('workspace.metrics.activeProjects');
+		expect(pageSource).toContain('workspace.metrics.gatesEnabled');
+		expect(pageSource).toContain('workspace.metrics.reportsThisMonth');
 		expect(pageSource).toContain('DEPLOYLINT_MODE');
 		expect(pageSource).toContain('navigator.clipboard.writeText');
 		expect(pageSource).toContain('data.activation');

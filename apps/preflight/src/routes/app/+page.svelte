@@ -4,7 +4,8 @@
 	import {
 		workspaceGateHardeningSteps,
 		type ActivationStepStatus,
-		type ProjectInstallState
+		type ProjectInstallState,
+		type WorkspaceBillingState
 	} from '$lib/product/workspace';
 	import { buildPageJsonLd, buildSeoTitle, defaultSeoImage } from '$lib/site/seo-metadata';
 
@@ -60,6 +61,12 @@
 		if (state === 'gate_enabled') return 'border-emerald-500/40 text-emerald-200';
 		if (state === 'advisory_installed') return 'border-sky-500/40 text-sky-200';
 		return 'border-amber-500/40 text-amber-200';
+	}
+
+	function billingStatusLabel(mode: WorkspaceBillingState['mode']): string {
+		if (mode === 'alpha') return 'Included during alpha';
+		if (mode === 'paid') return 'Billing active';
+		return 'Billing setup pending';
 	}
 
 	async function copyWorkflow() {
@@ -144,6 +151,34 @@
 					This workspace includes {workspace.billing.projectLimit} monitored project, advisory reports,
 					report history, and deploy gate enforcement.
 				</p>
+				<div class="mt-5 grid grid-cols-3 gap-2">
+					<div class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+						<p class="text-[10px] font-semibold tracking-widest text-zinc-500 uppercase">
+							Projects
+						</p>
+						<p class="mt-1 text-lg font-semibold text-white">
+							{workspace.metrics.activeProjects}/{workspace.billing.projectLimit}
+						</p>
+					</div>
+					<div class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+						<p class="text-[10px] font-semibold tracking-widest text-zinc-500 uppercase">Gates</p>
+						<p class="mt-1 text-lg font-semibold text-white">{workspace.metrics.gatesEnabled}</p>
+					</div>
+					<div class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+						<p class="text-[10px] font-semibold tracking-widest text-zinc-500 uppercase">Reports</p>
+						<p class="mt-1 text-lg font-semibold text-white">
+							{workspace.metrics.reportsThisMonth}
+						</p>
+					</div>
+				</div>
+				<div class="mt-4 rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+					<p class="text-[10px] font-semibold tracking-widest text-zinc-500 uppercase">
+						Billing status
+					</p>
+					<p class="mt-1 text-sm font-semibold text-zinc-200">
+						{billingStatusLabel(workspace.billing.mode)}
+					</p>
+				</div>
 			</aside>
 		</div>
 	</section>

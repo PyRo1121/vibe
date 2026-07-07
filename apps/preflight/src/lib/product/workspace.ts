@@ -294,7 +294,7 @@ export function buildDemoWorkspace(opts: {
 		},
 		projects: [project],
 		metrics: {
-			activeProjects: 0,
+			activeProjects: 1,
 			gatesEnabled: 0,
 			reportsThisMonth: 0
 		}
