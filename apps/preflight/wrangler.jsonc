@@ -81,6 +81,7 @@
 		"PUBLIC_APP_URL": "https://deploylint.com",
 		"PUBLIC_PLAUSIBLE_DOMAIN": "deploylint.com",
 		"PUBLIC_PLAUSIBLE_SCRIPT": "https://plausible.io/js/pa-kDKT3UQlQwf5rMj8gkKwW.js",
+		"DEPLOYLINT_ALPHA_FREE_UNLOCK": "true",
 		"STRIPE_PRICE_SOLO": "price_1TpujLPI6tkdUQScUw4sacho",
 		"STRIPE_PRICE_BUILDER": "price_1TpujMPI6tkdUQScJU81XsVk",
 		"STRIPE_PRICE_AGENCY": "price_1TpujNPI6tkdUQScki3kby7F"

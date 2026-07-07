@@ -8,6 +8,7 @@
 		"PUBLIC_APP_URL": "https://deploylint.com",
 		"PUBLIC_PLAUSIBLE_DOMAIN": "deploylint.local",
 		"PUBLIC_PLAUSIBLE_SCRIPT": "",
+		"DEPLOYLINT_ALPHA_FREE_UNLOCK": "true",
 		"STRIPE_PRICE_SOLO": "price_local_solo",
 		"STRIPE_PRICE_BUILDER": "price_local_builder",
 		"STRIPE_PRICE_AGENCY": "price_local_agency"
