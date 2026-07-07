@@ -49,7 +49,7 @@ describe('createCheckoutSession', () => {
 				expect(body.get('metadata[scan_url]')).toBe('https://app.test');
 				expect(body.get('subscription_data[metadata][plan]')).toBe('builder');
 				expect(body.get('subscription_data[metadata][scan_url]')).toBe('https://app.test');
-				expect(body.has('payment_method_types[0]')).toBe(false);
+				expect(body.get('payment_method_types[0]')).toBe('card');
 				return {
 					ok: true,
 					json: async () => ({ id: 'cs_test_abc', url: 'https://checkout.stripe.com/x' })
