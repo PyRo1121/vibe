@@ -52,5 +52,11 @@ describe('/app server load', () => {
 			total: 4,
 			percentage: 25
 		});
+		expect(pageData.gatePolicy).toMatchObject({
+			checkName: 'deploylint',
+			mode: 'advisory',
+			minScore: 80,
+			enforcementLabel: 'Advisory only'
+		});
 	});
 });

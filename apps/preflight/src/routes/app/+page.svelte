@@ -19,6 +19,7 @@
 	const workspace = $derived(data.workspace);
 	const project = $derived(data.workspace.projects[0]);
 	const activation = $derived(data.activation);
+	const gatePolicy = $derived(data.gatePolicy);
 	const progressLabel = $derived(
 		`${activation.progress.completed}/${activation.progress.total} complete`
 	);
@@ -140,8 +141,8 @@
 				</p>
 				<h2 class="mt-2 text-xl font-semibold text-white">{workspace.billing.planLabel}</h2>
 				<p class="mt-2 text-sm leading-6 text-zinc-400">
-					Solo includes {workspace.billing.projectLimit} monitored project, advisory reports, report history,
-					and deploy gate enforcement.
+					This workspace includes {workspace.billing.projectLimit} monitored project, advisory reports,
+					report history, and deploy gate enforcement.
 				</p>
 			</aside>
 		</div>
@@ -253,7 +254,7 @@
 		{/if}
 	</section>
 
-	<section class="grid gap-6 lg:grid-cols-3">
+	<section class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
 		<div id="reports" class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">
 			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Report history</p>
 			<h2 class="mt-2 text-xl font-semibold text-white">No CI reports yet</h2>
@@ -263,49 +264,86 @@
 			</p>
 		</div>
 
-		<div id="gate" class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">
-			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Gate status</p>
-			<h2 class="mt-2 text-xl font-semibold text-white">
-				{project?.gateMode === 'gate' ? 'Blocking gate enabled' : 'Advisory mode first'}
-			</h2>
-			<p class="mt-2 text-sm leading-6 text-zinc-400">
-				Start non-blocking so the team can trust the signal. When reports are clean, switch to a
-				blocking deploy gate that fails risky production changes.
-			</p>
-			<a
-				href={resolve('/developers')}
-				class="mt-4 inline-flex rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-white hover:border-sky-500 hover:text-sky-200 focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:outline-none"
-			>
-				View gate docs
-			</a>
-		</div>
+		<aside class="space-y-6">
+			<div id="gate" class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">
+				<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Gate status</p>
+				<h2 class="mt-2 text-xl font-semibold text-white">
+					{project?.gateMode === 'gate' ? 'Blocking gate enabled' : 'Advisory mode first'}
+				</h2>
+				<p class="mt-2 text-sm leading-6 text-zinc-400">
+					Start non-blocking so the team can trust the signal. When reports are clean, switch to a
+					blocking deploy gate that fails risky production changes.
+				</p>
+				{#if gatePolicy}
+					<div class="mt-5 border-t border-zinc-800 pt-5">
+						<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Gate policy</p>
+						<h3 class="mt-2 text-base font-semibold text-white">
+							Required check: {gatePolicy.checkName}
+						</h3>
+						<p class="mt-2 text-sm leading-6 text-zinc-400">
+							Score below {gatePolicy.minScore}, a NO-GO verdict, or a P0 blocker fails once
+							<code class="text-sky-300">DEPLOYLINT_MODE</code> is set to gate.
+						</p>
+						<dl class="mt-4 grid gap-3 text-sm">
+							<div>
+								<dt class="text-xs text-zinc-500">Mode</dt>
+								<dd class="mt-1 font-medium text-zinc-200">{gatePolicy.enforcementLabel}</dd>
+							</div>
+							<div>
+								<dt class="text-xs text-zinc-500">Required env</dt>
+								<dd class="mt-2 flex flex-wrap gap-2">
+									{#each gatePolicy.requiredEnvVars as envVar (envVar)}
+										<code
+											class="rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-xs text-sky-300"
+										>
+											{envVar}
+										</code>
+									{/each}
+								</dd>
+							</div>
+						</dl>
+						<ul class="mt-4 space-y-2 text-sm leading-5 text-zinc-500">
+							{#each gatePolicy.blocks as blocker (blocker)}
+								<li>{blocker}</li>
+							{/each}
+						</ul>
+					</div>
+				{/if}
+				<a
+					href={resolve('/developers')}
+					class="mt-5 inline-flex rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-white hover:border-sky-500 hover:text-sky-200 focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:outline-none"
+				>
+					View gate docs
+				</a>
+			</div>
 
-		<div class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">
-			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
-				Branch protection handoff
-			</p>
-			<h2 class="mt-2 text-xl font-semibold text-white">
-				Make the check required only after trust
-			</h2>
-			<p class="mt-2 text-sm leading-6 text-zinc-400">
-				After the advisory job is trusted, make Deploylint a required status check in branch
-				protection, then set <code class="text-sky-300">DEPLOYLINT_MODE</code> to gate.
-			</p>
-			<ol class="mt-4 space-y-3">
-				{#each workspaceGateHardeningSteps as step, index (step.id)}
-					<li class="flex gap-3">
-						<span
-							class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-zinc-700 text-xs font-semibold text-zinc-400"
-						>
-							{index + 1}
-						</span>
-						<span>
-							<span class="block text-sm font-semibold text-zinc-200">{step.label}</span>
-							<span class="mt-1 block text-sm leading-5 text-zinc-500">{step.description}</span>
-						</span>
-					</li>
-				{/each}
-			</ol>
-		</div>
+			<div class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">
+				<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
+					Branch protection handoff
+				</p>
+				<h2 class="mt-2 text-xl font-semibold text-white">
+					Make the check required only after trust
+				</h2>
+				<p class="mt-2 text-sm leading-6 text-zinc-400">
+					After the advisory job is trusted, make Deploylint a required status check in branch
+					protection, then set <code class="text-sky-300">DEPLOYLINT_MODE</code> to gate.
+				</p>
+				<ol class="mt-4 space-y-3">
+					{#each workspaceGateHardeningSteps as step, index (step.id)}
+						<li class="flex gap-3">
+							<span
+								class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-zinc-700 text-xs font-semibold text-zinc-400"
+							>
+								{index + 1}
+							</span>
+							<span>
+								<span class="block text-sm font-semibold text-zinc-200">{step.label}</span>
+								<span class="mt-1 block text-sm leading-5 text-zinc-500">{step.description}</span>
+							</span>
+						</li>
+					{/each}
+				</ol>
+			</div>
+		</aside>
 	</section>
 </div>

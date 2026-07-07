@@ -2,6 +2,7 @@ import { resolveAlphaFreeUnlock } from '$lib/product/alpha';
 import {
 	buildAdvisoryWorkflow,
 	buildDemoWorkspace,
+	buildWorkspaceGatePolicy,
 	buildWorkspaceActivation
 } from '$lib/product/workspace';
 import { buildLoginRedirect } from '$lib/server/auth-config';
@@ -36,6 +37,7 @@ export const load: PageServerLoad = ({ locals, platform, url }) => {
 		},
 		workspace,
 		activation,
+		gatePolicy: project ? buildWorkspaceGatePolicy(project) : null,
 		advisoryWorkflow: project
 			? buildAdvisoryWorkflow({
 					appUrl,

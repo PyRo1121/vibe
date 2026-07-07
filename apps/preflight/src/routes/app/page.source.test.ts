@@ -24,6 +24,11 @@ describe('/app workspace source', () => {
 		expect(pageSource).toContain('Install in GitHub Actions');
 		expect(pageSource).toContain('Report history');
 		expect(pageSource).toContain('Gate status');
+		expect(pageSource).toContain('Gate policy');
+		expect(pageSource).toContain('data.gatePolicy');
+		expect(pageSource).toContain('Required check');
+		expect(pageSource).toContain('Score below');
+		expect(pageSource).toContain('P0 blocker');
 		expect(pageSource).toContain('Branch protection handoff');
 		expect(pageSource).toContain('required status check');
 		expect(pageSource).toContain('workspaceGateHardeningSteps');
@@ -32,5 +37,8 @@ describe('/app workspace source', () => {
 		expect(pageSource).toContain('data.activation');
 		expect(pageSource).toContain('data.workspace');
 		expect(pageSource).not.toContain('URL to scan');
+		expect(pageSource).not.toContain('xl:grid-cols-4');
+		expect(pageSource).not.toContain('Solo includes');
+		expect(pageSource).toContain('This workspace includes');
 	});
 });

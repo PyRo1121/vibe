@@ -71,6 +71,15 @@ export interface WorkspaceActivation {
 	};
 }
 
+export interface WorkspaceGatePolicy {
+	checkName: string;
+	mode: ProjectGateMode;
+	minScore: number;
+	enforcementLabel: string;
+	requiredEnvVars: string[];
+	blocks: string[];
+}
+
 export const workspaceActivationSteps = [
 	{
 		id: 'project',
@@ -115,6 +124,12 @@ export const workspaceGateHardeningSteps = [
 ] as const;
 
 export type WorkspaceGateHardeningStep = (typeof workspaceGateHardeningSteps)[number];
+
+const REQUIRED_GATE_ENV_VARS = [
+	'DEPLOYLINT_PROJECT_ID',
+	'DEPLOYLINT_MODE',
+	'DEPLOYLINT_MIN_SCORE'
+] as const;
 
 const ACTIVATION_CTA: Record<
 	(typeof workspaceActivationSteps)[number]['id'],
@@ -196,6 +211,21 @@ export function buildWorkspaceActivation(workspace: DeploylintWorkspace): Worksp
 			total,
 			percentage: Math.round((completedCount / total) * 100)
 		}
+	};
+}
+
+export function buildWorkspaceGatePolicy(project: DeploylintProject): WorkspaceGatePolicy {
+	return {
+		checkName: 'deploylint',
+		mode: project.gateMode,
+		minScore: project.minScore,
+		enforcementLabel: project.gateMode === 'gate' ? 'Blocking gate' : 'Advisory only',
+		requiredEnvVars: [...REQUIRED_GATE_ENV_VARS],
+		blocks: [
+			`Score below ${project.minScore}`,
+			'NO-GO deploy verdict',
+			'P0 blocker check such as exposed secrets, unsafe workflow permissions, or payment safety failure'
+		]
 	};
 }
 

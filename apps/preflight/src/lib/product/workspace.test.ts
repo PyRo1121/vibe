@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	buildAdvisoryWorkflow,
 	buildDemoWorkspace,
+	buildWorkspaceGatePolicy,
 	buildWorkspaceActivation,
 	workspaceActivationSteps,
 	workspaceGateHardeningSteps
@@ -79,6 +80,31 @@ describe('Deploylint workspace model', () => {
 		expect(workspaceGateHardeningSteps[1].label).toContain('required status check');
 		expect(workspaceGateHardeningSteps[1].description).toContain('branch protection');
 		expect(workspaceGateHardeningSteps[2].description).toContain('DEPLOYLINT_MODE');
+	});
+
+	it('summarizes the deploy gate policy from project state', () => {
+		const workspace = buildDemoWorkspace({
+			appUrl: 'https://deploylint.com',
+			alphaFreeUnlock: false
+		});
+		workspace.projects[0].minScore = 92;
+
+		const policy = buildWorkspaceGatePolicy(workspace.projects[0]);
+
+		expect(policy).toMatchObject({
+			checkName: 'deploylint',
+			mode: 'advisory',
+			minScore: 92,
+			enforcementLabel: 'Advisory only'
+		});
+		expect(policy.requiredEnvVars).toEqual([
+			'DEPLOYLINT_PROJECT_ID',
+			'DEPLOYLINT_MODE',
+			'DEPLOYLINT_MIN_SCORE'
+		]);
+		expect(policy.blocks).toContain('Score below 92');
+		expect(policy.blocks).toContain('NO-GO deploy verdict');
+		expect(policy.blocks.some((blocker) => blocker.includes('P0 blocker'))).toBe(true);
 	});
 
 	it('marks workflow install as the current next action before CI is installed', () => {
