@@ -40,7 +40,8 @@ export const load: PageServerLoad = ({ locals, platform, url }) => {
 			? buildAdvisoryWorkflow({
 					appUrl,
 					projectId: project.id,
-					deployUrl: project.deployUrl
+					deployUrl: project.deployUrl,
+					minScore: project.minScore
 				})
 			: ''
 	};

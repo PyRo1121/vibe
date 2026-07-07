@@ -19,9 +19,13 @@ describe('/app workspace source', () => {
 	it('presents a project workspace instead of another scanner page', () => {
 		const pageSource = source(pagePath);
 
-		expect(pageSource).toContain('Project workspace');
-		expect(pageSource).toContain('First advisory report');
+		expect(pageSource).toContain('Activation command center');
+		expect(pageSource).toContain('Next action');
 		expect(pageSource).toContain('Install in GitHub Actions');
+		expect(pageSource).toContain('Report history');
+		expect(pageSource).toContain('Gate status');
+		expect(pageSource).toContain('navigator.clipboard.writeText');
+		expect(pageSource).toContain('data.activation');
 		expect(pageSource).toContain('data.workspace');
 		expect(pageSource).not.toContain('URL to scan');
 	});

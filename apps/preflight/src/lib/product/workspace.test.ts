@@ -35,7 +35,8 @@ describe('Deploylint workspace model', () => {
 		const workflow = buildAdvisoryWorkflow({
 			appUrl: 'https://deploylint.com/',
 			projectId: 'proj_demo_123',
-			deployUrl: 'https://app.example.com'
+			deployUrl: 'https://app.example.com',
+			minScore: 80
 		});
 
 		expect(workflow).toContain('name: Deploylint advisory report');
@@ -44,6 +45,18 @@ describe('Deploylint workspace model', () => {
 		expect(workflow).toContain('DEPLOYLINT_MODE: advisory');
 		expect(workflow).toContain('DEPLOYLINT_API: https://deploylint.com');
 		expect(workflow).toContain('node gate-remote.mjs "$DEPLOYLINT_URL"');
+	});
+
+	it('uses the project score threshold in the advisory workflow', () => {
+		const workflow = buildAdvisoryWorkflow({
+			appUrl: 'https://deploylint.com',
+			projectId: 'proj_custom_threshold',
+			deployUrl: 'https://app.example.com',
+			minScore: 92
+		});
+
+		expect(workflow).toContain("DEPLOYLINT_MIN_SCORE: '92'");
+		expect(workflow).not.toContain("DEPLOYLINT_MIN_SCORE: '80'");
 	});
 
 	it('keeps the activation checklist centered on first CI report, not another scan', () => {
@@ -70,6 +83,31 @@ describe('Deploylint workspace model', () => {
 			label: 'Install the advisory workflow',
 			ctaLabel: 'Copy workflow'
 		});
+		expect(activation.steps.map((step) => [step.id, step.status])).toEqual([
+			['project', 'complete'],
+			['workflow', 'current'],
+			['first-report', 'locked'],
+			['gate', 'locked']
+		]);
+	});
+
+	it('does not skip workflow activation when inconsistent report data exists', () => {
+		const workspace = buildDemoWorkspace({
+			appUrl: 'https://deploylint.com',
+			alphaFreeUnlock: false
+		});
+		workspace.projects[0].latestReport = {
+			id: 'report_orphaned',
+			score: 97,
+			verdict: 'go',
+			scannedAt: '2026-07-07T00:00:00.000Z',
+			fixedCount: 3,
+			regressedCount: 0
+		};
+
+		const activation = buildWorkspaceActivation(workspace);
+
+		expect(activation.progress).toEqual({ completed: 1, total: 4, percentage: 25 });
 		expect(activation.steps.map((step) => [step.id, step.status])).toEqual([
 			['project', 'complete'],
 			['workflow', 'current'],

@@ -110,14 +110,21 @@ function completedActivationIds(
 	const completed = new Set<WorkspaceActivationStep['id']>();
 	if (!project) return completed;
 
+	const workflowComplete =
+		project.installState === 'advisory_installed' || project.installState === 'gate_enabled';
+	const reportComplete =
+		workflowComplete && Boolean(project.latestReport || project.installState === 'gate_enabled');
+	const gateComplete =
+		reportComplete && project.installState === 'gate_enabled' && project.gateMode === 'gate';
+
 	completed.add('project');
-	if (project.installState === 'advisory_installed' || project.installState === 'gate_enabled') {
+	if (workflowComplete) {
 		completed.add('workflow');
 	}
-	if (project.latestReport || project.installState === 'gate_enabled') {
+	if (reportComplete) {
 		completed.add('first-report');
 	}
-	if (project.installState === 'gate_enabled' && project.gateMode === 'gate') {
+	if (gateComplete) {
 		completed.add('gate');
 	}
 
@@ -133,14 +140,16 @@ export function buildWorkspaceActivation(workspace: DeploylintWorkspace): Worksp
 
 	const steps = workspaceActivationSteps.map((step) => {
 		const cta = ACTIVATION_CTA[step.id];
+		const status: ActivationStepStatus = completed.has(step.id)
+			? 'complete'
+			: step.id === current.id
+				? 'current'
+				: 'locked';
+
 		return {
 			...step,
 			...cta,
-			status: completed.has(step.id)
-				? 'complete'
-				: step.id === current.id
-					? 'current'
-					: 'locked'
+			status
 		};
 	});
 
@@ -176,6 +185,7 @@ export function buildAdvisoryWorkflow(opts: {
 	appUrl: string;
 	projectId: string;
 	deployUrl: string;
+	minScore: number;
 }): string {
 	const appUrl = normalizeAppUrl(opts.appUrl);
 
@@ -198,7 +208,7 @@ jobs:
           DEPLOYLINT_URL: ${opts.deployUrl}
           DEPLOYLINT_API: ${appUrl}
           DEPLOYLINT_MODE: advisory
-          DEPLOYLINT_MIN_SCORE: '80'
+          DEPLOYLINT_MIN_SCORE: '${opts.minScore}'
         run: |
           curl -fsSL ${appUrl}/gate-remote.mjs -o gate-remote.mjs
           node gate-remote.mjs "$DEPLOYLINT_URL"`;
