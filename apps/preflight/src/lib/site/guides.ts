@@ -76,13 +76,13 @@ export const GUIDES = [
 	{
 		slug: 'website-launch-checklist',
 		navTitle: 'Deploy checklist',
-		title: 'Deploy readiness checklist for small SaaS products',
+		title: 'Deploy readiness checklist for fast builder teams',
 		description:
 			'Run a practical deploy readiness checklist for SEO, security headers, legal pages, social previews, crawler access, CI gates, and conversion basics.',
 		eyebrow: 'Production readiness checklist',
 		h1: 'Deploy readiness checklist',
 		intro:
-			'A small SaaS deploy needs more than a working homepage. The production target has to be reachable, understandable, shareable, indexable, and safe enough that early users can trust it.',
+			'A serious deploy needs more than a working homepage. The production target has to be reachable, understandable, shareable, indexable, and safe enough that early users can trust it.',
 		sections: [
 			{
 				heading: 'Technical discovery',
@@ -113,7 +113,7 @@ export const GUIDES = [
 		],
 		faq: [
 			{
-				question: 'How many pages does a new SaaS need for SEO?',
+				question: 'How many pages does a new product need for SEO?',
 				answer:
 					'Start with a crawlable homepage, comparison page, check catalog or docs page, changelog, and a few useful guides tied to real search intent.'
 			},

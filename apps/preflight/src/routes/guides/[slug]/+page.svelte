@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import SeoHead from '$lib/components/SeoHead.svelte';
 	import { buildPageJsonLd, buildSeoTitle, defaultSeoImage } from '$lib/site/seo-metadata';
 
@@ -79,15 +80,19 @@
 	</section>
 
 	<section class="mt-10 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
-		<h2 class="text-lg font-semibold text-white">Run the check</h2>
+		<h2 class="text-lg font-semibold text-white">Turn it into a deploy gate</h2>
 		<p class="mt-2 text-sm leading-6 text-zinc-400">
-			Paste your live URL into Deploylint, fix the P0 issues first, then re-scan before you share
-			the product publicly.
+			Create a project workspace, install the advisory GitHub Actions workflow, then move from
+			readable reports to gate mode once the signal is clean.
 		</p>
 		<p class="mt-4">
-			<a class="text-sky-400 hover:underline" href="/">Run a free scan</a>
+			<a class="text-sky-400 hover:underline" href={resolve('/developers')}
+				>Install advisory workflow</a
+			>
 			<span class="mx-2 text-zinc-600">/</span>
-			<a class="text-sky-400 hover:underline" href="/checks">Browse all checks</a>
+			<a class="text-sky-400 hover:underline" href={resolve('/app')}>Create project workspace</a>
+			<span class="mx-2 text-zinc-600">/</span>
+			<a class="text-sky-400 hover:underline" href={resolve('/checks')}>Browse all checks</a>
 		</p>
 	</section>
 </article>

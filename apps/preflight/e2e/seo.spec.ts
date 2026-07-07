@@ -66,7 +66,7 @@ const pages = [
 		path: '/privacy',
 		title: 'Privacy Policy - Deploylint',
 		description:
-			'Deploylint privacy policy for public URL scans, subscriptions, analytics, and data handling.',
+			'Deploylint privacy policy for workspaces, deploy target audits, report history, subscriptions, analytics, and data handling.',
 		canonical: `${baseUrl}/privacy`,
 		heading: /Privacy Policy/i,
 		jsonLdTypes: ['WebPage'],
@@ -104,7 +104,7 @@ const pages = [
 	},
 	{
 		path: '/guides/website-launch-checklist',
-		title: 'Deploy readiness checklist for small SaaS products - Deploylint',
+		title: 'Deploy readiness checklist for fast builder teams - Deploylint',
 		description:
 			'Run a practical deploy readiness checklist for SEO, security headers, legal pages, social previews, crawler access, CI gates, and conversion basics.',
 		canonical: `${baseUrl}/guides/website-launch-checklist`,
