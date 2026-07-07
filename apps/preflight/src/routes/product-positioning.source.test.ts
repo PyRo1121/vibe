@@ -40,5 +40,33 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(unlockComparePanel).toContain('Workspace-backed gate, history, and monitoring');
 		expect(unlockPanel).not.toContain('Every fix prompt - copy into Cursor or Claude');
 		expect(unlockComparePanel).not.toContain('Fix everything in one Cursor paste');
+		expect(unlockComparePanel).not.toContain('Embarrassment brief');
+		expect(unlockComparePanel).toContain('Deploy surface brief');
+	});
+
+	it('frames shared reports and unlock offers as deploy readiness, not launch posting', () => {
+		const reportPage = source('routes', 'r', '[id]', '+page.svelte');
+		const launchBriefPanel = source('lib', 'components', 'LaunchBriefPanel.svelte');
+		const unlockPanel = source('lib', 'components', 'UnlockPanel.svelte');
+		const preflightSession = source('lib', 'client', 'preflight-session.ts');
+
+		expect(reportPage).toContain('Deploy readiness report');
+		expect(reportPage).toContain('Must fix before gate mode');
+		expect(reportPage).toContain('Ready for deploy gate review.');
+		expect(launchBriefPanel).toContain('Before this reaches production');
+		expect(launchBriefPanel).toContain('Public deploy surface risk');
+		expect(unlockPanel).toContain('Not Lighthouse - deploy readiness');
+		expect(unlockPanel).toContain('proof before gate mode');
+		expect(preflightSession).toContain('You are fixing deploy readiness');
+		expect(preflightSession).toContain('before this reaches production');
+
+		for (const fileSource of [reportPage, launchBriefPanel, unlockPanel, preflightSession]) {
+			expect(fileSource).not.toContain('Product Hunt');
+			expect(fileSource).not.toContain('post publicly');
+			expect(fileSource).not.toContain('before you post');
+			expect(fileSource).not.toContain('public embarrassment');
+			expect(fileSource).not.toContain('launch blocker');
+			expect(fileSource).not.toContain('Clear to launch');
+		}
 	});
 });

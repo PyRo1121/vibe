@@ -38,7 +38,7 @@ describe('buildShareText', () => {
 		expect(text).toContain('GO');
 	});
 
-	it('includes embarrassment hook when launch brief exists', () => {
+	it('includes public deploy risk hook when launch brief exists', () => {
 		const text = buildShareText(
 			{
 				...baseReport,
@@ -52,11 +52,11 @@ describe('buildShareText', () => {
 			},
 			'https://deploylint.com'
 		);
-		expect(text).toContain('Deploylint caught this');
+		expect(text).toContain('before this reaches production');
 		expect(text).toContain('Exposed keys');
 	});
 
-	it('keeps score and verdict when an embarrassment hook and permalink are present', () => {
+	it('keeps score and verdict when a deploy risk hook and permalink are present', () => {
 		const text = buildShareText(
 			{
 				...baseReport,
@@ -103,7 +103,7 @@ describe('buildUnlockOffer', () => {
 			verdict: 'no-go',
 			checks: [check('privacy', 'fail')]
 		});
-		expect(offer?.headline).toContain("Don't post");
+		expect(offer?.headline).toContain('Gate not ready');
 	});
 
 	it('includes concrete value pitch and projected score', () => {

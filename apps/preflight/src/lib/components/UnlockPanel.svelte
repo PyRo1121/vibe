@@ -21,7 +21,7 @@
 		class="rounded-2xl border border-sky-500/40 bg-gradient-to-br from-sky-500/10 via-zinc-900/80 to-zinc-950 p-8"
 	>
 		<p class="text-xs font-semibold tracking-widest text-sky-400 uppercase">
-			Not Lighthouse - launch fixes
+			Not Lighthouse - deploy readiness
 		</p>
 		<h2 class="mt-2 text-2xl font-bold text-white">{offer.headline}</h2>
 		<p class="mt-2 max-w-2xl text-zinc-400">{offer.subhead}</p>
@@ -31,7 +31,7 @@
 			<p class="mt-2 text-sm text-zinc-500">
 				Typical after fixes: re-scan shows
 				<span class="font-mono text-zinc-300">{report.score} -> {offer.projectedScore}</span>
-				(+{offer.projectedScore - report.score}) - proof before you post on X or Product Hunt.
+				(+{offer.projectedScore - report.score}) - proof before gate mode.
 			</p>
 		{/if}
 
@@ -39,7 +39,7 @@
 			<div class="mt-6 flex flex-wrap gap-3 text-sm">
 				{#if offer.blockerCount > 0}
 					<span class="rounded-full bg-red-500/20 px-3 py-1 font-medium text-red-300">
-						{offer.blockerCount} launch blocker{offer.blockerCount === 1 ? '' : 's'}
+						{offer.blockerCount} deploy blocker{offer.blockerCount === 1 ? '' : 's'}
 					</span>
 				{/if}
 				<span class="rounded-full bg-zinc-800 px-3 py-1 text-zinc-300">
@@ -68,7 +68,7 @@
 			</li>
 			<li class="flex gap-2 text-sm text-zinc-300">
 				<span class="text-sky-400">✓</span>
-				Re-scan proof - show the score moved before you post
+				Re-scan proof - show the score moved before gate mode
 			</li>
 			<li class="flex gap-2 text-sm text-zinc-300">
 				<span class="text-sky-400">✓</span>

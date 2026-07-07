@@ -42,7 +42,7 @@
 
 				<ul class="mt-3 space-y-2 text-sm text-zinc-400">
 					<li>+ GO / NO-GO verdict + score ({report.score}/100)</li>
-					<li>+ Embarrassment brief + social preview</li>
+					<li>+ Deploy surface brief + social preview</li>
 					<li>+ Full checklist - what's failing</li>
 					<li>
 						+ 1 sample Cursor prompt{#if offer.hasSample}{/if}

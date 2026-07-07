@@ -49,7 +49,7 @@
 	<title>{pageTitle}</title>
 	<meta
 		name="description"
-		content="Launch readiness report: {report.summary.fail} failing, {report.summary
+		content="Deploy readiness report: {report.summary.fail} failing, {report.summary
 			.warn} warnings, {report.summary.pass} passing."
 	/>
 	<meta name="robots" content="noindex, follow" />
@@ -98,7 +98,7 @@
 				</p>
 			</div>
 			{#if failing.length > 0}
-				<h3 class="mb-2 text-sm font-semibold text-red-400">Must fix before launch</h3>
+				<h3 class="mb-2 text-sm font-semibold text-red-400">Must fix before gate mode</h3>
 				<ul class="mb-4 space-y-1.5">
 					{#each failing as check (check.id)}
 						<li class="text-sm text-zinc-300">
@@ -120,7 +120,9 @@
 				</ul>
 			{/if}
 			{#if failing.length === 0 && warnings.length === 0}
-				<p class="text-sm text-emerald-400">Everything we checked passed. Clear to launch.</p>
+				<p class="text-sm text-emerald-400">
+					Everything we checked passed. Ready for deploy gate review.
+				</p>
 			{/if}
 		</section>
 

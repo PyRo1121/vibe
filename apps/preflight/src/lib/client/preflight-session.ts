@@ -135,7 +135,7 @@ function buildMasterPromptPreview(report: ScanReport): string[] {
 	}
 
 	const issues = sortChecksByPriority(report.checks.filter((c) => c.status !== 'pass')).slice(0, 4);
-	const header = `You are fixing launch readiness for ${report.finalUrl}.`;
+	const header = `You are fixing deploy readiness for ${report.finalUrl}.`;
 	const intro = 'Fix these issues in order (P0 blockers first):';
 	const lines = issues.map(
 		(c) =>
@@ -195,16 +195,16 @@ export function buildUnlockOffer(report: ScanReport): UnlockOffer | null {
 	if (report.verdict === 'no-go') {
 		headline =
 			blockerCount > 0
-				? `Don't post yet — ${blockerCount} launch blocker${blockerCount === 1 ? '' : 's'} need fixes`
-				: "Don't post yet — unlock Cursor-ready fixes before you share";
+				? `Gate not ready - ${blockerCount} deploy blocker${blockerCount === 1 ? '' : 's'} need fixes`
+				: 'Gate not ready - unlock Cursor-ready fixes before production';
 		subhead =
-			'Free scan told you what is wrong. Solo is the fix loop: paste prompts into Cursor, deploy, re-scan to prove it.';
+			'Free report told you what is wrong. Solo is the fix loop: paste prompts into Cursor, deploy, and re-scan before this reaches production.';
 		valuePitch = `Unlock ${promptPart} + 1 master paste${deltaPart}`;
 		ctaLabel = lockedPromptCount > 0 ? 'Start Solo - $9/mo' : 'Start Solo for re-scan proof';
 	} else if (report.verdict === 'conditional') {
-		headline = 'Almost shareable — fix the rest before Product Hunt or Reddit';
+		headline = 'Almost gate-ready - fix the remaining deploy risks';
 		subhead =
-			'One free sample prompt is not enough for a public launch. Start Solo, paste once, re-scan until verdict is GO.';
+			'One free sample prompt is not enough for a production gate. Start Solo, paste once, and re-scan until verdict is GO.';
 		valuePitch = `Unlock ${promptPart} + master paste${deltaPart}`;
 		ctaLabel = 'Start Solo - $9/mo';
 	} else if (lockedPromptCount > 0) {
@@ -214,7 +214,7 @@ export function buildUnlockOffer(report: ScanReport): UnlockOffer | null {
 		valuePitch = `${lockedPromptCount} polish prompts + master paste${deltaPart}`;
 		ctaLabel = 'Start Solo - $9/mo';
 	} else {
-		headline = 'Unlock re-scan proof for your launch post';
+		headline = 'Unlock re-scan proof for this deploy target';
 		subhead =
 			'Everything passed. Start Solo for recurring monitoring and re-scans after last-minute edits.';
 		valuePitch = 'Re-scans with score delta on this URL';
@@ -242,8 +242,8 @@ export function buildShareText(report: ScanReport, appUrl: string): string {
 	const base = appUrl.replace(/\/$/, '');
 	const risk = report.launchBrief?.embarrassmentRisks?.[0];
 	const hook = risk
-		? `Deploylint caught this before I posted publicly:\n“${risk.slice(0, 140)}${risk.length > 140 ? '…' : ''}”`
-		: `I ran Deploylint before posting my URL — ${report.score}/100 (${verdict}).`;
+		? `Deploylint caught this before this reaches production:\n"${risk.slice(0, 140)}${risk.length > 140 ? '...' : ''}"`
+		: `I ran Deploylint on my deploy target - ${report.score}/100 (${verdict}).`;
 	const permalink = report.reportId ? `${base}/r/${report.reportId}` : null;
 	const lines = [
 		hook,
