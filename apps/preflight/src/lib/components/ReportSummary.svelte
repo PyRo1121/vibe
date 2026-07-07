@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { computeFixProgress, loadBaselineChecks } from '$lib/client/preflight-session';
 	import ScoreDeltaBadge from '$lib/components/ScoreDeltaBadge.svelte';
 	import type { PaymentReadinessStatus, ScanReport } from '$lib/scan/types';
@@ -82,7 +83,7 @@
 <section class="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8">
 	<div class="grid gap-8 lg:grid-cols-[minmax(0,320px)_1fr]">
 		<div>
-			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Launch score</p>
+			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Deploy risk score</p>
 			<div class="mt-1 flex items-baseline gap-3">
 				<p class="text-6xl font-bold tabular-nums {scoreColor(report.score)}">{report.score}</p>
 				<p class="text-lg text-zinc-600">/100</p>
@@ -107,7 +108,7 @@
 					</span>
 					{#each report.history as h (h.id)}
 						<a
-							href="/r/{h.id}"
+							href={resolve(`/r/${h.id}`)}
 							class="rounded bg-zinc-800/70 px-1.5 py-0.5 tabular-nums {scoreColor(
 								h.score
 							)} hover:bg-zinc-700"

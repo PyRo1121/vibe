@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import Checklist from '$lib/components/Checklist.svelte';
 	import DeepDivesSection from '$lib/components/DeepDivesSection.svelte';
@@ -77,10 +78,10 @@
 			</p>
 		</div>
 		<a
-			href="/"
+			href={resolve('/app#install')}
 			class="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500"
 		>
-			Scan your own site free →
+			Create workspace from this report
 		</a>
 	</div>
 
@@ -125,7 +126,9 @@
 
 		<p class="mb-10 text-center text-sm text-zinc-500">
 			This is the summary view for stakeholders.
-			<a class="text-sky-400 hover:underline" href={permalink}>See the full technical report →</a>
+			<a class="text-sky-400 hover:underline" href={resolve(`/r/${page.params.id}`)}
+				>See the full technical report →</a
+			>
 		</p>
 	{:else}
 		<VerdictBanner {report} />
@@ -157,16 +160,16 @@
 	{/if}
 
 	<section class="rounded-2xl border border-sky-500/30 bg-sky-500/5 p-6 text-center">
-		<p class="font-medium text-white">Want fix prompts for these issues?</p>
+		<p class="font-medium text-white">Turn this report into an advisory workflow</p>
 		<p class="mt-1 text-sm text-zinc-400">
-			Run your own scan — free verdict in seconds, then Solo from $9/mo unlocks every fix prompt and
-			re-scan proof.
+			Create a workspace, install the advisory workflow, and let future pull requests build a report
+			history before you switch to a blocking deploy gate.
 		</p>
 		<a
-			href="/"
+			href={resolve('/app#install')}
 			class="mt-4 inline-block rounded-lg bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-500"
 		>
-			Run a free scan
+			Install advisory workflow
 		</a>
 	</section>
 </div>

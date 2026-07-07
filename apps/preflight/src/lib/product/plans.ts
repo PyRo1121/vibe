@@ -11,8 +11,8 @@ export const DEPLOYLINT_PLANS = {
 		limits: '1 monitored project',
 		cadence: 'Weekly monitoring',
 		features: [
-			'Full fix prompts and master repair paste',
-			'MCP scan and deploy gate access',
+			'Workspace-backed advisory reports',
+			'Deploy gate and MCP access',
 			'10 full reports per month'
 		],
 		ctaLabel: 'Start Solo - $9/mo'
@@ -28,8 +28,8 @@ export const DEPLOYLINT_PLANS = {
 		cadence: 'Daily monitoring',
 		features: [
 			'Everything in Solo',
-			'Saved report history and re-scan deltas',
-			'CVE and launch regression alerts'
+			'Saved report history and regression alerts',
+			'CVE and launch drift monitoring'
 		],
 		ctaLabel: 'Start Builder - $29/mo'
 	},
@@ -44,7 +44,7 @@ export const DEPLOYLINT_PLANS = {
 		cadence: 'Daily monitoring',
 		features: [
 			'Everything in Builder',
-			'Client-ready reports and exports',
+			'Client-ready gate reports and exports',
 			'Webhook-ready alert workflow'
 		],
 		ctaLabel: 'Start Agency - $149/mo'

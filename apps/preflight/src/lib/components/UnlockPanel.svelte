@@ -57,11 +57,11 @@
 		<ul class="mt-6 grid gap-3 sm:grid-cols-2">
 			<li class="flex gap-2 text-sm text-zinc-300">
 				<span class="text-sky-400">✓</span>
-				Every fix prompt - copy into Cursor or Claude
+				workspace-backed deploy gate for this project
 			</li>
 			<li class="flex gap-2 text-sm text-zinc-300">
 				<span class="text-sky-400">✓</span>
-				One master paste - fix everything in Cursor
+				Advisory reports, saved history, and repair prompts
 				{#if offer.masterPromptLineCount > 0}
 					<span class="text-zinc-500">({offer.masterPromptLineCount} lines)</span>
 				{/if}
@@ -109,8 +109,8 @@
 			{/each}
 		</div>
 		<p class="mt-4 text-xs text-zinc-600">
-			Subscriptions use Stripe Checkout. Free scans stay available; paid plans unlock all prompts,
-			MCP workflow access, and recurring launch monitoring for the selected project limit.
+			Subscriptions use Stripe Checkout. Free scans stay available; paid plans attach reports,
+			gates, MCP workflow access, and recurring monitoring to the selected project limit.
 		</p>
 	</section>
 {/if}

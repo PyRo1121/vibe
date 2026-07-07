@@ -46,6 +46,18 @@ describe('Deploylint product plans', () => {
 		expect(isDeploylintPlanId('STRIPE_PRICE_SOLO')).toBe(false);
 		expect(isDeploylintPlanId(null)).toBe(false);
 	});
+
+	it('leads paid value with monitored projects and deploy gates', () => {
+		expect(DEPLOYLINT_PLANS.solo.features).toContain('Workspace-backed advisory reports');
+		expect(DEPLOYLINT_PLANS.solo.features).toContain('Deploy gate and MCP access');
+		expect(DEPLOYLINT_PLANS.builder.features).toContain(
+			'Saved report history and regression alerts'
+		);
+		expect(DEPLOYLINT_PLANS.agency.features).toContain('Client-ready gate reports and exports');
+		expect(DEPLOYLINT_PLAN_LIST.flatMap((plan) => plan.features).join(' ')).not.toMatch(
+			/Full fix prompts|master repair paste/
+		);
+	});
 });
 
 describe('Deploylint alpha pricing mode', () => {

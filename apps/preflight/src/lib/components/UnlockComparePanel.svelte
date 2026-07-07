@@ -24,12 +24,12 @@
 		<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Why subscribe?</p>
 
 		<h2 id="unlock-compare-heading" class="mt-2 text-xl font-bold text-white">
-			Fix everything in one Cursor paste
+			Workspace-backed gate, history, and monitoring
 		</h2>
 
 		<p class="mt-2 text-sm text-zinc-400">
-			Free tells you what's wrong. Solo adds every fix prompt, MCP access, recurring monitoring, and
-			one master repair prompt you paste once.
+			Free tells you what's wrong once. Solo turns the report into a monitored project with CI
+			history, deploy gate enforcement, MCP access, and repair guidance.
 		</p>
 
 		<p class="mt-2 text-sm text-sky-300">{offer.valuePitch}</p>
@@ -57,13 +57,13 @@
 
 				<ul class="mt-3 space-y-2 text-sm text-zinc-200">
 					<li>
-						+ <strong class="text-white">{offer.lockedPromptCount || offer.issueCount}</strong>
-						copy-paste fix prompts for Cursor / Claude
+						+ <strong class="text-white">1 monitored project</strong>
+						with workspace-backed advisory reports
 					</li>
 					<li>
-						+ <strong class="text-white">Fix all issues in one Cursor paste</strong>
+						+ <strong class="text-white">Deploy gate enforcement</strong>
 						{#if offer.masterPromptLineCount > 0}
-							- {offer.masterPromptLineCount}-line repair prompt
+							- repair guidance included
 						{/if}
 					</li>
 					<li>

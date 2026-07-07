@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import CiReportPreview from '$lib/components/CiReportPreview.svelte';
 	import SeoHead from '$lib/components/SeoHead.svelte';
 	import { buildPageJsonLd, buildSeoTitle, defaultSeoImage } from '$lib/site/seo-metadata';
@@ -30,6 +31,10 @@
 			step: [
 				{ '@type': 'HowToStep', name: 'Set DEPLOYLINT_URL to your staging or production URL' },
 				{ '@type': 'HowToStep', name: 'Run Deploylint in advisory mode from GitHub Actions' },
+				{
+					'@type': 'HowToStep',
+					name: 'Generate a workspace-backed project workflow in Deploylint'
+				},
 				{ '@type': 'HowToStep', name: 'Switch to blocking gate mode after the report is clean' }
 			]
 		}
@@ -50,6 +55,30 @@ jobs:
     steps:
       - name: Run Deploylint advisory scan
         env:
+          DEPLOYLINT_URL: \${{ secrets.DEPLOYLINT_URL }}
+          DEPLOYLINT_API: ${base}
+          DEPLOYLINT_MODE: advisory
+          DEPLOYLINT_MIN_SCORE: '80'
+        run: |
+          curl -fsSL ${base}/gate-remote.mjs -o gate-remote.mjs
+          node gate-remote.mjs "$DEPLOYLINT_URL"`);
+
+	const workspaceBackedGateYaml = $derived(`name: Deploylint workspace advisory report
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  deploylint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Run Deploylint workspace report
+        env:
+          DEPLOYLINT_PROJECT_ID: proj_demo_123
           DEPLOYLINT_URL: \${{ secrets.DEPLOYLINT_URL }}
           DEPLOYLINT_API: ${base}
           DEPLOYLINT_MODE: advisory
@@ -150,6 +179,40 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 		<CiReportPreview compact />
 	</section>
 
+	<section class="mb-10 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
+		<div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
+			<div>
+				<p class="mb-2 text-xs font-semibold tracking-widest text-zinc-500 uppercase">
+					Free gate vs workspace gate
+				</p>
+				<h2 class="text-xl font-semibold text-white">
+					Use the workspace-backed project gate when you subscribe
+				</h2>
+				<p class="mt-3 text-sm leading-6 text-zinc-400">
+					The generic workflow below is useful for proving the signal. A workspace-backed project
+					gate adds <code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300"
+						>DEPLOYLINT_PROJECT_ID</code
+					>, report history, billing context, and gate status inside your Deploylint workspace.
+				</p>
+			</div>
+			<div class="flex flex-col justify-center gap-3">
+				<a
+					href={resolve('/app#install')}
+					class="rounded-lg bg-sky-600 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-sky-500"
+				>
+					Generate workspace workflow
+				</a>
+				<p class="text-xs leading-5 text-zinc-500">
+					Use this after login to create the exact workflow for a monitored project.
+				</p>
+			</div>
+		</div>
+		<pre
+			class="mt-5 overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-xs leading-relaxed text-zinc-300"><code
+				>{workspaceBackedGateYaml}</code
+			></pre>
+	</section>
+
 	<section class="mb-10 rounded-2xl border border-sky-900/50 bg-sky-950/20 p-6">
 		<h2 class="mb-2 text-xl font-semibold text-white">1. Install the advisory workflow</h2>
 		<p class="mb-4 text-sm leading-6 text-zinc-400">
@@ -247,7 +310,8 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 		<h2 class="mb-2 text-xl font-semibold text-white">4. Zero-install script</h2>
 		<p class="mb-4 text-sm text-zinc-500">
 			Fetch the hosted gate from
-			<a class="text-sky-400 hover:underline" href="/gate-remote.mjs">/gate-remote.mjs</a>
+			<a class="text-sky-400 hover:underline" href={resolve('/gate-remote.mjs')}>/gate-remote.mjs</a
+			>
 			for local scripts or non-GitHub CI.
 		</p>
 		<pre
@@ -318,7 +382,9 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 		<ol class="list-decimal space-y-2 pl-6 text-sm text-zinc-400">
 			<li>
 				Check workflow YAML in the
-				<a class="text-sky-400 hover:underline" href="/tools/github-actions-security-checker"
+				<a
+					class="text-sky-400 hover:underline"
+					href={resolve('/tools/github-actions-security-checker')}
 					>GitHub Actions Security Checker</a
 				>.
 			</li>
@@ -329,6 +395,6 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 	</section>
 
 	<p>
-		<a class="text-sky-400 hover:underline" href="/">Audit a deploy target</a>
+		<a class="text-sky-400 hover:underline" href={resolve('/')}>Audit a deploy target</a>
 	</p>
 </div>
