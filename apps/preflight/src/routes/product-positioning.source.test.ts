@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 const routesDir = dirname(fileURLToPath(import.meta.url));
 const srcDir = join(routesDir, '..');
 const appDir = join(srcDir, '..');
+const repoDir = join(appDir, '..', '..');
 
 function source(...segments: string[]) {
 	return readFileSync(join(srcDir, ...segments), 'utf8');
@@ -14,6 +15,10 @@ function source(...segments: string[]) {
 
 function appSource(...segments: string[]) {
 	return readFileSync(join(appDir, ...segments), 'utf8');
+}
+
+function repoSource(...segments: string[]) {
+	return readFileSync(join(repoDir, ...segments), 'utf8');
 }
 
 describe('Deploylint CI workspace positioning', () => {
@@ -142,5 +147,29 @@ describe('Deploylint CI workspace positioning', () => {
 			expect(fileSource).not.toContain('Check yours free');
 			expect(fileSource).not.toContain('Free scan (you have this)');
 		}
+	});
+
+	it('makes generated advisory workflows skip cleanly when fork PR secrets are unavailable', () => {
+		const homePage = source('routes', '+page.svelte');
+		const developersPage = source('routes', 'developers', '+page.svelte');
+		const workflowToolPage = source(
+			'routes',
+			'tools',
+			'github-actions-security-checker',
+			'+page.svelte'
+		);
+		const workspaceModel = source('lib', 'product', 'workspace.ts');
+		const compositeAction = repoSource('.github', 'actions', 'deploylint-gate', 'action.yml');
+
+		for (const fileSource of [homePage, developersPage, workflowToolPage, workspaceModel]) {
+			expect(fileSource).toContain('if [ -z "$DEPLOYLINT_URL" ]; then');
+			expect(fileSource).toContain(
+				'Skipping Deploylint advisory report because DEPLOYLINT_URL is unavailable'
+			);
+		}
+		expect(compositeAction).toContain('if [ -z "${DEPLOYLINT_URL:-}" ]; then');
+		expect(compositeAction).toContain(
+			'Skipping Deploylint advisory report because DEPLOYLINT_URL is unavailable'
+		);
 	});
 });

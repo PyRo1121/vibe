@@ -304,6 +304,10 @@ jobs:
           DEPLOYLINT_API: ${appOrigin}
           DEPLOYLINT_MODE: advisory
         run: |
+          if [ -z "$DEPLOYLINT_URL" ]; then
+            echo "Skipping Deploylint advisory report because DEPLOYLINT_URL is unavailable (forked pull request secrets are not exposed)."
+            exit 0
+          fi
           curl -fsSL ${appOrigin}/gate-remote.mjs -o gate-remote.mjs
           node gate-remote.mjs "$DEPLOYLINT_URL"`);
 </script>

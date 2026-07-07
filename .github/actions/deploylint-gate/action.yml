@@ -33,4 +33,12 @@ runs:
         DEPLOYLINT_MODE: ${{ inputs.mode }}
       run: |
         set -euo pipefail
+        if [ -z "${DEPLOYLINT_URL:-}" ]; then
+          if [ "${DEPLOYLINT_MODE:-advisory}" = "gate" ]; then
+            echo "DEPLOYLINT_URL is required for Deploylint gate mode." >&2
+            exit 2
+          fi
+          echo "Skipping Deploylint advisory report because DEPLOYLINT_URL is unavailable (forked pull request secrets are not exposed)."
+          exit 0
+        fi
         node "$GITHUB_ACTION_PATH/gate-remote.mjs" "${DEPLOYLINT_URL}"

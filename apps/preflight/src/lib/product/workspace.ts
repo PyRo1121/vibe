@@ -254,7 +254,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Run Deploylint advisory scan
+      - name: Run Deploylint advisory report
         env:
           DEPLOYLINT_PROJECT_ID: ${opts.projectId}
           DEPLOYLINT_URL: ${opts.deployUrl}
@@ -262,6 +262,10 @@ jobs:
           DEPLOYLINT_MODE: advisory
           DEPLOYLINT_MIN_SCORE: '${opts.minScore}'
         run: |
+          if [ -z "$DEPLOYLINT_URL" ]; then
+            echo "Skipping Deploylint advisory report because DEPLOYLINT_URL is unavailable (forked pull request secrets are not exposed)."
+            exit 0
+          fi
           curl -fsSL ${appUrl}/gate-remote.mjs -o gate-remote.mjs
           node gate-remote.mjs "$DEPLOYLINT_URL"`;
 }

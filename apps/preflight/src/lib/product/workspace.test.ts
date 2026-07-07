@@ -46,6 +46,10 @@ describe('Deploylint workspace model', () => {
 		expect(workflow).toContain('DEPLOYLINT_URL: https://app.example.com');
 		expect(workflow).toContain('DEPLOYLINT_MODE: advisory');
 		expect(workflow).toContain('DEPLOYLINT_API: https://deploylint.com');
+		expect(workflow).toContain('if [ -z "$DEPLOYLINT_URL" ]; then');
+		expect(workflow).toContain(
+			'Skipping Deploylint advisory report because DEPLOYLINT_URL is unavailable'
+		);
 		expect(workflow).toContain('node gate-remote.mjs "$DEPLOYLINT_URL"');
 	});
 

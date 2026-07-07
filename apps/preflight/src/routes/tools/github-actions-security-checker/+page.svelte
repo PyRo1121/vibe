@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { analyzeGithubActionsYaml, SAMPLE_GITHUB_ACTIONS_WORKFLOW } from '$lib/ci/github-actions';
 	import SeoHead from '$lib/components/SeoHead.svelte';
 	import { buildPageJsonLd, buildSeoTitle, defaultSeoImage } from '$lib/site/seo-metadata';
@@ -33,13 +34,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Run Deploylint advisory scan
+      - name: Run Deploylint advisory report
         env:
           DEPLOYLINT_URL: \${{ secrets.DEPLOYLINT_URL }}
           DEPLOYLINT_API: ${base}
           DEPLOYLINT_MODE: advisory
           DEPLOYLINT_MIN_SCORE: '80'
         run: |
+          if [ -z "$DEPLOYLINT_URL" ]; then
+            echo "Skipping Deploylint advisory report because DEPLOYLINT_URL is unavailable (forked pull request secrets are not exposed)."
+            exit 0
+          fi
           curl -fsSL ${base}/gate-remote.mjs -o gate-remote.mjs
           node gate-remote.mjs "$DEPLOYLINT_URL"`);
 
@@ -237,7 +242,7 @@ jobs:
 
 	<section class="mt-10 grid gap-4 md:grid-cols-3">
 		<a
-			href="/developers"
+			href={resolve('/developers')}
 			class="rounded-xl border border-sky-500/40 bg-sky-500/5 p-5 hover:border-sky-400"
 		>
 			<p class="font-semibold text-white">Install in GitHub Actions</p>
@@ -246,7 +251,7 @@ jobs:
 			</p>
 		</a>
 		<a
-			href="/"
+			href={resolve('/')}
 			class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 hover:border-sky-500/70"
 		>
 			<p class="font-semibold text-white">Audit a deploy target</p>
@@ -255,7 +260,7 @@ jobs:
 			</p>
 		</a>
 		<a
-			href="/tools"
+			href={resolve('/tools')}
 			class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 hover:border-sky-500/70"
 		>
 			<p class="font-semibold text-white">See all tools</p>
