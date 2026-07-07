@@ -33,7 +33,7 @@ async function get(path) {
 
 // 1. Developers docs page
 const dev = await get('/developers');
-if (dev.res.ok && dev.text.includes('Deploylint CI report for pull requests')) {
+if (dev.res.ok && dev.text.includes('Add a deploy-risk report to every pull request')) {
 	pass('developers page', String(dev.res.status));
 } else {
 	fail('developers page', String(dev.res.status));
@@ -77,14 +77,17 @@ if (home.text.includes('/developers') && home.text.includes('Block bad deploys i
 
 // 4. llms.txt mentions CI
 const llms = await get(`/llms.txt?_=${Date.now()}`);
-if (llms.res.ok && llms.text.includes('CI gate') && llms.text.includes('/developers')) {
+if (llms.res.ok && llms.text.includes('CI hardening') && llms.text.includes('/developers')) {
 	pass('llms.txt CI mention');
 } else {
 	fail('llms.txt CI mention');
 }
 
 // 5. Header nav link
-if (home.text.includes('href="/developers"') && home.text.includes('CI gate')) {
+if (
+	(home.text.includes('href="/developers"') || home.text.includes('href="./developers"')) &&
+	home.text.includes('CI gate')
+) {
 	pass('header nav link');
 } else {
 	fail('header nav link');

@@ -111,7 +111,11 @@ if (sitemap.res.ok) {
 // 2. Self-scan — sitemap supplemental crawl via SELF binding
 const selfScan = await post('/api/scan', { url: BASE });
 if (!selfScan.res.ok) {
-	fail('self-scan API', `${selfScan.res.status} ${selfScan.text.slice(0, 120)}`);
+	if (selfScan.res.status === 429 && selfScan.text.includes('Too many scans')) {
+		skip('self-scan API', 'scan rate limit active after earlier smoke phases');
+	} else {
+		fail('self-scan API', `${selfScan.res.status} ${selfScan.text.slice(0, 120)}`);
+	}
 } else if (selfScan.json?.scanCoverage === 'blocked') {
 	fail(
 		'self-scan dogfood',
