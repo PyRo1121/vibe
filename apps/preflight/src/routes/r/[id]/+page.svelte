@@ -72,7 +72,7 @@
 <div class="mx-auto max-w-5xl px-4 py-12">
 	<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
 		<div>
-			<p class="text-xs font-semibold tracking-widest text-sky-400 uppercase">Shared report</p>
+			<p class="text-xs font-semibold tracking-widest text-sky-400 uppercase">Advisory report</p>
 			<p class="mt-1 text-sm text-zinc-400">
 				Scanned {new Date(report.scannedAt).toLocaleString()} · kept for 90 days
 			</p>

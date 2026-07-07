@@ -435,7 +435,7 @@ jobs:
 
 	<form
 		class="mx-auto mb-10 max-w-2xl rounded-xl border border-zinc-800 bg-zinc-900/30 p-5 print:hidden"
-		aria-label="Secondary deploy target scan"
+		aria-label="Deploy target evidence"
 		onsubmit={(e) => {
 			e.preventDefault();
 			const trimmed = url.trim();
@@ -450,8 +450,10 @@ jobs:
 		}}
 	>
 		<div class="mb-4">
-			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Secondary utility</p>
-			<h2 class="mt-2 text-lg font-semibold text-white">Audit a URL or repo as a deploy target</h2>
+			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
+				Deploy target evidence
+			</p>
+			<h2 class="mt-2 text-lg font-semibold text-white">Add a live URL or repo to the CI report</h2>
 			<p class="mt-1 text-sm leading-6 text-zinc-400">
 				Use this for crawler, trust, payment, preview, and repo hygiene signals after the CI path is
 				under control.
@@ -474,7 +476,7 @@ jobs:
 				disabled={loading || !url.trim()}
 				class="rounded-xl bg-sky-600 px-6 py-3 font-semibold text-white hover:bg-sky-500 disabled:bg-sky-900 disabled:text-sky-100"
 			>
-				{loading ? 'Auditing…' : 'Audit target'}
+				{loading ? 'Auditing...' : 'Add target'}
 			</button>
 		</div>
 		{#if loading}

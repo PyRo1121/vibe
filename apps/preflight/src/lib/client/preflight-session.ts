@@ -249,7 +249,7 @@ export function buildShareText(report: ScanReport, appUrl: string): string {
 		hook,
 		`Score: ${report.score}/100 (${verdict}) - ${report.finalUrl}`,
 		...(permalink ? [`Report: ${permalink}`] : []),
-		`Check yours free: ${base}`
+		`Add Deploylint to CI: ${base}/developers`
 	];
 	return lines.join('\n');
 }

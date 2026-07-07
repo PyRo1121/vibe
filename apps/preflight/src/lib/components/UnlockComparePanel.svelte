@@ -37,7 +37,7 @@
 		<div class="mt-6 grid gap-4 md:grid-cols-2">
 			<div class="rounded-xl border border-zinc-700 bg-zinc-950/80 p-5">
 				<p class="text-xs font-semibold tracking-wider text-zinc-500 uppercase">
-					Free scan (you have this)
+					One-off report (you have this)
 				</p>
 
 				<ul class="mt-3 space-y-2 text-sm text-zinc-400">
@@ -52,7 +52,7 @@
 
 			<div class="rounded-xl border border-sky-500/40 bg-sky-500/5 p-5">
 				<p class="text-xs font-semibold tracking-wider text-sky-400 uppercase">
-					$9/mo Solo (fix + watch)
+					Monitored project - $9/mo Solo
 				</p>
 
 				<ul class="mt-3 space-y-2 text-sm text-zinc-200">

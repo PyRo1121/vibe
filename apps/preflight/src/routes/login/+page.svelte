@@ -89,11 +89,11 @@
 			Deploylint workspace
 		</p>
 		<h1 class="max-w-3xl text-3xl font-bold tracking-tight text-white sm:text-5xl">
-			Sign in before the dashboard becomes the product.
+			Sign in to manage deploy gates.
 		</h1>
 		<p class="mt-4 max-w-2xl text-base leading-7 text-zinc-400 sm:text-lg">
-			Attach reports, billing, project installs, and future GitHub gate state to a real account
-			instead of another one-off scan session.
+			Attach advisory reports, billing, project installs, and GitHub gate state to a monitored
+			workspace.
 		</p>
 	</section>
 

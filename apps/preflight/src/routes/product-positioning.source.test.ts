@@ -6,9 +6,14 @@ import { describe, expect, it } from 'vitest';
 
 const routesDir = dirname(fileURLToPath(import.meta.url));
 const srcDir = join(routesDir, '..');
+const appDir = join(srcDir, '..');
 
 function source(...segments: string[]) {
 	return readFileSync(join(srcDir, ...segments), 'utf8');
+}
+
+function appSource(...segments: string[]) {
+	return readFileSync(join(appDir, ...segments), 'utf8');
 }
 
 describe('Deploylint CI workspace positioning', () => {
@@ -94,6 +99,48 @@ describe('Deploylint CI workspace positioning', () => {
 			expect(fileSource).not.toContain('before sharing');
 			expect(fileSource).not.toContain('sharing publicly');
 			expect(fileSource).not.toContain('before a big launch');
+		}
+	});
+
+	it('keeps first-impression surfaces from reading like a one-off URL scanner', () => {
+		const ogSvg = appSource('static', 'og.svg');
+		const loginPage = source('routes', 'login', '+page.svelte');
+		const homePage = source('routes', '+page.svelte');
+		const reportPage = source('routes', 'r', '[id]', '+page.svelte');
+		const reportSummary = source('lib', 'components', 'ReportSummary.svelte');
+		const preflightSession = source('lib', 'client', 'preflight-session.ts');
+		const unlockComparePanel = source('lib', 'components', 'UnlockComparePanel.svelte');
+
+		expect(ogSvg).toContain('CI hardening before deploy');
+		expect(ogSvg).toContain('Advisory PR reports | deploy gates | repo hygiene');
+		expect(loginPage).toContain('Sign in to manage deploy gates');
+		expect(loginPage).toMatch(/monitored\s+workspace/);
+		expect(homePage).toContain('Deploy target evidence');
+		expect(homePage).toMatch(/Add a live URL or repo\s+to the CI report/);
+		expect(reportPage).toContain('Advisory report');
+		expect(reportSummary).toContain('Copy advisory link');
+		expect(preflightSession).toContain('Add Deploylint to CI');
+		expect(unlockComparePanel).toContain('One-off report (you have this)');
+		expect(unlockComparePanel).toContain('Monitored project');
+
+		for (const fileSource of [
+			ogSvg,
+			loginPage,
+			homePage,
+			reportPage,
+			reportSummary,
+			preflightSession,
+			unlockComparePanel
+		]) {
+			expect(fileSource).not.toContain('Should you post this URL today?');
+			expect(fileSource).not.toContain('90+ launch checks');
+			expect(fileSource).not.toContain('dashboard becomes the product');
+			expect(fileSource).not.toContain('one-off scan session');
+			expect(fileSource).not.toContain('Secondary utility');
+			expect(fileSource).not.toContain('Shared report');
+			expect(fileSource).not.toContain('Copy report link');
+			expect(fileSource).not.toContain('Check yours free');
+			expect(fileSource).not.toContain('Free scan (you have this)');
 		}
 	});
 });

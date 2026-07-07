@@ -201,7 +201,7 @@
 						class="rounded-lg border border-sky-500/50 bg-sky-500/10 px-3 py-1.5 text-xs font-medium text-sky-300 hover:bg-sky-500/20"
 						onclick={copyPermalink}
 					>
-						{linkCopied ? 'Link copied!' : 'Copy report link'}
+						{linkCopied ? 'Link copied!' : 'Copy advisory link'}
 					</button>
 					<button
 						type="button"

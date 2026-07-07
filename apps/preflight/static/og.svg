@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Deploylint — Should you post this URL today?">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Deploylint - CI hardening before deploy">
   <rect width="1200" height="630" fill="#09090b"/>
   <rect x="80" y="80" width="1040" height="470" rx="24" fill="#18181b" stroke="#27272a"/>
   <text x="120" y="280" fill="#38bdf8" font-family="system-ui,Segoe UI,sans-serif" font-size="72" font-weight="700">Deploylint</text>
-  <text x="120" y="360" fill="#e4e4e7" font-family="system-ui,Segoe UI,sans-serif" font-size="40" font-weight="600">Should you post this URL today?</text>
-  <text x="120" y="430" fill="#a1a1aa" font-family="system-ui,Segoe UI,sans-serif" font-size="28">90+ launch checks · fix prompts · re-scan proof</text>
+  <text x="120" y="360" fill="#e4e4e7" font-family="system-ui,Segoe UI,sans-serif" font-size="40" font-weight="600">CI hardening before deploy</text>
+  <text x="120" y="430" fill="#a1a1aa" font-family="system-ui,Segoe UI,sans-serif" font-size="28">Advisory PR reports | deploy gates | repo hygiene</text>
 </svg>
