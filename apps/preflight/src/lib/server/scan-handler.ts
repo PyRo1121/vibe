@@ -14,15 +14,15 @@ import { assertDailyScanBudget, reserveAiCopyReview } from '$lib/server/usage-bu
 import { json, error } from '@sveltejs/kit';
 
 export async function handleScanPost(request: Request, env?: Env) {
-	await assertDailyScanBudget(env?.REPORTS, env?.LIMITER);
-	await assertScanRateLimit(env?.REPORTS, clientIp(request), env?.LIMITER);
-
 	let parsed;
 	try {
 		parsed = await parseScanJsonBody(request);
 	} catch (err) {
 		rejectValidation(err);
 	}
+
+	await assertDailyScanBudget(env?.REPORTS, env?.LIMITER);
+	await assertScanRateLimit(env?.REPORTS, clientIp(request), env?.LIMITER);
 
 	const repoRef = parseRepoUrl(parsed.url);
 	const alphaFreeUnlock = resolveAlphaFreeUnlock(env);

@@ -50,6 +50,28 @@ function makeScanRequest() {
 }
 
 describe('handleScanPost', () => {
+	it('does not reserve scan budget for invalid requests', async () => {
+		const writes: string[] = [];
+		const kv = {
+			get: async () => null,
+			put: async (key: string) => {
+				writes.push(key);
+			}
+		} as unknown as KVNamespace;
+
+		const request = new Request('http://localhost/api/scan', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: '{"url":'
+		});
+
+		await expect(handleScanPost(request, { REPORTS: kv } as Env)).rejects.toMatchObject({
+			status: 400
+		});
+		expect(writes).toEqual([]);
+		expect(scanUrl).not.toHaveBeenCalled();
+	});
+
 	it('returns sanitized report for valid scan', async () => {
 		const request = new Request('http://localhost/api/scan', {
 			method: 'POST',
