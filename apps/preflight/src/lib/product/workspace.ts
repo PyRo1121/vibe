@@ -42,6 +42,35 @@ export interface DeploylintWorkspace {
 	metrics: WorkspaceMetrics;
 }
 
+export type ActivationStepStatus = 'complete' | 'current' | 'locked';
+
+export interface WorkspaceActivationStep {
+	id: (typeof workspaceActivationSteps)[number]['id'];
+	label: string;
+	description: string;
+	status: ActivationStepStatus;
+	ctaLabel: string;
+	href: string;
+}
+
+export interface WorkspaceNextAction {
+	id: WorkspaceActivationStep['id'];
+	label: string;
+	description: string;
+	ctaLabel: string;
+	href: string;
+}
+
+export interface WorkspaceActivation {
+	steps: WorkspaceActivationStep[];
+	nextAction: WorkspaceNextAction;
+	progress: {
+		completed: number;
+		total: number;
+		percentage: number;
+	};
+}
+
 export const workspaceActivationSteps = [
 	{
 		id: 'project',
@@ -64,6 +93,80 @@ export const workspaceActivationSteps = [
 		description: 'Switch to blocking mode after the advisory report is clean.'
 	}
 ] as const;
+
+const ACTIVATION_CTA: Record<
+	(typeof workspaceActivationSteps)[number]['id'],
+	{ ctaLabel: string; href: string }
+> = {
+	project: { ctaLabel: 'Review project', href: '#project' },
+	workflow: { ctaLabel: 'Copy workflow', href: '#install' },
+	'first-report': { ctaLabel: 'Wait for CI report', href: '#reports' },
+	gate: { ctaLabel: 'Review reports', href: '#gate' }
+};
+
+function completedActivationIds(
+	project: DeploylintProject | undefined
+): Set<WorkspaceActivationStep['id']> {
+	const completed = new Set<WorkspaceActivationStep['id']>();
+	if (!project) return completed;
+
+	completed.add('project');
+	if (project.installState === 'advisory_installed' || project.installState === 'gate_enabled') {
+		completed.add('workflow');
+	}
+	if (project.latestReport || project.installState === 'gate_enabled') {
+		completed.add('first-report');
+	}
+	if (project.installState === 'gate_enabled' && project.gateMode === 'gate') {
+		completed.add('gate');
+	}
+
+	return completed;
+}
+
+export function buildWorkspaceActivation(workspace: DeploylintWorkspace): WorkspaceActivation {
+	const project = workspace.projects[0];
+	const completed = completedActivationIds(project);
+	const current =
+		workspaceActivationSteps.find((step) => !completed.has(step.id)) ??
+		workspaceActivationSteps[workspaceActivationSteps.length - 1];
+
+	const steps = workspaceActivationSteps.map((step) => {
+		const cta = ACTIVATION_CTA[step.id];
+		return {
+			...step,
+			...cta,
+			status: completed.has(step.id)
+				? 'complete'
+				: step.id === current.id
+					? 'current'
+					: 'locked'
+		};
+	});
+
+	const total = steps.length;
+	const completedCount = steps.filter((step) => step.status === 'complete').length;
+	const currentStep = steps.find((step) => step.id === current.id) ?? steps[steps.length - 1];
+	const allComplete = completedCount === total;
+
+	return {
+		steps,
+		nextAction: {
+			id: currentStep.id,
+			label: allComplete ? 'Deploy gate active' : currentStep.label,
+			description: allComplete
+				? 'Your project is installed, reporting, and ready to block risky deploys.'
+				: currentStep.description,
+			ctaLabel: currentStep.ctaLabel,
+			href: currentStep.href
+		},
+		progress: {
+			completed: completedCount,
+			total,
+			percentage: Math.round((completedCount / total) * 100)
+		}
+	};
+}
 
 function normalizeAppUrl(appUrl: string): string {
 	return appUrl.trim().replace(/\/$/, '');

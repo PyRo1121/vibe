@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildAdvisoryWorkflow, buildDemoWorkspace, workspaceActivationSteps } from './workspace';
+import {
+	buildAdvisoryWorkflow,
+	buildDemoWorkspace,
+	buildWorkspaceActivation,
+	workspaceActivationSteps
+} from './workspace';
 
 describe('Deploylint workspace model', () => {
 	it('builds a project-shaped default workspace instead of a URL scan session', () => {
@@ -49,5 +54,72 @@ describe('Deploylint workspace model', () => {
 			'gate'
 		]);
 		expect(workspaceActivationSteps[2].label).toContain('first advisory report');
+	});
+
+	it('marks workflow install as the current next action before CI is installed', () => {
+		const workspace = buildDemoWorkspace({
+			appUrl: 'https://deploylint.com',
+			alphaFreeUnlock: true
+		});
+
+		const activation = buildWorkspaceActivation(workspace);
+
+		expect(activation.progress).toEqual({ completed: 1, total: 4, percentage: 25 });
+		expect(activation.nextAction).toMatchObject({
+			id: 'workflow',
+			label: 'Install the advisory workflow',
+			ctaLabel: 'Copy workflow'
+		});
+		expect(activation.steps.map((step) => [step.id, step.status])).toEqual([
+			['project', 'complete'],
+			['workflow', 'current'],
+			['first-report', 'locked'],
+			['gate', 'locked']
+		]);
+	});
+
+	it('moves the next action to first report after advisory install', () => {
+		const workspace = buildDemoWorkspace({
+			appUrl: 'https://deploylint.com',
+			alphaFreeUnlock: false
+		});
+		workspace.projects[0].installState = 'advisory_installed';
+
+		const activation = buildWorkspaceActivation(workspace);
+
+		expect(activation.progress).toEqual({ completed: 2, total: 4, percentage: 50 });
+		expect(activation.nextAction).toMatchObject({
+			id: 'first-report',
+			label: 'Read the first advisory report',
+			ctaLabel: 'Wait for CI report'
+		});
+		expect(activation.steps.map((step) => [step.id, step.status])).toEqual([
+			['project', 'complete'],
+			['workflow', 'complete'],
+			['first-report', 'current'],
+			['gate', 'locked']
+		]);
+	});
+
+	it('marks activation complete when the deploy gate is enabled', () => {
+		const workspace = buildDemoWorkspace({
+			appUrl: 'https://deploylint.com',
+			alphaFreeUnlock: false
+		});
+		workspace.projects[0].installState = 'gate_enabled';
+		workspace.projects[0].gateMode = 'gate';
+		workspace.metrics.activeProjects = 1;
+		workspace.metrics.gatesEnabled = 1;
+		workspace.metrics.reportsThisMonth = 7;
+
+		const activation = buildWorkspaceActivation(workspace);
+
+		expect(activation.progress).toEqual({ completed: 4, total: 4, percentage: 100 });
+		expect(activation.nextAction).toMatchObject({
+			id: 'gate',
+			label: 'Deploy gate active',
+			ctaLabel: 'Review reports'
+		});
+		expect(activation.steps.every((step) => step.status === 'complete')).toBe(true);
 	});
 });
