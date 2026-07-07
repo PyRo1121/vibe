@@ -9,6 +9,9 @@ on:
       - ".github/workflows/deploylint-dogfood.yml"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   gate:
     runs-on: ubuntu-latest

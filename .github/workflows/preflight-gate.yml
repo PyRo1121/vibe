@@ -20,6 +20,9 @@ on:
         default: "80"
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   gate:
     runs-on: ubuntu-latest

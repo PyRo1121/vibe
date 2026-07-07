@@ -33,7 +33,8 @@ describe('quality standards guard', () => {
 				'oxlint config enables correctness, suspicious, TypeScript, Vitest, Promise, and Unicorn guards',
 				'oxfmt config enforces deterministic imports, Tailwind sorting, Svelte formatting, and LF endings',
 				'vitest coverage thresholds meet enterprise minimums',
-				'GitHub workflows enforce verify and e2e gates'
+				'GitHub workflows enforce verify and e2e gates',
+				'GitHub workflows declare least-privilege token permissions'
 			])
 		);
 	});
@@ -120,6 +121,7 @@ describe('quality standards guard', () => {
 					'oxfmt config enforces deterministic imports, Tailwind sorting, Svelte formatting, and LF endings',
 					'vitest coverage thresholds meet enterprise minimums',
 					'GitHub workflows enforce verify and e2e gates',
+					'GitHub workflows declare least-privilege token permissions',
 					'quality standards script is runnable from npm'
 				])
 			);

@@ -98,6 +98,18 @@ function pushCheck(checked: string[], failures: string[], label: string, pass: b
 	}
 }
 
+function hasLeastPrivilegeWorkflowPermissions(workflow: string): boolean {
+	const declaresContentsRead =
+		/^\s*permissions\s*:\s*\r?\n\s+contents\s*:\s*read\b/im.test(workflow) ||
+		/^\s*permissions\s*:\s*\{\s*contents\s*:\s*read\s*(?:,|\})/im.test(workflow);
+	const declaresWriteScope =
+		/^\s*permissions\s*:\s*write-all\b/im.test(workflow) ||
+		/^\s*[a-z-]+\s*:\s*write\b/im.test(workflow) ||
+		/^\s*permissions\s*:\s*\{[^}]*:\s*write\b/im.test(workflow);
+
+	return declaresContentsRead && !declaresWriteScope;
+}
+
 export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsReport {
 	const preflightRoot = join(rootDir, 'apps/preflight');
 	const rootPackagePath = join(rootDir, 'package.json');
@@ -156,6 +168,8 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	}>(oxlintPath);
 	const oxfmt = readJson<Record<string, unknown>>(oxfmtPath);
 	const configuredCoverageThresholds = readCoverageThresholds(viteConfigPath);
+	const preflightGateWorkflow = readFileSync(preflightGateWorkflowPath, 'utf8');
+	const dogfoodWorkflow = readFileSync(dogfoodWorkflowPath, 'utf8');
 
 	pushCheck(
 		checked,
@@ -228,9 +242,16 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		checked,
 		failures,
 		'GitHub workflows enforce verify and e2e gates',
-		readFileSync(preflightGateWorkflowPath, 'utf8').includes('npm run verify:preflight') &&
-			readFileSync(preflightGateWorkflowPath, 'utf8').includes('npm run test:e2e -w preflight') &&
-			readFileSync(dogfoodWorkflowPath, 'utf8').includes('npm run verify -w preflight-mcp')
+		preflightGateWorkflow.includes('npm run verify:preflight') &&
+			preflightGateWorkflow.includes('npm run test:e2e -w preflight') &&
+			dogfoodWorkflow.includes('npm run verify -w preflight-mcp')
+	);
+	pushCheck(
+		checked,
+		failures,
+		'GitHub workflows declare least-privilege token permissions',
+		hasLeastPrivilegeWorkflowPermissions(preflightGateWorkflow) &&
+			hasLeastPrivilegeWorkflowPermissions(dogfoodWorkflow)
 	);
 	pushCheck(
 		checked,

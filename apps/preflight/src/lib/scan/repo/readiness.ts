@@ -462,10 +462,34 @@ function hasWriteAllPermissions(text: string): boolean {
 	);
 }
 
+function inlinePermissionWriteScopes(line: string): string[] {
+	const match = line.match(/^\s*permissions\s*:\s*\{(?<body>.*)\}\s*$/i);
+	const body = match?.groups?.body;
+	if (!body) return [];
+
+	const scopes: string[] = [];
+	for (const entry of body.split(',')) {
+		const pair = entry.match(/^\s*['"]?([a-z-]+)['"]?\s*:\s*(.+?)\s*$/i);
+		if (!pair) continue;
+
+		const scope = pair[1]?.toLowerCase();
+		const value = unquoteYamlScalar(pair[2] ?? '').toLowerCase();
+		if (scope && value === 'write') scopes.push(scope);
+	}
+	return scopes;
+}
+
 function workflowWritePermissionScopes(text: string): string[] {
-	return meaningfulWorkflowLines(text)
-		.map((line) => line.match(/^\s*([a-z-]+)\s*:\s*write\b/i)?.[1])
-		.filter((scope): scope is string => Boolean(scope));
+	const scopes = new Set<string>();
+	for (const line of meaningfulWorkflowLines(text)) {
+		const blockScope = line.match(/^\s*([a-z-]+)\s*:\s*write\b/i)?.[1];
+		if (blockScope) scopes.add(blockScope.toLowerCase());
+
+		for (const inlineScope of inlinePermissionWriteScopes(line)) {
+			scopes.add(inlineScope);
+		}
+	}
+	return [...scopes];
 }
 
 function workflowPermissionFinding(workflows: RepoFileEvidence[]): RepoReadinessFinding {

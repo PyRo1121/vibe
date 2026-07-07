@@ -382,6 +382,29 @@ jobs:
 		});
 	});
 
+	it('warns when workflows request write token scopes in inline permission maps', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/release.yml',
+				text: `
+name: Release
+on: [push]
+permissions: { contents: write, packages: read }
+jobs:
+  release:
+    steps:
+      - run: npm test
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'workflow-permissions')).toMatchObject({
+			status: 'warn',
+			message: expect.stringContaining('contents'),
+			evidence: { path: '.github/workflows/release.yml' }
+		});
+	});
+
 	it('fails pull_request_target workflows with clear untrusted script execution', () => {
 		const findings = analyzeCiWorkflows([
 			{
