@@ -33,7 +33,7 @@ export function unlockKey(scanUrl: string): string {
 	return stableStorageKey('unlock', canonicalScanUrl(scanUrl));
 }
 
-export function subscriptionUnlockKey(subscriptionId: string): string {
+function subscriptionUnlockKey(subscriptionId: string): string {
 	return stableStorageKey('subscription', subscriptionId);
 }
 

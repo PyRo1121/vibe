@@ -114,7 +114,7 @@ function normalizeOrigin(origin: string): string {
 	return origin.replace(/\/+$/, '');
 }
 
-export function absoluteSiteUrl(path: string, origin = DEFAULT_DEPLOYLINT_API): string {
+function absoluteSiteUrl(path: string, origin = DEFAULT_DEPLOYLINT_API): string {
 	const base = normalizeOrigin(origin);
 	return path === '/' ? `${base}/` : `${base}${path}`;
 }

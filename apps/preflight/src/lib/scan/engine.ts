@@ -179,11 +179,8 @@ export async function scanUrl(rawUrl: string, deps: ScanDeps = defaultDeps): Pro
 
 export type { FetchHtmlResult, ScanDeps } from '$lib/scan/fetchers';
 export {
-	checkHostConsistency,
 	collectSitemapLocs,
 	discoverSitemapLocs,
 	extractRobotsSitemapUrls,
 	extractSitemapLocs
 } from '$lib/scan/probes';
-export { normalizeUrl } from '$lib/scan/parse';
-export { assertPublicHttpUrl, isPublicHttpUrl } from '$lib/scan/url-guard';

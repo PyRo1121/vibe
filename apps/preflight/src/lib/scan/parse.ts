@@ -93,7 +93,7 @@ export function htmlLang(html: string): string | null {
 	return m?.[1] ?? null;
 }
 
-export function countMissingAlts(html: string): number {
+function countMissingAlts(html: string): number {
 	const imgs = [...html.matchAll(/<img\b[^>]*>/gi)];
 	let missing = 0;
 	for (const img of imgs) {
@@ -110,7 +110,7 @@ export function countH1s(html: string): number {
 	return (html.match(/<h1[\s>]/gi) ?? []).length;
 }
 
-export function hasAppleTouchIcon(html: string): boolean {
+function hasAppleTouchIcon(html: string): boolean {
 	return /<link[^>]+rel=["']apple-touch-icon(?:-precomposed)?["']/i.test(html);
 }
 
@@ -280,7 +280,7 @@ export function mentionsStack(html: string): {
 	};
 }
 
-export const SECRET_PATTERNS: { pattern: RegExp; label: string }[] = [
+const SECRET_PATTERNS: { pattern: RegExp; label: string }[] = [
 	{ pattern: /sk_live_[a-zA-Z0-9]{20,}/, label: 'Stripe live secret key' },
 	{ pattern: /sk_test_[a-zA-Z0-9]{20,}/, label: 'Stripe test secret key' },
 	{ pattern: /sk-proj-[a-zA-Z0-9_-]{20,}/, label: 'OpenAI project secret key' },

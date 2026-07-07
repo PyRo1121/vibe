@@ -10,6 +10,7 @@ function requestHost(host: string, appUrl = 'https://deploylint.com', protocol =
 		event: {
 			request: new Request(`${protocol}://${host}/developers?x=1`, { headers: { host } }),
 			url: new URL(`${protocol}://${host}/developers?x=1`),
+			locals: {},
 			platform: { env: { PUBLIC_APP_URL: appUrl } }
 		} as Parameters<Handle>[0]['event'],
 		resolve
@@ -21,6 +22,7 @@ function requestPath(host: string, path: string, appUrl = 'https://deploylint.co
 		event: {
 			request: new Request(`https://${host}${path}`, { headers: { host } }),
 			url: new URL(`https://${host}${path}`),
+			locals: {},
 			platform: { env: { PUBLIC_APP_URL: appUrl } }
 		} as Parameters<Handle>[0]['event'],
 		resolve

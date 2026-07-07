@@ -103,7 +103,7 @@ export function computeFixProgress(baseline: CheckSnapshot[], current: ScanCheck
 	};
 }
 
-export function estimateMasterPromptLineCount(report: ScanReport): number {
+function estimateMasterPromptLineCount(report: ScanReport): number {
 	const text = buildMasterPrompt(report.checks, report.finalUrl, {
 		scanCoverage: report.scanCoverage
 	});
@@ -111,7 +111,7 @@ export function estimateMasterPromptLineCount(report: ScanReport): number {
 }
 
 /** Optimistic score if user fixes fails and P1 warns — for re-scan preview only. */
-export function estimateScoreAfterFixes(report: ScanReport): number | null {
+function estimateScoreAfterFixes(report: ScanReport): number | null {
 	if (report.summary.fail === 0 && report.summary.warn === 0) return null;
 	const optimistic = report.checks.map((c) => {
 		if (c.status === 'fail') return { ...c, status: 'pass' as const };
@@ -123,7 +123,7 @@ export function estimateScoreAfterFixes(report: ScanReport): number | null {
 	return projected > report.score ? projected : null;
 }
 
-export function buildMasterPromptPreview(report: ScanReport): string[] {
+function buildMasterPromptPreview(report: ScanReport): string[] {
 	if (report.scanCoverage === 'blocked') {
 		return [
 			`Site: ${report.finalUrl}`,

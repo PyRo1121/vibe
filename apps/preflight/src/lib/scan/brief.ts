@@ -67,7 +67,7 @@ export function embarrassmentLine(check: ScanCheck): string {
 	return EMBARRASSMENT[check.id] ?? `${check.title}: ${check.message}`;
 }
 
-export function scoreByCategory(checks: ScanCheck[]): CategoryScore[] {
+function scoreByCategory(checks: ScanCheck[]): CategoryScore[] {
 	const categories = [...new Set(checks.map((c) => c.category))];
 	return categories
 		.map((category) => {

@@ -14,7 +14,7 @@ export const DEPLOYLINT_SEO = {
 	}
 } as const;
 
-export function normalizeBase(base: string): string {
+function normalizeBase(base: string): string {
 	return base.replace(/\/+$/, '');
 }
 

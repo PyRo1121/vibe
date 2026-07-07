@@ -91,7 +91,7 @@ const IMPACT_RANK: Record<RepoFindingLaunchImpact, number> = {
 	blocker: 2
 };
 
-export function defaultLaunchImpact(
+function defaultLaunchImpact(
 	input: Pick<RepoFindingInput, 'id' | 'status'>
 ): RepoFindingLaunchImpact {
 	if (input.status === 'pass') return 'watch';

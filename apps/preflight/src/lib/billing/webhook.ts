@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
 /** Stripe default webhook tolerance — see https://docs.stripe.com/webhooks/signatures */
-export const WEBHOOK_TOLERANCE_SECONDS = 300;
+const WEBHOOK_TOLERANCE_SECONDS = 300;
 export const MAX_WEBHOOK_BYTES = 256 * 1024;
 
 export function verifyStripeWebhookSignature(

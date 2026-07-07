@@ -1,3 +1,5 @@
+import { building } from '$app/environment';
+import { getDeploylintAuth } from '$lib/server/auth';
 import { applySecurityHeaders, enforceEdgeSecurity } from '$lib/server/edge-security';
 import type { Handle } from '@sveltejs/kit';
 import { isHttpError } from '@sveltejs/kit';
@@ -6,6 +8,7 @@ import {
 	DEPLOYLINT_LEGACY_HOST,
 	DEPLOYLINT_WWW_HOST
 } from '@vibe/deploylint-shared';
+import { svelteKitHandler } from 'better-auth/svelte-kit';
 
 export { CounterLimiter } from '$lib/server/counter-limiter';
 
@@ -19,6 +22,9 @@ const LEGACY_DIRECT_PREFIXES = ['/api/', '/s/'];
 
 /** 301 legacy and www hosts to the canonical apex domain. */
 export const handle: Handle = async ({ event, resolve }) => {
+	event.locals.session = null;
+	event.locals.user = null;
+
 	const host = event.request.headers.get('host')?.split(':')[0]?.toLowerCase();
 	const shouldServeDirect = LEGACY_DIRECT_PREFIXES.some((prefix) =>
 		event.url.pathname.startsWith(prefix)
@@ -60,6 +66,27 @@ export const handle: Handle = async ({ event, resolve }) => {
 		throw err;
 	}
 
-	const response = await resolve(event);
+	const auth = getDeploylintAuth(event.platform?.env, event.url.origin);
+	if (auth) {
+		const session = await auth.api.getSession({
+			headers: event.request.headers
+		});
+		if (session) {
+			event.locals.session = session.session;
+			event.locals.user = session.user;
+		}
+	} else if (event.url.pathname.startsWith('/api/auth')) {
+		return applySecurityHeaders(
+			new Response('Authentication is not configured', {
+				status: 503,
+				headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+			}),
+			event.url.href
+		);
+	}
+
+	const response = auth
+		? await svelteKitHandler({ event, resolve, auth, building })
+		: await resolve(event);
 	return applySecurityHeaders(response, event.url.href);
 };

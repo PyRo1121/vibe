@@ -52,19 +52,19 @@ export function monitorTargetKey(id: string): string {
 	return `monitor-target:${id}`;
 }
 
-export function monitorIndexKey(ownerKey: string): string {
+function monitorIndexKey(ownerKey: string): string {
 	return stableStorageKey('monitor-index', ownerKey);
 }
 
-export function monitorSnapshotKey(targetId: string): string {
+function monitorSnapshotKey(targetId: string): string {
 	return `monitor-snapshot:${targetId}`;
 }
 
-export function monitorEventKey(targetId: string): string {
+function monitorEventKey(targetId: string): string {
 	return `monitor-event:${targetId}`;
 }
 
-export function normalizeMonitorUrl(rawUrl: string): string | null {
+function normalizeMonitorUrl(rawUrl: string): string | null {
 	try {
 		const url = new URL(rawUrl);
 		if (url.protocol !== 'https:' && url.protocol !== 'http:') return null;
@@ -78,7 +78,7 @@ export function normalizeMonitorUrl(rawUrl: string): string | null {
 	}
 }
 
-export function monitorTargetId(ownerKey: string, normalizedUrl: string): string {
+function monitorTargetId(ownerKey: string, normalizedUrl: string): string {
 	return stableStorageKey('monitor-target-id', `${ownerKey}\0${normalizedUrl}`).split(':')[1];
 }
 
@@ -118,10 +118,7 @@ export async function upsertMonitorTarget(
 	}
 }
 
-export async function loadMonitorTarget(
-	kv: KVNamespace,
-	targetId: string
-): Promise<MonitorTarget | null> {
+async function loadMonitorTarget(kv: KVNamespace, targetId: string): Promise<MonitorTarget | null> {
 	try {
 		return await kv.get<MonitorTarget>(monitorTargetKey(targetId), 'json');
 	} catch {

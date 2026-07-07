@@ -46,7 +46,9 @@
 		"deploy": "npm run sync:gate-remote && npm run build && wrangler deploy"
 	},
 	"dependencies": {
-		"@vibe/deploylint-shared": "file:../deploylint-shared"
+		"@vibe/deploylint-shared": "file:../deploylint-shared",
+		"better-auth": "^1.6.23",
+		"resend": "^6.17.1"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^5.20260705.1",

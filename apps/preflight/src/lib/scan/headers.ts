@@ -27,7 +27,7 @@ const SAFE_REFERRER_POLICIES = new Set([
 ]);
 const REQUIRED_DENIED_PERMISSIONS = ['camera', 'microphone', 'geolocation'];
 
-export function hasClickjackProtection(headers: ResponseSecurityHeaders): boolean {
+function hasClickjackProtection(headers: ResponseSecurityHeaders): boolean {
 	const xFrameOptions = headers.xFrameOptions?.trim().toLowerCase();
 	if (xFrameOptions === 'deny' || xFrameOptions === 'sameorigin') return true;
 

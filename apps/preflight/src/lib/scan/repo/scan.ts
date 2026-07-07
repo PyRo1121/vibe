@@ -13,7 +13,6 @@ import {
 	parsePackageJson,
 	auditNpmDependencies,
 	npmRegistryLicenseFetcher,
-	MAX_DEP_LOOKUPS,
 	type NpmLicenseFetcher
 } from '$lib/scan/repo/audit';
 import { mergeRepoFindings } from '$lib/scan/repo/findings';
@@ -639,6 +638,3 @@ function buildBlockedRepoReport(url: string, reason: string): ScanReport {
 		blockedMessage: message
 	});
 }
-
-/** Cap on npm registry lookups per scan — exported for UI copy and tests. */
-export const REPO_DEP_LOOKUP_BUDGET = MAX_DEP_LOOKUPS;

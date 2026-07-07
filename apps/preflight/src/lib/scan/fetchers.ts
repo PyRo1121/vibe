@@ -96,7 +96,7 @@ export function wrapSameZoneFetch(
 	};
 }
 
-export async function discardBody(res: Response): Promise<void> {
+async function discardBody(res: Response): Promise<void> {
 	try {
 		await res.body?.cancel();
 	} catch {

@@ -104,6 +104,7 @@ jobs:
 export function buildDemoWorkspace(opts: {
 	appUrl: string;
 	alphaFreeUnlock: boolean;
+	ownerLabel?: string;
 }): DeploylintWorkspace {
 	const project: DeploylintProject = {
 		id: 'proj_demo_123',
@@ -119,7 +120,8 @@ export function buildDemoWorkspace(opts: {
 
 	return {
 		id: 'workspace_demo',
-		ownerLabel: opts.alphaFreeUnlock ? 'Early access workspace' : 'Deploylint workspace',
+		ownerLabel:
+			opts.ownerLabel ?? (opts.alphaFreeUnlock ? 'Early access workspace' : 'Deploylint workspace'),
 		billing: {
 			mode: opts.alphaFreeUnlock ? 'alpha' : 'setup',
 			planLabel: opts.alphaFreeUnlock ? 'Early access' : 'Solo',

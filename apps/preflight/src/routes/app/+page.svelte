@@ -34,6 +34,9 @@
 				This is the product home for Deploylint: project install state, first advisory report,
 				report history, subscription status, and the path from advisory mode to blocking gate.
 			</p>
+			<p class="mt-3 text-sm text-zinc-500">
+				Signed in as <span class="text-zinc-300">{data.user.email}</span>
+			</p>
 			<div class="mt-6 flex flex-col gap-3 sm:flex-row">
 				<a
 					href={resolve('/app#install')}

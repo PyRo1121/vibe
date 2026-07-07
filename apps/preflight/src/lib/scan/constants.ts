@@ -31,8 +31,6 @@ export const MAX_SCRIPT_FETCHES = 5;
 export const MAX_SOURCEMAP_FETCHES = 2;
 export const MAX_SCRIPT_BYTES = 512 * 1024;
 export const MAX_REDIRECTS = 5;
-/** Same-origin sensitive path probes (Preflyt-style, read-only). */
-export const MAX_EXPOSED_PATH_PROBES = 8;
 export const EXPOSED_PATH_PROBE_PATHS = [
 	'/.env',
 	'/.git/HEAD',

@@ -41,7 +41,7 @@ export function resolvePriority(check: ScanCheck): CheckPriority {
 	return check.priority ?? checkPriority(check.id);
 }
 
-export function compareChecksByPriority(a: ScanCheck, b: ScanCheck): number {
+function compareChecksByPriority(a: ScanCheck, b: ScanCheck): number {
 	const pa = PRIORITY_RANK[resolvePriority(a)];
 	const pb = PRIORITY_RANK[resolvePriority(b)];
 	if (pa !== pb) return pa - pb;

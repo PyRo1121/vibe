@@ -1,6 +1,6 @@
 export const INDEXNOW_KEY = '6da582af5bd7494883be38e960f0f53f';
-export const INDEXNOW_HOST = 'deploylint.com';
-export const INDEXNOW_KEY_LOCATION = `https://${INDEXNOW_HOST}/${INDEXNOW_KEY}.txt`;
+const INDEXNOW_HOST = 'deploylint.com';
+const INDEXNOW_KEY_LOCATION = `https://${INDEXNOW_HOST}/${INDEXNOW_KEY}.txt`;
 
 const EXCLUDED_PREFIXES = ['/api/', '/r/', '/s/', '/fixtures/'];
 

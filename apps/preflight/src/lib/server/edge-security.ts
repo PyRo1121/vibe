@@ -126,7 +126,7 @@ export function probeBlockResponse(request: Request): Response | null {
 /**
  * Rate-limit API routes at the edge. /api/scan keeps its tighter limit in scan-handler.
  */
-export async function assertApiEdgeRateLimit(
+async function assertApiEdgeRateLimit(
 	kv: KVNamespace | undefined,
 	request: Request,
 	limiter?: DurableObjectNamespace

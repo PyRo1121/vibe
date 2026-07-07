@@ -5,6 +5,13 @@ STRIPE_PRICE_SOLO=price_test_solo
 STRIPE_PRICE_BUILDER=price_test_builder
 STRIPE_PRICE_AGENCY=price_test_agency
 PUBLIC_APP_URL=http://localhost:5173
+BETTER_AUTH_URL=http://localhost:5173
+BETTER_AUTH_SECRET=generate-a-32-byte-local-secret
+GITHUB_CLIENT_ID=github_oauth_client_id
+GITHUB_CLIENT_SECRET=github_oauth_client_secret
+RESEND_API_KEY=re_...
+RESEND_FROM_EMAIL=Deploylint <login@your-domain.com>
+AUTH_EMAIL_REPLY_TO=support@your-domain.com
 
 # Optional local demo mode. Omit in production so scans stay paid-locked by default.
 # DEPLOYLINT_ALPHA_FREE_UNLOCK=true

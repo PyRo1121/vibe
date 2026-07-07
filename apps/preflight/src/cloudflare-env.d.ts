@@ -7,6 +7,8 @@ interface Env {
 	SELF?: Fetcher;
 	/** Stored scan reports for shareable permalinks. */
 	REPORTS?: KVNamespace;
+	/** Better Auth users, sessions, workspaces, projects, and subscriptions. */
+	AUTH_DB?: D1Database;
 	/** Atomic counters for production rate limits and daily budgets. */
 	LIMITER?: DurableObjectNamespace;
 	/** Workers AI — used for the paid copy-review extra. */
@@ -21,6 +23,13 @@ interface Env {
 	STRIPE_PRICE_SOLO?: string;
 	STRIPE_PRICE_BUILDER?: string;
 	STRIPE_PRICE_AGENCY?: string;
+	BETTER_AUTH_URL?: string;
+	BETTER_AUTH_SECRET?: string;
+	GITHUB_CLIENT_ID?: string;
+	GITHUB_CLIENT_SECRET?: string;
+	RESEND_API_KEY?: string;
+	RESEND_FROM_EMAIL?: string;
+	AUTH_EMAIL_REPLY_TO?: string;
 	/** Optional — raises GitHub API rate limits for repo scans. */
 	GITHUB_TOKEN?: string;
 }
@@ -30,6 +39,7 @@ declare namespace Cloudflare {
 		ASSETS: Fetcher;
 		SELF?: Fetcher;
 		REPORTS?: KVNamespace;
+		AUTH_DB?: D1Database;
 		LIMITER?: DurableObjectNamespace;
 		AI?: { run(model: string, options: Record<string, unknown>): Promise<unknown> };
 		PUBLIC_SITE_NAME: string;
@@ -42,6 +52,13 @@ declare namespace Cloudflare {
 		STRIPE_PRICE_SOLO?: string;
 		STRIPE_PRICE_BUILDER?: string;
 		STRIPE_PRICE_AGENCY?: string;
+		BETTER_AUTH_URL?: string;
+		BETTER_AUTH_SECRET?: string;
+		GITHUB_CLIENT_ID?: string;
+		GITHUB_CLIENT_SECRET?: string;
+		RESEND_API_KEY?: string;
+		RESEND_FROM_EMAIL?: string;
+		AUTH_EMAIL_REPLY_TO?: string;
 		GITHUB_TOKEN?: string;
 	}
 }

@@ -17,6 +17,7 @@
 			"/developers",
 			"/fixtures/*",
 			"/guides/*",
+			"/login",
 			"/privacy",
 			"/r/*",
 			"/terms",
@@ -36,6 +37,14 @@
 		{
 			"binding": "REPORTS",
 			"id": "dac1d86110704359a9e7c08a24cc9873"
+		}
+	],
+	"d1_databases": [
+		{
+			"binding": "AUTH_DB",
+			"database_name": "preflight-auth",
+			"database_id": "51cd2edd-5356-4ff8-a185-a920fdf13ad5",
+			"migrations_dir": "migrations"
 		}
 	],
 	"durable_objects": {

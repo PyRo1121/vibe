@@ -99,7 +99,7 @@ export function parsePackageJson(text: string | null): ParsedPackageJson {
 
 export type NpmLicenseFetcher = (pkg: string) => Promise<string | null>;
 
-export const MAX_DEP_LOOKUPS = 20;
+const MAX_DEP_LOOKUPS = 20;
 
 /**
  * Audit production dependencies against the sell-rights database. Registry
