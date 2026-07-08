@@ -12,6 +12,7 @@ on:
       - 'package-lock.json'
       - 'turbo.json'
       - 'knip.deploylint.jsonc'
+      - 'renovate.json'
       - '.oxlintrc.jsonc'
       - '.oxfmtrc.jsonc'
       - 'svelte.config.js'
@@ -21,6 +22,7 @@ on:
       - 'scripts/benchmark-lighthouse.mjs'
       - '.github/workflows/preflight-gate.yml'
       - '.github/workflows/deploylint-dogfood.yml'
+      - '.github/workflows/tcg-vault-gate.yml'
   pull_request:
     paths:
       - 'apps/preflight/**'
@@ -31,6 +33,7 @@ on:
       - 'package-lock.json'
       - 'turbo.json'
       - 'knip.deploylint.jsonc'
+      - 'renovate.json'
       - '.oxlintrc.jsonc'
       - '.oxfmtrc.jsonc'
       - 'svelte.config.js'
@@ -40,6 +43,7 @@ on:
       - 'scripts/benchmark-lighthouse.mjs'
       - '.github/workflows/preflight-gate.yml'
       - '.github/workflows/deploylint-dogfood.yml'
+      - '.github/workflows/tcg-vault-gate.yml'
   workflow_dispatch:
     inputs:
       url:

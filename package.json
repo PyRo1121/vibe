@@ -13,7 +13,7 @@
 		"lint": "turbo run lint",
 		"format": "turbo run format",
 		"format:check": "turbo run format:check",
-		"format:deploylint:check": "oxfmt --check package.json package-lock.json turbo.json knip.deploylint.jsonc .oxlintrc.jsonc .oxfmtrc.jsonc svelte.config.js .github/dependabot.yml .github/workflows/preflight-gate.yml .github/workflows/deploylint-dogfood.yml .github/workflows/tcg-vault-gate.yml .github/actions/deploylint-gate/action.yml .github/actions/deploylint-gate/gate-remote.mjs scripts/assert-unlighthouse.mjs scripts/benchmark-lighthouse.mjs",
+		"format:deploylint:check": "oxfmt --check package.json package-lock.json turbo.json knip.deploylint.jsonc renovate.json .oxlintrc.jsonc .oxfmtrc.jsonc svelte.config.js .github/dependabot.yml .github/workflows/preflight-gate.yml .github/workflows/deploylint-dogfood.yml .github/workflows/tcg-vault-gate.yml .github/actions/deploylint-gate/action.yml .github/actions/deploylint-gate/gate-remote.mjs scripts/assert-unlighthouse.mjs scripts/benchmark-lighthouse.mjs",
 		"lint:workflows": "github-actionlint",
 		"audit:security": "npm audit --audit-level=low",
 		"audit:signatures": "npm audit signatures",

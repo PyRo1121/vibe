@@ -20,7 +20,7 @@ type ScopedCoverageThresholds = Record<string, CoverageThresholds>;
 
 const COVERAGE_METRICS: CoverageMetric[] = ['statements', 'lines', 'functions', 'branches'];
 
-const DISABLED_TEST_MODIFIERS = new Set(['only', 'skip', 'fixme']);
+const DISABLED_TEST_MODIFIERS = new Set(['only', 'skip', 'fixme', 'todo']);
 
 const DEPLOYLINT_WORKFLOW_PATH_FILTERS = [
 	'apps/preflight/**',
@@ -31,6 +31,7 @@ const DEPLOYLINT_WORKFLOW_PATH_FILTERS = [
 	'package-lock.json',
 	'turbo.json',
 	'knip.deploylint.jsonc',
+	'renovate.json',
 	'.oxlintrc.jsonc',
 	'.oxfmtrc.jsonc',
 	'svelte.config.js',
@@ -39,7 +40,8 @@ const DEPLOYLINT_WORKFLOW_PATH_FILTERS = [
 	'scripts/assert-unlighthouse.mjs',
 	'scripts/benchmark-lighthouse.mjs',
 	'.github/workflows/preflight-gate.yml',
-	'.github/workflows/deploylint-dogfood.yml'
+	'.github/workflows/deploylint-dogfood.yml',
+	'.github/workflows/tcg-vault-gate.yml'
 ];
 
 const DEPLOYLINT_TEST_SOURCE_ROOTS = [
@@ -773,6 +775,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const oxfmtPath = join(rootDir, '.oxfmtrc.jsonc');
 	const rootSvelteConfigPath = join(rootDir, 'svelte.config.js');
 	const dependabotPath = join(rootDir, '.github/dependabot.yml');
+	const renovatePath = join(rootDir, 'renovate.json');
 	const nvmrcPath = join(rootDir, '.nvmrc');
 	const knipPath = join(rootDir, 'knip.deploylint.jsonc');
 	const viteConfigPath = join(preflightRoot, 'vite.config.ts');
@@ -808,6 +811,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		oxfmtPath,
 		rootSvelteConfigPath,
 		dependabotPath,
+		renovatePath,
 		nvmrcPath,
 		knipPath,
 		viteConfigPath,
@@ -1147,13 +1151,14 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
-		'root deploylint format gate checks root configs and workflows',
+		'root deploylint format gate checks root dependency configs and workflows',
 		hasScriptCommand(rootPackage.scripts, 'format:deploylint:check', [
 			'oxfmt --check',
 			'package.json',
 			'package-lock.json',
 			'turbo.json',
 			'knip.deploylint.jsonc',
+			'renovate.json',
 			'.oxlintrc.jsonc',
 			'.oxfmtrc.jsonc',
 			'svelte.config.js',
@@ -1429,8 +1434,8 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
-		'Playwright config forbids focused CI tests and isolates CI server state',
-		playwrightConfig.includes('forbidOnly: !!process.env.CI') &&
+		'Playwright config forbids focused local and CI tests and isolates CI server state',
+		playwrightConfig.includes('forbidOnly: true') &&
 			playwrightConfig.includes('retries: process.env.CI ? 1 : 0') &&
 			playwrightConfig.includes('workers: process.env.CI ? 1 : undefined') &&
 			playwrightConfig.includes("DEPLOYLINT_PLATFORM_PROXY_CONFIG: 'wrangler.e2e.jsonc'") &&
@@ -1440,7 +1445,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
-		'Deploylint unit and E2E specs cannot contain focused or disabled tests',
+		'Deploylint unit and E2E specs cannot contain focused, disabled, or placeholder tests',
 		disabledTests.length === 0
 	);
 	pushCheck(

@@ -51,7 +51,7 @@ describe('quality standards guard', () => {
 				'root deploylint CI verify runs audit, shared, preflight, mcp, Playwright install, and e2e',
 				'root preflight verify alias runs full unit, build, and E2E gate',
 				'root deploylint local verify runs offline format, dead-code, unit, build, and E2E gates',
-				'root deploylint format gate checks root configs and workflows',
+				'root deploylint format gate checks root dependency configs and workflows',
 				'root dead-code gate runs knip against Deploylint workspaces',
 				'Deploylint dead-code gate uses workspace-scoped SvelteKit config',
 				'root SvelteKit tooling shim is dependency-free for Knip',
@@ -76,8 +76,8 @@ describe('quality standards guard', () => {
 				'GitHub workflows use lockfile installs and npm dependency caching',
 				'GitHub workflows declare least-privilege token permissions',
 				'Playwright CI captures screenshots, videos, traces, junit, and html failure reports',
-				'Playwright config forbids focused CI tests and isolates CI server state',
-				'Deploylint unit and E2E specs cannot contain focused or disabled tests',
+				'Playwright config forbids focused local and CI tests and isolates CI server state',
+				'Deploylint unit and E2E specs cannot contain focused, disabled, or placeholder tests',
 				'Vitest CI captures junit test-result artifacts for preflight, MCP, and shared packages'
 			])
 		);
@@ -252,6 +252,12 @@ runs:
 				})
 			);
 			writeFixtureFile(
+				join(root, 'renovate.json'),
+				JSON.stringify({
+					extends: ['config:recommended']
+				})
+			);
+			writeFixtureFile(
 				join(root, 'svelte.config.js'),
 				`import adapter from '@sveltejs/adapter-cloudflare';
 				export default { kit: { adapter: adapter() } };`
@@ -344,6 +350,12 @@ jobs:
 
 				it.skip('silently hides MCP coverage', () => {});`
 			);
+			writeFixtureFile(
+				join(root, 'apps/deploylint-shared/src/todo.test.ts'),
+				`import { test } from 'vitest';
+
+				test.todo('silently defers shared coverage');`
+			);
 
 			const report = inspectQualityStandards(root);
 
@@ -371,7 +383,7 @@ jobs:
 					'root deploylint CI verify runs audit, shared, preflight, mcp, Playwright install, and e2e',
 					'root preflight verify alias runs full unit, build, and E2E gate',
 					'root deploylint local verify runs offline format, dead-code, unit, build, and E2E gates',
-					'root deploylint format gate checks root configs and workflows',
+					'root deploylint format gate checks root dependency configs and workflows',
 					'root dead-code gate runs knip against Deploylint workspaces',
 					'Deploylint dead-code gate uses workspace-scoped SvelteKit config',
 					'root SvelteKit tooling shim is dependency-free for Knip',
@@ -396,8 +408,8 @@ jobs:
 					'GitHub workflows use lockfile installs and npm dependency caching',
 					'GitHub workflows declare least-privilege token permissions',
 					'Playwright CI captures screenshots, videos, traces, junit, and html failure reports',
-					'Playwright config forbids focused CI tests and isolates CI server state',
-					'Deploylint unit and E2E specs cannot contain focused or disabled tests',
+					'Playwright config forbids focused local and CI tests and isolates CI server state',
+					'Deploylint unit and E2E specs cannot contain focused, disabled, or placeholder tests',
 					'Vitest CI captures junit test-result artifacts for preflight, MCP, and shared packages',
 					'quality standards script is runnable from npm'
 				])
