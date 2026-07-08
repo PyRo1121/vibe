@@ -33,6 +33,7 @@ describe('quality standards guard', () => {
 				'preflight type-aware Oxlint keeps deprecated API checks enabled',
 				'preflight type-aware Oxlint rejects unnecessary type assertions',
 				'preflight verify runs standards, typecheck, lint, type-aware lint, coverage, and build',
+				'preflight verify typechecks scripts and Playwright E2E specs',
 				'preflight production type-aware Oxlint rejects unsafe type assertions',
 				'preflight-mcp verify runs typecheck, lint, type-aware lint, clean build, and coverage',
 				'deploylint-shared verify runs typecheck, lint, type-aware lint, coverage, and syntax checks',
@@ -46,6 +47,7 @@ describe('quality standards guard', () => {
 				'Deploylint gate scripts bound network calls with timeout and retry controls',
 				'Deploylint GitHub Action exposes gate timeout and retry controls',
 				'root deploylint CI verify runs audit, shared, preflight, mcp, Playwright install, and e2e',
+				'root preflight verify alias runs full unit, build, and E2E gate',
 				'root deploylint local verify skips network-heavy CI-only gates',
 				'root deploylint format gate checks root configs and workflows',
 				'root dead-code gate runs knip against Deploylint workspaces',
@@ -103,6 +105,24 @@ describe('quality standards guard', () => {
 						strict: false,
 						forceConsistentCasingInFileNames: false,
 						moduleResolution: 'node'
+					}
+				})
+			);
+			writeFixtureFile(
+				join(root, 'apps/preflight/tsconfig.scripts.json'),
+				JSON.stringify({
+					include: ['scripts/**/*.mjs'],
+					compilerOptions: {
+						noEmit: false
+					}
+				})
+			);
+			writeFixtureFile(
+				join(root, 'apps/preflight/tsconfig.e2e.json'),
+				JSON.stringify({
+					include: ['tests/**/*.ts'],
+					compilerOptions: {
+						noEmit: false
 					}
 				})
 			);
@@ -313,6 +333,7 @@ updates:
 					'preflight type-aware Oxlint keeps deprecated API checks enabled',
 					'preflight type-aware Oxlint rejects unnecessary type assertions',
 					'preflight verify runs standards, typecheck, lint, type-aware lint, coverage, and build',
+					'preflight verify typechecks scripts and Playwright E2E specs',
 					'preflight production type-aware Oxlint rejects unsafe type assertions',
 					'preflight-mcp verify runs typecheck, lint, type-aware lint, clean build, and coverage',
 					'deploylint-shared verify runs typecheck, lint, type-aware lint, coverage, and syntax checks',
@@ -325,6 +346,7 @@ updates:
 					'Deploylint gate scripts bound network calls with timeout and retry controls',
 					'Deploylint GitHub Action exposes gate timeout and retry controls',
 					'root deploylint CI verify runs audit, shared, preflight, mcp, Playwright install, and e2e',
+					'root preflight verify alias runs full unit, build, and E2E gate',
 					'root deploylint local verify skips network-heavy CI-only gates',
 					'root deploylint format gate checks root configs and workflows',
 					'root dead-code gate runs knip against Deploylint workspaces',
@@ -372,7 +394,7 @@ updates:
 				statements: 95,
 				lines: 97,
 				functions: 100,
-				branches: 84
+				branches: 90
 			},
 			'src/lib/monitoring/**.ts': {
 				statements: 95,

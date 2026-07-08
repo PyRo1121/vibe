@@ -26,7 +26,7 @@ function meaningfulLines(text: string): string[] {
 }
 
 function indentOf(line: string): number {
-	return line.match(/^\s*/)?.[0].length ?? 0;
+	return line.length - line.trimStart().length;
 }
 
 function unquoteYamlScalar(value: string): string {
@@ -74,7 +74,7 @@ export function analyzeWorkflowPermissions(text: string): WorkflowPermissionAnal
 	};
 
 	for (let index = 0; index < lines.length; index += 1) {
-		const line = lines[index] ?? '';
+		const line = lines[index];
 		const match = line.match(/^\s*permissions\s*:\s*(?<value>.*)$/i);
 		if (!match) continue;
 
@@ -93,7 +93,7 @@ export function analyzeWorkflowPermissions(text: string): WorkflowPermissionAnal
 		if (value !== '') continue;
 
 		for (let childIndex = index + 1; childIndex < lines.length; childIndex += 1) {
-			const child = lines[childIndex] ?? '';
+			const child = lines[childIndex];
 			if (indentOf(child) <= permissionIndent) break;
 
 			const pair = child.match(/^\s*['"]?([a-z-]+)['"]?\s*:\s*(.+?)\s*$/i);

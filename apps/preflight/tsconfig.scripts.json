@@ -1,0 +1,16 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"allowImportingTsExtensions": true,
+		"noEmit": true,
+		"types": ["node"]
+	},
+	"include": [
+		"scripts/**/*.ts",
+		"src/lib/gate/**/*.ts",
+		"src/lib/site/indexnow.ts",
+		"src/lib/scan/types.ts",
+		"src/lib/scan/verdict.ts"
+	],
+	"exclude": ["node_modules/**", ".svelte-kit/**", "build/**", "dist/**"]
+}

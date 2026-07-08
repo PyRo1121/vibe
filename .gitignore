@@ -12,6 +12,8 @@ dist
 check-domains-result.json
 sync-all.log
 scan-test.json
+repo-scan.json
+*.scan.json
 test-results
 playwright-report
 blob-report

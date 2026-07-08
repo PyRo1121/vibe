@@ -54,7 +54,7 @@ export default defineConfig({
 				'src/lib/ci/**.ts': {
 					lines: 97,
 					functions: 100,
-					branches: 84,
+					branches: 90,
 					statements: 95
 				},
 				'src/lib/monitoring/**.ts': {

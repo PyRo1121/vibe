@@ -180,7 +180,7 @@ test.describe('SEO metadata', () => {
 				expect(jsonLdTypes.has(type)).toBe(true);
 			}
 
-			if (route.staticPage) {
+			if ('staticPage' in route && route.staticPage) {
 				await expect(page.locator('script[src*="/_app/immutable/"]')).toHaveCount(0);
 			}
 		});

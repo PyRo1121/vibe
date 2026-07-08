@@ -88,6 +88,16 @@ permissions: # real comment
 		});
 	});
 
+	it('skips malformed inline map entries without dropping valid scopes', () => {
+		expect(
+			analyzeWorkflowPermissions('permissions: { malformed, contents: read, checks: write }')
+		).toMatchObject({
+			declaresPermissions: true,
+			contentsRead: true,
+			writeScopes: ['checks']
+		});
+	});
+
 	it('ignores malformed child lines without dropping valid permission scopes', () => {
 		const result = analyzeWorkflowPermissions(`
 permissions:
@@ -109,6 +119,13 @@ permissions:
 			contentsRead: false,
 			writeAll: false,
 			writeScopes: []
+		});
+	});
+
+	it('handles single-quoted scalar permissions', () => {
+		expect(analyzeWorkflowPermissions("permissions: 'write-all'")).toMatchObject({
+			declaresPermissions: true,
+			writeAll: true
 		});
 	});
 });

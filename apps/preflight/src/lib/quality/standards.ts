@@ -53,7 +53,7 @@ export const CRITICAL_COVERAGE_THRESHOLDS = {
 		statements: 95,
 		lines: 97,
 		functions: 100,
-		branches: 84
+		branches: 90
 	},
 	'src/lib/monitoring/**.ts': {
 		statements: 95,
@@ -704,6 +704,8 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const rootLockPath = join(rootDir, 'package-lock.json');
 	const preflightPackagePath = join(preflightRoot, 'package.json');
 	const preflightTsconfigPath = join(preflightRoot, 'tsconfig.json');
+	const preflightScriptsTsconfigPath = join(preflightRoot, 'tsconfig.scripts.json');
+	const preflightE2eTsconfigPath = join(preflightRoot, 'tsconfig.e2e.json');
 	const preflightMcpPackagePath = join(preflightMcpRoot, 'package.json');
 	const preflightMcpTsconfigPath = join(preflightMcpRoot, 'tsconfig.json');
 	const deploylintSharedPackagePath = join(deploylintSharedRoot, 'package.json');
@@ -737,6 +739,8 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		rootLockPath,
 		preflightPackagePath,
 		preflightTsconfigPath,
+		preflightScriptsTsconfigPath,
+		preflightE2eTsconfigPath,
 		preflightMcpPackagePath,
 		preflightMcpTsconfigPath,
 		deploylintSharedPackagePath,
@@ -778,6 +782,8 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const rootLock = readJsonRecord(rootLockPath);
 	const preflightPackage = readPackageConfig(preflightPackagePath);
 	const preflightTsconfig = readTsconfig(preflightTsconfigPath);
+	const preflightScriptsTsconfig = readJsonRecord(preflightScriptsTsconfigPath);
+	const preflightE2eTsconfig = readJsonRecord(preflightE2eTsconfigPath);
 	const preflightMcpPackage = readPackageConfig(preflightMcpPackagePath);
 	const preflightMcpTsconfig = readTsconfig(preflightMcpTsconfigPath);
 	const deploylintSharedPackage = readPackageConfig(deploylintSharedPackagePath);
@@ -840,12 +846,29 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			'quality:standards',
 			'sync:gate-remote:check',
 			'check',
+			'check:scripts',
+			'check:e2e',
 			'lint',
 			'lint:type-aware',
 			'lint:type-aware:prod',
 			'test:coverage',
 			'build'
 		])
+	);
+	pushCheck(
+		checked,
+		failures,
+		'preflight verify typechecks scripts and Playwright E2E specs',
+		hasScriptCommand(preflightPackage.scripts, 'check:scripts', [
+			'tsc --noEmit -p tsconfig.scripts.json'
+		]) &&
+			hasScriptCommand(preflightPackage.scripts, 'check:e2e', [
+				'tsc --noEmit -p tsconfig.e2e.json'
+			]) &&
+			hasScriptCommand(preflightPackage.scripts, 'verify', ['check:scripts', 'check:e2e']) &&
+			readStringArray(preflightScriptsTsconfig.include).includes('scripts/**/*.ts') &&
+			!readStringArray(preflightScriptsTsconfig.include).includes('scripts/**/*.mjs') &&
+			readStringArray(preflightE2eTsconfig.include).includes('e2e/**/*.ts')
 	);
 	pushCheck(
 		checked,
@@ -1007,6 +1030,20 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			'npm run test:e2e:install -w preflight',
 			'npm run test:e2e -w preflight'
 		])
+	);
+	pushCheck(
+		checked,
+		failures,
+		'root preflight verify alias runs full unit, build, and E2E gate',
+		hasScriptCommand(rootPackage.scripts, 'verify:preflight', ['npm run verify:preflight:full']) &&
+			hasScriptCommand(rootPackage.scripts, 'verify:preflight:unit', [
+				'turbo run verify',
+				'--filter=preflight'
+			]) &&
+			hasScriptCommand(rootPackage.scripts, 'verify:preflight:full', [
+				'npm run verify:preflight:unit',
+				'npm run test:e2e -w preflight'
+			])
 	);
 	pushCheck(
 		checked,

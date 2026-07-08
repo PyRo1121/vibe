@@ -26,18 +26,20 @@ const apiBase = (
 	process.env.PREFLIGHT_API ??
 	'https://deploylint.com'
 ).replace(/\/$/, '');
-const targetUrl =
+const targetUrlInput =
 	process.argv[2]?.trim() ||
 	process.env.DEPLOYLINT_URL?.trim() ||
 	process.env.DEPLOYLINT_GATE_URL?.trim() ||
 	process.env.PREFLIGHT_URL?.trim() ||
 	process.env.PREFLIGHT_GATE_URL?.trim();
 
-if (!targetUrl) {
+if (!targetUrlInput) {
 	console.error('Usage: npm run gate -- <url>');
 	console.error('   or: DEPLOYLINT_URL=https://example.com npm run gate');
 	process.exit(2);
 }
+
+const targetUrl = targetUrlInput;
 
 const minScore = Number(
 	process.env.DEPLOYLINT_MIN_SCORE ?? process.env.PREFLIGHT_MIN_SCORE ?? '80'
