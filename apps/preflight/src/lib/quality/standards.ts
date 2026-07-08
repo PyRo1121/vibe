@@ -1235,6 +1235,23 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
+		'root deploylint coverage assertion enforces critical per-file coverage floors',
+		[
+			'perFileMinimums',
+			'critical per-file coverage floor',
+			'src/lib/billing/**.ts',
+			'src/lib/ci/**.ts',
+			'src/lib/monitoring/**.ts',
+			'src/lib/scan/repo/**.ts',
+			'src/lib/server/**.ts',
+			'src/routes/api/**/+server.ts'
+		].every((fragment) => coverageAssertScriptSource.includes(fragment)) &&
+			rootPackage.scripts['verify:deploylint:ci']?.includes('npm run assert:deploylint:coverage') &&
+			rootPackage.scripts['verify:deploylint:local']?.includes('npm run assert:deploylint:coverage')
+	);
+	pushCheck(
+		checked,
+		failures,
 		'root dead-code gate runs knip against Deploylint workspaces',
 		hasScriptCommand(rootPackage.scripts, 'deadcode:deploylint', [
 			'knip',
