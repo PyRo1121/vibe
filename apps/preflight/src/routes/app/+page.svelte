@@ -112,7 +112,7 @@
 		<div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
 			<div>
 				<p class="mb-3 text-sm font-medium tracking-widest text-sky-400 uppercase">
-					Activation command center
+					Workspace setup preview
 				</p>
 				<h1 class="max-w-4xl text-3xl font-bold tracking-tight text-white sm:text-5xl">
 					Turn a workflow check into a deploy gate.
@@ -166,7 +166,7 @@
 				</p>
 				<h2 class="mt-2 text-xl font-semibold text-white">{workspace.billing.planLabel}</h2>
 				<p class="mt-2 text-sm leading-6 text-zinc-400">
-					This workspace includes {workspace.billing.projectLimit} monitored project, advisory reports,
+					This setup preview shows {workspace.billing.projectLimit} monitored project, advisory reports,
 					report history, and deploy gate enforcement.
 				</p>
 				<div class="mt-5 grid grid-cols-3 gap-2">
@@ -210,7 +210,7 @@
 						{project?.name ?? 'Create your first monitored project'}
 					</h2>
 					<p class="mt-2 text-sm text-zinc-400">
-						{project?.repoLabel ?? 'Connect a repository in the next setup loop.'}
+						{project?.repoLabel ?? 'Connect a repository after project persistence is wired.'}
 					</p>
 				</div>
 				<span

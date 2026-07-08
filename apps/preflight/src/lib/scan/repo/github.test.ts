@@ -49,6 +49,17 @@ describe('githubFetchers', () => {
 		);
 	});
 
+	it('defaults missing repository metadata fields safely', async () => {
+		fetchMock.mockResolvedValueOnce(jsonResponse({}));
+
+		await expect(githubFetchers().getMeta(repo)).resolves.toEqual({
+			branch: 'main',
+			description: null,
+			stars: null,
+			licenseSpdx: null
+		});
+	});
+
 	it('turns GitHub 404s into typed repo scan errors', async () => {
 		fetchMock.mockResolvedValueOnce(jsonResponse({ message: 'Not Found' }, 404));
 
@@ -64,6 +75,29 @@ describe('githubFetchers', () => {
 		await expect(githubFetchers().getTree(repo, 'main')).rejects.toMatchObject({
 			message: expect.stringContaining('GitHub API rate limit reached'),
 			status: 403
+		});
+	});
+
+	it('normalizes secondary rate limit responses and generic API failures', async () => {
+		fetchMock.mockResolvedValueOnce(jsonResponse({ message: 'secondary rate limited' }, 429));
+		await expect(githubFetchers().getMeta(repo)).rejects.toMatchObject({
+			message: expect.stringContaining('GitHub API rate limit reached'),
+			status: 429
+		});
+
+		fetchMock.mockResolvedValueOnce(jsonResponse({ message: 'server error' }, 500));
+		await expect(githubFetchers().getMeta(repo)).rejects.toMatchObject({
+			message: 'GitHub API error (HTTP 500)',
+			status: 500
+		});
+	});
+
+	it('defaults missing recursive tree fields safely', async () => {
+		fetchMock.mockResolvedValueOnce(jsonResponse({}));
+
+		await expect(githubFetchers().getTree(repo, 'main')).resolves.toEqual({
+			entries: [],
+			truncated: false
 		});
 	});
 

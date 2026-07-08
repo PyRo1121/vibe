@@ -1,7 +1,8 @@
 # Vibe
 
-Turborepo monorepo for **Deploylint** (launch-readiness audits; internal workspace
-`preflight`), **Deploylint MCP**, and **TCG Vault** (multi-TCG price catalog).
+Turborepo monorepo for **Deploylint** (CI/deploy readiness evidence; internal
+workspace `preflight`), **Deploylint MCP**, and **TCG Vault** (multi-TCG price
+catalog).
 
 ## Apps
 

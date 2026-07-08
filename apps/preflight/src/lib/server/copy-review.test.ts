@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { buildCopyReview, parseCopyReview } from './copy-review';
 
@@ -19,19 +19,24 @@ describe('parseCopyReview', () => {
 
 	it('rejects garbage, empty bullets, and missing headline', () => {
 		expect(parseCopyReview('not json at all')).toBeNull();
+		expect(parseCopyReview('{"bullets":["a"],"headline":')).toBeNull();
+		expect(parseCopyReview('null')).toBeNull();
 		expect(parseCopyReview('{"bullets":[],"headline":"x","subhead":"y"}')).toBeNull();
 		expect(parseCopyReview('{"bullets":["a"],"subhead":"y"}')).toBeNull();
 	});
 
 	it('caps bullet count and lengths', () => {
 		const long = JSON.stringify({
-			bullets: ['a', 'b', 'c', 'd', 'e', 'f'],
-			headline: 'h'.repeat(500),
-			subhead: 's'
+			bullets: [' a ', '', 123, 'b'.repeat(500), 'c', 'd', 'e', 'f'],
+			headline: ` ${'h'.repeat(500)} `,
+			subhead: ` ${'s'.repeat(500)} `
 		});
 		const review = parseCopyReview(long);
 		expect(review?.bullets).toHaveLength(4);
+		expect(review?.bullets[0]).toBe('a');
+		expect(review?.bullets[1]?.length).toBeLessThanOrEqual(300);
 		expect(review?.headline.length).toBeLessThanOrEqual(120);
+		expect(review?.subhead.length).toBeLessThanOrEqual(250);
 	});
 });
 
@@ -83,5 +88,23 @@ describe('buildCopyReview', () => {
 
 	it('returns null when the model payload contains no text response', async () => {
 		await expect(buildCopyReview({ run: async () => ({}) }, input)).resolves.toBeNull();
+	});
+
+	it('times out slow model responses', async () => {
+		vi.useFakeTimers();
+		try {
+			const pending = buildCopyReview(
+				{
+					run: async () => new Promise(() => {})
+				},
+				input
+			);
+
+			await vi.advanceTimersByTimeAsync(12_000);
+
+			await expect(pending).resolves.toBeNull();
+		} finally {
+			vi.useRealTimers();
+		}
 	});
 });

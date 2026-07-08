@@ -76,7 +76,7 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(reportPage).toContain('Important issues before broad rollout');
 		expect(reportPage).toContain('Ready for deploy gate review.');
 		expect(launchBriefPanel).toContain('Before this reaches production');
-		expect(launchBriefPanel).toContain('Public deploy surface risk');
+		expect(launchBriefPanel).toContain('Deploy evidence to fix');
 		expect(unlockPanel).toContain('Not Lighthouse - deploy readiness');
 		expect(unlockPanel).toContain('proof before gate mode');
 		expect(preflightSession).toContain('You are fixing deploy readiness');
@@ -133,7 +133,7 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(loginPage).toContain('Sign in to manage deploy gates');
 		expect(loginPage).toMatch(/monitored\s+workspace/);
 		expect(homePage).toContain('Readiness evidence');
-		expect(homePage).toMatch(/Run a project readiness review/);
+		expect(homePage).toMatch(/Attach readiness evidence/);
 		expect(homePage).toContain('Subscription loop');
 		expect(homePage).toContain('What stays alive after the first check');
 		expect(homePage).toContain('Monitored projects');

@@ -1,3 +1,4 @@
+import { stableStorageKey } from '$lib/server/storage-key';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -26,6 +27,10 @@ function mockKv() {
 	};
 }
 
+function subscriptionIndexKey(subscriptionId: string): string {
+	return stableStorageKey('subscription', subscriptionId);
+}
+
 describe('unlockKey', () => {
 	it('normalizes trailing slashes', () => {
 		expect(unlockKey('https://app.test/')).toBe(unlockKey('https://app.test'));
@@ -50,6 +55,16 @@ describe('saveUnlock / hasUnlock', () => {
 	it('returns null when no record exists', async () => {
 		const { kv } = mockKv();
 		expect(await loadUnlock(kv, 'https://app.test')).toBeNull();
+	});
+
+	it('returns null when KV reads fail', async () => {
+		const kv = {
+			get: async () => {
+				throw new Error('kv read failed');
+			}
+		} as unknown as KVNamespace;
+
+		await expect(loadUnlock(kv, 'https://app.test')).resolves.toBeNull();
 	});
 
 	it('reads legacy URL-derived unlock keys during migration', async () => {
@@ -108,5 +123,45 @@ describe('saveUnlock / hasUnlock', () => {
 			status: 'active'
 		});
 		expect(await hasUnlock(kv, 'https://app.test', 'cs_test_abc')).toBe(true);
+	});
+
+	it('ignores malformed or stale subscription indexes', async () => {
+		const { kv, store } = mockKv();
+		store.set(
+			subscriptionIndexKey('sub_missing_scan'),
+			JSON.stringify({ sessionId: 'cs_test_abc' })
+		);
+		store.set(
+			subscriptionIndexKey('sub_missing_session'),
+			JSON.stringify({ scanUrl: 'https://app.test' })
+		);
+		store.set(
+			subscriptionIndexKey('sub_missing_record'),
+			JSON.stringify({ scanUrl: 'https://app.test', sessionId: 'cs_test_abc' })
+		);
+
+		await saveUnlock(kv, 'https://other.test', 'cs_test_other', {
+			subscriptionId: 'sub_mismatch'
+		});
+		store.set(
+			subscriptionIndexKey('sub_mismatch'),
+			JSON.stringify({ scanUrl: 'https://other.test', sessionId: 'cs_test_wrong' })
+		);
+
+		await expect(loadUnlockBySubscription(kv, 'sub_missing_scan')).resolves.toBeNull();
+		await expect(loadUnlockBySubscription(kv, 'sub_missing_session')).resolves.toBeNull();
+		await expect(loadUnlockBySubscription(kv, 'sub_missing_record')).resolves.toBeNull();
+		await expect(loadUnlockBySubscription(kv, 'sub_mismatch')).resolves.toBeNull();
+	});
+
+	it('returns false when subscription status updates have no unlock record', async () => {
+		const { kv } = mockKv();
+
+		await expect(
+			setUnlockStatusBySubscription(kv, 'sub_missing', {
+				active: false,
+				status: 'canceled'
+			})
+		).resolves.toBe(false);
 	});
 });

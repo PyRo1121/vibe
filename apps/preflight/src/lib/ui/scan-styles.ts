@@ -6,7 +6,7 @@ export const categoryLabels: Record<string, string> = {
 	security: 'Security',
 	a11y: 'Accessibility',
 	mobile: 'Mobile',
-	launch: 'Launch',
+	launch: 'Deploy surface',
 	payments: 'Payments'
 };
 

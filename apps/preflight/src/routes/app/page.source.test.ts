@@ -19,7 +19,7 @@ describe('/app workspace source', () => {
 	it('presents a project workspace instead of another scanner page', () => {
 		const pageSource = source(pagePath);
 
-		expect(pageSource).toContain('Activation command center');
+		expect(pageSource).toContain('Workspace setup preview');
 		expect(pageSource).toContain('Next action');
 		expect(pageSource).toContain('Install in GitHub Actions');
 		expect(pageSource).toContain('Report history');
@@ -50,6 +50,6 @@ describe('/app workspace source', () => {
 		expect(pageSource).not.toContain('URL to scan');
 		expect(pageSource).not.toContain('xl:grid-cols-4');
 		expect(pageSource).not.toContain('Solo includes');
-		expect(pageSource).toContain('This workspace includes');
+		expect(pageSource).toContain('This setup preview shows');
 	});
 });

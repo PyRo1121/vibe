@@ -275,7 +275,7 @@ export function buildDemoWorkspace(opts: {
 }): DeploylintWorkspace {
 	const project: DeploylintProject = {
 		id: 'proj_demo_123',
-		name: 'Production deploy target',
+		name: 'First deploy target',
 		deployUrl: 'https://your-app.com',
 		repoLabel: 'github.com/your-org/your-app',
 		workflowPath: '.github/workflows/deploylint.yml',
@@ -288,7 +288,8 @@ export function buildDemoWorkspace(opts: {
 	return {
 		id: 'workspace_demo',
 		ownerLabel:
-			opts.ownerLabel ?? (opts.alphaFreeUnlock ? 'Early access workspace' : 'Deploylint workspace'),
+			opts.ownerLabel ??
+			(opts.alphaFreeUnlock ? 'Early access setup preview' : 'Deploylint setup preview'),
 		billing: {
 			mode: opts.alphaFreeUnlock ? 'alpha' : 'setup',
 			planLabel: opts.alphaFreeUnlock ? 'Early access' : 'Solo',

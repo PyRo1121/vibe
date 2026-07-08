@@ -13,7 +13,14 @@ $stripe = Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Links\stripe.exe'
 if (-not (Test-Path $stripe)) { $stripe = 'stripe' }
 
 $WebhookUrl = 'https://deploylint.com/api/webhooks/stripe'
-$Events = @('checkout.session.completed', 'checkout.session.async_payment_succeeded')
+$Events = @(
+	'checkout.session.completed',
+	'checkout.session.async_payment_succeeded',
+	'checkout.session.async_payment_failed',
+	'invoice.payment_failed',
+	'invoice.paid',
+	'customer.subscription.deleted'
+)
 
 Write-Host "Checking Stripe CLI login..." -ForegroundColor Cyan
 & $stripe config --list | Out-Null

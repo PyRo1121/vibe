@@ -12,17 +12,17 @@ export interface CatalogGroup {
 
 const GROUP_COPY: Record<CheckPriority, { label: string; description: string }> = {
 	p0: {
-		label: 'Launch blockers',
-		description: 'Checks that can make a launch unsafe, invisible, unreachable, or legally risky.'
+		label: 'Gate blockers',
+		description: 'Checks that can make a deploy unsafe, invisible, unreachable, or legally risky.'
 	},
 	p1: {
 		label: 'Important issues',
-		description:
-			'Checks that can hurt trust, security posture, SEO, or conversion during a real launch.'
+		description: 'Checks that can hurt trust, security posture, SEO, or conversion after deploy.'
 	},
 	p2: {
-		label: 'Polish and readiness',
-		description: 'Checks that make the product feel more complete and easier to operate.'
+		label: 'Readiness controls',
+		description:
+			'Checks that make the product feel more complete, repeatable, and easier to operate.'
 	}
 };
 

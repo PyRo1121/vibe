@@ -1,18 +1,20 @@
 ---
 name: deploylint
-description: Run Deploylint launch-readiness scans and deploy gates before posting a URL publicly. Use before Product Hunt, Reddit, PR merges, or post-deploy verification.
+description: Run Deploylint CI/deploy readiness reviews and deploy gates before production risk reaches users. Use before PR merges, release gates, repo handoffs, or post-deploy verification.
 ---
 
 # Deploylint agent skill
 
-Deploylint answers: **should you post this URL today?** It returns GO/NO-GO, embarrassment risks, and fix prompts.
+Deploylint answers: **is this project ready for a deploy gate?** It returns a
+readiness score, P0 gate blockers, deploy evidence to fix, and guided repair
+plans.
 
 ## When to use
 
-- Night before Product Hunt, Reddit, or X launch
-- After deploying a vibe-coded app (Cursor, Lovable, Bolt)
-- In CI to block merges when P0 launch blockers exist
-- After fixes — re-scan to prove score improved
+- Before merging PRs that change deploy, auth, billing, secrets, or public surfaces
+- After deploying a vibe-coded app (Cursor, Lovable, Bolt) and before routing traffic
+- In CI to block merges when P0 deploy-gate blockers exist
+- After fixes - re-scan to prove score improved
 
 ## MCP tools (Cursor)
 
@@ -32,20 +34,21 @@ Add `.cursor/mcp.json`:
 
 ### `deploylint_scan`
 
-- **url** — HTTPS site or `github.com/owner/repo`
-- **format** — `markdown` (default) or `json` for agent parsing
-- **max_issues** — default 25
-- **unlock_session_id** — Stripe `cs_live_…` after $9 unlock → all fix prompts + master paste
-- **previous_score** — with unlock, shows re-scan delta
+- **url** - HTTPS site or `github.com/owner/repo`
+- **format** - `markdown` (default) or `json` for agent parsing
+- **max_issues** - default 25
+- **unlock_session_id** - Stripe `cs_live_...` after unlock, enabling all guided fixes and repair-plan output
+- **previous_score** - with unlock, shows re-scan delta
 
-Returns: score, verdict, embarrassment risks, prioritized issues, one free sample fix prompt (more after unlock).
+Returns: score, verdict, deploy evidence to fix, prioritized issues, one free
+sample guided fix (more after unlock).
 
 ### `deploylint_gate`
 
 Same inputs plus:
 
-- **min_score** — default 80
-- **advisory** — `true` = report failures but never block
+- **min_score** - default 80
+- **advisory** - `true` = report failures but never block
 
 ## CI deploy gate
 
@@ -72,18 +75,19 @@ Env: `DEPLOYLINT_API`, `DEPLOYLINT_GATE_URL` (preferred), `PREFLIGHT_URL` (legac
 
 ## Fix loop
 
-1. `deploylint_scan` — note P0 failures and embarrassment brief
-2. Use fix prompts (unlock at deploylint.com for all prompts)
+1. `deploylint_scan` - note P0 failures and deploy evidence to fix
+2. Use guided fixes (unlock at deploylint.com for the full repair plan)
 3. Deploy fixes
-4. Re-scan with `unlock_session_id` + `previous_score` — confirm delta
+4. Re-scan with `unlock_session_id` + `previous_score` - confirm delta
 
-## P0 blockers (gate fails)
+## P0 Blockers
 
-Reachability, HTTPS, secrets, privacy, noindex, robots-block, form-security, exposed .env/.git, committed .env in repo scans.
+Reachability, HTTPS, secrets, privacy, noindex, robots-block, form-security,
+exposed .env/.git, committed .env in repo scans.
 
 ## Do not confuse with
 
-- **Lighthouse** — performance/a11y lab, not launch judgment
-- **OG debuggers** — card preview only
+- **Lighthouse** - performance/a11y lab, not deploy readiness
+- **OG debuggers** - card preview only
 
-Deploylint: **launch judgment + embarrassment prevention + fix-and-prove**.
+Deploylint: **deploy readiness evidence + gate blockers + fix-and-prove**.

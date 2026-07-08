@@ -16,11 +16,11 @@ describe('Deploylint workspace model', () => {
 			alphaFreeUnlock: true
 		});
 
-		expect(workspace.ownerLabel).toBe('Early access workspace');
+		expect(workspace.ownerLabel).toBe('Early access setup preview');
 		expect(workspace.billing.mode).toBe('alpha');
 		expect(workspace.projects).toHaveLength(1);
 		expect(workspace.projects[0]).toMatchObject({
-			name: 'Production deploy target',
+			name: 'First deploy target',
 			deployUrl: 'https://your-app.com',
 			installState: 'not_installed',
 			gateMode: 'advisory'

@@ -29,10 +29,10 @@
 			What Deploylint checks, and why
 		</h1>
 		<p class="mt-4 max-w-3xl text-sm leading-7 text-zinc-400">
-			This website catalog is the shared source of truth behind report explanations. It currently
-			documents {total} high-signal checks first: workflow risk, deploy blockers, security headers, exposed
-			deployment surfaces, CVEs, service readiness, SEO, social previews, AI discoverability, and app
-			polish that developers can act on.
+			This readiness-control catalog is the shared source of truth behind report explanations. It
+			currently documents {total} high-signal checks first: workflow risk, deploy blockers, security headers,
+			exposed deployment surfaces, CVEs, service readiness, SEO, social previews, AI discoverability,
+			and app polish that developers can act on.
 		</p>
 	</section>
 

@@ -10,12 +10,12 @@ const EMBARRASSMENT: Record<string, string> = {
 	'open-graph': 'Your link will look broken when pasted on X, Slack, or Discord.',
 	'og-image-live': 'Your share card image 404s — X and Slack will show an empty box.',
 	'og-image-type': 'og:image returns HTML instead of a picture — social cards look broken.',
-	'robots-block': 'robots.txt tells Google to stay away — you will launch to zero search traffic.',
+	'robots-block': 'robots.txt tells Google to stay away - search evidence will be invisible.',
 	'placeholder-copy': 'Template TODO or Lorem ipsum on a live page screams unfinished product.',
 	'llms-txt': 'AI assistants may summarize your product wrong without llms.txt context.',
 	'security-txt':
 		'No security.txt — researchers and enterprise buyers cannot find a disclosure path.',
-	noindex: 'Search engines are told not to index this page — fatal for a public launch.',
+	noindex: 'Search engines are told not to index this deploy target - fatal for discovery.',
 	https: 'Browsers will warn visitors your site is insecure.',
 	reachable: 'Your homepage does not load — every share link goes to an error.',
 	fetch: 'Your homepage does not load — every share link goes to an error.',
@@ -36,7 +36,7 @@ const EMBARRASSMENT: Record<string, string> = {
 	'gitignore-env': 'Without .env in .gitignore, one careless commit publishes every secret.',
 	'repo-license': 'License questions kill deals — buyers and contributors check this first.',
 	readme: 'An empty README makes the project look abandoned to anyone who finds it.',
-	'img-alt': 'Accessibility callouts spread fast on launch threads.',
+	'img-alt': 'Accessibility gaps become production-readiness objections.',
 	'response-time': 'A slow first load is the first thing new deploy traffic notices.',
 	'not-found-page':
 		'Every broken link silently shows your homepage — you will never know what is dead.',
@@ -49,12 +49,12 @@ const EMBARRASSMENT: Record<string, string> = {
 	'exposed-backup': 'A public backup.zip is a gift-wrapped data breach waiting to happen.',
 	'dead-social-links': 'Placeholder social icons (twitter.com with no handle) scream "template".',
 	'default-favicon-title':
-		'A "Vite App" tab title is the #1 screenshot on launch-day mockery threads.',
+		'A "Vite App" tab title is the #1 screenshot that makes a deploy look unfinished.',
 	'broken-anchor-nav':
 		'Nav links that scroll nowhere make the site feel broken in the first 10 seconds.',
 	'copyright-year': 'A stale footer year reads as an abandoned project.',
 	'ai-crawlers': 'robots.txt blocks GPTBot/ClaudeBot — your product cannot appear in AI answers.',
-	'primary-cta': 'Visitors have no obvious next step — launch traffic bounces in seconds.',
+	'primary-cta': 'Visitors have no obvious next step - production traffic bounces in seconds.',
 	'pricing-path': 'No pricing signal — "how much?" goes unanswered and buyers assume the worst.',
 	'social-proof': 'Zero social proof — nothing tells a stranger this product is real and used.',
 	sri: 'Third-party scripts load without integrity hashes — a compromised CDN owns your page.',

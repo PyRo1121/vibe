@@ -3,12 +3,21 @@ import {
 	selectSourceSamples,
 	findRootFile,
 	parsePackageJson,
-	auditNpmDependencies
+	auditNpmDependencies,
+	npmRegistryLicenseFetcher
 } from '$lib/scan/repo/audit';
 import type { RepoTreeEntry } from '$lib/scan/repo/github';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const blob = (path: string, size?: number): RepoTreeEntry => ({ path, type: 'blob', size });
+type NpmRegistryResponse = {
+	ok: boolean;
+	json: () => Promise<{ license?: string | { type?: string } }>;
+};
+
+afterEach(() => {
+	vi.unstubAllGlobals();
+});
 
 describe('findCommittedEnvFiles', () => {
 	it('finds committed env files but not examples or vendored copies', () => {
@@ -139,5 +148,44 @@ describe('auditNpmDependencies', () => {
 		const { audited, total } = await auditNpmDependencies(deps, async () => 'MIT');
 		expect(total).toBe(30);
 		expect(audited).toBe(20);
+	});
+});
+
+describe('npmRegistryLicenseFetcher', () => {
+	it('reads string and object-shaped license values from npm metadata', async () => {
+		const fetchMock = vi.fn<(url: string) => Promise<NpmRegistryResponse>>(async (url) => ({
+			ok: true,
+			json: async () =>
+				url.includes('object-license') ? { license: { type: 'Apache-2.0' } } : { license: 'MIT' }
+		}));
+		vi.stubGlobal('fetch', fetchMock);
+
+		const fetchLicense = npmRegistryLicenseFetcher();
+
+		await expect(fetchLicense('tiny-util')).resolves.toBe('MIT');
+		await expect(fetchLicense('object-license')).resolves.toBe('Apache-2.0');
+	});
+
+	it('encodes scoped package names and safely handles registry misses or failures', async () => {
+		const fetchMock = vi.fn<(url: string) => Promise<NpmRegistryResponse>>(async (url) => {
+			if (url.includes('%40scope%2Fpkg')) {
+				return { ok: true, json: async () => ({}) };
+			}
+			if (url.includes('missing')) {
+				return { ok: false, json: async () => ({ license: 'MIT' }) };
+			}
+			throw new Error('registry down');
+		});
+		vi.stubGlobal('fetch', fetchMock);
+
+		const fetchLicense = npmRegistryLicenseFetcher();
+
+		await expect(fetchLicense('@scope/pkg')).resolves.toBeNull();
+		await expect(fetchLicense('missing')).resolves.toBeNull();
+		await expect(fetchLicense('network-down')).resolves.toBeNull();
+		expect(fetchMock).toHaveBeenCalledWith(
+			'https://registry.npmjs.org/%40scope%2Fpkg/latest',
+			expect.objectContaining({ signal: expect.any(AbortSignal) })
+		);
 	});
 });

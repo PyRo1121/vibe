@@ -244,7 +244,7 @@ export function buildShareText(report: ScanReport, appUrl: string): string {
 	const risk = report.launchBrief?.embarrassmentRisks?.[0];
 	const hook = risk
 		? `Deploylint caught this before this reaches production:\n"${risk.slice(0, 140)}${risk.length > 140 ? '...' : ''}"`
-		: `I ran a Deploylint readiness review - ${report.score}/100 (${verdict}).`;
+		: `Deploylint produced CI/deploy readiness evidence for this project - ${report.score}/100 (${verdict}).`;
 	const permalink = report.reportId ? `${base}/r/${report.reportId}` : null;
 	const lines = [
 		hook,

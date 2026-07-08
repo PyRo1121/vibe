@@ -61,4 +61,54 @@ jobs:
 			writeAll: true
 		});
 	});
+
+	it('strips real YAML comments while preserving hashes inside quoted values', () => {
+		const result = analyzeWorkflowPermissions(`
+permissions: # real comment
+  contents: read # allow checkout
+  packages: "write#still-value"
+  checks: write
+`);
+
+		expect(result).toMatchObject({
+			declaresPermissions: true,
+			contentsRead: true,
+			writeAll: false,
+			writeScopes: ['checks']
+		});
+	});
+
+	it('handles quoted inline maps', () => {
+		expect(
+			analyzeWorkflowPermissions('permissions: { "contents": "read", "checks": "write" }')
+		).toMatchObject({
+			declaresPermissions: true,
+			contentsRead: true,
+			writeScopes: ['checks']
+		});
+	});
+
+	it('ignores malformed child lines without dropping valid permission scopes', () => {
+		const result = analyzeWorkflowPermissions(`
+permissions:
+  contents: read
+  this is not a permission child
+  pull-requests: write
+`);
+
+		expect(result).toMatchObject({
+			declaresPermissions: true,
+			contentsRead: true,
+			writeScopes: ['pull-requests']
+		});
+	});
+
+	it('treats read-all as declared permissions without write access', () => {
+		expect(analyzeWorkflowPermissions('permissions: read-all')).toMatchObject({
+			declaresPermissions: true,
+			contentsRead: false,
+			writeAll: false,
+			writeScopes: []
+		});
+	});
 });

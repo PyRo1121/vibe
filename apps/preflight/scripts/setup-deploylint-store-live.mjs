@@ -16,6 +16,14 @@ const currentDir = import.meta.dirname;
 const WEBHOOK_URL = 'https://deploylint.com/api/webhooks/stripe';
 const CURRENCY = 'usd';
 const TAX_CODE = 'txcd_10701401';
+const WEBHOOK_EVENTS = [
+	'checkout.session.completed',
+	'checkout.session.async_payment_succeeded',
+	'checkout.session.async_payment_failed',
+	'invoice.payment_failed',
+	'invoice.paid',
+	'customer.subscription.deleted'
+];
 
 const PLANS = [
 	{
@@ -92,8 +100,7 @@ async function ensureWebhook(secretKey) {
 	const webhookParams = {
 		url: WEBHOOK_URL,
 		description: 'Deploylint production (live)',
-		'enabled_events[0]': 'checkout.session.completed',
-		'enabled_events[1]': 'checkout.session.async_payment_succeeded'
+		...Object.fromEntries(WEBHOOK_EVENTS.map((event, index) => [`enabled_events[${index}]`, event]))
 	};
 
 	if (existing) {

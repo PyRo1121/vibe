@@ -68,10 +68,7 @@
 				<a href={resolvePath('/tools')} class="hover:text-white">Tools</a>
 				<a href={resolvePath('/compare')} class="hidden hover:text-white sm:inline">Compare</a>
 				<a href={resolvePath('/checks')} class="hidden hover:text-white sm:inline">Checks</a>
-				<a
-					href={resolvePath('/guides/website-launch-checklist')}
-					class="hidden hover:text-white sm:inline">Docs</a
-				>
+				<a href={resolvePath('/tools')} class="hidden hover:text-white sm:inline">Docs</a>
 				<a href={resolvePath('/developers')} class="hover:text-white">Setup</a>
 				<span class="hidden text-zinc-400 sm:inline">Readiness reviews &middot; CI gates</span>
 			</nav>
@@ -97,7 +94,7 @@
 			<span class="mx-2">&middot;</span>
 			<a href={resolvePath('/checks')} class="hover:text-white">Checks</a>
 			<span class="mx-2">&middot;</span>
-			<a href={resolvePath('/guides/website-launch-checklist')} class="hover:text-white">Docs</a>
+			<a href={resolvePath('/tools')} class="hover:text-white">Docs</a>
 			<span class="mx-2">&middot;</span>
 			<a href={resolvePath('/changelog')} class="hover:text-white">Changelog</a>
 			<span class="mx-2">&middot;</span>

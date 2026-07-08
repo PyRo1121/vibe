@@ -1,15 +1,16 @@
 # Deploylint
 
-Lint your launch before the internet does — GO/NO-GO verdict, embarrassment radar, and fix prompts with re-scan proof.
+Build CI/deploy readiness evidence before production traffic depends on it:
+project verdicts, deploy-gate blockers, guided repair plans, and re-scan proof.
 
 **Test deployment:** [deploylint.com](https://deploylint.com)
 (Internal package name remains `preflight` in the monorepo.)
 
 ## Product
 
-- **Free:** verdict, embarrassment brief, social preview, one sample fix prompt
-- **Paid subscriptions:** Solo $9/mo, Builder $29/mo, Agency $149/mo for prompts, MCP access, monitoring, and re-scan proof
-- **CI gate** — zero-install script (`/gate-remote.mjs`). See [/developers](https://deploylint.com/developers).
+- **Free:** readiness verdict, deploy surface brief, social preview, one sample guided fix
+- **Paid subscriptions:** Solo $9/mo, Builder $29/mo, Agency $149/mo for guided repair plans, MCP access, monitoring, and re-scan proof
+- **CI gate** - zero-install script (`/gate-remote.mjs`). See [/developers](https://deploylint.com/developers).
 
 ## Dev
 

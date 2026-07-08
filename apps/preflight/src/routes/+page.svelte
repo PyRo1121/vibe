@@ -497,10 +497,10 @@ jobs:
 			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
 				Readiness evidence
 			</p>
-			<h2 class="mt-2 text-lg font-semibold text-white">Run a project readiness review</h2>
+			<h2 class="mt-2 text-lg font-semibold text-white">Attach readiness evidence</h2>
 			<p class="mt-1 text-sm leading-6 text-zinc-400">
-				Add a deploy URL or GitHub repo to collect public surface, trust, payment, license, preview,
-				and repo hygiene evidence after the CI path is under control.
+				Add a deploy URL or GitHub repo to collect gate evidence across public surface, trust,
+				payment, license, preview, and repo hygiene signals.
 			</p>
 		</div>
 		<div class="flex flex-col gap-3 sm:flex-row">
@@ -520,7 +520,7 @@ jobs:
 				disabled={loading || !url.trim()}
 				class="rounded-xl bg-sky-600 px-6 py-3 font-semibold text-white hover:bg-sky-500 disabled:bg-sky-900 disabled:text-sky-100"
 			>
-				{loading ? 'Building brief...' : 'Build readiness brief'}
+				{loading ? 'Building evidence...' : 'Build gate evidence brief'}
 			</button>
 		</div>
 		{#if loading}

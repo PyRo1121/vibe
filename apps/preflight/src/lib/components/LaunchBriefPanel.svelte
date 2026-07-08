@@ -20,13 +20,13 @@
 					? 'bg-emerald-500/20 text-emerald-300'
 					: 'bg-amber-500/20 text-amber-300'}"
 			>
-				{report.launchBrief.shareReady ? 'Link preview OK' : 'Link preview at risk'}
+				{report.launchBrief.shareReady ? 'Gate evidence OK' : 'Gate evidence at risk'}
 			</span>
 		</div>
 
 		{#if report.launchBrief.embarrassmentRisks.length > 0}
 			<div class="mt-6">
-				<p class="mb-3 text-sm font-medium text-zinc-300">Public deploy surface risk</p>
+				<p class="mb-3 text-sm font-medium text-zinc-300">Deploy evidence to fix</p>
 				<ul class="space-y-2">
 					{#each report.launchBrief.embarrassmentRisks as risk, i (i)}
 						<li class="flex gap-3 text-sm text-zinc-400">

@@ -19,7 +19,7 @@ function textWidth(text: string): number {
 }
 
 export function buildBadgeSvg(score: number): string {
-	const label = 'preflight';
+	const label = 'deploylint';
 	const value = `${score}/100`;
 	const labelW = textWidth(label);
 	const valueW = textWidth(value);

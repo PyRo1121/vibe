@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 const appRoot = fileURLToPath(new URL('../', import.meta.url));
 const wrangler = readFileSync(new URL('../../wrangler.jsonc', import.meta.url), 'utf8');
+const localWrangler = readFileSync(new URL('../../wrangler.local.jsonc', import.meta.url), 'utf8');
 const envTypes = readFileSync(new URL('../cloudflare-env.d.ts', import.meta.url), 'utf8');
 
 describe('auth wiring source', () => {
@@ -19,5 +20,10 @@ describe('auth wiring source', () => {
 		expect(existsSync(`${appRoot}routes/login/+page.svelte`)).toBe(true);
 		expect(existsSync(`${appRoot}lib/auth-client.ts`)).toBe(true);
 		expect(wrangler).toContain('"/login"');
+	});
+
+	it('keeps alpha free unlock out of production Wrangler vars', () => {
+		expect(wrangler).not.toContain('DEPLOYLINT_ALPHA_FREE_UNLOCK');
+		expect(localWrangler).toContain('"DEPLOYLINT_ALPHA_FREE_UNLOCK": "true"');
 	});
 });
