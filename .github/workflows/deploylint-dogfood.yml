@@ -64,6 +64,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify npm registry signatures
+        run: npm run audit:signatures
+
       - name: Verify MCP package
         run: npm run verify -w preflight-mcp
 

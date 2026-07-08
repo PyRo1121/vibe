@@ -14,6 +14,6 @@ test.describe('print', () => {
 		await page.emulateMedia({ media: 'print' });
 		await expect(page.locator('header')).toBeHidden();
 		await expect(page.getByText('Gate readiness decision')).toBeVisible();
-		await expect(page.getByText('Gate readiness evidence')).toBeVisible();
+		await expect(page.getByText('Deploy gate decision', { exact: true }).first()).toBeVisible();
 	});
 });

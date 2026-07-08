@@ -736,6 +736,17 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
+		'root npm registry signature audit verifies lockfile package integrity',
+		hasScriptCommand(rootPackage.scripts, 'audit:signatures', ['npm audit signatures']) &&
+			hasScriptCommand(rootPackage.scripts, 'verify:deploylint:ci', [
+				'npm run audit:security',
+				'npm run audit:signatures'
+			]) &&
+			dogfoodWorkflow.includes('npm run audit:signatures')
+	);
+	pushCheck(
+		checked,
+		failures,
 		'root workflow semantic lint runs pinned actionlint across GitHub Actions workflows',
 		rootPackage.devDependencies['github-actionlint'] === '1.7.12' &&
 			hasScriptCommand(rootPackage.scripts, 'lint:workflows', ['github-actionlint']) &&

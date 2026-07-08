@@ -10,7 +10,8 @@ test.describe('scan flow', () => {
 		await runMockScan(page);
 
 		await expect(page.getByText('CONDITIONAL GO')).toBeVisible();
-		await expect(page.getByText('Gate readiness evidence')).toBeVisible();
+		await expect(page.getByText('Deploy gate decision', { exact: true }).first()).toBeVisible();
+		await expect(page.getByText('CI adoption path')).toBeVisible();
 		await expect(page.getByText('72', { exact: true }).first()).toBeVisible();
 		await expect(
 			page.getByText('Customer access readiness', { exact: true }).first()

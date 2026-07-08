@@ -37,7 +37,9 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(proofKit).toContain('Advisory workflow');
 		expect(reportPage).not.toContain('Scan your own site free');
 		expect(reportPage).not.toContain('Want fix prompts for these issues?');
-		expect(reportSummary).toContain('Gate readiness evidence');
+		expect(reportSummary).toContain('Deploy gate decision');
+		expect(reportSummary).toContain('CI adoption path');
+		expect(reportSummary).toContain('Open workspace');
 		expect(reportSummary).not.toContain('Deploy risk score');
 		expect(reportSummary).not.toContain('Launch score');
 	});

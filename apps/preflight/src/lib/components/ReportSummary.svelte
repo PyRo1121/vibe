@@ -2,6 +2,7 @@
 	import { resolve } from '$app/paths';
 	import { computeFixProgress, loadBaselineChecks } from '$lib/client/preflight-session';
 	import ScoreDeltaBadge from '$lib/components/ScoreDeltaBadge.svelte';
+	import { buildCiAdoptionState, type CiAdoptionStepStatus } from '$lib/product/ci-adoption';
 	import type { PaymentReadinessStatus, ScanReport } from '$lib/scan/types';
 	import { scoreColor } from '$lib/ui/scan-styles';
 
@@ -23,6 +24,7 @@
 
 	const categories = $derived(report.launchBrief?.categoryScores ?? []);
 	const paymentReadiness = $derived(report.paymentReadiness ?? null);
+	const ciAdoption = $derived(buildCiAdoptionState(report));
 
 	const fixProgress = $derived.by(() => {
 		const baseline = loadBaselineChecks();
@@ -78,13 +80,25 @@
 	function blockerLabel(count: number): string {
 		return `${count} access blocker${count === 1 ? '' : 's'}`;
 	}
+
+	function adoptionStatusClass(status: CiAdoptionStepStatus): string {
+		if (status === 'complete') return 'border-emerald-500/40 bg-emerald-500/10 text-emerald-100';
+		if (status === 'current') return 'border-sky-500/50 bg-sky-500/10 text-sky-100';
+		return 'border-zinc-800 bg-zinc-950/70 text-zinc-500';
+	}
+
+	function adoptionStatusLabel(status: CiAdoptionStepStatus): string {
+		if (status === 'complete') return 'Complete';
+		if (status === 'current') return 'Current';
+		return 'Queued';
+	}
 </script>
 
 <section class="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8">
 	<div class="grid gap-8 lg:grid-cols-[minmax(0,320px)_1fr]">
 		<div class="min-w-0">
 			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
-				Gate readiness evidence
+				Deploy gate decision
 			</p>
 			<div class="mt-1 flex items-baseline gap-3">
 				<p class="text-6xl font-bold tabular-nums {scoreColor(report.score)}">{report.score}</p>
@@ -160,6 +174,42 @@
 						>Fix & verify unlocked</span
 					>
 				{/if}
+			</div>
+
+			<div class="mt-4 rounded-xl border border-zinc-800 bg-zinc-950/50 p-3">
+				<div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+					<div>
+						<p class="text-[10px] font-semibold tracking-widest text-zinc-500 uppercase">
+							CI adoption path
+						</p>
+						<p class="mt-1 text-sm leading-5 text-zinc-300">{ciAdoption.summary}</p>
+					</div>
+					<a
+						href={resolve('/app#install')}
+						class="w-fit rounded-lg border border-sky-500/40 px-3 py-1.5 text-xs font-semibold text-sky-200 hover:border-sky-400 hover:text-white"
+					>
+						Open workspace
+					</a>
+				</div>
+				<ol class="mt-3 grid gap-2 sm:grid-cols-4">
+					{#each ciAdoption.steps as step, index (step.id)}
+						<li class="rounded-lg border p-3 {adoptionStatusClass(step.status)}">
+							<div class="flex items-center justify-between gap-2">
+								<span class="text-[10px] font-semibold uppercase"
+									>{adoptionStatusLabel(step.status)}</span
+								>
+								<span
+									class="flex h-5 w-5 items-center justify-center rounded-full border border-current text-[10px] font-semibold"
+								>
+									{index + 1}
+								</span>
+							</div>
+							<p class="mt-2 text-sm font-semibold text-white">{step.label}</p>
+							<p class="mt-1 text-xs leading-5 opacity-80">{step.description}</p>
+						</li>
+					{/each}
+				</ol>
+				<p class="mt-3 text-xs leading-5 text-zinc-500">Next: {ciAdoption.nextAction}</p>
 			</div>
 
 			{#if paymentReadiness && paymentReadiness.status !== 'not-detected'}

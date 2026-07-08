@@ -40,6 +40,7 @@ describe('quality standards guard', () => {
 				'root runtime pins Node and npm for deterministic installs',
 				'Deploylint TypeScript configs keep strict compiler settings',
 				'root dependency audit fails on any known vulnerability',
+				'root npm registry signature audit verifies lockfile package integrity',
 				'root workflow semantic lint runs pinned actionlint across GitHub Actions workflows',
 				'Dependabot updates npm and GitHub Actions supply-chain dependencies',
 				'Deploylint gate scripts bound network calls with timeout and retry controls',
