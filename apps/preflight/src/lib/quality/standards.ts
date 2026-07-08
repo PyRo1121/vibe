@@ -828,6 +828,13 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
+		'vitest coverage includes client funnel telemetry',
+		!viteConfigSource.includes("'src/lib/client/track.ts'") &&
+			!viteConfigSource.includes('"src/lib/client/track.ts"')
+	);
+	pushCheck(
+		checked,
+		failures,
 		'Vitest configs fail when no tests are discovered',
 		[viteConfigPath, mcpViteConfigPath, deploylintSharedViteConfigPath].every(
 			(configPath) => readBooleanConfigProperty(configPath, 'passWithNoTests') === false

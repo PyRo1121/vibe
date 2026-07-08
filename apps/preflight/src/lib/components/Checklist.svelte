@@ -52,7 +52,7 @@
 		</div>
 		{#if !report.unlocked && offer && offer.lockedPromptCount > 0}
 			<p class="text-sm font-medium text-sky-400">
-				{offer.lockedPromptCount} guided fixes locked · 1 free below
+				{offer.lockedPromptCount} workspace repair briefs · 1 sample below
 			</p>
 		{/if}
 	</div>
@@ -163,7 +163,7 @@
 										<div
 											class="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-zinc-950/85 px-3 text-center"
 										>
-											<p class="text-xs font-medium text-sky-300">Unlock guided fix</p>
+											<p class="text-xs font-medium text-sky-300">Create workspace for guidance</p>
 											<p class="text-[10px] text-zinc-500">Included in Solo from $9/mo</p>
 										</div>
 									</div>

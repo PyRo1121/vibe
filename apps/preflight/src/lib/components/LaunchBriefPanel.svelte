@@ -37,8 +37,8 @@
 				</ul>
 				{#if !report.unlocked}
 					<p class="mt-4 text-sm text-sky-300/90">
-						Free report shows the problems. Unlock gives you repair prompts, then rerun the advisory
-						report to prove the deploy target is ready.
+						The initial brief shows the problems. A Solo workspace adds repair guidance, then reruns
+						advisory reports to prove the deploy target is ready.
 					</p>
 				{/if}
 			</div>

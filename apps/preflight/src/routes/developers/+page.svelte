@@ -222,22 +222,20 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 	</section>
 
 	<section class="mb-10 rounded-2xl border border-sky-900/50 bg-sky-950/20 p-6">
-		<h2 class="mb-2 text-xl font-semibold text-white">
-			Optional quick signal check: URL-only advisory workflow
-		</h2>
+		<h2 class="mb-2 text-xl font-semibold text-white">Fallback: URL-only advisory workflow</h2>
 		<p class="mb-4 text-sm leading-6 text-zinc-400">
 			Set a GitHub secret named
 			<code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">DEPLOYLINT_URL</code>
-			to your staging or production URL. Use this when you want deploy evidence before creating a monitored
-			project; it writes an Actions job summary and always exits successfully.
+			to your staging or production URL. Use this only when you need deploy evidence before a workspace
+			exists; it writes an Actions job summary and always exits successfully.
 		</p>
 		<pre
 			class="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-xs leading-relaxed text-zinc-300"><code
 				>{advisoryGateYaml}</code
 			></pre>
 		<p class="mt-4 text-sm leading-6 text-zinc-500">
-			Start here even if you plan to block deploys later. Advisory mode lets you calibrate false
-			positives and prove the report is useful before it affects merges.
+			Move to the workspace-backed workflow before making Deploylint a required status check. That
+			keeps project history, billing context, and gate policy attached to the same record.
 		</p>
 	</section>
 

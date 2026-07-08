@@ -54,6 +54,7 @@ describe('quality standards guard', () => {
 				'vitest coverage thresholds meet enterprise minimums',
 				'vitest scoped coverage thresholds protect critical Deploylint folders',
 				'vitest coverage includes SvelteKit server route entrypoints',
+				'vitest coverage includes client funnel telemetry',
 				'Vitest configs fail when no tests are discovered',
 				'Vitest configs reject focused tests in every environment',
 				'preflight-mcp coverage thresholds meet enterprise minimums',
@@ -242,6 +243,7 @@ updates:
 				export default {
 					test: {
 						coverage: {
+							exclude: ['src/lib/client/track.ts'],
 							thresholds: {
 								[coverageMetric]: 70,
 								lines: 70,
@@ -327,6 +329,7 @@ updates:
 					'vitest coverage thresholds meet enterprise minimums',
 					'vitest scoped coverage thresholds protect critical Deploylint folders',
 					'vitest coverage includes SvelteKit server route entrypoints',
+					'vitest coverage includes client funnel telemetry',
 					'Vitest configs fail when no tests are discovered',
 					'Vitest configs reject focused tests in every environment',
 					'preflight-mcp coverage thresholds meet enterprise minimums',

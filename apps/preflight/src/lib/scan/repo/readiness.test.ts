@@ -374,6 +374,40 @@ jobs:
 		});
 	});
 
+	it('warns when Deploylint PR advisory workflow wiring only appears in comments', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/ci.yml',
+				text: `
+name: CI
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm run lint
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
+      # - name: Deploylint advisory
+      #   env:
+      #     DEPLOYLINT_URL: \${{ secrets.DEPLOYLINT_URL }}
+      #     DEPLOYLINT_MODE: advisory
+      #   run: node gate-remote.mjs "$DEPLOYLINT_URL"
+      #   curl -fsSL https://deploylint.com/gate-remote.mjs
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'deploylint-ci-wiring')).toMatchObject({
+			status: 'warn',
+			message: expect.stringContaining('No Deploylint advisory or gate workflow')
+		});
+	});
+
 	it('warns when CI lacks Deploylint PR advisory workflow wiring', () => {
 		const findings = analyzeCiWorkflows([
 			{

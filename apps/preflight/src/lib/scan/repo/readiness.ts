@@ -548,11 +548,12 @@ function hasDependencyReviewAction(text: string): boolean {
 }
 
 function deploylintWorkflow(workflows: RepoFileEvidence[]): RepoFileEvidence | undefined {
-	return workflows.find((workflow) =>
-		/DEPLOYLINT_(URL|MODE|API)|deploylint(?:\.com)?\/gate-remote\.mjs|deploylint-gate/i.test(
-			workflow.text ?? ''
-		)
-	);
+	return workflows.find((workflow) => {
+		const activeText = meaningfulWorkflowLines(workflow.text ?? '').join('\n');
+		return /DEPLOYLINT_(URL|MODE|API)|deploylint(?:\.com)?\/gate-remote\.mjs|deploylint-gate/i.test(
+			activeText
+		);
+	});
 }
 
 function dependencyUpdateConfig(files: RepoFileEvidence[]): RepoFileEvidence | undefined {

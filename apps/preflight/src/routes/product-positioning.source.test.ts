@@ -48,7 +48,7 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(developersPage).toContain('workspace-backed project gate');
 		expect(developersPage).toContain('Recommended path');
 		expect(developersPage).toContain(
-			'optional URL-only advisory workflow below is a quick signal check'
+			'Use this only when you need deploy evidence before a workspace'
 		);
 		expect(developersPage).toContain("resolve('/app#install')");
 		expect(developersPage).toContain('DEPLOYLINT_PROJECT_ID');
@@ -171,7 +171,7 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(reportSummary).toContain('Project evidence reviewed');
 		expect(reportSummary).toContain('Customer access readiness');
 		expect(preflightSession).toContain('Add Deploylint to CI');
-		expect(unlockComparePanel).toContain('Snapshot brief');
+		expect(unlockComparePanel).toContain('Initial advisory evidence');
 		expect(unlockComparePanel).toContain('Monitored CI gate');
 
 		for (const fileSource of [

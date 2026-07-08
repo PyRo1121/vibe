@@ -30,15 +30,17 @@
 		</h2>
 
 		<p class="mt-2 text-sm text-zinc-400">
-			The free brief is a snapshot. Solo turns it into a monitored project with advisory PR reports,
-			history, repair guidance, and gate enforcement.
+			The free brief is initial advisory evidence. Solo attaches it to a monitored project with PR
+			reports, history, repair guidance, and gate enforcement.
 		</p>
 
 		<p class="mt-2 text-sm text-sky-300">{offer.valuePitch}</p>
 
 		<div class="mt-6 grid gap-4 md:grid-cols-2">
 			<div class="rounded-xl border border-zinc-700 bg-zinc-950/80 p-5">
-				<p class="text-xs font-semibold tracking-wider text-zinc-500 uppercase">Snapshot brief</p>
+				<p class="text-xs font-semibold tracking-wider text-zinc-500 uppercase">
+					Initial advisory evidence
+				</p>
 
 				<ul class="mt-3 space-y-2 text-sm text-zinc-400">
 					<li>+ GO / NO-GO verdict + score ({report.score}/100)</li>
