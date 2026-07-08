@@ -13,6 +13,10 @@ test.describe('home', () => {
 		await expect(
 			page.getByRole('heading', { name: /prove the project is ready before deploy/i })
 		).toBeVisible();
+		await expect(page.getByRole('link', { name: /Create monitored project/i })).toHaveAttribute(
+			'href',
+			'#project-setup'
+		);
 		await expect(page.getByRole('link', { name: /Check workflow YAML/i })).toBeVisible();
 		await expect(page.getByText('Sample PR report')).toBeVisible();
 		await expect(page.getByText('Workspace loop')).toBeVisible();

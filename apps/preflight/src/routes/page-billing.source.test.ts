@@ -17,9 +17,10 @@ describe('homepage billing self-service source', () => {
 		expect(pageSource).not.toContain('ALPHA_FREE_UNLOCK');
 	});
 
-	it('points the primary product path at the workspace', () => {
-		expect(pageSource).toContain("resolve('/app')");
-		expect(pageSource).toContain('Create project');
+	it('points the primary product path at project setup before workspace handoff', () => {
+		expect(pageSource).toContain('href="#project-setup"');
+		expect(pageSource).toContain('id="project-setup"');
+		expect(pageSource).toContain('Create monitored project');
 	});
 
 	it('can carry a project profile into the workspace setup surface', () => {

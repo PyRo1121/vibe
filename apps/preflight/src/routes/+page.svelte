@@ -412,10 +412,10 @@ jobs:
 			</p>
 			<div class="mt-6 flex flex-col gap-3 sm:flex-row">
 				<a
-					href={resolve('/app')}
+					href="#project-setup"
 					class="rounded-xl bg-sky-500 px-5 py-3 text-center text-sm font-semibold text-zinc-950 hover:bg-sky-400"
 				>
-					Create project
+					Create monitored project
 				</a>
 				<a
 					href={resolve('/tools/github-actions-security-checker')}
@@ -518,6 +518,7 @@ jobs:
 	</section>
 
 	<form
+		id="project-setup"
 		class="mx-auto mb-10 max-w-3xl rounded-xl border border-zinc-800 bg-zinc-900/30 p-5 print:hidden"
 		aria-label="Project profile"
 		onsubmit={(e) => {
