@@ -915,6 +915,19 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
+		'GitHub push CI fails when production gate URL is missing',
+		preflightGateWorkflow.includes('Require production gate URL on main pushes') &&
+			preflightGateWorkflow.includes("if: github.event_name == 'push'") &&
+			preflightGateWorkflow.includes('PREFLIGHT_GATE_URL: ${{ secrets.PREFLIGHT_GATE_URL }}') &&
+			preflightGateWorkflow.includes('DEPLOYLINT_GATE_URL: ${{ secrets.DEPLOYLINT_GATE_URL }}') &&
+			preflightGateWorkflow.includes('::error::Set PREFLIGHT_GATE_URL or DEPLOYLINT_GATE_URL') &&
+			preflightGateWorkflow.includes('exit 2') &&
+			preflightGateWorkflow.includes('name: Scan production URL') &&
+			!preflightGateWorkflow.includes('name: Scan production URL (optional)')
+	);
+	pushCheck(
+		checked,
+		failures,
 		'GitHub pull request CI runs dependency review for supply-chain diffs',
 		preflightGateWorkflow.includes('dependency-review:') &&
 			preflightGateWorkflow.includes("if: github.event_name == 'pull_request'") &&

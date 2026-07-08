@@ -105,14 +105,25 @@ jobs:
             apps/preflight-mcp/coverage/**
             apps/preflight-mcp/test-results/**
 
-      - name: Scan production URL (optional)
+      - name: Require production gate URL on main pushes
+        if: github.event_name == 'push'
+        env:
+          PREFLIGHT_GATE_URL: ${{ secrets.PREFLIGHT_GATE_URL }}
+          DEPLOYLINT_GATE_URL: ${{ secrets.DEPLOYLINT_GATE_URL }}
+        run: |
+          if [ -z "${PREFLIGHT_GATE_URL}${DEPLOYLINT_GATE_URL}" ]; then
+            echo "::error::Set PREFLIGHT_GATE_URL or DEPLOYLINT_GATE_URL so main pushes run the production Deploylint gate."
+            exit 2
+          fi
+
+      - name: Scan production URL
         env:
           PREFLIGHT_URL: ${{ github.event.inputs.url || secrets.PREFLIGHT_GATE_URL || secrets.DEPLOYLINT_GATE_URL }}
           PREFLIGHT_MIN_SCORE: ${{ github.event.inputs.min_score || '80' }}
           PREFLIGHT_API: https://deploylint.com
         run: |
           if [ -z "$PREFLIGHT_URL" ]; then
-            echo "Skipping URL gate - set PREFLIGHT_GATE_URL (or DEPLOYLINT_GATE_URL) or workflow_dispatch with url."
+            echo "Skipping URL gate - provide workflow_dispatch url or set PREFLIGHT_GATE_URL (or DEPLOYLINT_GATE_URL)."
             exit 0
           fi
           npm run gate -w preflight -- "$PREFLIGHT_URL"
