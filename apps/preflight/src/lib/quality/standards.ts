@@ -234,6 +234,34 @@ function readScopedCoverageThresholds(viteConfigPath: string): ScopedCoverageThr
 	return scoped;
 }
 
+function readBooleanConfigProperty(configPath: string, propertyName: string): boolean | null {
+	const source = ts.createSourceFile(
+		configPath,
+		readFileSync(configPath, 'utf8'),
+		ts.ScriptTarget.Latest,
+		true
+	);
+	let found: boolean | null = null;
+
+	function visit(node: ts.Node) {
+		if (found !== null) return;
+		if (ts.isPropertyAssignment(node) && propertyNameText(node.name) === propertyName) {
+			if (node.initializer.kind === ts.SyntaxKind.TrueKeyword) {
+				found = true;
+				return;
+			}
+			if (node.initializer.kind === ts.SyntaxKind.FalseKeyword) {
+				found = false;
+				return;
+			}
+		}
+		ts.forEachChild(node, visit);
+	}
+
+	visit(source);
+	return found;
+}
+
 function includesScopedThresholds(
 	actual: ScopedCoverageThresholds,
 	expected: ScopedCoverageThresholds
@@ -558,6 +586,14 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			'src/routes/**/+page.server.{ts,js}',
 			'src/routes/**/+layout.server.{ts,js}'
 		].every((pattern) => viteConfigSource.includes(pattern))
+	);
+	pushCheck(
+		checked,
+		failures,
+		'Vitest configs fail when no tests are discovered',
+		[viteConfigPath, mcpViteConfigPath, deploylintSharedViteConfigPath].every(
+			(configPath) => readBooleanConfigProperty(configPath, 'passWithNoTests') === false
+		)
 	);
 	pushCheck(
 		checked,
