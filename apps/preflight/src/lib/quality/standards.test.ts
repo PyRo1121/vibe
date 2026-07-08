@@ -39,6 +39,7 @@ describe('quality standards guard', () => {
 				'root runtime pins Node and npm for deterministic installs',
 				'Deploylint TypeScript configs keep strict compiler settings',
 				'root dependency audit fails on any known vulnerability',
+				'Dependabot updates npm and GitHub Actions supply-chain dependencies',
 				'root deploylint CI verify runs audit, shared, preflight, mcp, Playwright install, and e2e',
 				'root deploylint local verify skips network-heavy CI-only gates',
 				'root deploylint format gate checks root configs and workflows',
@@ -201,6 +202,16 @@ describe('quality standards guard', () => {
 				export default { kit: { adapter: adapter() } };`
 			);
 			writeFixtureFile(
+				join(root, '.github/dependabot.yml'),
+				`version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+`
+			);
+			writeFixtureFile(
 				join(root, 'apps/preflight/vite.config.ts'),
 				`const coverageMetric = 'statements';
 				export default {
@@ -276,6 +287,7 @@ describe('quality standards guard', () => {
 					'root runtime pins Node and npm for deterministic installs',
 					'Deploylint TypeScript configs keep strict compiler settings',
 					'root dependency audit fails on any known vulnerability',
+					'Dependabot updates npm and GitHub Actions supply-chain dependencies',
 					'root deploylint CI verify runs audit, shared, preflight, mcp, Playwright install, and e2e',
 					'root deploylint local verify skips network-heavy CI-only gates',
 					'root deploylint format gate checks root configs and workflows',

@@ -347,6 +347,27 @@ function hasDeploylintWorkflowTriggers(workflow: string): boolean {
 	);
 }
 
+function dependabotUpdateSection(source: string, ecosystem: string): string | null {
+	const updatePattern =
+		/(?:^|\n)\s*-\s+package-ecosystem:\s*['"]?([^'"\r\n]+)['"]?[\s\S]*?(?=\n\s*-\s+package-ecosystem:|\s*$)/g;
+
+	for (const match of source.matchAll(updatePattern)) {
+		if (match[1] === ecosystem) return match[0];
+	}
+
+	return null;
+}
+
+function hasWeeklyDependabotUpdate(source: string, ecosystem: string): boolean {
+	const section = dependabotUpdateSection(source, ecosystem);
+	return (
+		section !== null &&
+		/^\s*directory:\s*['"]?\/['"]?\s*$/m.test(section) &&
+		/^\s*schedule:\s*$/m.test(section) &&
+		/^\s*interval:\s*['"]?weekly['"]?\s*$/m.test(section)
+	);
+}
+
 export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsReport {
 	const preflightRoot = join(rootDir, 'apps/preflight');
 	const preflightMcpRoot = join(rootDir, 'apps/preflight-mcp');
@@ -363,6 +384,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const oxlintPath = join(rootDir, '.oxlintrc.jsonc');
 	const oxfmtPath = join(rootDir, '.oxfmtrc.jsonc');
 	const rootSvelteConfigPath = join(rootDir, 'svelte.config.js');
+	const dependabotPath = join(rootDir, '.github/dependabot.yml');
 	const nvmrcPath = join(rootDir, '.nvmrc');
 	const knipPath = join(rootDir, 'knip.deploylint.jsonc');
 	const viteConfigPath = join(preflightRoot, 'vite.config.ts');
@@ -391,6 +413,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		oxlintPath,
 		oxfmtPath,
 		rootSvelteConfigPath,
+		dependabotPath,
 		nvmrcPath,
 		knipPath,
 		viteConfigPath,
@@ -466,6 +489,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const mcpViteConfigSource = readFileSync(mcpViteConfigPath, 'utf8');
 	const deploylintSharedViteConfigSource = readFileSync(deploylintSharedViteConfigPath, 'utf8');
 	const rootSvelteConfigSource = readFileSync(rootSvelteConfigPath, 'utf8');
+	const dependabotSource = readFileSync(dependabotPath, 'utf8');
 	const playwrightConfig = readFileSync(playwrightConfigPath, 'utf8');
 	const preflightGateWorkflow = readFileSync(preflightGateWorkflowPath, 'utf8');
 	const dogfoodWorkflow = readFileSync(dogfoodWorkflowPath, 'utf8');
@@ -600,6 +624,15 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
+		'Dependabot updates npm and GitHub Actions supply-chain dependencies',
+		hasWeeklyDependabotUpdate(dependabotSource, 'npm') &&
+			hasWeeklyDependabotUpdate(dependabotSource, 'github-actions') &&
+			dependabotSource.includes('labels:') &&
+			dependabotSource.includes('ci-hardening')
+	);
+	pushCheck(
+		checked,
+		failures,
 		'root deploylint CI verify runs audit, shared, preflight, mcp, Playwright install, and e2e',
 		hasScriptCommand(rootPackage.scripts, 'verify:deploylint:ci', [
 			'npm run audit:security',
@@ -638,6 +671,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			'.oxlintrc.jsonc',
 			'.oxfmtrc.jsonc',
 			'svelte.config.js',
+			'.github/dependabot.yml',
 			'.github/workflows/preflight-gate.yml',
 			'.github/workflows/deploylint-dogfood.yml',
 			'.github/actions/deploylint-gate/action.yml',
