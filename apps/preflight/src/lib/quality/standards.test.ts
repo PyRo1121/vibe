@@ -48,6 +48,7 @@ describe('quality standards guard', () => {
 				'GitHub workflows enforce canonical deploylint CI and MCP dogfood gates',
 				'GitHub workflows declare least-privilege token permissions',
 				'Playwright CI captures screenshots, videos, traces, junit, and html failure reports',
+				'Playwright config forbids focused CI tests and isolates CI server state',
 				'Playwright E2E specs cannot contain focused or disabled tests',
 				'Vitest CI captures junit test-result artifacts for preflight, MCP, and shared packages'
 			])
@@ -244,6 +245,7 @@ describe('quality standards guard', () => {
 					'GitHub workflows enforce canonical deploylint CI and MCP dogfood gates',
 					'GitHub workflows declare least-privilege token permissions',
 					'Playwright CI captures screenshots, videos, traces, junit, and html failure reports',
+					'Playwright config forbids focused CI tests and isolates CI server state',
 					'Playwright E2E specs cannot contain focused or disabled tests',
 					'Vitest CI captures junit test-result artifacts for preflight, MCP, and shared packages',
 					'quality standards script is runnable from npm'

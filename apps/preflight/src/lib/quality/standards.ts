@@ -652,6 +652,15 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
+		'Playwright config forbids focused CI tests and isolates CI server state',
+		playwrightConfig.includes('forbidOnly: !!process.env.CI') &&
+			playwrightConfig.includes('retries: process.env.CI ? 1 : 0') &&
+			playwrightConfig.includes('workers: process.env.CI ? 1 : undefined') &&
+			playwrightConfig.includes('reuseExistingServer: !process.env.CI')
+	);
+	pushCheck(
+		checked,
+		failures,
 		'Playwright E2E specs cannot contain focused or disabled tests',
 		disabledE2eTests.length === 0
 	);
