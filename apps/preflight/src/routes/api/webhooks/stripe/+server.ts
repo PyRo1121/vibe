@@ -42,7 +42,9 @@ function workspaceSubscriptionStatus(
 	value: string | undefined
 ): WorkspaceSubscriptionStatus | null {
 	if (value === 'active' || value === 'trialing') return 'active';
-	if (value === 'past_due' || value === 'unpaid' || value === 'incomplete') return 'past_due';
+	if (value === 'past_due' || value === 'unpaid' || value === 'incomplete' || value === 'paused') {
+		return 'past_due';
+	}
 	if (value === 'canceled' || value === 'incomplete_expired') return 'canceled';
 	return null;
 }
@@ -85,6 +87,16 @@ async function markWebhookEventProcessed(kv: KVNamespace, eventId: string): Prom
 	} catch {
 		return error(503, 'Webhook processing temporarily unavailable');
 	}
+}
+
+async function updateWorkspaceSubscriptionStatusOrFail(
+	env: Env | undefined,
+	subscriptionId: string,
+	status: WorkspaceSubscriptionStatus,
+	plan?: DeploylintPlanId | null
+): Promise<void> {
+	const saved = await updateWorkspaceSubscriptionStatus(env?.AUTH_DB, subscriptionId, status, plan);
+	if (!saved) error(503, 'Workspace subscription storage unavailable');
 }
 
 export const POST: RequestHandler = async ({ request, platform }) => {
@@ -157,7 +169,7 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 					status: 'past_due'
 				});
 			}
-			await updateWorkspaceSubscriptionStatus(platform?.env?.AUTH_DB, subscriptionId, 'past_due');
+			await updateWorkspaceSubscriptionStatusOrFail(platform?.env, subscriptionId, 'past_due');
 			logFunnelEvent('checkout_payment_failed', {});
 		} else if (event.type === 'customer.subscription.deleted') {
 			if (reports) {
@@ -166,7 +178,7 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 					status: 'canceled'
 				});
 			}
-			await updateWorkspaceSubscriptionStatus(platform?.env?.AUTH_DB, subscriptionId, 'canceled');
+			await updateWorkspaceSubscriptionStatusOrFail(platform?.env, subscriptionId, 'canceled');
 			logFunnelEvent('checkout_subscription_canceled', {});
 		} else if (event.type === 'invoice.paid') {
 			if (reports) {
@@ -175,7 +187,7 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 					status: 'active'
 				});
 			}
-			await updateWorkspaceSubscriptionStatus(platform?.env?.AUTH_DB, subscriptionId, 'active');
+			await updateWorkspaceSubscriptionStatusOrFail(platform?.env, subscriptionId, 'active');
 		} else if (event.type === 'customer.subscription.updated') {
 			const status = workspaceSubscriptionStatus(event.data.object.status);
 			if (status) {
@@ -185,8 +197,8 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 						status
 					});
 				}
-				await updateWorkspaceSubscriptionStatus(
-					platform?.env?.AUTH_DB,
+				await updateWorkspaceSubscriptionStatusOrFail(
+					platform?.env,
 					subscriptionId,
 					status,
 					subscriptionPlanFromEvent(event, platform?.env)

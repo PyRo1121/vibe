@@ -72,6 +72,7 @@ function createDeploylintAuth(
 		...authSchemaFieldMappings(),
 		emailAndPassword: {
 			enabled: true,
+			disableSignUp: !features.emailSignup,
 			requireEmailVerification: true,
 			minPasswordLength: 10,
 			sendResetPassword: async ({ user, url }) => {

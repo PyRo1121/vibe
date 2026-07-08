@@ -34,6 +34,7 @@ describe('quality standards guard', () => {
 				'preflight type-aware Oxlint rejects unnecessary type assertions',
 				'preflight verify runs standards, typecheck, lint, type-aware lint, coverage, and build',
 				'preflight verify typechecks scripts and Playwright E2E specs',
+				'preflight verify validates D1 migrations before build and deploy',
 				'preflight production type-aware Oxlint rejects unsafe type assertions',
 				'preflight-mcp verify runs typecheck, lint, type-aware lint, clean build, and coverage',
 				'preflight-mcp production type-aware Oxlint rejects unsafe type assertions',
@@ -104,6 +105,18 @@ describe('quality standards guard', () => {
 			writeFixtureFile(join(root, 'package-lock.json'), JSON.stringify({ lockfileVersion: 3 }));
 			writeFixtureFile(join(root, '.nvmrc'), '24\n');
 			writeFixtureFile(
+				join(root, 'apps/preflight/wrangler.jsonc'),
+				JSON.stringify({
+					d1_databases: [
+						{
+							binding: 'AUTH_DB',
+							database_name: 'preflight-auth',
+							migrations_dir: 'migrations'
+						}
+					]
+				})
+			);
+			writeFixtureFile(
 				join(root, 'apps/preflight/tsconfig.json'),
 				JSON.stringify({
 					compilerOptions: {
@@ -139,6 +152,10 @@ describe('quality standards guard', () => {
 					},
 					devDependencies: {}
 				})
+			);
+			writeFixtureFile(
+				join(root, 'apps/preflight/scripts/check-d1-migrations.mjs'),
+				'console.log("stub");\n'
 			);
 			writeFixtureFile(
 				join(root, 'apps/preflight-mcp/tsconfig.json'),
@@ -367,6 +384,7 @@ jobs:
 					'preflight type-aware Oxlint rejects unnecessary type assertions',
 					'preflight verify runs standards, typecheck, lint, type-aware lint, coverage, and build',
 					'preflight verify typechecks scripts and Playwright E2E specs',
+					'preflight verify validates D1 migrations before build and deploy',
 					'preflight production type-aware Oxlint rejects unsafe type assertions',
 					'preflight-mcp verify runs typecheck, lint, type-aware lint, clean build, and coverage',
 					'preflight-mcp production type-aware Oxlint rejects unsafe type assertions',

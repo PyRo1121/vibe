@@ -98,6 +98,7 @@ describe('getDeploylintAuth', () => {
 			trustedOrigins: ['http://localhost:5173', 'http://127.0.0.1:5173'],
 			emailAndPassword: {
 				enabled: true,
+				disableSignUp: false,
 				requireEmailVerification: true,
 				minPasswordLength: 10
 			},
@@ -143,6 +144,27 @@ describe('getDeploylintAuth', () => {
 			to: 'user@example.test',
 			userName: 'User',
 			url: 'https://deploylint.com/verify'
+		});
+	});
+
+	it('keeps email sign in enabled but disables server-side signup without email delivery', () => {
+		const env = {
+			AUTH_DB: {} as D1Database,
+			PUBLIC_APP_URL: 'http://localhost:5173'
+		};
+
+		const auth = getDeploylintAuth(env, 'http://127.0.0.1:5173');
+
+		expect(auth).not.toBeNull();
+		expect(auth?.options).toMatchObject({
+			emailAndPassword: {
+				enabled: true,
+				disableSignUp: true,
+				requireEmailVerification: true
+			},
+			emailVerification: {
+				sendOnSignUp: false
+			}
 		});
 	});
 

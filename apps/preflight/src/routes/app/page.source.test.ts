@@ -21,6 +21,19 @@ describe('/app workspace source', () => {
 
 		expect(pageSource).toContain('Setup checklist');
 		expect(pageSource).toContain('Next action');
+		expect(pageSource).toContain('CI hardening command center');
+		expect(pageSource).toContain('Workspace readiness at a glance');
+		expect(pageSource).toContain('commandCenterStats');
+		expect(pageSource).toContain('Monitored projects');
+		expect(pageSource).toContain('Blocking gates');
+		expect(pageSource).toContain('CI reports this month');
+		expect(pageSource).toContain('Ready to gate');
+		expect(pageSource).toContain('latestFixedCount');
+		expect(pageSource).toContain('latestRegressionCount');
+		expect(pageSource).toContain('Monitored project inventory');
+		expect(pageSource).toContain('Every deploy target gets its own gate path');
+		expect(pageSource).toContain('workspaceProjects as workspaceProject');
+		expect(pageSource).toContain('slots used');
 		expect(pageSource).toContain('Install in GitHub Actions');
 		expect(pageSource).toContain('Report history');
 		expect(pageSource).toContain('Awaiting first CI report');

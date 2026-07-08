@@ -11,6 +11,7 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:scripts": "tsc --noEmit -p tsconfig.scripts.json",
 		"check:e2e": "tsc --noEmit -p tsconfig.e2e.json",
+		"check:migrations": "node scripts/check-d1-migrations.mjs",
 		"lint": "oxfmt --check . && oxlint -c ../../.oxlintrc.jsonc --max-warnings=0 .",
 		"lint:oxlint": "oxlint -c ../../.oxlintrc.jsonc --max-warnings=0 .",
 		"lint:type-aware": "oxlint -c ../../.oxlintrc.jsonc --type-aware -A typescript/no-unsafe-type-assertion .",
@@ -23,7 +24,7 @@
 		"test:e2e:install": "playwright install chromium",
 		"test:watch": "vitest",
 		"quality:standards": "tsx src/lib/quality/standards.ts",
-		"verify": "npm run quality:standards && npm run sync:gate-remote:check && npm run check && npm run check:scripts && npm run check:e2e && npm run lint && npm run lint:type-aware && npm run lint:type-aware:prod && npm run test:coverage && npm run build",
+		"verify": "npm run quality:standards && npm run sync:gate-remote:check && npm run check && npm run check:scripts && npm run check:e2e && npm run check:migrations && npm run lint && npm run lint:type-aware && npm run lint:type-aware:prod && npm run test:coverage && npm run build",
 		"verify:full": "npm run verify && npm run test:e2e",
 		"cf-typegen": "wrangler types src/cloudflare-env.d.ts --include-runtime false",
 		"setup:stripe": "powershell -ExecutionPolicy Bypass -File scripts/setup-stripe.ps1",
@@ -34,6 +35,7 @@
 		"stripe:test-webhook": "powershell -ExecutionPolicy Bypass -File scripts/test-webhook.ps1",
 		"gate": "tsx scripts/gate.ts",
 		"gate:remote": "node scripts/gate-remote.mjs",
+		"migrations:apply:remote": "wrangler d1 migrations apply preflight-auth --remote",
 		"sync:gate-remote": "node scripts/sync-gate-remote.mjs",
 		"sync:gate-remote:check": "node scripts/sync-gate-remote.mjs --check",
 		"smoke:phase18": "node scripts/smoke-phase18.mjs",
@@ -48,7 +50,7 @@
 		"setup:cloudflare-firewall": "node scripts/setup-cloudflare-firewall.mjs",
 		"seo:indexnow": "tsx scripts/submit-indexnow.ts",
 		"count:checks": "node scripts/count-checks.mjs",
-		"deploy": "npm run sync:gate-remote && npm run build && wrangler deploy"
+		"deploy": "npm run sync:gate-remote && npm run check:migrations && npm run build && npm run migrations:apply:remote && wrangler deploy"
 	},
 	"dependencies": {
 		"@vibe/deploylint-shared": "file:../deploylint-shared",

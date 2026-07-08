@@ -19,6 +19,7 @@ $Events = @(
 	'checkout.session.async_payment_failed',
 	'invoice.payment_failed',
 	'invoice.paid',
+	'customer.subscription.updated',
 	'customer.subscription.deleted'
 )
 

@@ -761,6 +761,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const rootPackagePath = join(rootDir, 'package.json');
 	const rootLockPath = join(rootDir, 'package-lock.json');
 	const preflightPackagePath = join(preflightRoot, 'package.json');
+	const preflightWranglerPath = join(preflightRoot, 'wrangler.jsonc');
 	const preflightTsconfigPath = join(preflightRoot, 'tsconfig.json');
 	const preflightScriptsTsconfigPath = join(preflightRoot, 'tsconfig.scripts.json');
 	const preflightE2eTsconfigPath = join(preflightRoot, 'tsconfig.e2e.json');
@@ -769,6 +770,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const deploylintSharedPackagePath = join(deploylintSharedRoot, 'package.json');
 	const deploylintSharedTsconfigPath = join(deploylintSharedRoot, 'tsconfig.json');
 	const deploylintSharedViteConfigPath = join(deploylintSharedRoot, 'vitest.config.ts');
+	const d1MigrationCheckScriptPath = join(preflightRoot, 'scripts/check-d1-migrations.mjs');
 	const localGateScriptPath = join(preflightRoot, 'scripts/gate.ts');
 	const remoteGateScriptPath = join(preflightRoot, 'scripts/gate-remote.mjs');
 	const oxlintPath = join(rootDir, '.oxlintrc.jsonc');
@@ -797,6 +799,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		rootPackagePath,
 		rootLockPath,
 		preflightPackagePath,
+		preflightWranglerPath,
 		preflightTsconfigPath,
 		preflightScriptsTsconfigPath,
 		preflightE2eTsconfigPath,
@@ -805,6 +808,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		deploylintSharedPackagePath,
 		deploylintSharedTsconfigPath,
 		deploylintSharedViteConfigPath,
+		d1MigrationCheckScriptPath,
 		localGateScriptPath,
 		remoteGateScriptPath,
 		oxlintPath,
@@ -841,6 +845,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const rootPackage = readPackageConfig(rootPackagePath);
 	const rootLock = readJsonRecord(rootLockPath);
 	const preflightPackage = readPackageConfig(preflightPackagePath);
+	const preflightWranglerSource = readFileSync(preflightWranglerPath, 'utf8');
 	const preflightTsconfig = readTsconfig(preflightTsconfigPath);
 	const preflightScriptsTsconfig = readJsonRecord(preflightScriptsTsconfigPath);
 	const preflightE2eTsconfig = readJsonRecord(preflightE2eTsconfigPath);
@@ -931,6 +936,32 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			readStringArray(preflightScriptsTsconfig.include).includes('scripts/**/*.ts') &&
 			!readStringArray(preflightScriptsTsconfig.include).includes('scripts/**/*.mjs') &&
 			readStringArray(preflightE2eTsconfig.include).includes('e2e/**/*.ts')
+	);
+	pushCheck(
+		checked,
+		failures,
+		'preflight verify validates D1 migrations before build and deploy',
+		hasScriptCommand(preflightPackage.scripts, 'check:migrations', [
+			'node scripts/check-d1-migrations.mjs'
+		]) &&
+			hasScriptCommand(preflightPackage.scripts, 'migrations:apply:remote', [
+				'wrangler d1 migrations apply preflight-auth --remote'
+			]) &&
+			hasScriptCommand(preflightPackage.scripts, 'verify', [
+				'check:migrations',
+				'test:coverage',
+				'build'
+			]) &&
+			hasScriptCommand(preflightPackage.scripts, 'deploy', [
+				'sync:gate-remote',
+				'check:migrations',
+				'build',
+				'migrations:apply:remote',
+				'wrangler deploy'
+			]) &&
+			preflightWranglerSource.includes('"binding": "AUTH_DB"') &&
+			preflightWranglerSource.includes('"database_name": "preflight-auth"') &&
+			preflightWranglerSource.includes('"migrations_dir": "migrations"')
 	);
 	pushCheck(
 		checked,

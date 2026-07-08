@@ -369,6 +369,7 @@ describe('Stripe webhook route', () => {
 
 	it('deactivates subscription unlocks when Stripe reports cancellation', async () => {
 		const secret = 'whsec_test';
+		const db = new FakeD1();
 		const store = new Map<string, string>();
 		const kv = {
 			get: async (key: string) => {
@@ -399,7 +400,13 @@ describe('Stripe webhook route', () => {
 
 		const res = await POST({
 			request: webhookRequest(payload, secret),
-			platform: { env: { STRIPE_WEBHOOK_SECRET: secret, REPORTS: kv } }
+			platform: {
+				env: {
+					AUTH_DB: db as unknown as D1Database,
+					REPORTS: kv,
+					STRIPE_WEBHOOK_SECRET: secret
+				}
+			}
 		} as Parameters<typeof POST>[0]);
 
 		expect(res.status).toBe(200);
@@ -408,10 +415,17 @@ describe('Stripe webhook route', () => {
 			active: false,
 			status: 'canceled'
 		});
+		expect(db.calls).toEqual([
+			expect.objectContaining({
+				sql: expect.stringContaining('WHERE stripe_subscription_id = ?'),
+				values: ['canceled', expect.any(Number), 'sub_123']
+			})
+		]);
 	});
 
 	it('marks failed invoices inactive and invoice.paid active again', async () => {
 		const secret = 'whsec_test';
+		const db = new FakeD1();
 		const store = new Map<string, string>();
 		const kv = {
 			get: async (key: string) => {
@@ -436,7 +450,13 @@ describe('Stripe webhook route', () => {
 		});
 		await POST({
 			request: webhookRequest(failedPayload, secret),
-			platform: { env: { STRIPE_WEBHOOK_SECRET: secret, REPORTS: kv } }
+			platform: {
+				env: {
+					AUTH_DB: db as unknown as D1Database,
+					REPORTS: kv,
+					STRIPE_WEBHOOK_SECRET: secret
+				}
+			}
 		} as Parameters<typeof POST>[0]);
 
 		expect(await hasUnlock(kv, 'https://app.test', 'cs_test_abc')).toBe(false);
@@ -452,7 +472,13 @@ describe('Stripe webhook route', () => {
 		});
 		await POST({
 			request: webhookRequest(paidPayload, secret),
-			platform: { env: { STRIPE_WEBHOOK_SECRET: secret, REPORTS: kv } }
+			platform: {
+				env: {
+					AUTH_DB: db as unknown as D1Database,
+					REPORTS: kv,
+					STRIPE_WEBHOOK_SECRET: secret
+				}
+			}
 		} as Parameters<typeof POST>[0]);
 
 		expect(await hasUnlock(kv, 'https://app.test', 'cs_test_abc')).toBe(true);
@@ -460,6 +486,7 @@ describe('Stripe webhook route', () => {
 			active: true,
 			status: 'active'
 		});
+		expect(db.calls.map((call) => call.values[0])).toEqual(['past_due', 'active']);
 	});
 
 	it('updates D1 workspace subscription status from invoice events', async () => {
@@ -491,6 +518,22 @@ describe('Stripe webhook route', () => {
 				values: ['past_due', expect.any(Number), 'sub_workspace']
 			})
 		]);
+	});
+
+	it('fails closed when subscription lifecycle events cannot update D1 state', async () => {
+		const secret = 'whsec_test';
+		const payload = JSON.stringify({
+			id: 'evt_workspace_invoice_failed_without_db',
+			type: 'invoice.payment_failed',
+			data: { object: { id: 'in_failed', customer: 'cus_123', subscription: 'sub_workspace' } }
+		});
+
+		await expect(
+			POST({
+				request: webhookRequest(payload, secret),
+				platform: { env: { STRIPE_WEBHOOK_SECRET: secret } }
+			} as Parameters<typeof POST>[0])
+		).rejects.toMatchObject({ status: 503 });
 	});
 
 	it('updates D1 workspace subscription status and plan from subscription update events', async () => {
@@ -624,11 +667,11 @@ describe('Stripe webhook route', () => {
 		]);
 	});
 
-	it('ignores subscription update statuses that are not billable state changes', async () => {
+	it('marks paused subscription updates inactive', async () => {
 		const secret = 'whsec_test';
 		const db = new FakeD1();
 		const payload = JSON.stringify({
-			id: 'evt_subscription_unknown_status',
+			id: 'evt_subscription_paused',
 			type: 'customer.subscription.updated',
 			data: {
 				object: {
@@ -653,11 +696,49 @@ describe('Stripe webhook route', () => {
 			received: true,
 			ignored: 'customer.subscription.updated'
 		});
+		expect(db.calls).toEqual([
+			expect.objectContaining({
+				sql: expect.stringContaining('plan = ?'),
+				values: ['past_due', 'agency', expect.any(Number), 'sub_workspace']
+			})
+		]);
+	});
+
+	it('ignores subscription update statuses that are not billable state changes', async () => {
+		const secret = 'whsec_test';
+		const db = new FakeD1();
+		const payload = JSON.stringify({
+			id: 'evt_subscription_unknown_status',
+			type: 'customer.subscription.updated',
+			data: {
+				object: {
+					id: 'sub_workspace',
+					status: 'ended',
+					metadata: { plan: 'agency' }
+				}
+			}
+		});
+
+		const response = await POST({
+			request: webhookRequest(payload, secret),
+			platform: {
+				env: {
+					AUTH_DB: db as unknown as D1Database,
+					STRIPE_WEBHOOK_SECRET: secret
+				}
+			}
+		} as Parameters<typeof POST>[0]);
+
+		expect(await response.json()).toEqual({
+			received: true,
+			ignored: 'customer.subscription.updated'
+		});
 		expect(db.calls).toEqual([]);
 	});
 
 	it('marks async checkout payment failures inactive by subscription id', async () => {
 		const secret = 'whsec_test';
+		const db = new FakeD1();
 		const store = new Map<string, string>();
 		const kv = {
 			get: async (key: string) => {
@@ -682,7 +763,13 @@ describe('Stripe webhook route', () => {
 		});
 		const response = await POST({
 			request: webhookRequest(payload, secret),
-			platform: { env: { STRIPE_WEBHOOK_SECRET: secret, REPORTS: kv } }
+			platform: {
+				env: {
+					AUTH_DB: db as unknown as D1Database,
+					REPORTS: kv,
+					STRIPE_WEBHOOK_SECRET: secret
+				}
+			}
 		} as Parameters<typeof POST>[0]);
 
 		expect(await response.json()).toEqual({
@@ -693,6 +780,12 @@ describe('Stripe webhook route', () => {
 			active: false,
 			status: 'past_due'
 		});
+		expect(db.calls).toEqual([
+			expect.objectContaining({
+				sql: expect.stringContaining('WHERE stripe_subscription_id = ?'),
+				values: ['past_due', expect.any(Number), 'sub_async']
+			})
+		]);
 	});
 
 	it('marks ignored events processed when no subscription id is present', async () => {

@@ -100,6 +100,16 @@ export interface WorkspaceGatePolicy {
 	blocks: string[];
 }
 
+export interface WorkspaceCommandCenterStats {
+	projectsUsed: number;
+	projectLimit: number;
+	gatesEnabled: number;
+	reportsThisMonth: number;
+	projectsReadyForGate: number;
+	latestFixedCount: number;
+	latestRegressionCount: number;
+}
+
 export const workspaceActivationSteps = [
 	{
 		id: 'project',
@@ -249,6 +259,35 @@ export function buildWorkspaceGatePolicy(project: DeploylintProject): WorkspaceG
 	};
 }
 
+export function buildWorkspaceCommandCenterStats(
+	workspace: DeploylintWorkspace
+): WorkspaceCommandCenterStats {
+	const projectsReadyForGate = workspace.projects.filter(
+		(project) =>
+			project.installState === 'advisory_installed' &&
+			project.latestReport?.verdict === 'go' &&
+			project.latestReport.score >= project.minScore
+	).length;
+	const latestFixedCount = workspace.projects.reduce(
+		(total, project) => total + (project.latestReport?.fixedCount ?? 0),
+		0
+	);
+	const latestRegressionCount = workspace.projects.reduce(
+		(total, project) => total + (project.latestReport?.regressedCount ?? 0),
+		0
+	);
+
+	return {
+		projectsUsed: workspace.metrics.activeProjects,
+		projectLimit: workspace.billing.projectLimit,
+		gatesEnabled: workspace.metrics.gatesEnabled,
+		reportsThisMonth: workspace.metrics.reportsThisMonth,
+		projectsReadyForGate,
+		latestFixedCount,
+		latestRegressionCount
+	};
+}
+
 function normalizeAppUrl(appUrl: string): string {
 	return appUrl.trim().replace(/\/$/, '');
 }
@@ -351,8 +390,11 @@ jobs:
             exit 0
           fi
           if [ -z "$DEPLOYLINT_INGEST_TOKEN" ]; then
-            echo "Skipping Deploylint workspace history because DEPLOYLINT_INGEST_TOKEN is unavailable (add it as a GitHub Actions secret)."
-            exit 0
+            if [ "$DEPLOYLINT_MODE" = "gate" ]; then
+              echo "DEPLOYLINT_INGEST_TOKEN is required for Deploylint gate mode. Add it as a GitHub Actions secret before enabling blocking." >&2
+              exit 2
+            fi
+            echo "Continuing without Deploylint workspace history because DEPLOYLINT_INGEST_TOKEN is unavailable (add it as a GitHub Actions secret)."
           fi
           curl -fsSL ${appUrl}/gate-remote.mjs -o gate-remote.mjs
           node gate-remote.mjs "$DEPLOYLINT_URL"`;

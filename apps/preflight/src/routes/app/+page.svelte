@@ -3,6 +3,7 @@
 	import SeoHead from '$lib/components/SeoHead.svelte';
 	import { DEPLOYLINT_PLAN_LIST } from '$lib/product/plans';
 	import {
+		buildWorkspaceCommandCenterStats,
 		workspaceGateHardeningSteps,
 		type ActivationStepStatus,
 		type ProjectInstallState,
@@ -24,6 +25,7 @@
 	let tokenCopyTimer: ReturnType<typeof setTimeout> | null = null;
 
 	const workspace = $derived(data.workspace);
+	const workspaceProjects = $derived(workspace.projects);
 	const project = $derived(data.workspace.projects[0]);
 	const storageUnavailable = $derived(workspace.storageStatus === 'unavailable');
 	const activation = $derived(data.activation);
@@ -67,6 +69,33 @@
 	);
 	const hasAdvisoryWorkflow = $derived(data.advisoryWorkflow.trim().length > 0);
 	const checkoutNotice = $derived(checkoutNoticeCopy(data.checkoutStatus));
+	const workspaceCommandStats = $derived(buildWorkspaceCommandCenterStats(workspace));
+	const commandCenterStats = $derived([
+		{
+			id: 'projects',
+			label: 'Monitored projects',
+			value: `${workspaceCommandStats.projectsUsed}/${workspaceCommandStats.projectLimit}`,
+			detail: 'Workspace capacity'
+		},
+		{
+			id: 'gates',
+			label: 'Blocking gates',
+			value: String(workspaceCommandStats.gatesEnabled),
+			detail: 'Enforcing deploy policy'
+		},
+		{
+			id: 'reports',
+			label: 'CI reports this month',
+			value: String(workspaceCommandStats.reportsThisMonth),
+			detail: 'Evidence captured'
+		},
+		{
+			id: 'ready',
+			label: 'Ready to gate',
+			value: String(workspaceCommandStats.projectsReadyForGate),
+			detail: 'Advisory projects clean enough'
+		}
+	]);
 	const title = buildSeoTitle('Project workspace');
 	const description =
 		'Deploylint project workspace for GitHub Actions advisory reports, deploy gates, report history, and subscription state.';
@@ -255,6 +284,32 @@
 			</div>
 		{/if}
 
+		<div class="mb-5 rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
+			<div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+				<div>
+					<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
+						CI hardening command center
+					</p>
+					<h2 class="mt-1 text-lg font-semibold text-white">Workspace readiness at a glance</h2>
+				</div>
+				<p class="text-sm text-zinc-500">
+					Latest reports fixed {workspaceCommandStats.latestFixedCount} checks and found {workspaceCommandStats.latestRegressionCount}
+					regressions.
+				</p>
+			</div>
+			<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+				{#each commandCenterStats as stat (stat.id)}
+					<div class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-4">
+						<p class="text-[10px] font-semibold tracking-widest text-zinc-500 uppercase">
+							{stat.label}
+						</p>
+						<p class="mt-2 text-2xl font-semibold text-white">{stat.value}</p>
+						<p class="mt-1 text-xs leading-5 text-zinc-500">{stat.detail}</p>
+					</div>
+				{/each}
+			</div>
+		</div>
+
 		<div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
 			<div class="rounded-xl border border-sky-500/30 bg-sky-950/20 p-5">
 				<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -369,6 +424,78 @@
 					{/if}
 				</div>
 			</aside>
+		</div>
+	</section>
+
+	<section class="mb-8 rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">
+		<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+			<div>
+				<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
+					Monitored project inventory
+				</p>
+				<h2 class="mt-2 text-xl font-semibold text-white">
+					Every deploy target gets its own gate path
+				</h2>
+				<p class="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+					Track install state, latest report quality, and gate readiness per project before
+					expanding the workspace.
+				</p>
+			</div>
+			<span class="w-fit rounded-full border border-zinc-700 px-3 py-1 text-xs text-zinc-400">
+				{workspaceProjects.length} of {workspace.billing.projectLimit} slots used
+			</span>
+		</div>
+
+		<div class="mt-5 divide-y divide-zinc-800 rounded-xl border border-zinc-800 bg-zinc-950/40">
+			{#each workspaceProjects as workspaceProject (workspaceProject.id)}
+				<div class="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_160px_160px_130px] lg:items-center">
+					<div>
+						<p class="text-sm font-semibold text-white">{workspaceProject.name}</p>
+						<p class="mt-1 text-sm text-zinc-500">{workspaceProject.repoLabel}</p>
+						<p class="mt-1 font-mono text-xs break-all text-zinc-600">
+							{workspaceProject.deployUrl}
+						</p>
+					</div>
+					<div>
+						<p class="text-xs text-zinc-500">Install state</p>
+						<p class="mt-1 text-sm font-medium text-zinc-200">
+							{installStateLabel(workspaceProject.installState)}
+						</p>
+					</div>
+					<div>
+						<p class="text-xs text-zinc-500">Latest evidence</p>
+						<p class="mt-1 text-sm font-medium text-zinc-200">
+							{workspaceProject.latestReport
+								? `${workspaceProject.latestReport.score} / ${workspaceProject.latestReport.verdict}`
+								: 'Awaiting CI run'}
+						</p>
+					</div>
+					<div class="lg:text-right">
+						<span
+							class={[
+								'inline-flex rounded-full border px-3 py-1 text-xs font-semibold',
+								workspaceProject.installState === 'gate_enabled'
+									? 'border-emerald-500/40 text-emerald-300'
+									: workspaceProject.latestReport?.verdict === 'go' &&
+										  workspaceProject.latestReport.score >= workspaceProject.minScore
+										? 'border-sky-500/40 text-sky-300'
+										: 'border-zinc-700 text-zinc-400'
+							]}
+						>
+							{workspaceProject.installState === 'gate_enabled'
+								? 'Gate enforcing'
+								: workspaceProject.latestReport?.verdict === 'go' &&
+									  workspaceProject.latestReport.score >= workspaceProject.minScore
+									? 'Ready to gate'
+									: 'Advisory'}
+						</span>
+					</div>
+				</div>
+			{:else}
+				<p class="p-4 text-sm text-zinc-500">
+					Create a monitored project to start CI evidence and gate tracking.
+				</p>
+			{/each}
 		</div>
 	</section>
 

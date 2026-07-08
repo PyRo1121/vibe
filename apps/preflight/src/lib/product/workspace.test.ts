@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
 	buildAdvisoryWorkflow,
+	buildWorkspaceCommandCenterStats,
 	buildProjectDraftFromSearchParams,
 	buildWorkspaceSetupState,
 	buildWorkspaceGatePolicy,
@@ -59,6 +60,7 @@ describe('Deploylint workspace model', () => {
 		);
 		expect(workflow).toContain('if [ -z "$DEPLOYLINT_INGEST_TOKEN" ]; then');
 		expect(workflow).toContain('DEPLOYLINT_INGEST_TOKEN is unavailable');
+		expect(workflow).toContain('Continuing without Deploylint workspace history');
 		expect(workflow).toContain('node gate-remote.mjs "$DEPLOYLINT_URL"');
 	});
 
@@ -73,6 +75,8 @@ describe('Deploylint workspace model', () => {
 
 		expect(workflow).toContain('DEPLOYLINT_MODE: gate');
 		expect(workflow).toContain("DEPLOYLINT_MIN_SCORE: '90'");
+		expect(workflow).toContain('DEPLOYLINT_INGEST_TOKEN is required for Deploylint gate mode');
+		expect(workflow).toContain('exit 2');
 		expect(workflow).not.toContain('DEPLOYLINT_MODE: advisory');
 	});
 
@@ -200,6 +204,71 @@ describe('Deploylint workspace model', () => {
 		expect(policy.blocks).toContain('Score below 92');
 		expect(policy.blocks).toContain('NO-GO deploy verdict');
 		expect(policy.blocks.some((blocker) => blocker.includes('P0 blocker'))).toBe(true);
+	});
+
+	it('builds command center stats across multiple monitored projects', () => {
+		const workspace = buildWorkspaceSetupState({
+			appUrl: 'https://deploylint.com',
+			alphaFreeUnlock: false
+		});
+		workspace.billing.projectLimit = 5;
+		workspace.metrics.activeProjects = 3;
+		workspace.metrics.gatesEnabled = 1;
+		workspace.metrics.reportsThisMonth = 8;
+		workspace.projects = [
+			{
+				...workspace.projects[0],
+				id: 'proj_gate_ready',
+				installState: 'advisory_installed',
+				minScore: 90,
+				latestReport: {
+					id: 'report_ready',
+					score: 94,
+					verdict: 'go',
+					scannedAt: '2026-07-08T00:00:00.000Z',
+					fixedCount: 5,
+					regressedCount: 1
+				}
+			},
+			{
+				...workspace.projects[0],
+				id: 'proj_below_threshold',
+				installState: 'advisory_installed',
+				minScore: 95,
+				latestReport: {
+					id: 'report_below_threshold',
+					score: 94,
+					verdict: 'go',
+					scannedAt: '2026-07-08T00:00:00.000Z',
+					fixedCount: 2,
+					regressedCount: 3
+				}
+			},
+			{
+				...workspace.projects[0],
+				id: 'proj_gate_enabled',
+				installState: 'gate_enabled',
+				gateMode: 'gate',
+				latestReport: {
+					id: 'report_gate',
+					score: 99,
+					verdict: 'go',
+					scannedAt: '2026-07-08T00:00:00.000Z',
+					fixedCount: 4,
+					regressedCount: 0
+				}
+			}
+		];
+
+		expect(buildWorkspaceCommandCenterStats(workspace)).toEqual({
+			projectsUsed: 3,
+			projectLimit: 5,
+			gatesEnabled: 1,
+			reportsThisMonth: 8,
+			projectsReadyForGate: 1,
+			latestFixedCount: 11,
+			latestRegressionCount: 4
+		});
 	});
 
 	it('marks workflow install as the current next action before CI is installed', () => {
