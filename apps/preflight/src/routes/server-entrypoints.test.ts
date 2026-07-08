@@ -68,6 +68,7 @@ vi.mock('$lib/server/usage-budget', () => ({
 	assertPlausibleEventBudget: mockAssertPlausibleEventBudget
 }));
 
+import { GET as wellKnownSecurityGet } from './.well-known/security.txt/+server';
 import { POST as billingPortalPost } from './api/billing/portal/+server';
 import { POST as checkoutPost } from './api/checkout/+server';
 import { POST as eventsPost } from './api/events/+server';
@@ -176,6 +177,12 @@ describe('public utility route entrypoints', () => {
 		const security = await securityGet({} as Parameters<typeof securityGet>[0]);
 		expect(security.headers.get('Content-Type')).toContain('text/plain');
 		expect(await security.text()).toContain('Contact:');
+
+		const wellKnownSecurity = await wellKnownSecurityGet(
+			{} as Parameters<typeof wellKnownSecurityGet>[0]
+		);
+		expect(wellKnownSecurity.headers.get('Content-Type')).toContain('text/plain');
+		expect(await wellKnownSecurity.text()).toContain('Contact:');
 
 		const blocked = await blockedGet({} as Parameters<typeof blockedGet>[0]);
 		expect(blocked.status).toBe(403);
