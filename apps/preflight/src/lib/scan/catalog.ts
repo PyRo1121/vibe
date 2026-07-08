@@ -707,6 +707,14 @@ const ADDITIONAL_CHECK_CATALOG = {
 		falsePositive:
 			'Some repositories deploy through an external platform after GitHub checks pass; document that protected deployment path if a detected deploy-like workflow job is intentionally advisory only.'
 	},
+	'deploy-job-environment': {
+		id: 'deploy-job-environment',
+		why: 'Production deploy jobs should use GitHub environments so approvals, branch rules, wait timers, and environment-scoped secrets can guard release steps.',
+		detectedBy:
+			'Parses deploy-like GitHub Actions jobs for job-level jobs.<job_id>.environment declarations, including scalar and name-based environment syntax.',
+		falsePositive:
+			'Some teams protect deployment in an external platform or reusable workflow outside the sampled file; document that protected path if GitHub environment rules are intentionally not used.'
+	},
 	contact: {
 		id: 'contact',
 		why: 'A public launch needs an obvious support or contact path so users, buyers, and security reporters are not left guessing.',

@@ -531,6 +531,118 @@ jobs:
 		});
 	});
 
+	it('warns when deploy jobs do not declare a job-level environment', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/release.yml',
+				text: `
+name: Release
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@${FULL_ACTION_SHA}
+      - run: npm test
+      - run: npm run build
+  deploy:
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - run: npm run deploy
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'deploy-job-environment')).toMatchObject({
+			status: 'warn',
+			message: expect.stringContaining('does not declare a GitHub environment'),
+			evidence: { path: '.github/workflows/release.yml', snippet: 'deploy' }
+		});
+	});
+
+	it('passes deploy jobs with scalar and block environments', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/release.yml',
+				text: `
+name: Release
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@${FULL_ACTION_SHA}
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+  deploy:
+    runs-on: ubuntu-latest
+    needs: verify
+    environment: production
+    steps:
+      - run: npm run deploy
+  publish:
+    runs-on: ubuntu-latest
+    needs: verify
+    environment:
+      name: production
+      url: https://app.example.com
+    steps:
+      - run: npm publish
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'deploy-job-environment')).toMatchObject({
+			status: 'pass',
+			message: expect.stringContaining('declare job-level environments')
+		});
+	});
+
+	it('ignores nested step environment values when checking deploy environments', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/release.yml',
+				text: `
+name: Release
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@${FULL_ACTION_SHA}
+      - run: npm test
+      - run: npm run build
+  deploy:
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - uses: acme/deploy@${FULL_ACTION_SHA}
+        with:
+          environment: production
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'deploy-job-environment')).toMatchObject({
+			status: 'warn',
+			evidence: { path: '.github/workflows/release.yml', snippet: 'deploy' }
+		});
+	});
+
 	it('passes deploy jobs through transitive needs chains and block-list needs syntax', () => {
 		const findings = analyzeCiWorkflows([
 			{
@@ -570,6 +682,32 @@ jobs:
 
 		expect(findings.find((finding) => finding.id === 'deploy-job-dependencies')).toMatchObject({
 			status: 'pass'
+		});
+	});
+
+	it('does not treat Deploylint advisory jobs as production deploy jobs', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/deploylint.yml',
+				text: `
+name: Deploylint
+on: pull_request
+permissions:
+  contents: read
+jobs:
+  deploylint-advisory:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -fsSL https://deploylint.com/gate-remote.mjs -o gate-remote.mjs
+          DEPLOYLINT_URL=https://app.example.com DEPLOYLINT_MODE=advisory node gate-remote.mjs
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'deploy-job-environment')).toMatchObject({
+			status: 'pass',
+			message: expect.stringContaining('No deploy-like GitHub Actions job')
 		});
 	});
 

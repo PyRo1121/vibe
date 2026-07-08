@@ -53,6 +53,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: [verify, codeql]
+    environment: production
     steps:
       - run: npm run deploy`;
 
@@ -67,12 +68,13 @@ test.describe('GitHub Actions checker', () => {
 		await expect(page.getByRole('heading', { name: 'CodeQL scanning' })).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Dependency review' })).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Deploy dependencies' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Deploy environment' })).toBeVisible();
 
 		await page.getByLabel('Workflow YAML').fill(hardenedWorkflow);
 
 		await expect(page.getByText('Hardened', { exact: true })).toBeVisible();
 		await expect(page.getByText('100', { exact: true })).toBeVisible();
-		await expect(page.getByText('8 pass')).toBeVisible();
+		await expect(page.getByText('9 pass')).toBeVisible();
 		await expect(page.getByText('0 fail')).toBeVisible();
 		await expect(
 			page.getByText(

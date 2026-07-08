@@ -10,7 +10,8 @@ const TOOL_FINDING_IDS = new Set([
 	'workflow-action-pinning',
 	'workflow-immutable-action-pins',
 	'codeql-code-scanning',
-	'deploy-job-dependencies'
+	'deploy-job-dependencies',
+	'deploy-job-environment'
 ]);
 
 const FINDING_COPY: Record<
@@ -84,6 +85,16 @@ permissions:
     needs: [verify]
     steps:
       - run: npm run deploy`
+	},
+	'deploy-job-environment': {
+		shortTitle: 'Deploy environment',
+		why: 'Production deploy jobs should use GitHub environments so approvals, branch rules, and environment secrets guard release steps.',
+		fix: 'Add job-level environment: production to deploy jobs and configure the production environment with protection rules.',
+		snippet: `deploy:
+  needs: [verify]
+  environment: production
+  steps:
+    - run: npm run deploy`
 	}
 };
 
@@ -318,6 +329,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: [verify, codeql]
+    environment: production
     steps:
       - run: npm run deploy`;
 

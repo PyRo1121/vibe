@@ -129,6 +129,7 @@ describe('fixPrompt coverage for new check ids', () => {
 			'workflow-immutable-action-pins',
 			'codeql-code-scanning',
 			'deploy-job-dependencies',
+			'deploy-job-environment',
 			'svelte-check',
 			'deploy-config',
 			'wrangler-compat-date',

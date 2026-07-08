@@ -35,16 +35,18 @@ describe('repo findings', () => {
 	});
 
 	it('treats deploy dependency gaps as fix-soon launch risks', () => {
-		const finding = normalizeRepoFinding({
-			id: 'deploy-job-dependencies',
-			category: 'launch',
-			title: 'Deploy job dependencies',
-			status: 'warn',
-			message: 'Deploy job can run without a needs dependency on verify jobs.'
-		});
+		for (const id of ['deploy-job-dependencies', 'deploy-job-environment']) {
+			const finding = normalizeRepoFinding({
+				id,
+				category: 'launch',
+				title: 'Deploy job hardening',
+				status: 'warn',
+				message: 'Deploy job is missing production hardening.'
+			});
 
-		expect(finding.launchImpact).toBe('fix-soon');
-		expect(finding.fixPromptId).toBe('deploy-job-dependencies');
+			expect(finding.launchImpact).toBe('fix-soon');
+			expect(finding.fixPromptId).toBe(id);
+		}
 	});
 
 	it('keeps explicit launch-impact overrides', () => {

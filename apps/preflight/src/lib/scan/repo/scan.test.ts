@@ -962,6 +962,13 @@ jobs:
 		});
 		expect(deployDependencies?.message).toContain('Deploy job "deploy" can run without a needs');
 		expect(deployDependencies?.message).toContain('jobs run in parallel unless needs is set');
+		const deployEnvironment = report.checks.find((check) => check.id === 'deploy-job-environment');
+		expect(deployEnvironment).toMatchObject({
+			status: 'warn',
+			title: 'Deploy job environment',
+			category: 'launch'
+		});
+		expect(deployEnvironment?.message).toContain('does not declare a GitHub environment');
 		expect(report.repo?.filesSampled).toContain(workflowPath);
 	});
 

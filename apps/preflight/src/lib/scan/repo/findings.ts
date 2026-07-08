@@ -73,6 +73,7 @@ const FIX_SOON_RULE_IDS = new Set([
 	'dependency-review-action',
 	'dependabot-config',
 	'deploy-job-dependencies',
+	'deploy-job-environment',
 	'deploylint-ci-wiring',
 	'deploy-config',
 	'gitignore-env',

@@ -35,6 +35,12 @@ describe('GitHub Actions hardening tool analyzer', () => {
 			status: 'warn',
 			shortTitle: 'Deploy dependencies'
 		});
+		expect(
+			result.findings.find((finding) => finding.id === 'deploy-job-environment')
+		).toMatchObject({
+			status: 'warn',
+			shortTitle: 'Deploy environment'
+		});
 		expect(result.repairPrompt).toContain('Fix this GitHub Actions workflow');
 		expect(result.repairPrompt).toContain('pull_request_target');
 		expect(result.nextAction).toContain('use advisory mode first');
@@ -68,7 +74,7 @@ describe('GitHub Actions hardening tool analyzer', () => {
 
 		expect(result).toMatchObject({
 			score: 100,
-			pass: 8,
+			pass: 9,
 			warn: 0,
 			fail: 0,
 			verdict: 'hardened'
@@ -78,6 +84,7 @@ describe('GitHub Actions hardening tool analyzer', () => {
 		expect(result.hardenedWorkflow).toContain('dependency-review-action');
 		expect(result.hardenedWorkflow).toContain('github/codeql-action/analyze');
 		expect(result.hardenedWorkflow).toContain('needs: [verify, codeql]');
+		expect(result.hardenedWorkflow).toContain('environment: production');
 		expect(result.hardenedWorkflow).toContain('# actions/checkout v7');
 		expect(result.hardenedWorkflow).toContain(
 			'actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0'

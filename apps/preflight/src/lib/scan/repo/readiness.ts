@@ -431,6 +431,7 @@ function workflowRunCommands(text: string): string[] {
 
 interface WorkflowJob {
 	id: string;
+	environment: string | null;
 	name: string | null;
 	needs: string[];
 	path: string;
@@ -499,6 +500,33 @@ function workflowJobNeeds(jobText: string): string[] {
 	return [];
 }
 
+function workflowJobEnvironment(jobText: string): string | null {
+	const lines = jobText.split(/\r?\n/);
+	const firstLine = lines.find((line) => stripYamlComment(line).trim());
+	if (!firstLine) return null;
+	const jobIndent = lineIndent(firstLine);
+	for (let index = 0; index < lines.length; index += 1) {
+		const cleaned = stripYamlComment(lines[index]);
+		if (lineIndent(cleaned) !== jobIndent + 2) continue;
+		const match = cleaned.match(/^(\s*)environment\s*:\s*(.*)$/);
+		if (!match) continue;
+
+		const inlineValue = unquoteYamlScalar(match[2].trim());
+		if (inlineValue) return inlineValue;
+
+		const baseIndent = match[1].length;
+		for (let nextIndex = index + 1; nextIndex < lines.length; nextIndex += 1) {
+			const nextCleaned = stripYamlComment(lines[nextIndex]);
+			if (!nextCleaned.trim()) continue;
+			if (lineIndent(nextCleaned) <= baseIndent) break;
+			const name = nextCleaned.match(/^\s*name\s*:\s*(.+)$/);
+			if (name) return unquoteYamlScalar(name[1]) || null;
+		}
+		return null;
+	}
+	return null;
+}
+
 function workflowJobs(workflow: RepoFileEvidence): WorkflowJob[] {
 	const lines = (workflow.text ?? '').split(/\r?\n/);
 	const jobsLineIndex = lines.findIndex((line) =>
@@ -529,6 +557,7 @@ function workflowJobs(workflow: RepoFileEvidence): WorkflowJob[] {
 		const text = lines.slice(job.start, job.end).join('\n');
 		return {
 			id: job.id,
+			environment: workflowJobEnvironment(text),
 			name: workflowJobName(text),
 			needs: workflowJobNeeds(text),
 			path: workflow.path,
@@ -748,6 +777,40 @@ function deployJobDependencyFinding(workflows: RepoFileEvidence[]): RepoReadines
 	);
 }
 
+function deployJobEnvironmentFinding(workflows: RepoFileEvidence[]): RepoReadinessFinding {
+	const deployJobs = workflows
+		.flatMap((workflow) => workflowJobs(workflow))
+		.filter(isDeployLikeJob);
+	if (deployJobs.length === 0) {
+		return finding(
+			'deploy-job-environment',
+			'Deploy job environment',
+			'pass',
+			'No deploy-like GitHub Actions job was found, so no missing environment protection was detected.',
+			{ path: workflows[0]?.path }
+		);
+	}
+
+	const unprotectedJob = deployJobs.find((job) => !job.environment?.trim());
+	if (unprotectedJob) {
+		return finding(
+			'deploy-job-environment',
+			'Deploy job environment',
+			'warn',
+			`Deploy job "${unprotectedJob.id}" does not declare a GitHub environment. Add environment: production so branch/environment protection rules and environment-scoped secrets can guard production deploys.`,
+			{ path: unprotectedJob.path, snippet: jobLabel(unprotectedJob) }
+		);
+	}
+
+	return finding(
+		'deploy-job-environment',
+		'Deploy job environment',
+		'pass',
+		'Deploy-like GitHub Actions jobs declare job-level environments for deployment protection.',
+		{ path: deployJobs[0]?.path }
+	);
+}
+
 function hasRiskyPullRequestTarget(text: string): boolean {
 	return (
 		hasWorkflowEvent(text, 'pull_request_target') &&
@@ -846,6 +909,7 @@ export function analyzeCiWorkflows(files: RepoFileEvidence[]): RepoReadinessFind
 			{ path: deploylintCi?.path ?? evidencePath }
 		),
 		deployJobDependencyFinding(workflows),
+		deployJobEnvironmentFinding(workflows),
 		workflowPermissionFinding(workflows),
 		finding(
 			'workflow-pull-request-target',
