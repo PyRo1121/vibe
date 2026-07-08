@@ -827,6 +827,52 @@ if (event.type === 'checkout.session.completed') return new Response('ok');
 		expect(fetchedPaths.filter((path) => path === paymentPath)).toHaveLength(1);
 	});
 
+	it('fetches dedicated test files even when source sampling is saturated', async () => {
+		const highSignalSamples = [
+			'src/config/app.ts',
+			'src/config/auth.ts',
+			'src/config/db.ts',
+			'src/config/email.ts',
+			'src/config/env.ts',
+			'src/config/firebase.ts',
+			'src/config/secrets.ts',
+			'src/config/settings.ts'
+		];
+		const testPath = 'tests/integration/app.test.ts';
+		const fetchedPaths: string[] = [];
+		const report = await scanRepo(REF, {
+			fetchers: fakeFetchers({
+				entries: [
+					...CLEAN_ENTRIES,
+					...highSignalSamples.map((path) => ({ path, type: 'blob' as const })),
+					{ path: testPath, type: 'blob' }
+				],
+				files: {
+					...CLEAN_FILES,
+					'package.json': JSON.stringify({
+						dependencies: { react: '^18.0.0' },
+						scripts: { test: 'vitest run --coverage', build: 'vite build' }
+					}),
+					...Object.fromEntries(
+						highSignalSamples.map((path) => [path, 'export const value = true;'])
+					),
+					[testPath]: `import { expect, it } from "vitest";
+
+it("checks the customer workflow", async () => {
+  await expect(Promise.resolve({ ok: true })).resolves.toEqual({ ok: true });
+});
+`
+				},
+				onGetFile: (path) => fetchedPaths.push(path)
+			}),
+			npmLicense: async () => 'MIT'
+		});
+
+		const testDepth = report.checks.find((check) => check.id === 'test-depth');
+		expect(fetchedPaths).toContain(testPath);
+		expect(testDepth?.message).toContain('1 sampled test file(s) with real assertions');
+	});
+
 	it('warns on missing repo quality signals for a minimal repo', async () => {
 		const report = await scanRepo(REF, {
 			fetchers: fakeFetchers({ entries: CLEAN_ENTRIES, files: CLEAN_FILES }),
@@ -840,6 +886,83 @@ if (event.type === 'checkout.session.completed') return new Response('ok');
 		expect(byId['lockfile-committed'].status).toBe('warn');
 		expect(byId['node-version-pinned'].status).toBe('warn');
 		expect(byId['ts-strict']).toBeUndefined();
+	});
+
+	it('surfaces deploy jobs that bypass same-workflow CI gates', async () => {
+		const workflowPath = '.github/workflows/release.yml';
+		const report = await scanRepo(REF, {
+			fetchers: fakeFetchers({
+				entries: [
+					...CLEAN_ENTRIES,
+					{ path: 'package-lock.json', type: 'blob' },
+					{ path: workflowPath, type: 'blob' },
+					{ path: 'src/index.test.ts', type: 'blob' },
+					{ path: 'wrangler.jsonc', type: 'blob' }
+				],
+				files: {
+					...CLEAN_FILES,
+					'package.json': JSON.stringify({
+						packageManager: 'npm@11.0.0',
+						dependencies: { react: '^18.0.0' },
+						devDependencies: { typescript: '^5.0.0', vitest: '^4.0.0' },
+						engines: { node: '>=22' },
+						scripts: {
+							lint: 'eslint .',
+							typecheck: 'tsc --noEmit',
+							test: 'vitest run',
+							build: 'vite build',
+							deploy: 'wrangler deploy'
+						}
+					}),
+					'package-lock.json': JSON.stringify({
+						lockfileVersion: 3,
+						packages: {
+							'': { name: 'launchpad' },
+							'node_modules/react': { version: '18.2.0' }
+						}
+					}),
+					[workflowPath]: `
+name: Release
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm run deploy
+`,
+					'src/index.test.ts':
+						'import { expect, it } from "vitest";\nit("exports value", () => expect(1).toBe(1));',
+					'wrangler.jsonc': '{ "compatibility_date": "2026-07-05" }'
+				}
+			}),
+			npmLicense: async () => 'MIT',
+			vulnAuditor: async () => null
+		});
+
+		const deployDependencies = report.checks.find(
+			(check) => check.id === 'deploy-job-dependencies'
+		);
+		expect(deployDependencies).toMatchObject({
+			status: 'warn',
+			title: 'Deploy job dependencies',
+			category: 'launch'
+		});
+		expect(deployDependencies?.message).toContain('Deploy job "deploy" can run without a needs');
+		expect(deployDependencies?.message).toContain('jobs run in parallel unless needs is set');
+		expect(report.repo?.filesSampled).toContain(workflowPath);
 	});
 
 	it('surfaces a repo that only looks tested but is unsafe to launch', async () => {
