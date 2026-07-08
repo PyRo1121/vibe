@@ -23,6 +23,4 @@ export const P0_CHECK_IDS = [
 	'exposed-backup'
 ] as const;
 
-export type P0CheckId = (typeof P0_CHECK_IDS)[number];
-
 export const P0_ID_SET: ReadonlySet<string> = new Set(P0_CHECK_IDS);

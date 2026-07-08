@@ -33,6 +33,7 @@ describe('quality standards guard', () => {
 				'preflight-mcp verify runs typecheck, lint, coverage, and build',
 				'root dependency audit fails on any known vulnerability',
 				'root deploylint CI verify runs audit, preflight, mcp, Playwright install, and e2e',
+				'root dead-code gate runs knip against Deploylint workspaces',
 				'root deploylint ship verify adds production smoke',
 				'oxlint config enables correctness, suspicious, TypeScript, Vitest, Promise, and Unicorn guards',
 				'oxfmt config enforces deterministic imports, Tailwind sorting, Svelte formatting, and LF endings',
@@ -108,6 +109,12 @@ describe('quality standards guard', () => {
 				})
 			);
 			writeFixtureFile(
+				join(root, 'knip.deploylint.jsonc'),
+				JSON.stringify({
+					workspaces: {}
+				})
+			);
+			writeFixtureFile(
 				join(root, 'apps/preflight/vite.config.ts'),
 				`const coverageMetric = 'statements';
 				export default {
@@ -151,6 +158,7 @@ describe('quality standards guard', () => {
 					'preflight-mcp verify runs typecheck, lint, coverage, and build',
 					'root dependency audit fails on any known vulnerability',
 					'root deploylint CI verify runs audit, preflight, mcp, Playwright install, and e2e',
+					'root dead-code gate runs knip against Deploylint workspaces',
 					'root deploylint ship verify adds production smoke',
 					'oxlint config enables correctness, suspicious, TypeScript, Vitest, Promise, and Unicorn guards',
 					'oxfmt config enforces deterministic imports, Tailwind sorting, Svelte formatting, and LF endings',

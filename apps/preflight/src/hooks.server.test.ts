@@ -1,9 +1,41 @@
 import type { Handle } from '@sveltejs/kit';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+type AuthSession = { session: App.Locals['session']; user: App.Locals['user'] };
+type MockDeploylintAuth = {
+	api: {
+		getSession(input: { headers: Headers }): Promise<AuthSession | null>;
+	};
+};
+type MockSvelteKitHandlerInput = Parameters<Handle>[0] & {
+	auth: MockDeploylintAuth;
+	building: boolean;
+};
+
+const { mockGetDeploylintAuth, mockSvelteKitHandler } = vi.hoisted(() => ({
+	mockGetDeploylintAuth:
+		vi.fn<(env: Partial<Env> | undefined, requestOrigin: string) => MockDeploylintAuth | null>(),
+	mockSvelteKitHandler: vi.fn<(input: MockSvelteKitHandlerInput) => Promise<Response>>()
+}));
+
+vi.mock('$lib/server/auth', () => ({
+	getDeploylintAuth: mockGetDeploylintAuth
+}));
+
+vi.mock('better-auth/svelte-kit', () => ({
+	svelteKitHandler: mockSvelteKitHandler
+}));
 
 import { handle } from './hooks.server';
 
 const resolve: Parameters<Handle>[0]['resolve'] = async () => new Response('ok');
+
+beforeEach(() => {
+	mockGetDeploylintAuth.mockReturnValue(null);
+	mockSvelteKitHandler.mockImplementation(async ({ event, resolve: resolveRequest }) =>
+		resolveRequest(event)
+	);
+});
 
 function fakeKv(value: string | null) {
 	return {
@@ -115,5 +147,36 @@ describe('handle canonical redirects', () => {
 
 		expect(response.status).toBe(200);
 		expect(response.headers.get('X-Robots-Tag')).toBe('noindex, nofollow');
+	});
+
+	it('hydrates locals from an authenticated session before resolving the request', async () => {
+		const session = { id: 'session_123', userId: 'user_123' } as App.Locals['session'];
+		const user = { id: 'user_123', email: 'dev@example.com', name: 'Dev' } as App.Locals['user'];
+		const getSession = vi.fn<(input: { headers: Headers }) => Promise<AuthSession>>(async () => ({
+			session,
+			user
+		}));
+		const auth = { api: { getSession } };
+		const locals = { session: null, user: null };
+		mockGetDeploylintAuth.mockReturnValueOnce(auth);
+
+		const event = {
+			request: new Request('https://deploylint.com/app', {
+				headers: { host: 'deploylint.com', cookie: 'better-auth.session_token=test' }
+			}),
+			url: new URL('https://deploylint.com/app'),
+			locals,
+			platform: { env: { AUTH_DB: {} } }
+		} as Parameters<Handle>[0]['event'];
+
+		const response = await handle({ event, resolve });
+
+		expect(response.status).toBe(200);
+		expect(getSession).toHaveBeenCalledWith({ headers: event.request.headers });
+		expect(locals.session).toBe(session);
+		expect(locals.user).toBe(user);
+		expect(mockSvelteKitHandler).toHaveBeenCalledWith(
+			expect.objectContaining({ event, resolve, auth })
+		);
 	});
 });

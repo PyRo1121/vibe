@@ -114,6 +114,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const preflightMcpPackagePath = join(preflightMcpRoot, 'package.json');
 	const oxlintPath = join(rootDir, '.oxlintrc.jsonc');
 	const oxfmtPath = join(rootDir, '.oxfmtrc.jsonc');
+	const knipPath = join(rootDir, 'knip.deploylint.jsonc');
 	const viteConfigPath = join(preflightRoot, 'vite.config.ts');
 	const mcpViteConfigPath = join(preflightMcpRoot, 'vite.config.ts');
 	const preflightGateWorkflowPath = join(rootDir, '.github/workflows/preflight-gate.yml');
@@ -133,6 +134,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		preflightMcpPackagePath,
 		oxlintPath,
 		oxfmtPath,
+		knipPath,
 		viteConfigPath,
 		mcpViteConfigPath,
 		preflightGateWorkflowPath,
@@ -173,6 +175,9 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		rules: Record<string, string>;
 	}>(oxlintPath);
 	const oxfmt = readJson<Record<string, unknown>>(oxfmtPath);
+	const knip = readJson<{
+		workspaces: Record<string, unknown>;
+	}>(knipPath);
 	const configuredCoverageThresholds = readCoverageThresholds(viteConfigPath);
 	const configuredMcpCoverageThresholds = readCoverageThresholds(mcpViteConfigPath);
 	const preflightGateWorkflow = readFileSync(preflightGateWorkflowPath, 'utf8');
@@ -228,6 +233,24 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			'npm run test:e2e:install -w preflight',
 			'npm run test:e2e -w preflight'
 		])
+	);
+	pushCheck(
+		checked,
+		failures,
+		'root dead-code gate runs knip against Deploylint workspaces',
+		hasScriptCommand(rootPackage.scripts, 'deadcode:deploylint', [
+			'knip',
+			'knip.deploylint.jsonc',
+			'--workspace apps/preflight',
+			'--workspace apps/preflight-mcp',
+			'--workspace apps/deploylint-shared',
+			'--max-issues=0'
+		]) &&
+			rootPackage.devDependencies.knip !== undefined &&
+			rootPackage.scripts['verify:deploylint:ci']?.includes('npm run deadcode:deploylint') &&
+			['apps/deploylint-shared', 'apps/preflight', 'apps/preflight-mcp'].every((workspace) =>
+				Object.hasOwn(knip.workspaces, workspace)
+			)
 	);
 	pushCheck(
 		checked,

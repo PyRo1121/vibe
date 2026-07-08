@@ -1,7 +1,7 @@
 import type { ScanReport } from './types.js';
 
 /** Sync with apps/preflight/src/lib/scan/p0-ids.ts P0_CHECK_IDS */
-export const GATE_P0_IDS = new Set([
+const GATE_P0_IDS = new Set([
 	'reachable',
 	'fetch',
 	'https',

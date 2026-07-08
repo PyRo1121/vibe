@@ -1,0 +1,36 @@
+{
+	"$schema": "https://unpkg.com/knip@latest/schema.json",
+	"svelte": false,
+	"sveltekit": {
+		"config": ["apps/preflight/svelte.config.js"]
+	},
+	"ignoreExportsUsedInFile": {
+		"interface": true,
+		"type": true,
+		"variable": true
+	},
+	"workspaces": {
+		"apps/deploylint-shared": {},
+		"apps/preflight": {
+			"svelte": true,
+			"sveltekit": true,
+			"entry": [
+				"src/app.html",
+				"src/routes/**/*.{svelte,ts,js}",
+				"src/lib/**/*.test.{ts,js}",
+				"src/routes/**/*.test.{ts,js}",
+				"src/**/*.source.test.ts",
+				"e2e/**/*.ts",
+				"scripts/*.{js,mjs,ts}"
+			],
+			"project": ["src/**/*.{ts,js,svelte}", "e2e/**/*.ts", "scripts/*.{js,mjs,ts}"],
+			"ignoreBinaries": ["powershell"],
+			"ignoreDependencies": ["@tailwindcss/forms", "tailwindcss"],
+			"ignoreUnresolved": ["./\\$types"]
+		},
+		"apps/preflight-mcp": {
+			"entry": ["src/**/*.test.ts"],
+			"project": ["src/**/*.ts"]
+		}
+	}
+}

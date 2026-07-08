@@ -123,8 +123,6 @@ export const workspaceGateHardeningSteps = [
 	}
 ] as const;
 
-export type WorkspaceGateHardeningStep = (typeof workspaceGateHardeningSteps)[number];
-
 const REQUIRED_GATE_ENV_VARS = [
 	'DEPLOYLINT_PROJECT_ID',
 	'DEPLOYLINT_MODE',

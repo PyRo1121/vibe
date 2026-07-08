@@ -14,13 +14,14 @@
 		"format": "turbo run format",
 		"format:check": "turbo run format:check",
 		"audit:security": "npm audit --audit-level=low",
+		"deadcode:deploylint": "knip --config knip.deploylint.jsonc --workspace apps/preflight --workspace apps/preflight-mcp --workspace apps/deploylint-shared --max-issues=0",
 		"deploy": "turbo run deploy",
 		"dev:preflight": "turbo run dev --filter=preflight",
 		"dev:tcg-vault": "turbo run dev --filter=tcg-vault",
 		"verify:preflight": "turbo run verify --filter=preflight",
 		"verify:preflight:full": "npm run verify -w preflight && npm run test:e2e -w preflight",
 		"verify:mcp": "npm run verify -w preflight-mcp",
-		"verify:deploylint:ci": "npm run audit:security && npm run verify -w preflight && npm run verify -w preflight-mcp && npm run test:e2e:install -w preflight && npm run test:e2e -w preflight",
+		"verify:deploylint:ci": "npm run audit:security && npm run deadcode:deploylint && npm run verify -w preflight && npm run verify -w preflight-mcp && npm run test:e2e:install -w preflight && npm run test:e2e -w preflight",
 		"verify:deploylint": "npm run verify:deploylint:ci && npm run smoke:preflight",
 		"verify:tcg-vault": "turbo run verify --filter=tcg-vault",
 		"deploy:preflight": "turbo run deploy --filter=preflight",
@@ -34,6 +35,7 @@
 		"upgrade:stack": "npm update -w tcg-vault -w preflight && npm update"
 	},
 	"devDependencies": {
+		"knip": "^5.72.1",
 		"oxfmt": "^0.57.0",
 		"oxlint": "^1.72.0",
 		"turbo": "^2.10.3"

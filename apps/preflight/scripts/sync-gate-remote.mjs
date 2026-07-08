@@ -38,9 +38,7 @@ if (!match) {
 
 const ids = [...match[1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
 const gateBlock = `const P0_IDS = new Set([\n${ids.map((id) => `\t'${id}'`).join(',\n')}\n]);`;
-const mcpBlock = `export const GATE_P0_IDS = new Set([\n${ids
-	.map((id) => `\t'${id}'`)
-	.join(',\n')}\n]);`;
+const mcpBlock = `const GATE_P0_IDS = new Set([\n${ids.map((id) => `\t'${id}'`).join(',\n')}\n]);`;
 
 const canonicalGatePath = join(root, 'scripts/gate-remote.mjs');
 let canonicalGate = readFileSync(canonicalGatePath, 'utf8');
@@ -65,11 +63,14 @@ for (const { rel, path } of gateCopies) {
 
 const mcpPath = join(root, '..', 'preflight-mcp', 'src', 'gate.ts');
 let mcpContent = readFileSync(mcpPath, 'utf8');
-if (!/export const GATE_P0_IDS = new Set\(\[[\s\S]*?\]\);/.test(mcpContent)) {
+if (!/(?:export )?const GATE_P0_IDS = new Set\(\[[\s\S]*?\]\);/.test(mcpContent)) {
 	console.error('GATE_P0_IDS block not found in preflight-mcp/src/gate.ts');
 	process.exit(1);
 }
-mcpContent = mcpContent.replace(/export const GATE_P0_IDS = new Set\(\[[\s\S]*?\]\);/, mcpBlock);
+mcpContent = mcpContent.replace(
+	/(?:export )?const GATE_P0_IDS = new Set\(\[[\s\S]*?\]\);/,
+	mcpBlock
+);
 syncFile(mcpPath, mcpContent, `preflight-mcp/src/gate.ts (${ids.length} P0 IDs)`);
 
 if (checkMode && hasDrift) process.exit(1);
