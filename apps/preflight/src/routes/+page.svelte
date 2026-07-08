@@ -31,6 +31,19 @@
 
 	import type { PageData } from './$types';
 
+	type ScanApiErrorBody = {
+		code?: string;
+		message?: string;
+		retryAt?: string;
+		status?: number;
+	};
+
+	type ScanApiError = {
+		code: string | null;
+		message: string;
+		retryAt: string | null;
+	};
+
 	let { data }: { data: PageData } = $props();
 
 	let url = $state('');
@@ -41,6 +54,8 @@
 	let checkoutLoading = $state(false);
 	let billingPortalLoading = $state(false);
 	let error = $state<string | null>(null);
+	let errorCode = $state<string | null>(null);
+	let errorRetryAt = $state<string | null>(null);
 	let checkoutMessage = $state<string | null>(null);
 	let report = $state<ScanReport | null>(null);
 	let unlockSessionId = $state<string | null>(null);
@@ -118,7 +133,7 @@
 
 	const alphaFreeUnlock = $derived(data.alphaFreeUnlock);
 	const projectReadinessTarget = $derived(deployTarget.trim() || repositoryUrl.trim());
-	const projectWorkspaceHref = $derived.by(() => {
+	const projectWorkspaceQuery = $derived.by(() => {
 		const params = new URLSearchParams();
 		const name = projectName.trim();
 		const repo = repositoryUrl.trim();
@@ -127,9 +142,11 @@
 		if (repo) params.set('repo', repo);
 		if (deploy) params.set('deploy', deploy);
 		params.set('minScore', '80');
-		const query = params.toString();
-		return query ? `${resolve('/app')}?${query}` : resolve('/app');
+		return params.toString();
 	});
+	const projectWorkspaceHref = $derived(
+		projectWorkspaceQuery ? `${resolve('/app')}?${projectWorkspaceQuery}` : resolve('/app')
+	);
 
 	$effect(() => {
 		if (pricingTracked) return;
@@ -156,6 +173,44 @@
 		sessionStorage.removeItem(STORAGE.baselineChecks);
 	}
 
+	function clearScanError() {
+		error = null;
+		errorCode = null;
+		errorRetryAt = null;
+	}
+
+	function formatRetryTime(value: string | null | undefined): string | null {
+		if (!value) return null;
+		const date = new Date(value);
+		if (Number.isNaN(date.getTime())) return null;
+		return date.toLocaleString(undefined, {
+			month: 'short',
+			day: 'numeric',
+			hour: 'numeric',
+			minute: '2-digit',
+			timeZoneName: 'short'
+		});
+	}
+
+	function normalizeScanApiError(status: number, body: ScanApiErrorBody | null): ScanApiError {
+		const message = body?.message ?? `Scan failed (${status})`;
+		const capacityReached =
+			body?.code === 'daily_scan_capacity_reached' || /daily scan capacity reached/i.test(message);
+
+		if (capacityReached) {
+			const retryTime = formatRetryTime(body?.retryAt);
+			return {
+				code: 'daily_scan_capacity_reached',
+				retryAt: body?.retryAt ?? null,
+				message: retryTime
+					? `The shared preview pool is full and resets at ${retryTime}. You can still generate the advisory workflow now and let CI produce the next report.`
+					: 'The shared preview pool is full. You can still generate the advisory workflow now and retry the preview after the daily reset.'
+			};
+		}
+
+		return { code: body?.code ?? null, message, retryAt: body?.retryAt ?? null };
+	}
+
 	async function runScan(rescan = false, target = url.trim()) {
 		const scanTarget = target.trim();
 		if (!scanTarget) return;
@@ -164,7 +219,7 @@
 		scanController = new AbortController();
 		const { signal } = scanController;
 
-		error = null;
+		clearScanError();
 		if (!rescan) report = null;
 		loading = true;
 		try {
@@ -186,8 +241,12 @@
 				signal
 			});
 			if (!res.ok) {
-				const body = (await res.json().catch(() => null)) as { message?: string } | null;
-				throw new Error(body?.message ?? `Scan failed (${res.status})`);
+				const body = (await res.json().catch(() => null)) as ScanApiErrorBody | null;
+				const normalized = normalizeScanApiError(res.status, body);
+				error = normalized.message;
+				errorCode = normalized.code;
+				errorRetryAt = normalized.retryAt;
+				return;
 			}
 			report = (await res.json()) as ScanReport;
 			sessionStorage.setItem(STORAGE.scanUrl, scanTarget);
@@ -231,6 +290,8 @@
 			});
 		} catch (err) {
 			if (err instanceof DOMException && err.name === 'AbortError') return;
+			errorCode = null;
+			errorRetryAt = null;
 			error = err instanceof Error ? err.message : 'Scan failed';
 		} finally {
 			loading = false;
@@ -251,7 +312,7 @@
 		});
 		checkoutLoading = true;
 		checkoutMessage = null;
-		error = null;
+		clearScanError();
 		try {
 			const res = await fetch('/api/checkout', {
 				method: 'POST',
@@ -613,7 +674,34 @@ jobs:
 				{PROGRESS_STEPS[progressIdx]}
 			</p>
 		{/if}
-		{#if error}
+		{#if error && errorCode === 'daily_scan_capacity_reached'}
+			<section class="mt-4 rounded-xl border border-amber-400/30 bg-amber-400/10 p-4" role="alert">
+				<p class="text-sm font-semibold text-amber-100">Shared scan capacity is full</p>
+				<p class="mt-1 text-sm leading-6 text-amber-50/80">
+					{error}
+					{#if errorRetryAt}
+						<span class="sr-only">Retry time: {errorRetryAt}</span>
+					{/if}
+				</p>
+				<div class="mt-3 flex flex-col gap-2 sm:flex-row">
+					<button
+						type="button"
+						class="rounded-lg bg-amber-300 px-4 py-2 text-center text-sm font-semibold text-zinc-950 hover:bg-amber-200"
+						onclick={() => {
+							window.location.href = projectWorkspaceHref;
+						}}
+					>
+						Generate advisory workflow
+					</button>
+					<a
+						class="rounded-lg border border-amber-300/40 px-4 py-2 text-center text-sm font-semibold text-amber-100 hover:border-amber-200 hover:text-white"
+						href={resolve('/developers')}
+					>
+						View CI setup
+					</a>
+				</div>
+			</section>
+		{:else if error}
 			<p class="mt-3 text-sm text-red-400" role="alert">{error}</p>
 		{/if}
 		{#if checkoutMessage}

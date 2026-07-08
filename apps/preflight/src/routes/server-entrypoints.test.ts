@@ -1,3 +1,4 @@
+import { error as kitError } from '@sveltejs/kit';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const {
@@ -142,6 +143,65 @@ describe('API route entrypoints', () => {
 
 		expect(await response.text()).toBe('scan');
 		expect(mockHandleScanPost).toHaveBeenCalledWith(request, env);
+	});
+
+	it('returns JSON for daily scan capacity errors', async () => {
+		mockHandleScanPost.mockImplementationOnce(async () => {
+			kitError(
+				503,
+				'Daily scan capacity reached - try again after midnight UTC. Deploylint stays on Cloudflare Free tier.'
+			);
+		});
+
+		const response = await scanPost({
+			request: new Request('https://deploylint.com/api/scan', { method: 'POST' }),
+			platform: envPlatform({})
+		} as Parameters<typeof scanPost>[0]);
+		const body = (await response.json()) as {
+			code?: string;
+			message?: string;
+			retryAt?: string;
+			status?: number;
+		};
+
+		expect(response.status).toBe(503);
+		expect(response.headers.get('Content-Type')).toContain('application/json');
+		expect(body).toMatchObject({
+			code: 'daily_scan_capacity_reached',
+			message:
+				'Daily scan capacity reached - try again after midnight UTC. Deploylint stays on Cloudflare Free tier.',
+			status: 503
+		});
+		expect(body.retryAt).toMatch(/T00:00:00\.000Z$/);
+	});
+
+	it('returns JSON for validation errors from scan helpers', async () => {
+		mockHandleScanPost.mockImplementationOnce(async () => {
+			kitError(400, 'Invalid URL');
+		});
+
+		const response = await scanPost({
+			request: new Request('https://deploylint.com/api/scan', { method: 'POST' }),
+			platform: envPlatform({})
+		} as Parameters<typeof scanPost>[0]);
+
+		expect(response.status).toBe(400);
+		expect(await response.json()).toEqual({
+			message: 'Invalid URL',
+			status: 400
+		});
+	});
+
+	it('rethrows unexpected scan handler failures', async () => {
+		const failure = new Error('scan worker crashed');
+		mockHandleScanPost.mockRejectedValueOnce(failure);
+
+		await expect(
+			scanPost({
+				request: new Request('https://deploylint.com/api/scan', { method: 'POST' }),
+				platform: envPlatform({})
+			} as Parameters<typeof scanPost>[0])
+		).rejects.toBe(failure);
 	});
 
 	it('validates API events through the shared validation response', async () => {
