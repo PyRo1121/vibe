@@ -124,8 +124,10 @@ function permalink(report) {
 }
 
 function formatReport(report, result) {
+	const status = advisory && !result.pass ? 'ADVISORY' : result.pass ? 'PASS' : 'FAIL';
+	const reasonHeading = advisory ? 'Advisory findings:' : 'Failures:';
 	const lines = [
-		`Deploylint ${advisory ? 'advisory' : 'gate'}: ${result.pass ? 'PASS' : 'FAIL'}`,
+		`Deploylint ${advisory ? 'advisory' : 'gate'}: ${status}`,
 		`URL: ${report.finalUrl}`,
 		`Score: ${report.score} · Verdict: ${String(report.verdict).toUpperCase()}`,
 		report.verdictMessage
@@ -133,7 +135,7 @@ function formatReport(report, result) {
 	const link = permalink(report);
 	if (link) lines.push(`Report: ${link}`);
 	if (result.reasons.length > 0) {
-		lines.push('', 'Failures:');
+		lines.push('', reasonHeading);
 		for (const reason of result.reasons) lines.push(`- ${reason}`);
 	}
 	if (advisory && result.reasons.length > 0) {
@@ -154,9 +156,10 @@ function formatMarkdown(report, result) {
 		''
 	];
 	if (result.reasons.length > 0) {
-		lines.push('**Blocking:**', '');
+		lines.push(advisory ? '**Advisory findings:**' : '**Blocking:**', '');
 		for (const reason of result.reasons) lines.push(`- ${reason}`);
 		lines.push('');
+		if (advisory) lines.push('_Advisory mode — not blocking the build._', '');
 	}
 	if (failing.length > 0) {
 		lines.push('<details><summary>Failing checks</summary>', '');
@@ -242,10 +245,13 @@ async function main() {
 	}
 
 	const result = evaluateGate(body);
+	const effectivePass = result.pass || advisory;
 	if (flags.has('--json')) {
 		console.log(
 			JSON.stringify({
-				pass: result.pass,
+				pass: effectivePass,
+				gatePass: result.pass,
+				advisory,
 				score: body.score,
 				verdict: body.verdict,
 				reasons: result.reasons,
@@ -253,7 +259,7 @@ async function main() {
 				finalUrl: body.finalUrl
 			})
 		);
-		process.exit(result.pass || advisory ? 0 : 1);
+		process.exit(effectivePass ? 0 : 1);
 	}
 	console.log(formatReport(body, result));
 
@@ -268,7 +274,7 @@ async function main() {
 	const prCtx = githubPrContext();
 	if (prCtx) await upsertPrComment(prCtx, markdown);
 
-	process.exit(result.pass || advisory ? 0 : 1);
+	process.exit(effectivePass ? 0 : 1);
 }
 
 main().catch((err) => {

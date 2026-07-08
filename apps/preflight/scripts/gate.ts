@@ -72,8 +72,7 @@ async function main() {
 	console.log(`Scanning ${targetUrl} via ${apiBase} …`);
 	const report = await scanUrl(targetUrl);
 	const result = evaluateGate(report, { minScore });
-	console.log(formatGateReport(result));
-	if (advisory && !result.pass) console.log('Advisory mode - not blocking the build.');
+	console.log(formatGateReport(result, { advisory }));
 	const code = result.pass || advisory ? 0 : 1;
 	setImmediate(() => process.exit(code));
 }

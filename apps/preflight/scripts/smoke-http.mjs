@@ -10,6 +10,10 @@ const RETRYABLE_ERROR_CODES = new Set([
 ]);
 const FETCH_RETRY_INSTALLED = Symbol.for('deploylint.smokeFetchRetryInstalled');
 
+/**
+ * @param {string} name
+ * @param {number} fallback
+ */
 function envInt(name, fallback) {
 	const raw = process.env[name];
 	if (!raw) return fallback;
@@ -17,29 +21,57 @@ function envInt(name, fallback) {
 	return Number.isFinite(value) && value >= 0 ? value : fallback;
 }
 
+/**
+ * @param {number} attempt
+ * @param {number} baseDelayMs
+ */
 function retryDelayMs(attempt, baseDelayMs) {
 	return baseDelayMs * 2 ** attempt;
 }
 
+/**
+ * @param {unknown} err
+ * @returns {string | undefined}
+ */
 function causeCode(err) {
-	const cause = err?.cause;
-	if (cause && typeof cause === 'object' && 'code' in cause) return cause.code;
-	if (err && typeof err === 'object' && 'code' in err) return err.code;
+	const cause =
+		err instanceof Error
+			? err.cause
+			: err && typeof err === 'object' && 'cause' in err
+				? err.cause
+				: undefined;
+	if (cause && typeof cause === 'object' && 'code' in cause) {
+		const { code } = cause;
+		return typeof code === 'string' ? code : undefined;
+	}
+	if (err && typeof err === 'object' && 'code' in err) {
+		const { code } = err;
+		return typeof code === 'string' ? code : undefined;
+	}
 	return undefined;
 }
 
+/**
+ * @param {unknown} err
+ */
 function describeFetchError(err) {
 	const code = causeCode(err);
 	if (typeof code === 'string') return code;
 	return err instanceof Error ? err.message : String(err);
 }
 
+/**
+ * @param {RequestInfo | URL} input
+ */
 function describeFetchInput(input) {
 	if (typeof input === 'string') return input;
 	if (input instanceof URL) return input.href;
 	return input?.url ?? 'request';
 }
 
+/**
+ * @param {unknown} err
+ */
 function isRetryableFetchError(err) {
 	const code = causeCode(err);
 	if (typeof code === 'string' && RETRYABLE_ERROR_CODES.has(code)) return true;
@@ -47,21 +79,34 @@ function isRetryableFetchError(err) {
 	return /fetch failed|connect timeout|network|timed out/i.test(err.message);
 }
 
+/**
+ * @param {Response | number | undefined} responseOrStatus
+ * @param {string} [text]
+ */
 export function isScanRateLimitedResponse(responseOrStatus, text = '') {
 	const status = typeof responseOrStatus === 'number' ? responseOrStatus : responseOrStatus?.status;
 	return status === 429 && /too many scans/i.test(text);
 }
 
+/**
+ * @param {{ retries?: number; baseDelayMs?: number }} [opts]
+ */
 export function installFetchRetry({
 	retries = envInt('DEPLOYLINT_SMOKE_FETCH_RETRIES', 2),
 	baseDelayMs = envInt('DEPLOYLINT_SMOKE_FETCH_RETRY_DELAY_MS', 500)
 } = {}) {
 	const originalFetch = globalThis.fetch;
+	const retryGlobal =
+		/** @type {typeof globalThis & Record<symbol, boolean | undefined>} */ (globalThis);
 	if (typeof originalFetch !== 'function') {
 		throw new Error('global fetch is not available');
 	}
-	if (globalThis[FETCH_RETRY_INSTALLED]) return;
+	if (retryGlobal[FETCH_RETRY_INSTALLED]) return;
 
+	/**
+	 * @param {RequestInfo | URL} input
+	 * @param {RequestInit} [init]
+	 */
 	async function fetchWithRetry(input, init) {
 		for (let attempt = 0; ; attempt += 1) {
 			try {
@@ -79,5 +124,5 @@ export function installFetchRetry({
 	}
 
 	globalThis.fetch = fetchWithRetry;
-	globalThis[FETCH_RETRY_INSTALLED] = true;
+	retryGlobal[FETCH_RETRY_INSTALLED] = true;
 }

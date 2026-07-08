@@ -148,4 +148,16 @@ describe('formatGateReport', () => {
 		expect(text).toContain('Verdict NO-GO');
 		expect(text).toContain('Score 40 is below minimum 80');
 	});
+
+	it('renders advisory failures as non-blocking findings', () => {
+		const text = formatGateReport(evaluateGate(report({ verdict: 'no-go', score: 40 })), {
+			advisory: true
+		});
+
+		expect(text).toContain('Deploylint advisory: ADVISORY');
+		expect(text).toContain('Advisory findings:');
+		expect(text).toContain('Advisory mode - not blocking the build.');
+		expect(text).not.toContain('Deploylint advisory: FAIL');
+		expect(text).not.toContain('Failures:');
+	});
 });

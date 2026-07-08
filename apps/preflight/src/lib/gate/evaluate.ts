@@ -13,6 +13,10 @@ export interface GateResult {
 	report: Pick<ScanReport, 'score' | 'verdict' | 'verdictMessage' | 'finalUrl' | 'checks'>;
 }
 
+interface FormatGateReportOptions {
+	advisory?: boolean;
+}
+
 export function evaluateGate(report: ScanReport, opts: GateOptions = {}): GateResult {
 	const minScore = opts.minScore ?? 80;
 	const failOnP0 = opts.failOnP0 ?? true;
@@ -47,18 +51,22 @@ export function evaluateGate(report: ScanReport, opts: GateOptions = {}): GateRe
 	};
 }
 
-export function formatGateReport(result: GateResult): string {
+export function formatGateReport(result: GateResult, opts: FormatGateReportOptions = {}): string {
 	const { report } = result;
+	const advisory = opts.advisory === true;
+	const status = advisory && !result.pass ? 'ADVISORY' : result.pass ? 'PASS' : 'FAIL';
+	const reasonHeading = advisory ? 'Advisory findings:' : 'Failures:';
 	const lines = [
-		`Deploylint gate: ${result.pass ? 'PASS' : 'FAIL'}`,
+		`Deploylint ${advisory ? 'advisory' : 'gate'}: ${status}`,
 		`URL: ${report.finalUrl}`,
 		`Score: ${report.score} · Verdict: ${report.verdict.toUpperCase()}`,
 		report.verdictMessage
 	];
 
 	if (result.reasons.length > 0) {
-		lines.push('', 'Failures:');
+		lines.push('', reasonHeading);
 		for (const reason of result.reasons) lines.push(`- ${reason}`);
+		if (advisory) lines.push('', 'Advisory mode - not blocking the build.');
 	}
 
 	return lines.join('\n');
