@@ -108,12 +108,15 @@ function hasLeastPrivilegeWorkflowPermissions(workflow: string): boolean {
 export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsReport {
 	const preflightRoot = join(rootDir, 'apps/preflight');
 	const preflightMcpRoot = join(rootDir, 'apps/preflight-mcp');
+	const deploylintSharedRoot = join(rootDir, 'apps/deploylint-shared');
 	const rootPackagePath = join(rootDir, 'package.json');
 	const rootLockPath = join(rootDir, 'package-lock.json');
 	const preflightPackagePath = join(preflightRoot, 'package.json');
 	const preflightMcpPackagePath = join(preflightMcpRoot, 'package.json');
+	const deploylintSharedPackagePath = join(deploylintSharedRoot, 'package.json');
 	const oxlintPath = join(rootDir, '.oxlintrc.jsonc');
 	const oxfmtPath = join(rootDir, '.oxfmtrc.jsonc');
+	const nvmrcPath = join(rootDir, '.nvmrc');
 	const knipPath = join(rootDir, 'knip.deploylint.jsonc');
 	const viteConfigPath = join(preflightRoot, 'vite.config.ts');
 	const mcpViteConfigPath = join(preflightMcpRoot, 'vite.config.ts');
@@ -132,8 +135,10 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		rootLockPath,
 		preflightPackagePath,
 		preflightMcpPackagePath,
+		deploylintSharedPackagePath,
 		oxlintPath,
 		oxfmtPath,
+		nvmrcPath,
 		knipPath,
 		viteConfigPath,
 		mcpViteConfigPath,
@@ -168,6 +173,9 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		scripts: Record<string, string>;
 		devDependencies: Record<string, string>;
 	}>(preflightMcpPackagePath);
+	const deploylintSharedPackage = readJson<{
+		scripts: Record<string, string>;
+	}>(deploylintSharedPackagePath);
 	const oxlint = readJson<{
 		categories: Record<string, string>;
 		options: Record<string, string | number | boolean>;
@@ -219,20 +227,42 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
+		'deploylint-shared verify runs lint and syntax checks',
+		hasScriptCommand(deploylintSharedPackage.scripts, 'verify', ['lint', 'check']) &&
+			hasScriptCommand(deploylintSharedPackage.scripts, 'check', ['node --check index.js'])
+	);
+	pushCheck(
+		checked,
+		failures,
 		'root dependency audit fails on any known vulnerability',
 		hasScriptCommand(rootPackage.scripts, 'audit:security', ['npm audit', '--audit-level=low'])
 	);
 	pushCheck(
 		checked,
 		failures,
-		'root deploylint CI verify runs audit, preflight, mcp, Playwright install, and e2e',
+		'root deploylint CI verify runs audit, shared, preflight, mcp, Playwright install, and e2e',
 		hasScriptCommand(rootPackage.scripts, 'verify:deploylint:ci', [
 			'npm run audit:security',
+			'npm run verify -w apps/deploylint-shared',
 			'npm run verify -w preflight',
 			'npm run verify -w preflight-mcp',
 			'npm run test:e2e:install -w preflight',
 			'npm run test:e2e -w preflight'
 		])
+	);
+	pushCheck(
+		checked,
+		failures,
+		'root deploylint local verify skips network-heavy CI-only gates',
+		hasScriptCommand(rootPackage.scripts, 'verify:deploylint:local', [
+			'npm run verify -w apps/deploylint-shared',
+			'npm run verify -w preflight',
+			'npm run verify -w preflight-mcp',
+			'npm run test:e2e -w preflight'
+		]) &&
+			!rootPackage.scripts['verify:deploylint:local']?.includes('npm audit') &&
+			!rootPackage.scripts['verify:deploylint:local']?.includes('deadcode:deploylint') &&
+			!rootPackage.scripts['verify:deploylint:local']?.includes('test:e2e:install')
 	);
 	pushCheck(
 		checked,
@@ -244,6 +274,8 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			'--workspace apps/preflight',
 			'--workspace apps/preflight-mcp',
 			'--workspace apps/deploylint-shared',
+			'--no-progress',
+			'--treat-config-hints-as-errors',
 			'--max-issues=0'
 		]) &&
 			rootPackage.devDependencies.knip !== undefined &&
@@ -309,8 +341,27 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		failures,
 		'GitHub workflows enforce canonical deploylint CI and MCP dogfood gates',
 		preflightGateWorkflow.includes('npm run verify:deploylint:ci') &&
+			preflightGateWorkflow.includes('node-version-file: .nvmrc') &&
+			!preflightGateWorkflow.includes("node-version: '24'") &&
 			preflightGateWorkflow.includes('apps/preflight-mcp/**') &&
-			dogfoodWorkflow.includes('npm run verify -w preflight-mcp')
+			[
+				'apps/deploylint-shared/**',
+				'.github/actions/deploylint-gate/**',
+				'knip.deploylint.jsonc',
+				'.oxlintrc.jsonc',
+				'.oxfmtrc.jsonc',
+				'.nvmrc'
+			].every((path) => preflightGateWorkflow.includes(path)) &&
+			dogfoodWorkflow.includes('npm run verify -w preflight-mcp') &&
+			dogfoodWorkflow.includes('node-version-file: .nvmrc') &&
+			[
+				'apps/deploylint-shared/**',
+				'package-lock.json',
+				'knip.deploylint.jsonc',
+				'.oxlintrc.jsonc',
+				'.oxfmtrc.jsonc',
+				'.nvmrc'
+			].every((path) => dogfoodWorkflow.includes(path))
 	);
 	pushCheck(
 		checked,

@@ -5,7 +5,16 @@ on:
     paths:
       - "apps/preflight/**"
       - "apps/preflight-mcp/**"
+      - "apps/deploylint-shared/**"
       - ".github/actions/deploylint-gate/**"
+      - "package.json"
+      - "package-lock.json"
+      - "turbo.json"
+      - "knip.deploylint.jsonc"
+      - ".oxlintrc.jsonc"
+      - ".oxfmtrc.jsonc"
+      - ".nvmrc"
+      - ".github/workflows/preflight-gate.yml"
       - ".github/workflows/deploylint-dogfood.yml"
   workflow_dispatch:
 

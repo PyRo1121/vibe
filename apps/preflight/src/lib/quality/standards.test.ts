@@ -31,8 +31,10 @@ describe('quality standards guard', () => {
 				'preflight scripts run oxfmt and oxlint with zero-warning lint',
 				'preflight verify runs standards, typecheck, lint, coverage, and build',
 				'preflight-mcp verify runs typecheck, lint, coverage, and build',
+				'deploylint-shared verify runs lint and syntax checks',
 				'root dependency audit fails on any known vulnerability',
-				'root deploylint CI verify runs audit, preflight, mcp, Playwright install, and e2e',
+				'root deploylint CI verify runs audit, shared, preflight, mcp, Playwright install, and e2e',
+				'root deploylint local verify skips network-heavy CI-only gates',
 				'root dead-code gate runs knip against Deploylint workspaces',
 				'root deploylint ship verify adds production smoke',
 				'oxlint config enables correctness, suspicious, TypeScript, Vitest, Promise, and Unicorn guards',
@@ -54,12 +56,14 @@ describe('quality standards guard', () => {
 				JSON.stringify({
 					scripts: {
 						'verify:deploylint:ci': 'npm run verify -w preflight',
+						'verify:deploylint:local': 'npm run audit:security && npm run verify -w preflight',
 						'verify:deploylint': 'npm run verify -w preflight'
 					},
 					devDependencies: {}
 				})
 			);
 			writeFixtureFile(join(root, 'package-lock.json'), JSON.stringify({ lockfileVersion: 3 }));
+			writeFixtureFile(join(root, '.nvmrc'), '24\n');
 			writeFixtureFile(
 				join(root, 'apps/preflight/package.json'),
 				JSON.stringify({
@@ -76,6 +80,14 @@ describe('quality standards guard', () => {
 						verify: 'npm run check'
 					},
 					devDependencies: {}
+				})
+			);
+			writeFixtureFile(
+				join(root, 'apps/deploylint-shared/package.json'),
+				JSON.stringify({
+					scripts: {
+						lint: 'oxfmt --check .'
+					}
 				})
 			);
 			writeFixtureFile(
@@ -156,8 +168,10 @@ describe('quality standards guard', () => {
 					'preflight scripts run oxfmt and oxlint with zero-warning lint',
 					'preflight verify runs standards, typecheck, lint, coverage, and build',
 					'preflight-mcp verify runs typecheck, lint, coverage, and build',
+					'deploylint-shared verify runs lint and syntax checks',
 					'root dependency audit fails on any known vulnerability',
-					'root deploylint CI verify runs audit, preflight, mcp, Playwright install, and e2e',
+					'root deploylint CI verify runs audit, shared, preflight, mcp, Playwright install, and e2e',
+					'root deploylint local verify skips network-heavy CI-only gates',
 					'root dead-code gate runs knip against Deploylint workspaces',
 					'root deploylint ship verify adds production smoke',
 					'oxlint config enables correctness, suspicious, TypeScript, Vitest, Promise, and Unicorn guards',
