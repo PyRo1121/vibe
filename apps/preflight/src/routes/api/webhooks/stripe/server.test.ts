@@ -55,6 +55,18 @@ describe('Stripe webhook route', () => {
 		).rejects.toMatchObject({ status: 413 });
 	});
 
+	it('rejects signed webhook payloads without a valid event envelope', async () => {
+		const secret = 'whsec_test';
+		const malformedEnvelope = JSON.stringify({ id: 'evt_bad_shape', type: 'invoice.paid' });
+
+		await expect(
+			POST({
+				request: webhookRequest(malformedEnvelope, secret),
+				platform: { env: { STRIPE_WEBHOOK_SECRET: secret } }
+			} as Parameters<typeof POST>[0])
+		).rejects.toMatchObject({ status: 400 });
+	});
+
 	it('returns duplicate without reprocessing already seen Stripe events', async () => {
 		const secret = 'whsec_test';
 		const eventId = 'evt_duplicate';
@@ -158,6 +170,44 @@ describe('Stripe webhook route', () => {
 		} as Parameters<typeof POST>[0]);
 
 		expect(await response.json()).toEqual({ received: true, sessionId: 'cs_test_no_reports' });
+	});
+
+	it('acknowledges paid checkout events with malformed metadata without granting access', async () => {
+		const secret = 'whsec_test';
+		const store = new Map<string, string>();
+		const payload = JSON.stringify({
+			id: 'evt_checkout_bad_metadata',
+			type: 'checkout.session.completed',
+			data: {
+				object: {
+					id: 'cs_test_bad_metadata',
+					payment_status: 'paid',
+					status: 'complete',
+					metadata: { scan_url: 123 }
+				}
+			}
+		});
+		const kv = {
+			get: async (key: string) => {
+				const raw = store.get(key);
+				return raw == null ? null : JSON.parse(raw);
+			},
+			put: async (key: string, value: string) => {
+				store.set(key, value);
+			}
+		} as unknown as KVNamespace;
+
+		const response = await POST({
+			request: webhookRequest(payload, secret),
+			platform: { env: { STRIPE_WEBHOOK_SECRET: secret, REPORTS: kv } }
+		} as Parameters<typeof POST>[0]);
+
+		expect(await response.json()).toEqual({
+			received: true,
+			sessionId: 'cs_test_bad_metadata'
+		});
+		expect(await hasUnlock(kv, 'https://app.test', 'cs_test_bad_metadata')).toBe(false);
+		expect(store.has('webhook:event:evt_checkout_bad_metadata')).toBe(true);
 	});
 
 	it('fails closed when webhook processed markers cannot be written', async () => {

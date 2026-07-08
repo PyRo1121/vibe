@@ -66,7 +66,7 @@ const pages = [
 		path: '/privacy',
 		title: 'Privacy Policy - Deploylint',
 		description:
-			'Deploylint privacy policy for workspaces, deploy target audits, report history, subscriptions, analytics, and data handling.',
+			'Deploylint privacy policy for workspaces, release-readiness reviews, report history, subscriptions, analytics, and data handling.',
 		canonical: `${baseUrl}/privacy`,
 		heading: /Privacy Policy/i,
 		jsonLdTypes: ['WebPage'],
@@ -76,7 +76,7 @@ const pages = [
 		path: '/terms',
 		title: 'Terms of Service - Deploylint',
 		description:
-			'Deploylint terms for CI hardening tools, deploy target audits, paid subscriptions, acceptable use, and refund handling.',
+			'Deploylint terms for CI hardening tools, release-readiness reviews, paid subscriptions, acceptable use, and refund handling.',
 		canonical: `${baseUrl}/terms`,
 		heading: /Terms of Service/i,
 		jsonLdTypes: ['WebPage'],

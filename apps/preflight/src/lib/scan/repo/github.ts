@@ -42,6 +42,51 @@ export class RepoScanError extends Error {
 const API_TIMEOUT_MS = 10_000;
 const MAX_FILE_BYTES = 300 * 1024;
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null;
+}
+
+function stringValue(value: unknown): string | null {
+	return typeof value === 'string' ? value : null;
+}
+
+function numberValue(value: unknown): number | null {
+	return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function readRepoMeta(body: unknown): RepoMeta {
+	const data = isRecord(body) ? body : {};
+	const license = isRecord(data.license) ? data.license : {};
+
+	return {
+		branch: stringValue(data.default_branch) ?? 'main',
+		description: stringValue(data.description),
+		stars: numberValue(data.stargazers_count),
+		licenseSpdx: stringValue(license.spdx_id)
+	};
+}
+
+function readTreeEntry(value: unknown): RepoTreeEntry | null {
+	if (!isRecord(value)) return null;
+
+	const path = stringValue(value.path);
+	const type = value.type;
+	if (!path || (type !== 'blob' && type !== 'tree')) return null;
+
+	const size = numberValue(value.size) ?? undefined;
+	return { path, type, size };
+}
+
+function readRepoTree(body: unknown): RepoTree {
+	const data = isRecord(body) ? body : {};
+	const tree = Array.isArray(data.tree) ? data.tree : [];
+
+	return {
+		entries: tree.map(readTreeEntry).filter((entry): entry is RepoTreeEntry => entry !== null),
+		truncated: data.truncated === true
+	};
+}
+
 function apiHeaders(token?: string): Record<string, string> {
 	return {
 		Accept: 'application/vnd.github+json',
@@ -78,18 +123,7 @@ export function githubFetchers(token?: string): RepoFetchers {
 		async getMeta(ref) {
 			const res = await apiGet(`https://api.github.com/repos/${ref.owner}/${ref.repo}`, token);
 			if (!res.ok) throwForStatus(res, ref);
-			const body = (await res.json()) as {
-				default_branch?: string;
-				description?: string | null;
-				stargazers_count?: number;
-				license?: { spdx_id?: string | null } | null;
-			};
-			return {
-				branch: body.default_branch ?? 'main',
-				description: body.description ?? null,
-				stars: body.stargazers_count ?? null,
-				licenseSpdx: body.license?.spdx_id ?? null
-			};
+			return readRepoMeta(await res.json());
 		},
 
 		async getTree(ref, branch) {
@@ -98,16 +132,7 @@ export function githubFetchers(token?: string): RepoFetchers {
 				token
 			);
 			if (!res.ok) throwForStatus(res, ref);
-			const body = (await res.json()) as {
-				tree?: Array<{ path?: string; type?: string; size?: number }>;
-				truncated?: boolean;
-			};
-			return {
-				entries: (body.tree ?? [])
-					.filter((e) => e.path && (e.type === 'blob' || e.type === 'tree'))
-					.map((e) => ({ path: e.path as string, type: e.type as 'blob' | 'tree', size: e.size })),
-				truncated: body.truncated ?? false
-			};
+			return readRepoTree(await res.json());
 		},
 
 		async getFile(ref, branch, path, maxBytes = MAX_FILE_BYTES) {

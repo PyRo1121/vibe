@@ -254,7 +254,7 @@ jobs:
 			href={resolve('/app#project')}
 			class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 hover:border-sky-500/70"
 		>
-			<p class="font-semibold text-white">Audit a deploy target</p>
+			<p class="font-semibold text-white">Create release-readiness project</p>
 			<p class="mt-2 text-sm leading-6 text-zinc-400">
 				Check the live URL or public repo after the workflow path is under control.
 			</p>

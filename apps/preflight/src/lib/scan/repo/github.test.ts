@@ -60,6 +60,24 @@ describe('githubFetchers', () => {
 		});
 	});
 
+	it('defaults malformed repository metadata fields safely', async () => {
+		fetchMock.mockResolvedValueOnce(
+			jsonResponse({
+				default_branch: 123,
+				description: { text: 'Launch checker' },
+				stargazers_count: '42',
+				license: { spdx_id: 99 }
+			})
+		);
+
+		await expect(githubFetchers().getMeta(repo)).resolves.toEqual({
+			branch: 'main',
+			description: null,
+			stars: null,
+			licenseSpdx: null
+		});
+	});
+
 	it('turns GitHub 404s into typed repo scan errors', async () => {
 		fetchMock.mockResolvedValueOnce(jsonResponse({ message: 'Not Found' }, 404));
 
@@ -101,6 +119,15 @@ describe('githubFetchers', () => {
 		});
 	});
 
+	it('defaults malformed recursive tree payloads safely', async () => {
+		fetchMock.mockResolvedValueOnce(jsonResponse({ tree: 'not-an-array', truncated: 'yes' }));
+
+		await expect(githubFetchers().getTree(repo, 'main')).resolves.toEqual({
+			entries: [],
+			truncated: false
+		});
+	});
+
 	it('filters recursive tree entries down to blobs and trees with paths', async () => {
 		fetchMock.mockResolvedValueOnce(
 			jsonResponse({
@@ -108,6 +135,8 @@ describe('githubFetchers', () => {
 				tree: [
 					{ path: 'package.json', type: 'blob', size: 123 },
 					{ path: 'src', type: 'tree' },
+					{ path: 'wrong-size', type: 'blob', size: '123' },
+					{ path: 123, type: 'blob' },
 					{ path: 'commit', type: 'commit' },
 					{ type: 'blob', size: 99 }
 				]
@@ -120,7 +149,8 @@ describe('githubFetchers', () => {
 			truncated: true,
 			entries: [
 				{ path: 'package.json', type: 'blob', size: 123 },
-				{ path: 'src', type: 'tree', size: undefined }
+				{ path: 'src', type: 'tree', size: undefined },
+				{ path: 'wrong-size', type: 'blob', size: undefined }
 			]
 		});
 	});

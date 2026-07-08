@@ -70,6 +70,17 @@ describe('verifyStripeWebhookSignature', () => {
 });
 
 describe('isCheckoutSessionFulfilled', () => {
+	it('rejects JSON payloads without a valid Stripe event envelope', () => {
+		for (const payload of [
+			'{}',
+			'[]',
+			'{"type":123,"data":{"object":{}}}',
+			'{"type":"invoice.paid"}'
+		]) {
+			expect(() => parseStripeWebhookEvent(payload)).toThrow('Invalid Stripe webhook event');
+		}
+	});
+
 	it('detects paid checkout completion', () => {
 		const event = parseStripeWebhookEvent(
 			JSON.stringify({

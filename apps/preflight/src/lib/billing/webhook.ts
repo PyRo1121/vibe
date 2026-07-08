@@ -65,8 +65,57 @@ export interface StripeWebhookEvent {
 	};
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null;
+}
+
+function stripeObjectId(value: unknown): string | { id: string } | undefined {
+	if (typeof value === 'string' && value.trim()) return value.trim();
+	if (isRecord(value) && typeof value.id === 'string' && value.id.trim()) {
+		return { id: value.id.trim() };
+	}
+	return undefined;
+}
+
+function stripeMetadata(value: unknown): StripeCheckoutSessionObject['metadata'] | undefined {
+	if (!isRecord(value)) return undefined;
+
+	const metadata: StripeCheckoutSessionObject['metadata'] = {};
+	if (typeof value.scan_url === 'string') metadata.scan_url = value.scan_url;
+	if (typeof value.plan === 'string') metadata.plan = value.plan;
+	return Object.keys(metadata).length > 0 ? metadata : undefined;
+}
+
+function stripeSessionObject(value: unknown): StripeCheckoutSessionObject | null {
+	if (!isRecord(value)) return null;
+
+	return {
+		id: typeof value.id === 'string' ? value.id : undefined,
+		payment_status: typeof value.payment_status === 'string' ? value.payment_status : undefined,
+		status: typeof value.status === 'string' ? value.status : undefined,
+		metadata: stripeMetadata(value.metadata),
+		customer: stripeObjectId(value.customer),
+		subscription: stripeObjectId(value.subscription)
+	};
+}
+
 export function parseStripeWebhookEvent(payload: string): StripeWebhookEvent {
-	return JSON.parse(payload) as StripeWebhookEvent;
+	const parsed: unknown = JSON.parse(payload);
+	if (!isRecord(parsed) || typeof parsed.type !== 'string') {
+		throw new Error('Invalid Stripe webhook event');
+	}
+
+	const data = isRecord(parsed.data) ? parsed.data : null;
+	const object = stripeSessionObject(data?.object);
+	if (!data || !object) {
+		throw new Error('Invalid Stripe webhook event');
+	}
+
+	return {
+		id: typeof parsed.id === 'string' ? parsed.id : undefined,
+		type: parsed.type,
+		data: { object }
+	};
 }
 
 /** Fulfillment signal per Stripe delayed-payment docs. */

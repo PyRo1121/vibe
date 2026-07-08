@@ -69,7 +69,7 @@
 	let lockedPromptTrackedFor: string | null = null;
 
 	const PROGRESS_STEPS = [
-		'Preparing deploy-target evidence…',
+		'Preparing release-readiness evidence...',
 		'Checking public access and HTTPS…',
 		'Reviewing trust, legal, and payment signals…',
 		'Inspecting preview and crawler metadata…',
@@ -101,7 +101,7 @@
 		}
 
 		if (data.checkout === 'cancel') {
-			checkoutMessage = 'Checkout canceled — your scan results are still free.';
+			checkoutMessage = 'Checkout canceled - your advisory evidence stays available.';
 			clearCheckoutQuery();
 			return;
 		}
@@ -113,7 +113,7 @@
 				url = storedUrl;
 				hydrateProjectTarget(storedUrl);
 			}
-			checkoutMessage = 'Payment received — loading your fix prompts…';
+			checkoutMessage = 'Subscription active - loading workspace repair guidance...';
 			clearCheckoutQuery();
 			if (url.trim()) void runScan(false, url);
 		}
@@ -266,7 +266,7 @@
 				} else {
 					checkoutMessage = alphaFreeUnlock
 						? 'Alpha access active - repair plans and verification proof are available.'
-						: 'Repair plan unlocked - follow the fixes below, then verify fixes.';
+						: 'Workspace repair plan active - follow the fixes below, then verify fixes.';
 				}
 			}
 
@@ -625,7 +625,7 @@ jobs:
 			</div>
 			<div>
 				<label for="deploy-target" class="mb-1.5 block text-sm font-medium text-zinc-200">
-					Deploy target
+					Release URL
 				</label>
 				<input
 					id="deploy-target"
@@ -641,8 +641,8 @@ jobs:
 		</div>
 		<div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 			<p class="text-sm leading-6 text-zinc-500">
-				Deploy targets get public-surface checks. GitHub repositories get repo and workflow
-				readiness checks.
+				Release URLs get public-surface checks. GitHub repositories get repo and workflow readiness
+				checks.
 			</p>
 			<div class="flex shrink-0 flex-col gap-2 sm:flex-row">
 				<button
@@ -662,7 +662,7 @@ jobs:
 						runScan(false, target);
 					}}
 				>
-					{loading ? 'Checking...' : 'Preview deploy-target evidence'}
+					{loading ? 'Checking...' : 'Run advisory review'}
 				</button>
 			</div>
 		</div>
@@ -716,10 +716,10 @@ jobs:
 				aria-label="Unlocked report notice"
 			>
 				<p class="text-xs font-semibold tracking-widest text-sky-300 uppercase">
-					Alpha access unlocked
+					Alpha workspace access
 				</p>
 				<p class="mt-2 text-sm text-zinc-300">
-					Your plan unlocks the repair plan, workspace workflow, copy readiness review, and
+					Your plan includes the repair plan, workspace workflow, copy readiness review, and
 					verify-fixes proof shown below.
 				</p>
 			</section>

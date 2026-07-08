@@ -30,19 +30,70 @@ interface StripeCheckoutSessionResponse {
 	payment_status?: string;
 	status?: string;
 	metadata?: { scan_url?: string };
-	customer?: string | { id?: string };
+	customer?: string | { id: string };
+}
+
+interface StripeSessionRedirectResponse {
+	id: string;
+	url: string;
 }
 
 function isCheckoutSessionId(sessionId: string): boolean {
 	return /^cs_(test|live)_[a-zA-Z0-9]+$/.test(sessionId);
 }
 
-function stripeObjectId(value: string | { id?: string } | undefined): string | null {
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null;
+}
+
+function nonEmptyString(value: unknown): string | null {
+	return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+}
+
+function stripeObjectId(value: unknown): string | null {
 	if (typeof value === 'string' && value.trim()) return value.trim();
-	if (typeof value === 'object' && typeof value.id === 'string' && value.id.trim()) {
+	if (isRecord(value) && typeof value.id === 'string' && value.id.trim()) {
 		return value.id.trim();
 	}
 	return null;
+}
+
+function stripeMetadata(value: unknown): StripeCheckoutSessionResponse['metadata'] | undefined {
+	if (!isRecord(value)) return undefined;
+
+	const scanUrl = nonEmptyString(value.scan_url);
+	return scanUrl ? { scan_url: scanUrl } : undefined;
+}
+
+function stripeCustomer(value: unknown): StripeCheckoutSessionResponse['customer'] | undefined {
+	const id = stripeObjectId(value);
+	if (!id) return undefined;
+	return typeof value === 'string' ? id : { id };
+}
+
+function parseCheckoutSessionResponse(value: unknown): StripeCheckoutSessionResponse | null {
+	if (!isRecord(value)) return null;
+
+	return {
+		id: nonEmptyString(value.id) ?? undefined,
+		payment_status: nonEmptyString(value.payment_status) ?? undefined,
+		status: nonEmptyString(value.status) ?? undefined,
+		metadata: stripeMetadata(value.metadata),
+		customer: stripeCustomer(value.customer)
+	};
+}
+
+function parseSessionRedirectResponse(
+	value: unknown,
+	errorMessage: string
+): StripeSessionRedirectResponse {
+	if (!isRecord(value)) throw new Error(errorMessage);
+
+	const id = nonEmptyString(value.id);
+	const url = nonEmptyString(value.url);
+	if (!id || !url) throw new Error(errorMessage);
+
+	return { id, url };
 }
 
 function checkoutIdempotencyKey(scanUrl: string): string {
@@ -91,7 +142,10 @@ export async function createCheckoutSession(opts: {
 		throw new Error(`Stripe checkout failed: ${text.slice(0, 200)}`);
 	}
 
-	const data = (await res.json()) as { id: string; url: string };
+	const data = parseSessionRedirectResponse(
+		await res.json(),
+		'Malformed Stripe checkout session response'
+	);
 	return { id: data.id, url: data.url };
 }
 
@@ -106,7 +160,7 @@ async function retrieveCheckoutSession(
 	});
 
 	if (!res.ok) return null;
-	return (await res.json()) as StripeCheckoutSessionResponse;
+	return parseCheckoutSessionResponse(await res.json());
 }
 
 function checkoutSessionMatchesScan(
@@ -168,6 +222,9 @@ export async function createBillingPortalSession(opts: {
 		throw new Error(`Stripe billing portal failed: ${text.slice(0, 200)}`);
 	}
 
-	const data = (await res.json()) as { id: string; url: string };
+	const data = parseSessionRedirectResponse(
+		await res.json(),
+		'Malformed Stripe billing portal session response'
+	);
 	return { id: data.id, url: data.url };
 }

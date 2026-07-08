@@ -9,14 +9,14 @@ test.describe('developers', () => {
 		await expect(page.getByText('DEPLOYLINT_URL').first()).toBeVisible();
 		await expect(
 			page.getByRole('heading', {
-				name: /Fallback: URL-only advisory workflow/i
+				name: /Temporary advisory run before workspace setup/i
 			})
 		).toBeVisible();
 		await expect(page.getByRole('link', { name: /Generate workspace workflow/i })).toHaveAttribute(
 			'href',
 			'./app#install'
 		);
-		await expect(page.getByText('Sample PR report')).toBeVisible();
+		await expect(page.getByText('Advisory PR report preview')).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Switch to blocking mode' })).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Composite GitHub Action' })).toBeVisible();
 		await expect(page.getByRole('link', { name: 'Build readiness evidence' })).toBeVisible();

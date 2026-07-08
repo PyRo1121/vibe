@@ -35,7 +35,7 @@
 	const reportNextFix =
 		'Tighten checkout verification and branch protection before switching DEPLOYLINT_MODE to gate.';
 	const reportProofPoints = [
-		'Persistent score history for the project, not a one-off URL result.',
+		'Persistent release history across PRs, deploy targets, and gate decisions.',
 		'Regression count so the next PR shows what got worse.',
 		'Stakeholder-ready summary that explains the next fix.'
 	] as const;
@@ -225,7 +225,7 @@
 
 			<div class="mt-6 grid gap-4 sm:grid-cols-4">
 				<div>
-					<p class="text-xs text-zinc-500">Deploy target</p>
+					<p class="text-xs text-zinc-500">Release URL</p>
 					<p class="mt-1 font-mono text-sm break-all text-zinc-200">
 						{project?.deployUrl ?? 'Not set'}
 					</p>

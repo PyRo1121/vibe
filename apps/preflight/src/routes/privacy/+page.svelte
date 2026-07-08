@@ -6,7 +6,7 @@
 	const base = 'https://deploylint.com';
 	const title = buildSeoTitle('Privacy Policy');
 	const description =
-		'Deploylint privacy policy for workspaces, deploy target audits, report history, subscriptions, analytics, and data handling.';
+		'Deploylint privacy policy for workspaces, release-readiness reviews, report history, subscriptions, analytics, and data handling.';
 	const canonical = `${base}/privacy`;
 	const jsonLd = [buildPageJsonLd({ base, canonical, title, description })];
 </script>
@@ -18,14 +18,14 @@
 	<p class="mb-8 text-sm text-zinc-500">Last updated: July 2, 2026</p>
 
 	<p class="mb-6">
-		Deploylint checks deploy targets, public URLs, and repository signals you submit. Logged-in
+		Deploylint checks release URLs, public URLs, and repository signals you submit. Logged-in
 		workspaces store project setup, advisory workflow state, report history, gate status, and
 		subscription context so the product can operate as a CI hardening workspace.
 	</p>
 
 	<h2 class="mb-3 text-xl font-semibold text-white">What we collect</h2>
 	<ul class="mb-6 list-disc space-y-2 pl-6">
-		<li>Deploy target URLs, public report links, and public repository references you submit</li>
+		<li>Release URLs, public report links, and public repository references you submit</li>
 		<li>Workspace, project, gate policy, report history, and install-state records</li>
 		<li>Account profile details from your sign-in provider, such as email, name, and avatar</li>
 		<li>Basic request metadata (timestamp, IP) via our hosting provider</li>
@@ -50,8 +50,8 @@
 	<p class="mb-6">
 		Workspace records, project settings, subscription state, and report history are retained while
 		your workspace is active so the dashboard, advisory reports, and deploy gates can work. Public
-		report links and one-off scan records may be retained for report access, abuse prevention,
-		unlock verification, support, and diagnostics.
+		report links and advisory review records may be retained for report access, abuse prevention,
+		subscription verification, support, and diagnostics.
 	</p>
 
 	<h2 class="mb-3 text-xl font-semibold text-white">Analytics</h2>

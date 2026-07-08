@@ -4,9 +4,9 @@ interface CounterRecord {
 }
 
 interface ReserveRequest {
-	key?: string;
-	limit?: number;
-	windowMs?: number;
+	key: string;
+	limit: number;
+	windowMs: number;
 }
 
 const DurableObjectFallback: new (state: DurableObjectState, env: Env) => object = Object;
@@ -16,6 +16,26 @@ const DurableObjectBase =
 			DurableObject?: new (state: DurableObjectState, env: Env) => object;
 		}
 	).DurableObject ?? DurableObjectFallback;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null;
+}
+
+function isPositiveInteger(value: unknown): value is number {
+	return typeof value === 'number' && Number.isInteger(value) && value > 0;
+}
+
+function parseReserveRequest(value: unknown): ReserveRequest | null {
+	if (!isRecord(value)) return null;
+
+	const key = value.key;
+	const limit = value.limit;
+	const windowMs = value.windowMs;
+	if (typeof key !== 'string' || key.trim().length === 0) return null;
+	if (!isPositiveInteger(limit) || !isPositiveInteger(windowMs)) return null;
+
+	return { key, limit, windowMs };
+}
 
 export class CounterLimiter extends DurableObjectBase {
 	private readonly state: DurableObjectState;
@@ -30,11 +50,11 @@ export class CounterLimiter extends DurableObjectBase {
 			return new Response('Method Not Allowed', { status: 405 });
 		}
 
-		const body = (await request.json().catch(() => null)) as ReserveRequest | null;
-		if (!body?.key || !Number.isFinite(body.limit) || !Number.isFinite(body.windowMs)) {
+		const body = parseReserveRequest(await request.json().catch(() => null));
+		if (!body) {
 			return Response.json({ error: 'Invalid limiter request' }, { status: 400 });
 		}
-		const { key, limit, windowMs } = body as { key: string; limit: number; windowMs: number };
+		const { key, limit, windowMs } = body;
 
 		const now = Date.now();
 		const stored = await this.state.storage.get<CounterRecord>(key);

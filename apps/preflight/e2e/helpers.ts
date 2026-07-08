@@ -2,7 +2,7 @@ import { expect, type Page } from '@playwright/test';
 
 import type { ScanReport } from '../src/lib/scan/types';
 
-export const DEPLOY_TARGET_BUTTON = 'Preview deploy-target evidence';
+export const DEPLOY_TARGET_BUTTON = 'Run advisory review';
 export const WORKSPACE_SETUP_BUTTON = 'Generate advisory workflow';
 export const DEPLOY_TARGET_INPUT = 'https://app.example.com';
 

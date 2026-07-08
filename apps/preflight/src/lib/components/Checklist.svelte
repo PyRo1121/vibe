@@ -52,7 +52,7 @@
 		</div>
 		{#if !report.unlocked && offer && offer.lockedPromptCount > 0}
 			<p class="text-sm font-medium text-sky-400">
-				{offer.lockedPromptCount} workspace repair briefs · 1 sample below
+				{offer.lockedPromptCount} additional workspace repair briefs
 			</p>
 		{/if}
 	</div>
@@ -142,7 +142,7 @@
 								{:else if !report.unlocked && item.id === report.samplePromptId && item.fixPrompt}
 									<div class="mt-3 rounded-lg border border-sky-500/30 bg-sky-500/5 p-3">
 										<p class="mb-2 text-[10px] font-semibold tracking-wider text-sky-400 uppercase">
-											Sample fix brief (free)
+											Included repair brief
 										</p>
 										<p class="mb-2 text-xs whitespace-pre-wrap text-zinc-300">{item.fixPrompt}</p>
 										<button
@@ -150,7 +150,7 @@
 											class="rounded-lg bg-zinc-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-700"
 											onclick={() => onCopyPrompt(item.id, item.fixPrompt)}
 										>
-											{copiedId === item.id ? 'Copied!' : 'Copy sample'}
+											{copiedId === item.id ? 'Copied!' : 'Copy repair brief'}
 										</button>
 									</div>
 								{:else}

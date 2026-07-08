@@ -18,7 +18,7 @@ test.describe('scan flow', () => {
 		await expect(page.getByText('1 access blocker', { exact: true })).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Findings' })).toBeVisible();
 		await expect(page.getByText('Privacy policy', { exact: true }).first()).toBeVisible();
-		await expect(page.getByRole('button', { name: 'Copy sample' })).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Copy repair brief' })).toBeVisible();
 	});
 
 	test('submits deploy target when both repo and deploy target are present', async ({ page }) => {
@@ -36,7 +36,7 @@ test.describe('scan flow', () => {
 		await page.goto('/');
 		await page.getByLabel(/Project name/i).fill('Control plane');
 		await page.getByLabel(/GitHub repository/i).fill('https://github.com/acme/control-plane');
-		await page.getByLabel(/Deploy target/i).fill('https://app.acme.test');
+		await page.getByLabel(/Release URL/i).fill('https://app.acme.test');
 		await page.getByRole('button', { name: DEPLOY_TARGET_BUTTON }).click();
 
 		await expect(page.getByText('Gate readiness decision')).toBeVisible({ timeout: 15_000 });
@@ -93,7 +93,7 @@ test.describe('scan flow', () => {
 			sessionStorage.setItem('preflight_baseline_score', '62');
 			sessionStorage.setItem('preflight_baseline_checks', '[]');
 		});
-		await page.getByLabel(/Deploy target/i).fill('https://new.example.com');
+		await page.getByLabel(/Release URL/i).fill('https://new.example.com');
 		await page.getByRole('button', { name: DEPLOY_TARGET_BUTTON }).click();
 
 		await expect(page.getByText('Gate readiness decision')).toBeVisible({ timeout: 15_000 });

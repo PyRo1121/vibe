@@ -47,7 +47,7 @@
 					<li>+ Deploy surface brief + social preview</li>
 					<li>+ Full checklist - what's failing</li>
 					<li>
-						+ 1 sample guided fix{#if offer.hasSample}{/if}
+						+ First repair brief included{#if offer.hasSample}{/if}
 					</li>
 				</ul>
 			</div>
@@ -83,7 +83,7 @@
 
 		<div class="mt-6 rounded-xl border border-zinc-800 bg-zinc-950 p-4">
 			<p class="mb-2 text-[10px] font-semibold tracking-wider text-zinc-500 uppercase">
-				Preview - guided repair plan
+				Workspace repair plan
 				{#if offer.masterPromptLineCount > 0}
 					- {offer.masterPromptLineCount} lines
 				{/if}

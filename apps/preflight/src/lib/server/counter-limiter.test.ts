@@ -66,6 +66,26 @@ describe('CounterLimiter', () => {
 		expect(json).toEqual({ error: 'Invalid limiter request' });
 	});
 
+	it('rejects non-string keys and non-positive limits', async () => {
+		const { limiter, storage } = createLimiter();
+
+		await expect(
+			reserve(limiter, { key: 'ip:1', limit: 0, windowMs: 60_000 })
+		).resolves.toMatchObject({
+			response: { status: 400 },
+			json: { error: 'Invalid limiter request' }
+		});
+		const numericKeyResponse = await limiter.fetch(
+			new Request('https://limiter.test/reserve', {
+				method: 'POST',
+				body: JSON.stringify({ key: 123, limit: 1, windowMs: 60_000 })
+			})
+		);
+
+		expect(numericKeyResponse.status).toBe(400);
+		expect(storage.put).not.toHaveBeenCalled();
+	});
+
 	it('allows requests until the window limit is exhausted', async () => {
 		const { limiter, storage } = createLimiter();
 

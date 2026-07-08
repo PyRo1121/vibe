@@ -1,11 +1,12 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import SeoHead from '$lib/components/SeoHead.svelte';
 	import { buildPageJsonLd, buildSeoTitle, defaultSeoImage } from '$lib/site/seo-metadata';
 
 	const base = 'https://deploylint.com';
 	const title = buildSeoTitle('Terms of Service');
 	const description =
-		'Deploylint terms for CI hardening tools, deploy target audits, paid subscriptions, acceptable use, and refund handling.';
+		'Deploylint terms for CI hardening tools, release-readiness reviews, paid subscriptions, acceptable use, and refund handling.';
 	const canonical = `${base}/terms`;
 	const jsonLd = [buildPageJsonLd({ base, canonical, title, description })];
 </script>
@@ -17,8 +18,8 @@
 	<p class="mb-8 text-sm text-zinc-500">Last updated: July 5, 2026</p>
 
 	<p class="mb-6">
-		Deploylint provides CI hardening tools, deploy target audits, and optional AI fix prompts.
-		Results are informational — not legal, security, or compliance advice.
+		Deploylint provides CI hardening tools, release-readiness reviews, and workspace repair
+		guidance. Results are informational — not legal, security, or compliance advice.
 	</p>
 
 	<h2 class="mb-3 text-xl font-semibold text-white">Acceptable use</h2>
@@ -46,5 +47,5 @@
 		>
 	</p>
 
-	<p><a class="text-sky-400 hover:underline" href="/">← Back to Deploylint</a></p>
+	<p><a class="text-sky-400 hover:underline" href={resolve('/')}>← Back to Deploylint</a></p>
 </div>

@@ -47,8 +47,7 @@
 				</span>
 				{#if offer.lockedPromptCount > 0}
 					<span class="rounded-full bg-sky-500/20 px-3 py-1 font-medium text-sky-300">
-						{offer.lockedPromptCount} locked{#if offer.hasSample}
-							- 1 free sample{/if}
+						{offer.lockedPromptCount} workspace repair briefs
 					</span>
 				{/if}
 			</div>

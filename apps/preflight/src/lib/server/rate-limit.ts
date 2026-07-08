@@ -32,6 +32,68 @@ interface RateLimitOptions {
 	limiter?: DurableObjectNamespace;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null;
+}
+
+function isKvNamespace(value: unknown): value is KVNamespace {
+	return isRecord(value) && typeof value.get === 'function' && typeof value.put === 'function';
+}
+
+function isDurableObjectNamespace(value: unknown): value is DurableObjectNamespace {
+	return (
+		isRecord(value) && typeof value.idFromName === 'function' && typeof value.get === 'function'
+	);
+}
+
+function isPositiveNumber(value: unknown): value is number {
+	return typeof value === 'number' && Number.isFinite(value) && value > 0;
+}
+
+function isRateLimitRequest(value: unknown): value is RateLimitRequest {
+	if (!isRecord(value)) return false;
+
+	return (
+		(value.kv === undefined || isKvNamespace(value.kv)) &&
+		(value.limiter === undefined || isDurableObjectNamespace(value.limiter)) &&
+		typeof value.ip === 'string' &&
+		value.ip.length > 0 &&
+		typeof value.prefix === 'string' &&
+		value.prefix.length > 0 &&
+		isPositiveNumber(value.limit) &&
+		isPositiveNumber(value.windowMs) &&
+		typeof value.message === 'string' &&
+		value.message.length > 0
+	);
+}
+
+function buildRateLimitRequest(
+	reqOrKv: RateLimitRequest | KVNamespace | undefined,
+	ipOrOpts?: string | RateLimitOptions,
+	prefix?: string,
+	limit?: number,
+	windowMs?: number,
+	message?: string
+): RateLimitRequest {
+	if (typeof ipOrOpts === 'string') {
+		if (!prefix || !isPositiveNumber(limit) || !isPositiveNumber(windowMs) || !message) {
+			throw new TypeError('Invalid rate limit request.');
+		}
+
+		return {
+			kv: isKvNamespace(reqOrKv) ? reqOrKv : undefined,
+			ip: ipOrOpts,
+			prefix,
+			limit,
+			windowMs,
+			message
+		};
+	}
+
+	if (isRateLimitRequest(reqOrKv)) return reqOrKv;
+	throw new TypeError('Invalid rate limit request.');
+}
+
 async function reserveDurableLimit(
 	limiter: DurableObjectNamespace | undefined,
 	req: RateLimitRequest
@@ -52,8 +114,8 @@ async function reserveDurableLimit(
 		})
 	);
 	if (!res.ok) throw new Error(`Limiter failed (${res.status})`);
-	const body = (await res.json()) as { allowed?: boolean };
-	if (!body.allowed) error(429, req.message);
+	const body = await res.json();
+	if (!isRecord(body) || body.allowed !== true) error(429, req.message);
 	return true;
 }
 
@@ -83,17 +145,7 @@ export async function assertIpRateLimit(
 	message?: string,
 	opts?: RateLimitOptions
 ): Promise<void> {
-	const req =
-		typeof ipOrOpts === 'string'
-			? {
-					kv: reqOrKv as KVNamespace | undefined,
-					ip: ipOrOpts,
-					prefix: prefix as string,
-					limit: limit as number,
-					windowMs: windowMs as number,
-					message: message as string
-				}
-			: (reqOrKv as RateLimitRequest);
+	const req = buildRateLimitRequest(reqOrKv, ipOrOpts, prefix, limit, windowMs, message);
 	const options = typeof ipOrOpts === 'string' ? opts : ipOrOpts;
 
 	try {

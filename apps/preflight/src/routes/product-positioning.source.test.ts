@@ -153,13 +153,13 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(homePage).toContain('Project profile');
 		expect(homePage).toContain('Create a monitored project');
 		expect(homePage).toContain('GitHub repository');
-		expect(homePage).toContain('Deploy target');
+		expect(homePage).toContain('Release URL');
 		expect(homePage).toContain('Workspace loop');
 		expect(homePage).toContain('What the workspace keeps enforcing');
 		expect(homePage).toContain('Monitored projects');
 		expect(homePage).toContain('Generate advisory workflow');
-		expect(homePage).toContain('Preview deploy-target evidence');
-		expect(homePage).toContain('Preparing deploy-target evidence');
+		expect(homePage).toContain('Run advisory review');
+		expect(homePage).toContain('Preparing release-readiness evidence');
 		expect(homePage).toContain('What the advisory loop checks');
 		expect(toolsPage).toContain("href: '/app#project'");
 		expect(toolsPage).toContain("href: '/developers'");

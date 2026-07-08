@@ -18,7 +18,7 @@ test.describe('home', () => {
 			'#project-setup'
 		);
 		await expect(page.getByRole('link', { name: /Check workflow YAML/i })).toBeVisible();
-		await expect(page.getByText('Sample PR report')).toBeVisible();
+		await expect(page.getByText('Advisory PR report preview')).toBeVisible();
 		await expect(page.getByText('Workspace loop')).toBeVisible();
 		await expect(page.getByText('What the workspace keeps enforcing')).toBeVisible();
 		await expect(page.getByText('Monitored projects')).toBeVisible();
@@ -29,7 +29,7 @@ test.describe('home', () => {
 		await expect(page.getByRole('heading', { name: /Create a monitored project/i })).toBeVisible();
 		await expect(page.getByLabel(/Project name/i)).toBeVisible();
 		await expect(page.getByLabel(/GitHub repository/i)).toBeVisible();
-		await expect(page.getByLabel(/Deploy target/i)).toBeVisible();
+		await expect(page.getByLabel(/Release URL/i)).toBeVisible();
 		await expect(page.getByRole('button', { name: DEPLOY_TARGET_BUTTON })).toBeVisible();
 		await expect(page.getByRole('button', { name: WORKSPACE_SETUP_BUTTON })).toBeVisible();
 		await expect(page.getByText('Project readiness audit')).toBeVisible();
@@ -41,7 +41,7 @@ test.describe('home', () => {
 
 		await page.getByLabel(/Project name/i).fill('Acme control plane');
 		await page.getByLabel(/GitHub repository/i).fill('https://github.com/acme/control-plane');
-		await page.getByLabel(/Deploy target/i).fill('https://app.acme.test/');
+		await page.getByLabel(/Release URL/i).fill('https://app.acme.test/');
 		await page.getByRole('button', { name: WORKSPACE_SETUP_BUTTON }).click();
 
 		await expect(page).toHaveURL(/\/login\?redirectTo=/);

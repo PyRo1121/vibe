@@ -55,6 +55,49 @@ describe('assertScanRateLimit', () => {
 		).toHaveLength(1);
 	});
 
+	it('accepts a request-embedded limiter binding', async () => {
+		const limiter = fakeLimiter();
+
+		await expect(
+			assertIpRateLimit({
+				kv: undefined,
+				ip: '203.0.113.1',
+				prefix: 'api:checkout',
+				limit: 1,
+				windowMs: 3600_000,
+				message: 'limited',
+				limiter
+			})
+		).resolves.toBeUndefined();
+		await expect(
+			assertIpRateLimit({
+				kv: undefined,
+				ip: '203.0.113.1',
+				prefix: 'api:checkout',
+				limit: 1,
+				windowMs: 3600_000,
+				message: 'limited',
+				limiter
+			})
+		).rejects.toMatchObject({ status: 429 });
+	});
+
+	it('rejects malformed rate limit requests before touching storage', async () => {
+		await expect(
+			assertIpRateLimit(undefined, '203.0.113.1', 'api:checkout', 0, 3600_000, 'limited')
+		).rejects.toThrow('Invalid rate limit request.');
+		await expect(
+			assertIpRateLimit({
+				kv: undefined,
+				ip: '',
+				prefix: 'api:checkout',
+				limit: 1,
+				windowMs: 3600_000,
+				message: 'limited'
+			})
+		).rejects.toThrow('Invalid rate limit request.');
+	});
+
 	it('allows scans under the limit', async () => {
 		const get = vi.fn<(key: string) => Promise<string | null>>(async () => '2');
 		const put = vi.fn<(key: string, value: string) => Promise<void>>(async () => {});
@@ -117,6 +160,52 @@ describe('assertScanRateLimit', () => {
 		} as unknown as DurableObjectNamespace;
 
 		await expect(assertScanRateLimit(undefined, '203.0.113.1', limiter)).resolves.toBeUndefined();
+	});
+
+	it('fails closed when the Durable Object limiter is unavailable and required', async () => {
+		const limiter = {
+			idFromName: (name: string) => name,
+			get: () => ({
+				fetch: async () => new Response('down', { status: 500 })
+			})
+		} as unknown as DurableObjectNamespace;
+
+		await expect(
+			assertIpRateLimit(
+				{
+					kv: undefined,
+					ip: '203.0.113.1',
+					prefix: 'api:checkout',
+					limit: 12,
+					windowMs: 3600_000,
+					message: 'limited'
+				},
+				{ failClosed: true, limiter }
+			)
+		).rejects.toMatchObject({ status: 503 });
+	});
+
+	it('does not allow malformed Durable Object success payloads', async () => {
+		const limiter = {
+			idFromName: (name: string) => name,
+			get: () => ({
+				fetch: async () => Response.json({ allowed: 'yes' })
+			})
+		} as unknown as DurableObjectNamespace;
+
+		await expect(
+			assertIpRateLimit(
+				{
+					kv: undefined,
+					ip: '203.0.113.1',
+					prefix: 'api:checkout',
+					limit: 12,
+					windowMs: 3600_000,
+					message: 'limited'
+				},
+				{ failClosed: true, limiter }
+			)
+		).rejects.toMatchObject({ status: 429 });
 	});
 
 	it('fails closed on KV errors when configured', async () => {

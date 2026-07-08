@@ -29,7 +29,7 @@ test.describe('mobile UX', () => {
 		).toBeVisible();
 		await expect(page.getByLabel(/Project name/i)).toBeVisible();
 		await expect(page.getByLabel(/GitHub repository/i)).toBeVisible();
-		await expect(page.getByLabel(/Deploy target/i)).toBeVisible();
+		await expect(page.getByLabel(/Release URL/i)).toBeVisible();
 		await expect(page.getByRole('button', { name: DEPLOY_TARGET_BUTTON })).toBeVisible();
 		await expect(page.getByRole('button', { name: WORKSPACE_SETUP_BUTTON })).toBeVisible();
 		await expectNoHorizontalOverflow(page);

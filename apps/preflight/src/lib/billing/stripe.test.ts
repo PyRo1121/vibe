@@ -118,6 +118,26 @@ describe('createCheckoutSession', () => {
 			})
 		).rejects.toThrow(/^Stripe checkout failed: x{200}$/);
 	});
+
+	it('rejects malformed successful checkout responses', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async () => ({
+				ok: true,
+				json: async () => ({ id: 123, url: null })
+			}))
+		);
+
+		await expect(
+			createCheckoutSession({
+				scanUrl: 'https://app.test',
+				appUrl: 'https://preflight.test',
+				secretKey: 'sk_test_x',
+				plan: 'solo',
+				priceId: 'price_solo'
+			})
+		).rejects.toThrow('Malformed Stripe checkout session response');
+	});
 });
 
 describe('verifyCheckoutSession', () => {
@@ -241,6 +261,24 @@ describe('verifyCheckoutSession', () => {
 			vi.fn(async () => {
 				throw new Error('network down');
 			})
+		);
+
+		expect(await verifyCheckoutSession('cs_test_abc123', 'https://app.test', 'sk_test_x')).toBe(
+			false
+		);
+	});
+
+	it('returns false for malformed successful Stripe retrieval bodies', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async () => ({
+				ok: true,
+				json: async () => ({
+					payment_status: 'paid',
+					status: 'complete',
+					metadata: { scan_url: 123 }
+				})
+			}))
 		);
 
 		expect(await verifyCheckoutSession('cs_test_abc123', 'https://app.test', 'sk_test_x')).toBe(
@@ -381,6 +419,39 @@ describe('createBillingPortalSession', () => {
 				secretKey: 'sk_test_x'
 			})
 		).rejects.toThrow('Stripe billing portal failed: portal disabled');
+	});
+
+	it('rejects malformed successful portal responses', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async (url: string) => {
+				if (url.endsWith('/checkout/sessions/cs_test_abc123')) {
+					return {
+						ok: true,
+						json: async () => ({
+							payment_status: 'paid',
+							status: 'complete',
+							customer: 'cus_123',
+							metadata: { scan_url: 'https://app.test' }
+						})
+					};
+				}
+
+				return {
+					ok: true,
+					json: async () => ({ id: 'bps_test_123', url: 42 })
+				};
+			})
+		);
+
+		await expect(
+			createBillingPortalSession({
+				sessionId: 'cs_test_abc123',
+				scanUrl: 'https://app.test',
+				appUrl: 'https://deploylint.com',
+				secretKey: 'sk_test_x'
+			})
+		).rejects.toThrow('Malformed Stripe billing portal session response');
 	});
 });
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import SeoHead from '$lib/components/SeoHead.svelte';
 	import {
 		buildDeploylintJsonLd,
@@ -27,8 +28,7 @@
 	<h1 class="mb-4 text-3xl font-bold text-white sm:text-4xl">About Deploylint</h1>
 	<p class="mb-8 text-lg leading-8 text-zinc-400">
 		Deploylint helps builders harden the path from pull request to production. The toolbox starts
-		with GitHub Actions security checks, deploy gates, repo hygiene, and public deploy target
-		audits.
+		with GitHub Actions security checks, deploy gates, repo hygiene, and public release URL reviews.
 	</p>
 
 	<section class="mb-10">
@@ -70,14 +70,14 @@
 	</section>
 
 	<p>
-		<a class="text-sky-400 hover:underline" href="/tools">Browse tools</a>
+		<a class="text-sky-400 hover:underline" href={resolve('/tools')}>Browse tools</a>
 		<span class="mx-2 text-zinc-600">&middot;</span>
-		<a class="text-sky-400 hover:underline" href="/tools/github-actions-security-checker"
+		<a class="text-sky-400 hover:underline" href={resolve('/tools/github-actions-security-checker')}
 			>Check GitHub Actions</a
 		>
 		<span class="mx-2 text-zinc-600">&middot;</span>
-		<a class="text-sky-400 hover:underline" href="/">Audit a deploy target</a>
+		<a class="text-sky-400 hover:underline" href={resolve('/')}>Start release-readiness review</a>
 		<span class="mx-2 text-zinc-600">&middot;</span>
-		<a class="text-sky-400 hover:underline" href="/checks">Browse the checks</a>
+		<a class="text-sky-400 hover:underline" href={resolve('/checks')}>Browse the checks</a>
 	</p>
 </article>

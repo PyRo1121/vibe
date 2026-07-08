@@ -26,7 +26,7 @@ describe('/app workspace source', () => {
 		expect(pageSource).toContain('Awaiting first CI report');
 		expect(pageSource).toContain('Awaiting first run');
 		expect(pageSource).toContain('Next fix');
-		expect(pageSource).toContain('Persistent score history');
+		expect(pageSource).toContain('Persistent release history');
 		expect(pageSource).toContain('awaitingFirstReport');
 		expect(pageSource).toContain('latestReport');
 		expect(pageSource).toContain('Gate status');
