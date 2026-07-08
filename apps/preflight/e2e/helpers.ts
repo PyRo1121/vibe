@@ -2,8 +2,8 @@ import { expect, type Page } from '@playwright/test';
 
 import type { ScanReport } from '../src/lib/scan/types';
 
-export const DEPLOY_TARGET_BUTTON = 'Build gate evidence brief';
-export const DEPLOY_TARGET_INPUT = 'deploy URL or github.com/you/repo';
+export const DEPLOY_TARGET_BUTTON = 'Build project readiness brief';
+export const DEPLOY_TARGET_INPUT = 'https://app.example.com';
 
 export async function mockScanApi(page: Page, report: ScanReport | 'error', status = 200) {
 	await page.route('**/api/scan', async (route) => {

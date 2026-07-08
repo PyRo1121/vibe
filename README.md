@@ -17,8 +17,8 @@ catalog).
 ```powershell
 npm install
 npm run verify          # all apps
-npm run verify:preflight
-npm run verify:tcg-vault
+npm run verify:deploylint:ci
+npm run verify:tcg-vault:ci
 npm run upgrade:stack   # bump deps to latest
 ```
 

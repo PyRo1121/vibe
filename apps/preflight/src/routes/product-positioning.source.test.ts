@@ -134,8 +134,10 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(ogSvg).toContain('Advisory PR reports | deploy gates | repo hygiene');
 		expect(loginPage).toContain('Sign in to manage deploy gates');
 		expect(loginPage).toMatch(/monitored\s+workspace/);
-		expect(homePage).toContain('Readiness evidence');
-		expect(homePage).toMatch(/Attach readiness evidence/);
+		expect(homePage).toContain('Project profile');
+		expect(homePage).toContain('Create a project readiness brief');
+		expect(homePage).toContain('GitHub repository');
+		expect(homePage).toContain('Deploy target');
 		expect(homePage).toContain('Subscription loop');
 		expect(homePage).toContain('What stays alive after the first check');
 		expect(homePage).toContain('Monitored projects');
@@ -165,6 +167,8 @@ describe('Deploylint CI workspace positioning', () => {
 			expect(fileSource).not.toContain('Check yours free');
 			expect(fileSource).not.toContain('Free scan (you have this)');
 			expect(fileSource).not.toContain('One-off report (you have this)');
+			expect(fileSource).not.toContain('Attach readiness evidence');
+			expect(fileSource).not.toContain('deploy URL or github.com/you/repo');
 		}
 	});
 

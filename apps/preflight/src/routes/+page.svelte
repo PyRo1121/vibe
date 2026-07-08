@@ -34,6 +34,9 @@
 	let { data }: { data: PageData } = $props();
 
 	let url = $state('');
+	let projectName = $state('');
+	let repositoryUrl = $state('');
+	let deployTarget = $state('');
 	let loading = $state(false);
 	let checkoutLoading = $state(false);
 	let billingPortalLoading = $state(false);
@@ -77,7 +80,10 @@
 		const storedSession = sessionStorage.getItem(STORAGE.unlockSession);
 		const storedUrl = sessionStorage.getItem(STORAGE.scanUrl);
 		if (storedSession) unlockSessionId = storedSession;
-		if (storedUrl && !url) url = storedUrl;
+		if (storedUrl && !url) {
+			url = storedUrl;
+			hydrateProjectTarget(storedUrl);
+		}
 
 		if (data.checkout === 'cancel') {
 			checkoutMessage = 'Checkout canceled — your scan results are still free.';
@@ -88,10 +94,13 @@
 		if (data.checkout === 'success' && data.sessionId) {
 			unlockSessionId = data.sessionId;
 			sessionStorage.setItem(STORAGE.unlockSession, data.sessionId);
-			if (storedUrl) url = storedUrl;
+			if (storedUrl) {
+				url = storedUrl;
+				hydrateProjectTarget(storedUrl);
+			}
 			checkoutMessage = 'Payment received — loading your fix prompts…';
 			clearCheckoutQuery();
-			if (url.trim()) void runScan(false);
+			if (url.trim()) void runScan(false, url);
 		}
 
 		if (data.billing === 'return') {
@@ -108,6 +117,7 @@
 	});
 
 	const alphaFreeUnlock = $derived(data.alphaFreeUnlock);
+	const projectReadinessTarget = $derived(deployTarget.trim() || repositoryUrl.trim());
 
 	$effect(() => {
 		if (pricingTracked) return;
@@ -115,7 +125,29 @@
 		trackFunnel('pricing_viewed', { mode: alphaFreeUnlock ? 'alpha' : 'paid' });
 	});
 
-	async function runScan(rescan = false) {
+	function hydrateProjectTarget(target: string) {
+		const trimmed = target.trim();
+		if (!trimmed) return;
+		if (/github\.com[:/]/i.test(trimmed)) {
+			repositoryUrl ||= trimmed;
+			return;
+		}
+		deployTarget ||= trimmed;
+	}
+
+	function clearStoredUnlockIfTargetChanged(target: string) {
+		const prevUrl = sessionStorage.getItem(STORAGE.scanUrl);
+		if (!prevUrl || prevUrl === target) return;
+		unlockSessionId = null;
+		sessionStorage.removeItem(STORAGE.unlockSession);
+		sessionStorage.removeItem(STORAGE.baselineScore);
+		sessionStorage.removeItem(STORAGE.baselineChecks);
+	}
+
+	async function runScan(rescan = false, target = url.trim()) {
+		const scanTarget = target.trim();
+		if (!scanTarget) return;
+		url = scanTarget;
 		scanController?.abort();
 		scanController = new AbortController();
 		const { signal } = scanController;
@@ -128,7 +160,7 @@
 				url: string;
 				unlockSessionId?: string;
 				previousScore?: number;
-			} = { url: url.trim() };
+			} = { url: scanTarget };
 			if (unlockSessionId && !alphaFreeUnlock) payload.unlockSessionId = unlockSessionId;
 			if (rescan && (unlockSessionId || alphaFreeUnlock)) {
 				const baseline = sessionStorage.getItem(STORAGE.baselineScore);
@@ -146,7 +178,7 @@
 				throw new Error(body?.message ?? `Scan failed (${res.status})`);
 			}
 			report = (await res.json()) as ScanReport;
-			sessionStorage.setItem(STORAGE.scanUrl, url.trim());
+			sessionStorage.setItem(STORAGE.scanUrl, scanTarget);
 
 			if (!rescan) {
 				sessionStorage.setItem(STORAGE.baselineScore, String(report.score));
@@ -478,49 +510,78 @@ jobs:
 	</section>
 
 	<form
-		class="mx-auto mb-10 max-w-2xl rounded-xl border border-zinc-800 bg-zinc-900/30 p-5 print:hidden"
-		aria-label="Readiness evidence"
+		class="mx-auto mb-10 max-w-3xl rounded-xl border border-zinc-800 bg-zinc-900/30 p-5 print:hidden"
+		aria-label="Project profile"
 		onsubmit={(e) => {
 			e.preventDefault();
-			const trimmed = url.trim();
-			const prevUrl = sessionStorage.getItem(STORAGE.scanUrl);
-			if (prevUrl && prevUrl !== trimmed) {
-				unlockSessionId = null;
-				sessionStorage.removeItem(STORAGE.unlockSession);
-				sessionStorage.removeItem(STORAGE.baselineScore);
-				sessionStorage.removeItem(STORAGE.baselineChecks);
-			}
-			runScan(false);
+			const target = projectReadinessTarget;
+			clearStoredUnlockIfTargetChanged(target);
+			runScan(false, target);
 		}}
 	>
 		<div class="mb-4">
-			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
-				Readiness evidence
-			</p>
-			<h2 class="mt-2 text-lg font-semibold text-white">Attach readiness evidence</h2>
+			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Project profile</p>
+			<h2 class="mt-2 text-lg font-semibold text-white">Create a project readiness brief</h2>
 			<p class="mt-1 text-sm leading-6 text-zinc-400">
-				Add a deploy URL or GitHub repo to collect gate evidence across public surface, trust,
-				payment, license, preview, and repo hygiene signals.
+				Name the project, attach the repository, and point Deploylint at the deploy target that
+				should become a monitored CI gate.
 			</p>
 		</div>
-		<div class="flex flex-col gap-3 sm:flex-row">
-			<label for="scan-url" class="sr-only">Project or deploy target</label>
-			<input
-				id="scan-url"
-				type="text"
-				inputmode="url"
-				autocomplete="url"
-				bind:value={url}
-				required
-				placeholder="deploy URL or github.com/you/repo"
-				class="flex-1 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-white placeholder:text-zinc-600 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-			/>
+		<div class="grid gap-3 sm:grid-cols-2">
+			<div class="sm:col-span-2">
+				<label for="project-name" class="mb-1.5 block text-sm font-medium text-zinc-200">
+					Project name
+				</label>
+				<input
+					id="project-name"
+					type="text"
+					autocomplete="organization"
+					bind:value={projectName}
+					placeholder="Acme control plane"
+					class="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-white placeholder:text-zinc-600 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+				/>
+			</div>
+			<div>
+				<label for="repository-url" class="mb-1.5 block text-sm font-medium text-zinc-200">
+					GitHub repository
+				</label>
+				<input
+					id="repository-url"
+					type="text"
+					inputmode="url"
+					autocomplete="url"
+					bind:value={repositoryUrl}
+					placeholder="github.com/acme/app"
+					class="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-white placeholder:text-zinc-600 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+				/>
+			</div>
+			<div>
+				<label for="deploy-target" class="mb-1.5 block text-sm font-medium text-zinc-200">
+					Deploy target
+				</label>
+				<input
+					id="deploy-target"
+					type="url"
+					inputmode="url"
+					autocomplete="url"
+					bind:value={deployTarget}
+					required={!repositoryUrl.trim()}
+					placeholder="https://app.example.com"
+					class="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-white placeholder:text-zinc-600 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+				/>
+			</div>
+		</div>
+		<div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+			<p class="text-sm leading-6 text-zinc-500">
+				Deploy targets get public-surface checks. GitHub repositories get repo and workflow
+				readiness checks.
+			</p>
 			<button
 				type="submit"
-				disabled={loading || !url.trim()}
-				class="rounded-xl bg-sky-600 px-6 py-3 font-semibold text-white hover:bg-sky-500 disabled:bg-sky-900 disabled:text-sky-100"
+				disabled={loading || !projectReadinessTarget}
+				class="shrink-0 rounded-xl bg-sky-600 px-6 py-3 font-semibold text-white hover:bg-sky-500 disabled:bg-sky-900 disabled:text-sky-100"
 			>
-				{loading ? 'Building evidence...' : 'Build gate evidence brief'}
+				{loading ? 'Building brief...' : 'Build project readiness brief'}
 			</button>
 		</div>
 		{#if loading}

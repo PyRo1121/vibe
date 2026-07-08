@@ -22,6 +22,12 @@ test.describe('home', () => {
 		await expect(page.getByText('Copy into CI')).toBeVisible();
 		await expect(page.getByText('Block bad deploys in CI')).toBeVisible();
 		await expect(page.getByText('Find deploy-path drift')).toBeVisible();
+		await expect(
+			page.getByRole('heading', { name: /Create a project readiness brief/i })
+		).toBeVisible();
+		await expect(page.getByLabel(/Project name/i)).toBeVisible();
+		await expect(page.getByLabel(/GitHub repository/i)).toBeVisible();
+		await expect(page.getByLabel(/Deploy target/i)).toBeVisible();
 		await expect(page.getByRole('button', { name: DEPLOY_TARGET_BUTTON })).toBeVisible();
 		await expect(page.getByText('Project readiness audit')).toBeVisible();
 		await expect(page.getByRole('link', { name: /See how we compare/i })).toBeVisible();

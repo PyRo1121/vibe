@@ -83,7 +83,9 @@ Then open:
 | `npm run sync:mtg:all`       | Import all MTG sets into remote D1     |
 | `npm run sync:mtg:all:force` | Re-import every MTG set                |
 
-From monorepo root: `npm run verify:tcg-vault`, `npm run deploy:tcg-vault`.
+From monorepo root: `npm run verify:tcg-vault:ci` runs the same audit, dead-code,
+workspace verify, browser install, and E2E gate as GitHub Actions. Use
+`npm run deploy:tcg-vault` to deploy.
 
 ## Routes
 
