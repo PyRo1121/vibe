@@ -32,6 +32,10 @@ export async function parseScanJsonBody(request: Request): Promise<{
 	url: string;
 	unlockSessionId?: string;
 	previousScore?: number;
+	projectId?: string;
+	commitSha?: string;
+	branch?: string;
+	pullRequest?: string;
 }> {
 	const body = await readJsonBody(request);
 	try {

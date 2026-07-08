@@ -1,3 +1,5 @@
+import type { LaunchVerdict } from '$lib/scan/types';
+
 export type ProjectInstallState = 'not_installed' | 'advisory_installed' | 'gate_enabled';
 export type ProjectGateMode = 'advisory' | 'gate';
 
@@ -10,7 +12,7 @@ export interface WorkspaceBillingState {
 export interface ProjectReportSummary {
 	id: string;
 	score: number;
-	verdict: 'go' | 'review' | 'no-go';
+	verdict: LaunchVerdict;
 	scannedAt: string;
 	fixedCount: number;
 	regressedCount: number;

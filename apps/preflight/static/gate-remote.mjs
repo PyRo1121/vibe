@@ -8,6 +8,7 @@
  *
  * Env:
  *   DEPLOYLINT_URL       Target URL (or first CLI arg)
+ *   DEPLOYLINT_PROJECT_ID Workspace project id for persistent CI report history
  *   DEPLOYLINT_API       API base (default https://deploylint.com)
  *   DEPLOYLINT_MIN_SCORE Minimum score (default 80)
  *   DEPLOYLINT_MODE      "gate" (default, exits 1 on blockers) or "advisory" (report only, always exits 0)
@@ -63,6 +64,7 @@ const targetUrl =
 	process.env.DEPLOYLINT_GATE_URL?.trim() ||
 	process.env.PREFLIGHT_URL?.trim() ||
 	process.env.PREFLIGHT_GATE_URL?.trim();
+const projectId = process.env.DEPLOYLINT_PROJECT_ID?.trim();
 const minScore = Number(
 	process.env.DEPLOYLINT_MIN_SCORE ?? process.env.PREFLIGHT_MIN_SCORE ?? '80'
 );
@@ -86,6 +88,7 @@ function printHelp() {
 	console.error('');
 	console.error('Env:');
 	console.error('  DEPLOYLINT_URL        Target URL or public GitHub repo');
+	console.error('  DEPLOYLINT_PROJECT_ID Workspace project id for persistent report history');
 	console.error('  DEPLOYLINT_API        API base (default https://deploylint.com)');
 	console.error('  DEPLOYLINT_MIN_SCORE  Minimum score, 0-100 (default 80)');
 	console.error('  DEPLOYLINT_MODE       gate or advisory (default gate)');
@@ -328,12 +331,19 @@ async function upsertPrComment(ctx, markdown) {
 
 async function main() {
 	console.log(`Scanning ${targetUrl} via ${apiBase} …`);
+	const scanPayload = {
+		url: targetUrl,
+		...(projectId ? { projectId } : {}),
+		...(process.env.GITHUB_SHA ? { commitSha: process.env.GITHUB_SHA } : {}),
+		...(process.env.GITHUB_REF_NAME ? { branch: process.env.GITHUB_REF_NAME } : {}),
+		...(process.env.GITHUB_REF ? { pullRequest: process.env.GITHUB_REF } : {})
+	};
 	const res = await fetchWithRetry(
 		`${apiBase}/api/scan`,
 		{
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ url: targetUrl })
+			body: JSON.stringify(scanPayload)
 		},
 		`POST ${apiBase}/api/scan`
 	);

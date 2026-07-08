@@ -1,0 +1,309 @@
+import { resolveDeploylintPlan, type DeploylintPlanId } from '$lib/product/plans';
+import {
+	buildWorkspaceSetupState,
+	type DeploylintProject,
+	type DeploylintWorkspace,
+	type ProjectDraft,
+	type ProjectGateMode,
+	type ProjectInstallState,
+	type WorkspaceBillingState
+} from '$lib/product/workspace';
+import { loadLatestProjectReport } from '$lib/server/project-reports';
+
+interface WorkspaceRow {
+	id: string;
+	name: string;
+}
+
+interface ProjectRow {
+	id: string;
+	name: string;
+	deploy_url: string;
+	repo_label: string;
+	workflow_path: string;
+	install_state: string;
+	gate_mode: string;
+	min_score: number;
+}
+
+interface SubscriptionRow {
+	plan: string;
+	status: string;
+}
+
+interface CountRow {
+	count: number;
+}
+
+export interface WorkspaceStoreOptions {
+	alphaFreeUnlock: boolean;
+	ownerLabel: string;
+	ownerUserId: string;
+	projectDraft?: ProjectDraft;
+}
+
+const PLAN_LIMITS: Record<DeploylintPlanId, number> = {
+	solo: 1,
+	builder: 5,
+	agency: 25
+};
+
+const ID_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
+
+function newId(prefix: 'proj' | 'wks'): string {
+	const bytes = crypto.getRandomValues(new Uint8Array(16));
+	return `${prefix}_${[...bytes].map((byte) => ID_ALPHABET[byte % ID_ALPHABET.length]).join('')}`;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isWorkspaceRow(value: unknown): value is WorkspaceRow {
+	return isRecord(value) && typeof value.id === 'string' && typeof value.name === 'string';
+}
+
+function isProjectRow(value: unknown): value is ProjectRow {
+	return (
+		isRecord(value) &&
+		typeof value.id === 'string' &&
+		typeof value.name === 'string' &&
+		typeof value.deploy_url === 'string' &&
+		typeof value.repo_label === 'string' &&
+		typeof value.workflow_path === 'string' &&
+		typeof value.install_state === 'string' &&
+		typeof value.gate_mode === 'string' &&
+		typeof value.min_score === 'number'
+	);
+}
+
+function isSubscriptionRow(value: unknown): value is SubscriptionRow {
+	return isRecord(value) && typeof value.plan === 'string' && typeof value.status === 'string';
+}
+
+function isCountRow(value: unknown): value is CountRow {
+	return isRecord(value) && typeof value.count === 'number';
+}
+
+function installState(value: string): ProjectInstallState {
+	if (value === 'advisory_installed' || value === 'gate_enabled') return value;
+	return 'not_installed';
+}
+
+function gateMode(value: string): ProjectGateMode {
+	return value === 'gate' ? 'gate' : 'advisory';
+}
+
+function monthStartMs(now = new Date()): number {
+	return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1);
+}
+
+function fallbackWorkspace(opts: WorkspaceStoreOptions): DeploylintWorkspace {
+	return buildWorkspaceSetupState({
+		appUrl: 'https://deploylint.com',
+		alphaFreeUnlock: opts.alphaFreeUnlock,
+		ownerLabel: opts.ownerLabel,
+		projectDraft: opts.projectDraft
+	});
+}
+
+function defaultProjectDraft(opts: WorkspaceStoreOptions): DeploylintProject {
+	const workspace = fallbackWorkspace(opts);
+	return workspace.projects[0];
+}
+
+async function loadWorkspaceRow(db: D1Database, ownerUserId: string): Promise<WorkspaceRow | null> {
+	const row = await db
+		.prepare(
+			`SELECT id, name
+			FROM workspace
+			WHERE owner_user_id = ?
+			ORDER BY created_at ASC
+			LIMIT 1`
+		)
+		.bind(ownerUserId)
+		.first();
+	return isWorkspaceRow(row) ? row : null;
+}
+
+async function createWorkspaceRow(
+	db: D1Database,
+	opts: WorkspaceStoreOptions
+): Promise<WorkspaceRow> {
+	const now = Date.now();
+	const row = {
+		id: newId('wks'),
+		name: opts.ownerLabel
+	};
+	await db
+		.prepare(
+			`INSERT INTO workspace (id, owner_user_id, name, created_at, updated_at)
+			VALUES (?, ?, ?, ?, ?)`
+		)
+		.bind(row.id, opts.ownerUserId, row.name, now, now)
+		.run();
+	return row;
+}
+
+async function loadProjectRows(db: D1Database, workspaceId: string): Promise<ProjectRow[]> {
+	const { results } = await db
+		.prepare(
+			`SELECT id, name, deploy_url, repo_label, workflow_path, install_state, gate_mode, min_score
+			FROM project
+			WHERE workspace_id = ?
+			ORDER BY created_at ASC`
+		)
+		.bind(workspaceId)
+		.all();
+	return (results as unknown[]).filter(isProjectRow);
+}
+
+async function createProjectRow(
+	db: D1Database,
+	workspaceId: string,
+	opts: WorkspaceStoreOptions
+): Promise<ProjectRow> {
+	const now = Date.now();
+	const project = defaultProjectDraft(opts);
+	const row = {
+		id: newId('proj'),
+		name: project.name,
+		deploy_url: project.deployUrl,
+		repo_label: project.repoLabel,
+		workflow_path: project.workflowPath,
+		install_state: project.installState,
+		gate_mode: project.gateMode,
+		min_score: project.minScore
+	};
+	await db
+		.prepare(
+			`INSERT INTO project (
+				id,
+				workspace_id,
+				name,
+				deploy_url,
+				repo_label,
+				workflow_path,
+				install_state,
+				gate_mode,
+				min_score,
+				created_at,
+				updated_at
+			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+		)
+		.bind(
+			row.id,
+			workspaceId,
+			row.name,
+			row.deploy_url,
+			row.repo_label,
+			row.workflow_path,
+			row.install_state,
+			row.gate_mode,
+			row.min_score,
+			now,
+			now
+		)
+		.run();
+	return row;
+}
+
+async function loadSubscriptionRow(
+	db: D1Database,
+	workspaceId: string
+): Promise<SubscriptionRow | null> {
+	const row = await db
+		.prepare(
+			`SELECT plan, status
+			FROM subscription
+			WHERE workspace_id = ?
+			ORDER BY updated_at DESC
+			LIMIT 1`
+		)
+		.bind(workspaceId)
+		.first();
+	return isSubscriptionRow(row) ? row : null;
+}
+
+async function countReportsThisMonth(db: D1Database, workspaceId: string): Promise<number> {
+	const row = await db
+		.prepare(
+			`SELECT COUNT(*) AS count
+			FROM project_report
+			INNER JOIN project ON project.id = project_report.project_id
+			WHERE project.workspace_id = ?
+				AND project_report.created_at >= ?`
+		)
+		.bind(workspaceId, monthStartMs())
+		.first();
+	return isCountRow(row) ? row.count : 0;
+}
+
+function billingState(
+	alphaFreeUnlock: boolean,
+	subscription: SubscriptionRow | null
+): WorkspaceBillingState {
+	if (alphaFreeUnlock) {
+		return {
+			mode: 'alpha',
+			planLabel: 'Early access',
+			projectLimit: 1
+		};
+	}
+
+	const plan = resolveDeploylintPlan(subscription?.plan);
+	const paid = subscription?.status === 'active' || subscription?.status === 'trialing';
+	return {
+		mode: paid ? 'paid' : 'setup',
+		planLabel: plan.name,
+		projectLimit: PLAN_LIMITS[plan.id]
+	};
+}
+
+async function projectFromRow(db: D1Database, row: ProjectRow): Promise<DeploylintProject> {
+	return {
+		id: row.id,
+		name: row.name,
+		deployUrl: row.deploy_url,
+		repoLabel: row.repo_label,
+		workflowPath: row.workflow_path,
+		installState: installState(row.install_state),
+		gateMode: gateMode(row.gate_mode),
+		minScore: row.min_score,
+		latestReport: await loadLatestProjectReport(db, row.id)
+	};
+}
+
+export async function loadOrCreateWorkspaceState(
+	db: D1Database | undefined,
+	opts: WorkspaceStoreOptions
+): Promise<DeploylintWorkspace> {
+	if (!db) return fallbackWorkspace(opts);
+
+	try {
+		const workspace =
+			(await loadWorkspaceRow(db, opts.ownerUserId)) ?? (await createWorkspaceRow(db, opts));
+		const loadedProjects = await loadProjectRows(db, workspace.id);
+		const projectRows =
+			loadedProjects.length > 0 ? loadedProjects : [await createProjectRow(db, workspace.id, opts)];
+		const projects = await Promise.all(projectRows.map((row) => projectFromRow(db, row)));
+		const subscription = await loadSubscriptionRow(db, workspace.id);
+		const reportsThisMonth = await countReportsThisMonth(db, workspace.id);
+
+		return {
+			id: workspace.id,
+			ownerLabel: workspace.name,
+			billing: billingState(opts.alphaFreeUnlock, subscription),
+			projects,
+			metrics: {
+				activeProjects: projects.length,
+				gatesEnabled: projects.filter(
+					(project) => project.installState === 'gate_enabled' && project.gateMode === 'gate'
+				).length,
+				reportsThisMonth
+			}
+		};
+	} catch {
+		return fallbackWorkspace(opts);
+	}
+}

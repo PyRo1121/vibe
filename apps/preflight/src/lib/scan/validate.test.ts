@@ -21,6 +21,19 @@ describe('parseScanRequestBody', () => {
 		).toBe(72);
 	});
 
+	it('passes through safe project ids for workspace-backed CI reports', () => {
+		expect(
+			parseScanRequestBody({ url: 'https://app.test', projectId: '  proj_live-123  ' }).projectId
+		).toBe('proj_live-123');
+	});
+
+	it('drops unsafe project ids instead of treating them as workspace context', () => {
+		expect(
+			parseScanRequestBody({ url: 'https://app.test', projectId: '../project;drop table' })
+				.projectId
+		).toBeUndefined();
+	});
+
 	it('rejects missing url', () => {
 		expect(() => parseScanRequestBody({})).toThrow(UrlValidationError);
 	});

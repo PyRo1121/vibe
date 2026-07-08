@@ -8,6 +8,7 @@ type ScanRepo = typeof import('$lib/scan/repo/scan').scanRepo;
 type ScanUrl = typeof import('$lib/scan/engine').scanUrl;
 type VerifyCheckoutSession = typeof import('$lib/billing/stripe').verifyCheckoutSession;
 type AiRun = import('$lib/server/copy-review').AiRunner['run'];
+type RecordProjectReport = typeof import('$lib/server/project-reports').recordProjectReport;
 
 function testEnv(overrides: Partial<Env> = {}): Env {
 	return overrides as Env;
@@ -36,6 +37,10 @@ vi.mock('$lib/server/resolve-unlock', () => ({
 	resolveUnlock: vi.fn<ResolveUnlock>(async () => true)
 }));
 
+vi.mock('$lib/server/project-reports', () => ({
+	recordProjectReport: vi.fn<RecordProjectReport>(async () => true)
+}));
+
 vi.mock('$lib/scan/repo/scan', () => ({
 	scanRepo: vi.fn<ScanRepo>(async () => ({
 		url: 'https://github.com/acme/shop',
@@ -55,6 +60,7 @@ vi.mock('$lib/billing/report', () => ({
 
 import { scanUrl } from '$lib/scan/engine';
 import { scanRepo } from '$lib/scan/repo/scan';
+import { recordProjectReport } from '$lib/server/project-reports';
 import { resolveUnlock } from '$lib/server/resolve-unlock';
 
 afterEach(() => {
@@ -239,6 +245,38 @@ describe('handleScanPost', () => {
 		expect(second.history).toHaveLength(1);
 		expect(second.history?.[0].id).toBe(first.reportId);
 		expect(second.history?.[0].score).toBe(80);
+	});
+
+	it('records workspace-backed CI report context when project id is present', async () => {
+		const request = new Request('http://localhost/api/scan', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				url: 'https://app.test',
+				projectId: 'proj_live-123',
+				commitSha: 'abc1234',
+				branch: 'main',
+				pullRequest: 'refs/pull/42/merge'
+			})
+		});
+		const authDb = {} as D1Database;
+
+		await handleScanPost(request, { AUTH_DB: authDb } as Env);
+
+		expect(recordProjectReport).toHaveBeenCalledWith(
+			authDb,
+			{
+				projectId: 'proj_live-123',
+				commitSha: 'abc1234',
+				branch: 'main',
+				pullRequest: 'refs/pull/42/merge'
+			},
+			expect.objectContaining({
+				finalUrl: 'https://app.test/',
+				score: 80,
+				verdict: 'go'
+			})
+		);
 	});
 
 	it('attaches copy readiness review only after paid unlock or explicit alpha access', async () => {

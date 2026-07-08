@@ -7,6 +7,7 @@ import { parseRepoUrl } from '$lib/scan/repo/parse';
 import { scanRepo } from '$lib/scan/repo/scan';
 import { parseScanJsonBody, rejectValidation } from '$lib/server/api';
 import { buildCopyReview } from '$lib/server/copy-review';
+import { recordProjectReport } from '$lib/server/project-reports';
 import { assertScanRateLimit, clientIp } from '$lib/server/rate-limit';
 import { appendHistory, computeScanDiff, issueMap, saveReport } from '$lib/server/report-store';
 import { resolveUnlock } from '$lib/server/resolve-unlock';
@@ -72,6 +73,17 @@ export async function handleScanPost(request: Request, env?: Env) {
 			}
 		}
 	}
+
+	await recordProjectReport(
+		env?.AUTH_DB,
+		{
+			projectId: parsed.projectId,
+			commitSha: parsed.commitSha,
+			branch: parsed.branch,
+			pullRequest: parsed.pullRequest
+		},
+		sanitized
+	);
 
 	// Paid extra: AI copy critique. Unlocked-only + daily cap keeps Workers AI inside
 	// the free 10k neurons/day allocation.

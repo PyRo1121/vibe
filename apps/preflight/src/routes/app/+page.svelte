@@ -25,7 +25,7 @@
 	const pendingReport: ProjectReportSummary = {
 		id: 'report_pending',
 		score: 86,
-		verdict: 'review',
+		verdict: 'conditional',
 		scannedAt: 'After first CI run',
 		fixedCount: 5,
 		regressedCount: 1

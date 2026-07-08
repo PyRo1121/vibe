@@ -88,16 +88,26 @@ function makeTempDir() {
 	return dir;
 }
 
-async function withScanApi<T>(report: unknown, fn: (apiBase: string) => Promise<T>): Promise<T> {
+async function withScanApi<T>(
+	report: unknown,
+	fn: (apiBase: string, requests: string[]) => Promise<T>
+): Promise<T> {
+	const requests: string[] = [];
 	const server = createServer((req, res) => {
-		if (req.method !== 'POST' || req.url !== '/api/scan') {
-			res.writeHead(404);
-			res.end('not found');
-			return;
-		}
+		void (async () => {
+			if (req.method !== 'POST' || req.url !== '/api/scan') {
+				res.writeHead(404);
+				res.end('not found');
+				return;
+			}
 
-		res.writeHead(200, { 'Content-Type': 'application/json' });
-		res.end(JSON.stringify(report));
+			requests.push(await readRequestBody(req));
+			res.writeHead(200, { 'Content-Type': 'application/json' });
+			res.end(JSON.stringify(report));
+		})().catch((err: unknown) => {
+			res.writeHead(500, { 'Content-Type': 'application/json' });
+			res.end(JSON.stringify({ message: err instanceof Error ? err.message : String(err) }));
+		});
 	});
 
 	await new Promise<void>((resolve) => server.listen({ port: 0, host: '127.0.0.1' }, resolve));
@@ -105,7 +115,7 @@ async function withScanApi<T>(report: unknown, fn: (apiBase: string) => Promise<
 	if (!address || typeof address === 'string') throw new Error('local server did not bind');
 
 	try {
-		return await fn(`http://127.0.0.1:${address.port}`);
+		return await fn(`http://127.0.0.1:${address.port}`, requests);
 	} finally {
 		await new Promise<void>((resolve, reject) => {
 			server.close((err) => {
@@ -239,6 +249,28 @@ function runGate(apiBase: string, { args = [], env = {} }: GateRunOptions = {}) 
 }
 
 describe('gate-remote advisory output', () => {
+	it('posts project and GitHub context for persistent workspace report history', async () => {
+		await withScanApi(passingReport, async (apiBase, requests) => {
+			const result = await runGate(apiBase, {
+				env: {
+					DEPLOYLINT_PROJECT_ID: 'proj_live-123',
+					GITHUB_SHA: 'abc1234',
+					GITHUB_REF_NAME: 'main',
+					GITHUB_REF: 'refs/pull/42/merge'
+				}
+			});
+
+			expect(result.code).toBe(0);
+			expect(JSON.parse(requests[0] ?? '{}')).toMatchObject({
+				url: 'https://target.test',
+				projectId: 'proj_live-123',
+				commitSha: 'abc1234',
+				branch: 'main',
+				pullRequest: 'refs/pull/42/merge'
+			});
+		});
+	});
+
 	it('prints advisory findings without blocking labels', async () => {
 		await withScanApi(failingReport, async (apiBase) => {
 			const dir = makeTempDir();
