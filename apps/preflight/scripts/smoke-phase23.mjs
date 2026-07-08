@@ -7,7 +7,7 @@
  * Legal pages come from homepage link crawl; /compare and /developers may appear
  * as role=sitemap when listed in sitemap.xml but not linked from the homepage.
  */
-import { installFetchRetry } from './smoke-http.mjs';
+import { installFetchRetry, scanLimitReason } from './smoke-http.mjs';
 
 installFetchRetry();
 
@@ -111,8 +111,9 @@ if (sitemap.res.ok) {
 // 2. Self-scan — sitemap supplemental crawl via SELF binding
 const selfScan = await post('/api/scan', { url: BASE });
 if (!selfScan.res.ok) {
-	if (selfScan.res.status === 429 && selfScan.text.includes('Too many scans')) {
-		skip('self-scan API', 'scan rate limit active after earlier smoke phases');
+	const reason = scanLimitReason(selfScan.res, selfScan.text);
+	if (reason) {
+		skip('self-scan API', reason);
 	} else {
 		fail('self-scan API', `${selfScan.res.status} ${selfScan.text.slice(0, 120)}`);
 	}

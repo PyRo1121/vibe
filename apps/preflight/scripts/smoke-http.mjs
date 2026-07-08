@@ -89,6 +89,29 @@ export function isScanRateLimitedResponse(responseOrStatus, text = '') {
 }
 
 /**
+ * @param {Response | number | undefined} responseOrStatus
+ * @param {string} [text]
+ */
+export function scanLimitReason(responseOrStatus, text = '') {
+	const status = typeof responseOrStatus === 'number' ? responseOrStatus : responseOrStatus?.status;
+	if (status === 429 && /too many scans/i.test(text)) {
+		return 'scan rate limit active after earlier smoke phases';
+	}
+	if (status === 503 && /daily scan capacity reached/i.test(text)) {
+		return 'daily scan capacity reached; retry scan assertions after midnight UTC';
+	}
+	return null;
+}
+
+/**
+ * @param {Response | number | undefined} responseOrStatus
+ * @param {string} [text]
+ */
+export function isScanLimitedResponse(responseOrStatus, text = '') {
+	return scanLimitReason(responseOrStatus, text) !== null;
+}
+
+/**
  * @param {{ retries?: number; baseDelayMs?: number }} [opts]
  */
 export function installFetchRetry({

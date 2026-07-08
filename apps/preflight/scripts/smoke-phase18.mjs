@@ -4,7 +4,7 @@
  * Optional: PREFLIGHT_BASE=https://deploylint.com
  */
 import { hasPlausibleHtmlSnippet } from './smoke-assertions.mjs';
-import { installFetchRetry } from './smoke-http.mjs';
+import { installFetchRetry, scanLimitReason } from './smoke-http.mjs';
 
 installFetchRetry();
 
@@ -53,6 +53,13 @@ async function get(path) {
 	const res = await fetch(`${BASE}${path}`);
 	const text = await res.text();
 	return { res, text };
+}
+
+function skipLimitedScan(name, response) {
+	const reason = scanLimitReason(response.res, response.text);
+	if (!reason) return false;
+	skip(name, reason);
+	return true;
 }
 
 // 1. Static / dogfood routes
@@ -134,7 +141,9 @@ if (scan.res.ok) {
 		fail('pages scanned', `pagesScanned=${JSON.stringify(r.pagesScanned)}`);
 	}
 } else {
-	fail('scan example.com', `${scan.res.status} ${scan.text.slice(0, 120)}`);
+	if (!skipLimitedScan('scan example.com', scan)) {
+		fail('scan example.com', `${scan.res.status} ${scan.text.slice(0, 120)}`);
+	}
 }
 
 // 3. Exit criterion 3 — broken og:image fails og-image-live + social preview warning.
@@ -158,7 +167,9 @@ if (badOgScan.res.ok) {
 		else fail('broken og:image', `og-image-live=${ogLive?.status} issues=${previewIssues.length}`);
 	}
 } else {
-	fail('broken og:image scan', `${badOgScan.res.status}`);
+	if (!skipLimitedScan('broken og:image scan', badOgScan)) {
+		fail('broken og:image scan', `${badOgScan.res.status}`);
+	}
 }
 
 // 3b. Blocked homepage guard — a 4xx/5xx homepage must produce exactly the two
@@ -185,7 +196,9 @@ if (blockedScan.res.ok) {
 		);
 	}
 } else {
-	fail('blocked scan fixture', `${blockedScan.res.status}`);
+	if (!skipLimitedScan('blocked scan fixture', blockedScan)) {
+		fail('blocked scan fixture', `${blockedScan.res.status}`);
+	}
 }
 
 // 3c. Repo scan — GitHub repo URL routes to the repository auditor.
@@ -206,14 +219,17 @@ if (repoScan.res.ok) {
 		else fail('repo scan', `repo=${JSON.stringify(r.repo)} checks=[${ids.join(',')}]`);
 	}
 } else {
-	fail('repo scan', `${repoScan.res.status}`);
+	if (!skipLimitedScan('repo scan', repoScan)) {
+		fail('repo scan', `${repoScan.res.status}`);
+	}
 }
 
 // Reference scan (external)
 const ext = await post('/api/scan', { url: 'https://www.google.com' });
 if (ext.res.ok && ext.json.socialPreview?.title) pass('external social preview', 'parses og tags');
 else if (ext.res.ok) pass('external social preview', 'scan ok');
-else fail('external social preview', String(ext.res.status));
+else if (!skipLimitedScan('external social preview', ext))
+	fail('external social preview', String(ext.res.status));
 
 // 4. Funnel events endpoint
 const evt = await post('/api/events', {

@@ -6,7 +6,7 @@
  * Uses an external site with footer legal links. The Worker cannot fetch its own
  * zone (Cloudflare returns 522), so dogfooding deploylint.com is skipped.
  */
-import { installFetchRetry, isScanRateLimitedResponse } from './smoke-http.mjs';
+import { installFetchRetry, scanLimitReason } from './smoke-http.mjs';
 
 installFetchRetry();
 
@@ -53,8 +53,9 @@ async function post(path, body) {
 
 const scan = await post('/api/scan', { url: MULTIPAGE_URL });
 if (!scan.res.ok) {
-	if (isScanRateLimitedResponse(scan.res, scan.text)) {
-		skip('multipage scan API', 'scan rate limit active after earlier smoke phases');
+	const reason = scanLimitReason(scan.res, scan.text);
+	if (reason) {
+		skip('multipage scan API', reason);
 	} else {
 		fail('multipage scan API', `${scan.res.status} ${scan.text.slice(0, 120)}`);
 	}
@@ -89,8 +90,9 @@ if (!scan.res.ok) {
 // Self-scan dogfood — same-zone fetch uses the SELF service binding (Phase 21).
 const selfScan = await post('/api/scan', { url: BASE });
 if (!selfScan.res.ok) {
-	if (isScanRateLimitedResponse(selfScan.res, selfScan.text)) {
-		skip('self-scan dogfood', 'scan rate limit active after earlier smoke phases');
+	const reason = scanLimitReason(selfScan.res, selfScan.text);
+	if (reason) {
+		skip('self-scan dogfood', reason);
 	} else {
 		fail('self-scan dogfood', `${selfScan.res.status} ${selfScan.text.slice(0, 120)}`);
 	}

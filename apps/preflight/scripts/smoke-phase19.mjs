@@ -3,7 +3,7 @@
  * Phase 19 production smoke — CI deploy gate wedge
  * Run: npm run smoke:phase19 (from apps/preflight)
  */
-import { installFetchRetry } from './smoke-http.mjs';
+import { installFetchRetry, scanLimitReason } from './smoke-http.mjs';
 
 installFetchRetry();
 
@@ -23,6 +23,11 @@ function pass(name, detail = '') {
 function fail(name, detail = '') {
 	results.push({ name, ok: false, detail });
 	console.error(`✗ ${name}${detail ? ` — ${detail}` : ''}`);
+}
+
+function skip(name, reason) {
+	results.push({ name, ok: true, skipped: true, detail: reason });
+	console.log(`- ${name} (skipped) — ${reason}`);
 }
 
 async function get(path) {
@@ -99,24 +104,30 @@ const scanRes = await fetch(`${BASE}/api/scan`, {
 	headers: { 'Content-Type': 'application/json' },
 	body: JSON.stringify({ url: 'https://example.com' })
 });
+const scanText = await scanRes.text();
 if (scanRes.ok) {
-	const report = await scanRes.json();
+	const report = JSON.parse(scanText);
 	if (report.verdict && typeof report.score === 'number') {
 		pass('gate API reachable', `${report.verdict} ${report.score}`);
 	} else {
 		fail('gate API reachable', 'missing verdict/score');
 	}
 } else {
-	fail('gate API reachable', String(scanRes.status));
+	const reason = scanLimitReason(scanRes, scanText);
+	if (reason) skip('gate API reachable', reason);
+	else fail('gate API reachable', `${scanRes.status} ${scanText.slice(0, 120)}`);
 }
 
-const passed = results.filter((r) => r.ok).length;
-const total = results.length;
+const failed = results.filter((r) => !r.ok);
+const skipped = results.filter((r) => r.skipped);
+const counted = results.filter((r) => !r.skipped);
 
 console.log('\n--- Summary ---');
-console.log(`${passed}/${total} passed`);
+console.log(
+	`${counted.length - failed.length}/${counted.length} passed${skipped.length > 0 ? ` (${skipped.length} skipped)` : ''}`
+);
 
-if (passed < total) process.exit(1);
+if (failed.length > 0) process.exit(1);
 
 console.log(
 	'\nManual: add DEPLOYLINT_URL secret to a repo and run the advisory workflow from /developers'

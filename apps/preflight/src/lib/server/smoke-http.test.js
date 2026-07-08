@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { isScanRateLimitedResponse } from '../../../scripts/smoke-http.mjs';
+import {
+	isScanLimitedResponse,
+	isScanRateLimitedResponse,
+	scanLimitReason
+} from '../../../scripts/smoke-http.mjs';
 
 describe('isScanRateLimitedResponse', () => {
 	it('detects production scan rate-limit responses', () => {
@@ -17,5 +21,17 @@ describe('isScanRateLimitedResponse', () => {
 		expect(isScanRateLimitedResponse(429, 'Too many checkout attempts')).toBe(false);
 		expect(isScanRateLimitedResponse(500, 'Too many scans')).toBe(false);
 		expect(isScanRateLimitedResponse(200, 'Too many scans')).toBe(false);
+	});
+});
+
+describe('scanLimitReason', () => {
+	it('classifies daily capacity exhaustion without hiding unrelated 503s', () => {
+		const text =
+			'{"message":"Daily scan capacity reached - try again after midnight UTC. Deploylint stays on Cloudflare Free tier."}';
+
+		expect(scanLimitReason(503, text)).toContain('daily scan capacity reached');
+		expect(isScanLimitedResponse(503, text)).toBe(true);
+		expect(scanLimitReason(503, 'upstream unavailable')).toBeNull();
+		expect(isScanLimitedResponse(503, 'upstream unavailable')).toBe(false);
 	});
 });
