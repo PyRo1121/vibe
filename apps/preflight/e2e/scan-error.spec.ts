@@ -17,7 +17,7 @@ test.describe('review error', () => {
 		await expect(page.getByRole('alert')).toContainText(/Could not reach that URL/i);
 		await expect(
 			page.getByRole('heading', {
-				name: /Try advisory evidence before the workspace takes over/i
+				name: /Generate CI-ready evidence before enabling the gate/i
 			})
 		).toBeVisible();
 	});

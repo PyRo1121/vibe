@@ -383,9 +383,9 @@
 	}
 
 	const appOrigin = $derived(data.appUrl.replace(/\/$/, ''));
-	const title = buildSeoTitle('No-login advisory trial');
+	const title = buildSeoTitle('Advisory evidence runner');
 	const description =
-		'Try a no-login Deploylint advisory review, then move the project into a workspace-backed CI gate.';
+		'Generate CI-ready Deploylint advisory evidence before moving the project into a workspace-backed deploy gate.';
 	const jsonLd = $derived(buildDeploylintJsonLd({ base: appOrigin, description, price: '0.00' }));
 	const subscriptionLoop = [
 		{
@@ -420,14 +420,14 @@
 	<section class="mb-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-end print:hidden">
 		<div>
 			<p class="mb-3 text-sm font-medium tracking-widest text-sky-400 uppercase">
-				No-login advisory trial
+				Advisory evidence runner
 			</p>
 			<h1 class="mb-4 max-w-4xl text-4xl font-bold tracking-tight text-white sm:text-5xl">
-				Try advisory evidence before the workspace takes over.
+				Generate CI-ready evidence before enabling the gate.
 			</h1>
 			<p class="max-w-3xl text-lg leading-8 text-zinc-400">
-				Use this page for temporary deploy evidence when you need proof before login. The product
-				path is still a monitored workspace: project setup, advisory PR reports, report history, and
+				Use this page when you need a fast advisory report before sign-in. The durable product path
+				stays in the monitored workspace: project setup, advisory PR reports, report history, and
 				blocking deploy gates. Start with the
 				<a
 					href={resolve('/tools/github-actions-security-checker')}
@@ -552,8 +552,8 @@
 				> so CI reports write back to workspace history.
 			</p>
 			<p class="mt-3 text-sm leading-6 text-zinc-500">
-				Need a no-login trial run? This page can preview temporary deploy evidence, but it will not
-				populate project history or gate status.
+				Need a quick no-login report? This page can produce advisory evidence, but workspace history
+				and gate status start after project setup.
 			</p>
 		</div>
 	</section>

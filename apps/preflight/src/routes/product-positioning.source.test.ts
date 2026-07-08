@@ -249,16 +249,20 @@ describe('Deploylint CI workspace positioning', () => {
 		const deployTargetButton = exportedStringConstant(e2eHelpers, 'DEPLOY_TARGET_BUTTON');
 		const workspaceSetupButton = exportedStringConstant(e2eHelpers, 'WORKSPACE_SETUP_BUTTON');
 
-		expect(reviewPage).toContain('No-login advisory trial');
+		expect(reviewPage).toContain('Advisory evidence runner');
+		expect(reviewPage).toContain('Generate CI-ready evidence before enabling the gate.');
 		expect(reviewPage).toContain('Preview CI advisory report');
 		expect(reviewPage).toContain(deployTargetButton);
 		expect(reviewPage).toContain('Deploy target for CI evidence');
 		expect(reviewPage).toContain('Open workspace setup');
 		expect(reviewPage).toContain(workspaceSetupButton);
 		expect(homePage).toContain(workspaceSetupButton);
-		expect(reviewPage).toContain('project history or gate status');
+		expect(reviewPage).toMatch(/workspace history\s+and gate status start after project setup/);
 		expect(reviewPage).toContain('Preparing advisory evidence');
 		expect(reviewPage).toContain('Scoring advisory gate decision');
+		expect(reviewPage).not.toContain('No-login advisory trial');
+		expect(reviewPage).not.toContain('before the workspace takes over');
+		expect(reviewPage).not.toContain('temporary deploy evidence');
 		expect(reviewPage).not.toContain('Temporary advisory review');
 		expect(reviewPage).not.toContain('Run advisory review');
 		expect(reviewPage).not.toContain('Preparing release-readiness evidence');
