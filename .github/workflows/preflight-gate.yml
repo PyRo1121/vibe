@@ -72,6 +72,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
           path: |
+            apps/deploylint-shared/coverage/**
             apps/preflight/coverage/**
             apps/preflight/playwright-report/**
             apps/preflight/test-results/**

@@ -395,7 +395,10 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			preflightGateWorkflow.includes('branches: [main]') &&
 			preflightGateWorkflow.includes('node-version-file: .nvmrc') &&
 			preflightGateWorkflow.includes('actions/upload-artifact@v6') &&
+			preflightGateWorkflow.includes('apps/deploylint-shared/coverage/**') &&
+			preflightGateWorkflow.includes('apps/preflight/coverage/**') &&
 			preflightGateWorkflow.includes('apps/preflight/playwright-report/**') &&
+			preflightGateWorkflow.includes('apps/preflight-mcp/coverage/**') &&
 			!preflightGateWorkflow.includes("node-version: '24'") &&
 			preflightGateWorkflow.includes('apps/preflight-mcp/**') &&
 			[
