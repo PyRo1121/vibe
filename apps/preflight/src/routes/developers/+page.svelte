@@ -178,7 +178,7 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 			<div class="flex flex-col justify-center gap-3">
 				<a
 					href={resolve('/app#install')}
-					class="rounded-lg bg-sky-600 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-sky-500"
+					class="rounded-lg bg-sky-700 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-sky-600"
 				>
 					Generate workspace workflow
 				</a>
@@ -287,8 +287,9 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 				>.github/actions/deploylint-gate</code
 			>
 			from a reviewed release tag or commit SHA of the
-			<a class="text-sky-400 hover:underline" href="https://github.com/PyRo1121/vibe"
-				>Deploylint source repo</a
+			<a
+				class="text-sky-400 underline underline-offset-4 hover:text-sky-300"
+				href="https://github.com/PyRo1121/vibe">Deploylint source repo</a
 			>
 			and set the
 			<code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">DEPLOYLINT_URL</code>
@@ -304,7 +305,9 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 		<h2 class="mb-2 text-xl font-semibold text-white">4. Zero-install script</h2>
 		<p class="mb-4 text-sm text-zinc-500">
 			Fetch the hosted gate from
-			<a class="text-sky-400 hover:underline" href={resolve('/gate-remote.mjs')}>/gate-remote.mjs</a
+			<a
+				class="text-sky-400 underline underline-offset-4 hover:text-sky-300"
+				href={resolve('/gate-remote.mjs')}>/gate-remote.mjs</a
 			>
 			for local scripts or non-GitHub CI.
 		</p>
