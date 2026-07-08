@@ -15,8 +15,8 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      # actions/checkout v6
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      # actions/checkout v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
       # actions/setup-node v6
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
@@ -32,8 +32,8 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      # actions/checkout v6
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      # actions/checkout v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
       # actions/dependency-review-action v5.0.0
       - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294
 
@@ -43,8 +43,8 @@ jobs:
       contents: read
       security-events: write
     steps:
-      # actions/checkout v6
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      # actions/checkout v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
       # github/codeql-action v4
       - uses: github/codeql-action/init@1ad29ea4a422cce9a242a9fae469541dcd08addc
       - uses: github/codeql-action/analyze@1ad29ea4a422cce9a242a9fae469541dcd08addc`;

@@ -48,6 +48,11 @@ describe('GitHub Actions hardening tool analyzer', () => {
 		expect(result.repairPrompt).toContain('full commit SHAs');
 		expect(result.hardenedWorkflow).toContain('dependency-review-action');
 		expect(result.hardenedWorkflow).toContain('github/codeql-action/analyze');
+		expect(result.hardenedWorkflow).toContain('# actions/checkout v7');
+		expect(result.hardenedWorkflow).toContain(
+			'actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0'
+		);
+		expect(result.hardenedWorkflow).not.toContain('actions/checkout v6');
 	});
 
 	it('marks least-privilege workflows with missing hardening as needs-work', () => {

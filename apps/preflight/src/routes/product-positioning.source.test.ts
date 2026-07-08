@@ -268,6 +268,9 @@ describe('Deploylint CI workspace positioning', () => {
 				'Skipping Deploylint advisory report because DEPLOYLINT_URL is unavailable'
 			);
 		}
+		expect(developersPage).toContain('# actions/checkout v7');
+		expect(developersPage).toContain('actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0');
+		expect(developersPage).not.toContain('actions/checkout v6');
 		expect(homePage).not.toContain('quickInstallYaml');
 		expect(homePage).not.toContain('Copy into CI');
 		expect(compositeAction).toContain('if [ -z "${DEPLOYLINT_URL:-}" ]; then');
