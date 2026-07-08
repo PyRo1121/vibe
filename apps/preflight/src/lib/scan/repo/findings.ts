@@ -71,6 +71,7 @@ const FIX_SOON_RULE_IDS = new Set([
 	'ci-runs-quality-gates',
 	'dependency-review-action',
 	'dependabot-config',
+	'deploylint-ci-wiring',
 	'deploy-config',
 	'gitignore-env',
 	'health-endpoint',

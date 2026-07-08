@@ -691,6 +691,14 @@ const ADDITIONAL_CHECK_CATALOG = {
 		falsePositive:
 			'Monorepo wrappers such as turbo or custom verify scripts can hide the underlying gates from regex-based workflow analysis.'
 	},
+	'deploylint-ci-wiring': {
+		id: 'deploylint-ci-wiring',
+		why: 'Deploy readiness evidence is most valuable when it appears directly on pull requests before risky changes merge.',
+		detectedBy:
+			'Scans GitHub Actions workflow text for Deploylint URL/mode environment variables, the hosted gate script, or the Deploylint composite action.',
+		falsePositive:
+			'Teams may enforce Deploylint through another CI system or a reusable workflow outside the sampled repository; link or mirror that workflow if so.'
+	},
 	contact: {
 		id: 'contact',
 		why: 'A public launch needs an obvious support or contact path so users, buyers, and security reporters are not left guessing.',

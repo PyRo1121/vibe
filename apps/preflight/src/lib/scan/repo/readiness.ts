@@ -547,6 +547,14 @@ function hasDependencyReviewAction(text: string): boolean {
 	return workflowUsesRefs(text).some(({ action }) => action === 'actions/dependency-review-action');
 }
 
+function deploylintWorkflow(workflows: RepoFileEvidence[]): RepoFileEvidence | undefined {
+	return workflows.find((workflow) =>
+		/DEPLOYLINT_(URL|MODE|API)|deploylint(?:\.com)?\/gate-remote\.mjs|deploylint-gate/i.test(
+			workflow.text ?? ''
+		)
+	);
+}
+
 function dependencyUpdateConfig(files: RepoFileEvidence[]): RepoFileEvidence | undefined {
 	return hasFile(files, [
 		/^\.github\/dependabot\.ya?ml$/,
@@ -575,6 +583,7 @@ export function analyzeCiWorkflows(files: RepoFileEvidence[]): RepoReadinessFind
 	const riskyTarget = hasRiskyPullRequestTarget(text) || hasUnsafePullRequestTargetCheckout(text);
 	const floatingAction = hasFloatingThirdPartyAction(text);
 	const dependencyReview = hasDependencyReviewAction(text);
+	const deploylintCi = deploylintWorkflow(workflows);
 	const updateConfig = dependencyUpdateConfig(files);
 	const evidencePath = workflows[0]?.path;
 
@@ -587,6 +596,15 @@ export function analyzeCiWorkflows(files: RepoFileEvidence[]): RepoReadinessFind
 				? 'GitHub Actions workflow runs lint, typecheck/check, tests, and build.'
 				: `GitHub Actions workflow is missing quality gates: ${missing.join(', ')}.`,
 			{ path: evidencePath }
+		),
+		finding(
+			'deploylint-ci-wiring',
+			'Deploylint PR advisory workflow',
+			deploylintCi ? 'pass' : 'warn',
+			deploylintCi
+				? `Deploylint advisory or gate workflow is wired in ${deploylintCi.path}.`
+				: 'No Deploylint advisory or gate workflow found in GitHub Actions; readiness evidence will not appear on pull requests.',
+			{ path: deploylintCi?.path ?? evidencePath }
 		),
 		workflowPermissionFinding(workflows),
 		finding(
