@@ -149,7 +149,7 @@ describe('API route entrypoints', () => {
 		mockHandleScanPost.mockImplementationOnce(async () => {
 			kitError(
 				503,
-				'Daily scan capacity reached - try again after midnight UTC. Deploylint stays on Cloudflare Free tier.'
+				'Shared advisory preview capacity reached - try again after midnight UTC. Deploylint stays on Cloudflare Free tier.'
 			);
 		});
 
@@ -169,7 +169,7 @@ describe('API route entrypoints', () => {
 		expect(body).toMatchObject({
 			code: 'daily_scan_capacity_reached',
 			message:
-				'Daily scan capacity reached - try again after midnight UTC. Deploylint stays on Cloudflare Free tier.',
+				'Shared advisory preview capacity reached - try again after midnight UTC. Deploylint stays on Cloudflare Free tier.',
 			status: 503
 		});
 		expect(body.retryAt).toMatch(/T00:00:00\.000Z$/);

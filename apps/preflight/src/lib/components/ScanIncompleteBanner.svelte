@@ -15,11 +15,11 @@
 		</p>
 		<p class="mt-2 text-sm text-amber-100/90">
 			{report.scanCoverageMessage ??
-				'The homepage returned an error status. SEO, legal, and social checks were not reviewed because missing-meta warnings would come from an error page, not your real site.'}
+				'The advisory runner could not read the deploy target, so public evidence checks were limited rather than inferred from an error page.'}
 		</p>
 		<p class="mt-3 text-xs text-amber-200/80">
-			Deploylint works best on apps you control (Cloudflare Pages, Vercel, Lovable). Enterprise
-			sites that block automated review will not produce complete readiness evidence.
+			Deploylint works best on apps you control (Cloudflare Pages, Vercel, Lovable). Targets that
+			block automated review will not produce complete readiness evidence.
 		</p>
 	</section>
 {/if}

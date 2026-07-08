@@ -46,7 +46,8 @@
 		},
 		{
 			title: 'Project readiness audit',
-			description: 'Crawler, trust, payment, preview, license, and sell-rights evidence.'
+			description:
+				'CI gate, repo/license, customer access, public target, and sell-rights evidence.'
 		},
 		{
 			title: 'Fix evidence',
@@ -261,7 +262,7 @@
 			</div>
 			<div>
 				<label for="deploy-target" class="mb-1.5 block text-sm font-medium text-zinc-200">
-					Deploy target
+					Deploy target for CI evidence
 				</label>
 				<input
 					id="deploy-target"
@@ -277,8 +278,8 @@
 		<input type="hidden" name="minScore" value="80" />
 		<div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 			<p class="text-sm leading-6 text-zinc-500">
-				Deploy targets add public-surface evidence. GitHub repositories add repo and workflow
-				readiness checks.
+				Deploy targets add public evidence to the CI report. GitHub repositories add repo and
+				workflow readiness checks.
 			</p>
 			<div class="flex shrink-0 flex-col gap-2 sm:flex-row">
 				<button

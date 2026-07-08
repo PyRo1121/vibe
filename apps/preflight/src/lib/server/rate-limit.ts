@@ -195,7 +195,7 @@ export async function assertScanRateLimit(
 			prefix: 'rate:scan',
 			limit: SCAN_LIMIT_PER_WINDOW,
 			windowMs: WINDOW_MS,
-			message: 'Too many scans - wait a few minutes and try again.'
+			message: 'Too many advisory previews - wait a few minutes and try again.'
 		},
 		{ failClosed: false, limiter }
 	);

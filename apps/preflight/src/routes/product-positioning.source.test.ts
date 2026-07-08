@@ -163,7 +163,8 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(homePage).toContain('Project profile');
 		expect(homePage).toContain('Create a monitored project');
 		expect(homePage).toContain('GitHub repository');
-		expect(homePage).toContain('Deploy target');
+		expect(homePage).toContain('Deploy target for CI evidence');
+		expect(homePage).toContain('CI gate, repo/license, customer access');
 		expect(homePage).toContain('Workspace loop');
 		expect(homePage).toContain('What the workspace keeps enforcing');
 		expect(homePage).toContain('Monitored projects');
@@ -215,6 +216,8 @@ describe('Deploylint CI workspace positioning', () => {
 			expect(fileSource).not.toContain('Revenue readiness');
 		}
 		expect(homePage).not.toContain('Preview readiness brief');
+		expect(homePage).not.toContain('Crawler, trust');
+		expect(homePage).not.toContain('public-surface evidence');
 		expect(homePage).not.toContain('Fetching homepage');
 		expect(homePage).not.toContain('Crawling privacy, terms & pricing pages');
 		expect(homePage).not.toContain('Readiness evidence lanes');
@@ -231,7 +234,8 @@ describe('Deploylint CI workspace positioning', () => {
 		const licenseAuditPanel = source('lib', 'components', 'LicenseAuditPanel.svelte');
 
 		expect(reviewPage).toContain('No-login advisory trial');
-		expect(reviewPage).toContain('Preview advisory evidence');
+		expect(reviewPage).toContain('Preview CI advisory report');
+		expect(reviewPage).toContain('Deploy target for CI evidence');
 		expect(reviewPage).toContain('Open workspace setup');
 		expect(reviewPage).toContain('project history or gate status');
 		expect(reviewPage).toContain('Preparing advisory evidence');
@@ -239,12 +243,16 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(reviewPage).not.toContain('Temporary advisory review');
 		expect(reviewPage).not.toContain('Run advisory review');
 		expect(reviewPage).not.toContain('Preparing release-readiness evidence');
+		expect(reviewPage).not.toContain('preview metadata');
+		expect(reviewPage).not.toContain('public-surface evidence');
 		expect(reviewPage).not.toContain('crawler metadata');
 		expect(reviewPage).not.toContain('Crawler, trust');
 		expect(pagesScannedStrip).toContain('Evidence covered');
 		expect(pagesScannedStrip).toContain('Deploy evidence coverage');
 		expect(scanIncompleteBanner).toContain('Deploy target evidence limited');
 		expect(scanIncompleteBanner).toContain('automated review');
+		expect(scanIncompleteBanner).toContain('advisory runner could not read the deploy target');
+		expect(scanIncompleteBanner).not.toContain('homepage returned an error');
 		expect(scanIncompleteBanner).not.toContain('sites that block bots');
 		expect(licenseAuditPanel).toContain('public deploy evidence');
 		expect(licenseAuditPanel).not.toContain('not visible to this scan');

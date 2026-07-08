@@ -76,7 +76,7 @@ export async function assertDailyScanBudget(
 		if (allowed === false) {
 			error(
 				503,
-				'Daily scan capacity reached - try again after midnight UTC. Deploylint stays on Cloudflare Free tier.'
+				'Shared advisory preview capacity reached - try again after midnight UTC. Deploylint stays on Cloudflare Free tier.'
 			);
 		}
 		if (allowed === true) return;
@@ -93,7 +93,7 @@ export async function assertDailyScanBudget(
 		if (Number.isFinite(count) && count >= FREE_TIER_LIMITS.scansPerDay) {
 			error(
 				503,
-				'Daily scan capacity reached - try again after midnight UTC. Deploylint stays on Cloudflare Free tier.'
+				'Shared advisory preview capacity reached - try again after midnight UTC. Deploylint stays on Cloudflare Free tier.'
 			);
 		}
 		await kv.put(key, String((Number.isFinite(count) ? count : 0) + 1), {

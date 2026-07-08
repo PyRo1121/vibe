@@ -16,7 +16,9 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 		if (!isHttpError(err)) throw err;
 
 		const message = err.body.message;
-		const capacityReached = err.status === 503 && /daily scan capacity reached/i.test(message);
+		const capacityReached =
+			err.status === 503 &&
+			/(daily scan capacity reached|advisory preview capacity reached)/i.test(message);
 
 		return json(
 			{

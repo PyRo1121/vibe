@@ -11,8 +11,10 @@ describe('isScanRateLimitedResponse', () => {
 		expect(isScanRateLimitedResponse(429, '{"message":"Too many scans - wait"}')).toBe(true);
 		expect(
 			isScanRateLimitedResponse(
-				new Response('Too many scans - wait a few minutes and try again.', { status: 429 }),
-				'Too many scans - wait a few minutes and try again.'
+				new Response('Too many advisory previews - wait a few minutes and try again.', {
+					status: 429
+				}),
+				'Too many advisory previews - wait a few minutes and try again.'
 			)
 		).toBe(true);
 	});
@@ -27,9 +29,9 @@ describe('isScanRateLimitedResponse', () => {
 describe('scanLimitReason', () => {
 	it('classifies daily capacity exhaustion without hiding unrelated 503s', () => {
 		const text =
-			'{"message":"Daily scan capacity reached - try again after midnight UTC. Deploylint stays on Cloudflare Free tier."}';
+			'{"message":"Shared advisory preview capacity reached - try again after midnight UTC. Deploylint stays on Cloudflare Free tier."}';
 
-		expect(scanLimitReason(503, text)).toContain('daily scan capacity reached');
+		expect(scanLimitReason(503, text)).toContain('advisory preview capacity reached');
 		expect(isScanLimitedResponse(503, text)).toBe(true);
 		expect(scanLimitReason(503, 'upstream unavailable')).toBeNull();
 		expect(isScanLimitedResponse(503, 'upstream unavailable')).toBe(false);

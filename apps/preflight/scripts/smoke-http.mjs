@@ -85,7 +85,7 @@ function isRetryableFetchError(err) {
  */
 export function isScanRateLimitedResponse(responseOrStatus, text = '') {
 	const status = typeof responseOrStatus === 'number' ? responseOrStatus : responseOrStatus?.status;
-	return status === 429 && /too many scans/i.test(text);
+	return status === 429 && /too many (scans|advisory previews)/i.test(text);
 }
 
 /**
@@ -94,11 +94,14 @@ export function isScanRateLimitedResponse(responseOrStatus, text = '') {
  */
 export function scanLimitReason(responseOrStatus, text = '') {
 	const status = typeof responseOrStatus === 'number' ? responseOrStatus : responseOrStatus?.status;
-	if (status === 429 && /too many scans/i.test(text)) {
-		return 'scan rate limit active after earlier smoke phases';
+	if (status === 429 && /too many (scans|advisory previews)/i.test(text)) {
+		return 'advisory preview rate limit active after earlier smoke phases';
 	}
-	if (status === 503 && /daily scan capacity reached/i.test(text)) {
-		return 'daily scan capacity reached; retry scan assertions after midnight UTC';
+	if (
+		status === 503 &&
+		/(daily scan capacity reached|advisory preview capacity reached)/i.test(text)
+	) {
+		return 'advisory preview capacity reached; retry preview assertions after midnight UTC';
 	}
 	return null;
 }

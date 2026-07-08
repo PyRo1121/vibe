@@ -57,9 +57,9 @@
 
 	const PROGRESS_STEPS = [
 		'Preparing advisory evidence...',
-		'Checking deploy target access and HTTPS...',
-		'Reviewing trust, legal, and payment signals...',
-		'Inspecting preview metadata and route evidence...',
+		'Checking deploy target evidence and HTTPS...',
+		'Reviewing customer access, trust, and payment signals...',
+		'Inspecting public evidence and route readiness...',
 		'Checking bundles for exposed secrets and license evidence...',
 		'Checking repo and workflow readiness signals...',
 		'Scoring advisory gate decision...'
@@ -605,7 +605,7 @@
 			</div>
 			<div>
 				<label for="deploy-target" class="mb-1.5 block text-sm font-medium text-zinc-200">
-					Deploy target
+					Deploy target for CI evidence
 				</label>
 				<input
 					id="deploy-target"
@@ -621,8 +621,8 @@
 		</div>
 		<div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 			<p class="text-sm leading-6 text-zinc-500">
-				Deploy targets add public-surface evidence. GitHub repositories add repo and workflow
-				readiness checks.
+				Deploy targets add public evidence to the CI report. GitHub repositories add repo and
+				workflow readiness checks.
 			</p>
 			<div class="flex shrink-0 flex-col gap-2 sm:flex-row">
 				<button
@@ -642,7 +642,7 @@
 						runScan(false, target);
 					}}
 				>
-					{loading ? 'Checking...' : 'Preview advisory evidence'}
+					{loading ? 'Checking...' : 'Preview CI advisory report'}
 				</button>
 			</div>
 		</div>
