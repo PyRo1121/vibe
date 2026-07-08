@@ -15,6 +15,38 @@ export function reportUrl(report: ScanReport): string | null {
 	return `${apiBase()}/r/${report.reportId}`;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null;
+}
+
+function hasSummary(value: unknown): value is ScanReport['summary'] {
+	return (
+		isRecord(value) &&
+		typeof value.pass === 'number' &&
+		typeof value.warn === 'number' &&
+		typeof value.fail === 'number'
+	);
+}
+
+function isScanReport(value: unknown): value is ScanReport {
+	return (
+		isRecord(value) &&
+		typeof value.url === 'string' &&
+		typeof value.finalUrl === 'string' &&
+		typeof value.score === 'number' &&
+		typeof value.verdict === 'string' &&
+		typeof value.verdictMessage === 'string' &&
+		hasSummary(value.summary) &&
+		Array.isArray(value.checks)
+	);
+}
+
+function errorMessage(value: unknown): string | null {
+	if (!isRecord(value) || typeof value.message !== 'string') return null;
+	const message = value.message.trim();
+	return message.length > 0 ? message : null;
+}
+
 export async function fetchScan(opts: ScanOptions): Promise<ScanReport> {
 	const body: Record<string, unknown> = { url: opts.url.trim() };
 	if (opts.unlockSessionId) body.unlockSessionId = opts.unlockSessionId;
@@ -26,14 +58,14 @@ export async function fetchScan(opts: ScanOptions): Promise<ScanReport> {
 		body: JSON.stringify(body)
 	});
 
-	const json = (await res.json().catch(() => null)) as ScanReport | { message?: string } | null;
+	const json: unknown = await res.json().catch(() => null);
 	if (!res.ok) {
-		const message =
-			json && 'message' in json && typeof json.message === 'string' && json.message.trim()
-				? json.message.trim()
-				: `HTTP ${res.status}`;
-		throw new Error(message);
+		throw new Error(errorMessage(json) ?? `HTTP ${res.status}`);
 	}
 
-	return json as ScanReport;
+	if (!isScanReport(json)) {
+		throw new Error('Invalid Deploylint scan response');
+	}
+
+	return json;
 }

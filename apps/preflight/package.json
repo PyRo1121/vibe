@@ -11,7 +11,7 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"lint": "oxfmt --check . && oxlint -c ../../.oxlintrc.jsonc --max-warnings=0 .",
 		"lint:oxlint": "oxlint -c ../../.oxlintrc.jsonc --max-warnings=0 .",
-		"lint:type-aware": "oxlint -c ../../.oxlintrc.jsonc --type-aware -A typescript/no-unsafe-type-assertion -A typescript/no-unnecessary-type-assertion -A typescript/no-deprecated .",
+		"lint:type-aware": "oxlint -c ../../.oxlintrc.jsonc --type-aware -A typescript/no-unsafe-type-assertion -A typescript/no-unnecessary-type-assertion .",
 		"format": "oxfmt .",
 		"format:check": "oxfmt --check .",
 		"test": "vitest run",

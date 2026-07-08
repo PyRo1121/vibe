@@ -28,6 +28,12 @@ function jsonResponse(body: unknown, status = 200): Response {
 	});
 }
 
+function lastFetchInit(): RequestInit {
+	const init = fetchMock.mock.calls.at(-1)?.[1];
+	if (init === undefined) throw new Error('Expected fetch init');
+	return init;
+}
+
 beforeEach(() => {
 	fetchMock.mockReset();
 	vi.stubGlobal('fetch', fetchMock);
@@ -83,7 +89,7 @@ describe('fetchScan', () => {
 				headers: { 'Content-Type': 'application/json' }
 			})
 		);
-		const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
+		const init = lastFetchInit();
 		const body = init.body;
 		expect(typeof body).toBe('string');
 		if (typeof body !== 'string') throw new TypeError('Expected JSON request body');
@@ -100,7 +106,7 @@ describe('fetchScan', () => {
 
 		await fetchScan({ url: ' https://app.test ' });
 
-		const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
+		const init = lastFetchInit();
 		const body = init.body;
 		expect(typeof body).toBe('string');
 		if (typeof body !== 'string') throw new TypeError('Expected JSON request body');
@@ -111,6 +117,14 @@ describe('fetchScan', () => {
 		fetchMock.mockResolvedValueOnce(jsonResponse({ message: 'Too many scans' }, 429));
 
 		await expect(fetchScan({ url: 'https://app.test' })).rejects.toThrow('Too many scans');
+	});
+
+	it('rejects malformed successful scan responses', async () => {
+		fetchMock.mockResolvedValueOnce(jsonResponse({ ok: true }));
+
+		await expect(fetchScan({ url: 'https://app.test' })).rejects.toThrow(
+			'Invalid Deploylint scan response'
+		);
 	});
 
 	it('falls back to HTTP status when error responses are not JSON', async () => {

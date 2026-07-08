@@ -90,6 +90,10 @@ function hasScriptCommand(
 	return fragments.every((fragment) => command.includes(fragment));
 }
 
+function hasRuleLevelOxlintAllowance(command: string): boolean {
+	return /(?:^|\s)(?:-A|--allow)(?:\s|=)/.test(command);
+}
+
 function propertyNameText(name: ts.PropertyName): string | null {
 	if (ts.isIdentifier(name) || ts.isStringLiteral(name) || ts.isNumericLiteral(name)) {
 		return name.text;
@@ -444,20 +448,26 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const dogfoodWorkflow = readFileSync(dogfoodWorkflowPath, 'utf8');
 	const disabledE2eTests = findDisabledTestModifiers(rootDir);
 	const nvmrcMajor = Number.parseInt(readFileSync(nvmrcPath, 'utf8').trim(), 10);
+	const preflightTypeAwareLint = preflightPackage.scripts['lint:type-aware'] ?? '';
+	const mcpTypeAwareLint = preflightMcpPackage.scripts['lint:type-aware'] ?? '';
+	const sharedTypeAwareLint = deploylintSharedPackage.scripts['lint:type-aware'] ?? '';
 
 	pushCheck(
 		checked,
 		failures,
 		'preflight scripts run oxfmt, oxlint, and type-aware oxlint with zero-warning lint',
 		hasScriptCommand(preflightPackage.scripts, 'lint', ['oxfmt --check .', 'oxlint']) &&
-			hasScriptCommand(preflightPackage.scripts, 'lint:type-aware', [
-				'oxlint',
-				'--type-aware',
-				'typescript/no-unsafe-type-assertion'
-			]) &&
+			hasScriptCommand(preflightPackage.scripts, 'lint:type-aware', ['oxlint', '--type-aware']) &&
 			(preflightPackage.scripts.lint.includes('--max-warnings=0') ||
 				oxlint.options.maxWarnings === 0 ||
 				oxlint.options.denyWarnings === true)
+	);
+	pushCheck(
+		checked,
+		failures,
+		'preflight type-aware Oxlint keeps deprecated API checks enabled',
+		hasScriptCommand(preflightPackage.scripts, 'lint:type-aware', ['oxlint', '--type-aware']) &&
+			!preflightTypeAwareLint.includes('typescript/no-deprecated')
 	);
 	pushCheck(
 		checked,
@@ -485,11 +495,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			'test:coverage'
 		]) &&
 			hasScriptCommand(preflightMcpPackage.scripts, 'build', ['npm run clean', 'tsc']) &&
-			hasScriptCommand(preflightMcpPackage.scripts, 'lint:type-aware', [
-				'oxlint',
-				'--type-aware',
-				'typescript/no-unsafe-type-assertion'
-			])
+			hasScriptCommand(preflightMcpPackage.scripts, 'lint:type-aware', ['oxlint', '--type-aware'])
 	);
 	pushCheck(
 		checked,
@@ -507,8 +513,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			]) &&
 			hasScriptCommand(deploylintSharedPackage.scripts, 'lint:type-aware', [
 				'oxlint',
-				'--type-aware',
-				'typescript/no-unsafe-type-assertion'
+				'--type-aware'
 			]) &&
 			hasScriptCommand(deploylintSharedPackage.scripts, 'test:coverage', [
 				'vitest run --coverage'
@@ -516,6 +521,17 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			deploylintSharedPackage.devDependencies.vitest !== undefined &&
 			deploylintSharedPackage.devDependencies['@vitest/coverage-v8'] !== undefined &&
 			deploylintSharedPackage.devDependencies.typescript !== undefined
+	);
+	pushCheck(
+		checked,
+		failures,
+		'MCP and shared type-aware Oxlint run without rule-level allowances',
+		[mcpTypeAwareLint, sharedTypeAwareLint].every(
+			(command) =>
+				command.includes('oxlint') &&
+				command.includes('--type-aware') &&
+				!hasRuleLevelOxlintAllowance(command)
+		)
 	);
 	pushCheck(
 		checked,

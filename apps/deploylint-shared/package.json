@@ -15,7 +15,7 @@
 		"check": "tsc --noEmit -p tsconfig.json && node --check index.js",
 		"lint": "oxfmt --check . && oxlint -c ../../.oxlintrc.jsonc --max-warnings=0 .",
 		"lint:oxlint": "oxlint -c ../../.oxlintrc.jsonc --max-warnings=0 .",
-		"lint:type-aware": "oxlint -c ../../.oxlintrc.jsonc --type-aware -A typescript/no-unsafe-type-assertion -A typescript/no-unnecessary-type-assertion -A typescript/no-deprecated .",
+		"lint:type-aware": "oxlint -c ../../.oxlintrc.jsonc --type-aware .",
 		"test": "vitest run",
 		"test:coverage": "vitest run --coverage",
 		"verify": "npm run check && npm run lint && npm run lint:type-aware && npm run test:coverage",

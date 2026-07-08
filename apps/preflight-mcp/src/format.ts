@@ -27,7 +27,7 @@ export interface AgentScanPayload {
 	launchHeadline: string | null;
 	paymentReadiness: ScanReport['paymentReadiness'] | null;
 	paymentBlockers: string[];
-	/** @deprecated Use paymentBlockers. Kept for existing MCP clients. */
+	/** Legacy alias for existing MCP clients; prefer paymentBlockers. */
 	revenueBlockers: string[];
 	issues: AgentIssue[];
 	masterPrompt: string | null;

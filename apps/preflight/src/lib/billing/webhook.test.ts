@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest';
 
 import {
 	isCheckoutSessionFulfilled,
-	isPaidCheckoutCompleted,
 	parseStripeWebhookEvent,
 	verifyStripeWebhookSignature
 } from './webhook';
@@ -79,7 +78,6 @@ describe('isCheckoutSessionFulfilled', () => {
 			})
 		);
 		expect(isCheckoutSessionFulfilled(event)).toBe(true);
-		expect(isPaidCheckoutCompleted(event)).toBe(true);
 	});
 
 	it('ignores completed sessions that are not yet paid (async methods)', () => {

@@ -30,9 +30,11 @@ describe('quality standards guard', () => {
 		expect(report.checked).toEqual(
 			expect.arrayContaining([
 				'preflight scripts run oxfmt, oxlint, and type-aware oxlint with zero-warning lint',
+				'preflight type-aware Oxlint keeps deprecated API checks enabled',
 				'preflight verify runs standards, typecheck, lint, type-aware lint, coverage, and build',
 				'preflight-mcp verify runs typecheck, lint, type-aware lint, clean build, and coverage',
 				'deploylint-shared verify runs typecheck, lint, type-aware lint, coverage, and syntax checks',
+				'MCP and shared type-aware Oxlint run without rule-level allowances',
 				'root runtime pins Node and npm for deterministic installs',
 				'Deploylint TypeScript configs keep strict compiler settings',
 				'root dependency audit fails on any known vulnerability',
@@ -256,9 +258,11 @@ describe('quality standards guard', () => {
 			expect(report.failures).toEqual(
 				expect.arrayContaining([
 					'preflight scripts run oxfmt, oxlint, and type-aware oxlint with zero-warning lint',
+					'preflight type-aware Oxlint keeps deprecated API checks enabled',
 					'preflight verify runs standards, typecheck, lint, type-aware lint, coverage, and build',
 					'preflight-mcp verify runs typecheck, lint, type-aware lint, clean build, and coverage',
 					'deploylint-shared verify runs typecheck, lint, type-aware lint, coverage, and syntax checks',
+					'MCP and shared type-aware Oxlint run without rule-level allowances',
 					'root runtime pins Node and npm for deterministic installs',
 					'Deploylint TypeScript configs keep strict compiler settings',
 					'root dependency audit fails on any known vulnerability',

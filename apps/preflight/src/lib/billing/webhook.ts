@@ -83,8 +83,3 @@ export function isCheckoutSessionFulfilled(event: StripeWebhookEvent): boolean {
 
 	return session.payment_status === 'paid' && session.status === 'complete';
 }
-
-/** @deprecated use isCheckoutSessionFulfilled */
-export function isPaidCheckoutCompleted(event: StripeWebhookEvent): boolean {
-	return isCheckoutSessionFulfilled(event);
-}

@@ -123,31 +123,41 @@ export function createDeploylintServer(scanFetcher: ScanFetcher = fetchScan): Mc
 	});
 	const handlers = createHandlers(scanFetcher);
 
-	server.tool(
+	server.registerTool(
 		'deploylint_scan',
-		'Project readiness audit: score, deploy verdict, gate evidence, issues, and repair prompts (one free sample; pass unlock_session_id for all).',
-		scanZod.shape,
+		{
+			description:
+				'Project readiness audit: score, deploy verdict, gate evidence, issues, and repair prompts (one free sample; pass unlock_session_id for all).',
+			inputSchema: scanZod
+		},
 		handlers.handleScan
 	);
 
-	server.tool(
+	server.registerTool(
 		'deploylint_gate',
-		'PASS/FAIL deploy gate: NO-GO verdict, score floor, and P0 blockers. Use advisory:true to report without blocking.',
-		gateZod.shape,
+		{
+			description:
+				'PASS/FAIL deploy gate: NO-GO verdict, score floor, and P0 blockers. Use advisory:true to report without blocking.',
+			inputSchema: gateZod
+		},
 		handlers.handleGate
 	);
 
-	server.tool(
+	server.registerTool(
 		'preflight_scan',
-		'[deprecated] Alias for deploylint_scan',
-		scanZod.shape,
+		{
+			description: '[deprecated] Alias for deploylint_scan',
+			inputSchema: scanZod
+		},
 		handlers.handleScan
 	);
 
-	server.tool(
+	server.registerTool(
 		'preflight_gate',
-		'[deprecated] Alias for deploylint_gate',
-		gateZod.shape,
+		{
+			description: '[deprecated] Alias for deploylint_gate',
+			inputSchema: gateZod
+		},
 		handlers.handleGate
 	);
 

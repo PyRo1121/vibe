@@ -1,5 +1,4 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
-import type { AddressInfo } from 'node:net';
 import { dirname, resolve as resolvePath } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -64,7 +63,11 @@ async function listen(server: Server): Promise<number> {
 			resolve();
 		});
 	});
-	return (server.address() as AddressInfo).port;
+	const address = server.address();
+	if (!address || typeof address === 'string') {
+		throw new Error('Expected TCP server address');
+	}
+	return address.port;
 }
 
 async function closeServer(server: Server): Promise<void> {
@@ -88,6 +91,14 @@ function textContent(result: Awaited<ReturnType<Client['callTool']>>): string {
 		throw new Error('Expected text tool content');
 	}
 	return content.text;
+}
+
+function parseJsonObject(text: string): Record<string, unknown> {
+	const value: unknown = JSON.parse(text);
+	if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+		throw new Error('Expected JSON object payload');
+	}
+	return value;
 }
 
 afterEach(async () => {
@@ -145,7 +156,7 @@ describe('stdio transport integration', () => {
 				min_score: 90
 			}
 		});
-		const payload = JSON.parse(textContent(result)) as Record<string, unknown>;
+		const payload = parseJsonObject(textContent(result));
 
 		expect(payload).toMatchObject({
 			pass: false,
