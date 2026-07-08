@@ -1,5 +1,5 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import ts from 'typescript';
@@ -15,6 +15,8 @@ export const ENTERPRISE_COVERAGE_MINIMUMS = {
 
 type CoverageThresholds = Record<keyof typeof ENTERPRISE_COVERAGE_MINIMUMS, number>;
 type ScopedCoverageThresholds = Record<string, CoverageThresholds>;
+
+const DISABLED_TEST_MODIFIERS = new Set(['only', 'skip', 'fixme']);
 
 export const CRITICAL_COVERAGE_THRESHOLDS = {
 	'src/lib/billing/**.ts': {
@@ -68,6 +70,17 @@ function readJson(path: string): unknown {
 	return JSON.parse(readFileSync(path, 'utf8'));
 }
 
+function listSourceFiles(root: string): string[] {
+	if (!existsSync(root)) return [];
+
+	return readdirSync(root, { withFileTypes: true }).flatMap((entry) => {
+		const path = join(root, entry.name);
+		if (entry.isDirectory()) return listSourceFiles(path);
+		if (!entry.isFile() || !/\.[jt]s$/.test(entry.name)) return [];
+		return [path];
+	});
+}
+
 function hasScriptCommand(
 	scripts: Record<string, string>,
 	scriptName: string,
@@ -105,6 +118,54 @@ function findObjectProperty(
 
 	visit(source);
 	return found;
+}
+
+function propertyAccessPath(expression: ts.Expression): string[] {
+	const path: string[] = [];
+	let current: ts.Expression = expression;
+
+	while (ts.isPropertyAccessExpression(current)) {
+		path.unshift(current.name.text);
+		current = current.expression;
+	}
+
+	if (ts.isIdentifier(current)) {
+		path.unshift(current.text);
+	}
+
+	return path;
+}
+
+function isDisabledTestCall(expression: ts.Expression): boolean {
+	const path = propertyAccessPath(expression);
+	const modifier = path.at(-1);
+	if (!modifier || !DISABLED_TEST_MODIFIERS.has(modifier)) return false;
+
+	const owner = path.at(-2);
+	const nestedOwner = path.at(-3);
+	return owner === 'test' || owner === 'it' || owner === 'describe' || nestedOwner === 'test';
+}
+
+function findDisabledTestModifiers(rootDir: string): string[] {
+	return listSourceFiles(join(rootDir, 'apps/preflight/e2e')).flatMap((path) => {
+		const source = ts.createSourceFile(
+			path,
+			readFileSync(path, 'utf8'),
+			ts.ScriptTarget.Latest,
+			true
+		);
+		const violations: string[] = [];
+
+		function visit(node: ts.Node) {
+			if (ts.isCallExpression(node) && isDisabledTestCall(node.expression)) {
+				violations.push(relative(rootDir, path));
+			}
+			ts.forEachChild(node, visit);
+		}
+
+		visit(source);
+		return violations;
+	});
 }
 
 function readCoverageThresholds(viteConfigPath: string): CoverageThresholds {
@@ -309,6 +370,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const playwrightConfig = readFileSync(playwrightConfigPath, 'utf8');
 	const preflightGateWorkflow = readFileSync(preflightGateWorkflowPath, 'utf8');
 	const dogfoodWorkflow = readFileSync(dogfoodWorkflowPath, 'utf8');
+	const disabledE2eTests = findDisabledTestModifiers(rootDir);
 
 	pushCheck(
 		checked,
@@ -586,6 +648,12 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			playwrightConfig.includes("['html', { open: 'never' }]") &&
 			preflightGateWorkflow.includes('apps/preflight/playwright-report/**') &&
 			preflightGateWorkflow.includes('apps/preflight/test-results/**')
+	);
+	pushCheck(
+		checked,
+		failures,
+		'Playwright E2E specs cannot contain focused or disabled tests',
+		disabledE2eTests.length === 0
 	);
 	pushCheck(
 		checked,

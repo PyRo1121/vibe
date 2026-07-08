@@ -48,6 +48,7 @@ describe('quality standards guard', () => {
 				'GitHub workflows enforce canonical deploylint CI and MCP dogfood gates',
 				'GitHub workflows declare least-privilege token permissions',
 				'Playwright CI captures screenshots, videos, traces, junit, and html failure reports',
+				'Playwright E2E specs cannot contain focused or disabled tests',
 				'Vitest CI captures junit test-result artifacts for preflight, MCP, and shared packages'
 			])
 		);
@@ -212,6 +213,12 @@ describe('quality standards guard', () => {
 			);
 			writeFixtureFile(join(root, '.github/workflows/preflight-gate.yml'), 'npm test');
 			writeFixtureFile(join(root, '.github/workflows/deploylint-dogfood.yml'), 'npm test');
+			writeFixtureFile(
+				join(root, 'apps/preflight/e2e/focused.spec.ts'),
+				`import { test } from '@playwright/test';
+
+				test.only('hides the rest of the e2e suite', async () => {});`
+			);
 
 			const report = inspectQualityStandards(root);
 
@@ -237,6 +244,7 @@ describe('quality standards guard', () => {
 					'GitHub workflows enforce canonical deploylint CI and MCP dogfood gates',
 					'GitHub workflows declare least-privilege token permissions',
 					'Playwright CI captures screenshots, videos, traces, junit, and html failure reports',
+					'Playwright E2E specs cannot contain focused or disabled tests',
 					'Vitest CI captures junit test-result artifacts for preflight, MCP, and shared packages',
 					'quality standards script is runnable from npm'
 				])
