@@ -17,7 +17,7 @@ const formatSchema = z
 	.describe('Response format: markdown (default) or json for agent parsing');
 
 export const scanZod = z.object({
-	url: z.string().describe('HTTPS site URL or github.com/owner/repo to audit for launch readiness'),
+	url: z.string().describe('HTTPS deploy target or github.com/owner/repo to audit for readiness'),
 	format: formatSchema,
 	max_issues: z
 		.number()
@@ -125,7 +125,7 @@ export function createDeploylintServer(scanFetcher: ScanFetcher = fetchScan): Mc
 
 	server.tool(
 		'deploylint_scan',
-		'Launch-readiness audit: score, verdict, embarrassment risks, issues, and fix prompts (one free sample; pass unlock_session_id for all).',
+		'Project readiness audit: score, deploy verdict, gate evidence, issues, and repair prompts (one free sample; pass unlock_session_id for all).',
 		scanZod.shape,
 		handlers.handleScan
 	);

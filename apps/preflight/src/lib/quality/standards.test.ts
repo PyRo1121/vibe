@@ -42,10 +42,12 @@ describe('quality standards guard', () => {
 				'oxfmt config enforces deterministic imports, Tailwind sorting, Svelte formatting, and LF endings',
 				'vitest coverage thresholds meet enterprise minimums',
 				'vitest scoped coverage thresholds protect critical Deploylint folders',
+				'vitest coverage includes SvelteKit server route entrypoints',
 				'preflight-mcp coverage thresholds meet enterprise minimums',
 				'deploylint-shared coverage thresholds meet enterprise minimums',
 				'GitHub workflows enforce canonical deploylint CI and MCP dogfood gates',
-				'GitHub workflows declare least-privilege token permissions'
+				'GitHub workflows declare least-privilege token permissions',
+				'Playwright CI captures screenshots, videos, traces, junit, and html failure reports'
 			])
 		);
 	});
@@ -172,6 +174,12 @@ describe('quality standards guard', () => {
 								lines: 80,
 								functions: 80,
 								branches: 80
+							},
+							'src/routes/api/**/+server.ts': {
+								statements: 80,
+								lines: 80,
+								functions: 80,
+								branches: 80
 							}
 						}
 					}
@@ -189,6 +197,15 @@ describe('quality standards guard', () => {
 								branches: 80
 							}
 						}
+					}
+				};`
+			);
+			writeFixtureFile(
+				join(root, 'apps/preflight/playwright.config.ts'),
+				`export default {
+					reporter: 'list',
+					use: {
+						trace: 'off'
 					}
 				};`
 			);
@@ -213,10 +230,12 @@ describe('quality standards guard', () => {
 					'oxfmt config enforces deterministic imports, Tailwind sorting, Svelte formatting, and LF endings',
 					'vitest coverage thresholds meet enterprise minimums',
 					'vitest scoped coverage thresholds protect critical Deploylint folders',
+					'vitest coverage includes SvelteKit server route entrypoints',
 					'preflight-mcp coverage thresholds meet enterprise minimums',
 					'deploylint-shared coverage thresholds meet enterprise minimums',
 					'GitHub workflows enforce canonical deploylint CI and MCP dogfood gates',
 					'GitHub workflows declare least-privilege token permissions',
+					'Playwright CI captures screenshots, videos, traces, junit, and html failure reports',
 					'quality standards script is runnable from npm'
 				])
 			);
@@ -257,6 +276,12 @@ describe('quality standards guard', () => {
 				lines: 98,
 				functions: 97,
 				branches: 92
+			},
+			'src/routes/api/**/+server.ts': {
+				statements: 95,
+				lines: 95,
+				functions: 100,
+				branches: 90
 			}
 		});
 	});

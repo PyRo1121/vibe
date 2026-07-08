@@ -17,7 +17,13 @@ export default defineConfig({
 			provider: 'v8',
 			reporter: ['text', 'json', 'html'],
 			reportsDirectory: 'coverage',
-			include: ['src/lib/**/*.{ts,js}', 'src/hooks.server.ts'],
+			include: [
+				'src/lib/**/*.{ts,js}',
+				'src/hooks.server.ts',
+				'src/routes/**/+server.{ts,js}',
+				'src/routes/**/+page.server.{ts,js}',
+				'src/routes/**/+layout.server.{ts,js}'
+			],
 			exclude: [
 				'src/**/*.{test,spec}.{ts,js}',
 				'src/**/*.d.ts',
@@ -60,6 +66,12 @@ export default defineConfig({
 					functions: 97,
 					branches: 92,
 					statements: 97
+				},
+				'src/routes/api/**/+server.ts': {
+					lines: 95,
+					functions: 100,
+					branches: 90,
+					statements: 95
 				}
 			}
 		}

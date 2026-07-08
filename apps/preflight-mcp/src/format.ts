@@ -155,7 +155,7 @@ export function formatScanMarkdown(report: ScanReport, maxIssues = 25): string {
 		lines.push('', `## ${payload.launchHeadline}`);
 	}
 	if (payload.embarrassmentRisks.length > 0) {
-		lines.push('', '## Embarrassment radar', '');
+		lines.push('', '## Deploy evidence to fix', '');
 		for (const risk of payload.embarrassmentRisks.slice(0, 5)) {
 			lines.push(`- ${risk}`);
 		}
@@ -208,10 +208,10 @@ export function formatGateMarkdown(
 	const header = advisory
 		? payload.reasons.length > 0
 			? '⚠️ ADVISORY — issues found (not blocking)'
-			: '✅ ADVISORY — clear to ship'
+			: '✅ ADVISORY — clear for deploy gate review'
 		: gate.pass
-			? '✅ PASS — clear to ship'
-			: '❌ FAIL — fix before posting publicly';
+			? '✅ PASS — clear for deploy gate review'
+			: '❌ FAIL — fix before gate mode';
 
 	const lines = [header, '', formatScanMarkdown(report, maxIssues)];
 

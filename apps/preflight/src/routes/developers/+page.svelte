@@ -29,12 +29,12 @@
 				'@id': `${base}/#website`
 			},
 			step: [
-				{ '@type': 'HowToStep', name: 'Set DEPLOYLINT_URL to your staging or production URL' },
-				{ '@type': 'HowToStep', name: 'Run Deploylint in advisory mode from GitHub Actions' },
 				{
 					'@type': 'HowToStep',
 					name: 'Generate a workspace-backed project workflow in Deploylint'
 				},
+				{ '@type': 'HowToStep', name: 'Set DEPLOYLINT_URL to your staging or production URL' },
+				{ '@type': 'HowToStep', name: 'Run Deploylint in advisory mode from GitHub Actions' },
 				{ '@type': 'HowToStep', name: 'Switch to blocking gate mode after the report is clean' }
 			]
 		}
@@ -191,15 +191,15 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 		<div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
 			<div>
 				<p class="mb-2 text-xs font-semibold tracking-widest text-zinc-500 uppercase">
-					Free gate vs workspace gate
+					Recommended path
 				</p>
 				<h2 class="text-xl font-semibold text-white">
-					Use the workspace-backed project gate when you subscribe
+					Generate the workspace-backed project gate first
 				</h2>
 				<p class="mt-3 text-sm leading-6 text-zinc-400">
-					The generic workflow below is useful for proving the signal. A workspace-backed project
-					gate adds <code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300"
-						>DEPLOYLINT_PROJECT_ID</code
+					The URL-only advisory workflow below is a quick signal check. A workspace-backed project
+					gate is the product path: it adds <code
+						class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">DEPLOYLINT_PROJECT_ID</code
 					>, report history, billing context, and gate status inside your Deploylint workspace.
 				</p>
 			</div>
@@ -222,12 +222,14 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 	</section>
 
 	<section class="mb-10 rounded-2xl border border-sky-900/50 bg-sky-950/20 p-6">
-		<h2 class="mb-2 text-xl font-semibold text-white">1. Install the advisory workflow</h2>
+		<h2 class="mb-2 text-xl font-semibold text-white">
+			1. Quick signal check: URL-only advisory workflow
+		</h2>
 		<p class="mb-4 text-sm leading-6 text-zinc-400">
 			Set a GitHub secret named
 			<code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">DEPLOYLINT_URL</code>
-			to your staging or production URL. This workflow writes an Actions job summary and always exits
-			successfully.
+			to your staging or production URL. Use this when you want deploy evidence before creating a monitored
+			project; it writes an Actions job summary and always exits successfully.
 		</p>
 		<pre
 			class="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-xs leading-relaxed text-zinc-300"><code
@@ -356,11 +358,12 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 			></pre>
 		<ul class="list-disc space-y-2 pl-6 text-sm text-zinc-400">
 			<li>
-				<code class="text-sky-300">deploylint_scan</code> returns score, risks, issues, and fix prompts.
-			</li>
-			<li>
 				<code class="text-sky-300">deploylint_gate</code> returns PASS/FAIL;
 				<code class="text-sky-300">advisory: true</code> reports without blocking.
+			</li>
+			<li>
+				<code class="text-sky-300">deploylint_scan</code> returns target evidence, risks, issues, and
+				repair prompts for agent workflows.
 			</li>
 			<li>
 				Legacy <code class="text-sky-300">preflight_scan</code> /
@@ -399,12 +402,12 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 				>.
 			</li>
 			<li>Add the advisory workflow and read the first PR report.</li>
-			<li>Fix the highest-risk findings and re-run.</li>
+			<li>Fix the highest-risk findings and rerun the advisory report.</li>
 			<li>Switch to gate mode only after the advisory report is clean.</li>
 		</ol>
 	</section>
 
 	<p>
-		<a class="text-sky-400 hover:underline" href={resolve('/')}>Audit a deploy target</a>
+		<a class="text-sky-400 hover:underline" href={resolve('/')}>Build readiness evidence</a>
 	</p>
 </div>

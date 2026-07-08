@@ -16,7 +16,7 @@ function report(overrides: Partial<ScanReport> = {}): ScanReport {
 		finalUrl: 'https://app.test/',
 		score: 72,
 		verdict: 'no-go',
-		verdictMessage: 'Fix blockers before launch',
+		verdictMessage: 'Fix blockers before gate mode',
 		summary: { pass: 10, warn: 1, fail: 1 },
 		checks: [
 			{

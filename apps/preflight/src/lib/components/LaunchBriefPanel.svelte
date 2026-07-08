@@ -37,14 +37,14 @@
 				</ul>
 				{#if !report.unlocked}
 					<p class="mt-4 text-sm text-sky-300/90">
-						Free report shows the problems. Unlock gives you repair prompts, then re-scan to prove
-						the deploy target is ready.
+						Free report shows the problems. Unlock gives you repair prompts, then rerun the advisory
+						report to prove the deploy target is ready.
 					</p>
 				{/if}
 			</div>
 		{:else}
 			<p class="mt-6 text-sm text-emerald-300">
-				No obvious public deploy surface risks on this report - still worth a re-scan after
+				No obvious public deploy surface risks on this report - still worth rerunning after
 				last-minute changes.
 			</p>
 		{/if}

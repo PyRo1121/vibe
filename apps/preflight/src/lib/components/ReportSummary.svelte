@@ -179,7 +179,7 @@
 			{/if}
 
 			<p class="mt-4 truncate text-xs text-zinc-500" title={report.finalUrl}>
-				Target reviewed: {report.finalUrl} · {new Date(report.scannedAt).toLocaleString()}
+				Project evidence reviewed: {report.finalUrl} · {new Date(report.scannedAt).toLocaleString()}
 			</p>
 
 			{#if report.stack?.length}

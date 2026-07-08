@@ -46,6 +46,12 @@ export const CRITICAL_COVERAGE_THRESHOLDS = {
 		lines: 98,
 		functions: 97,
 		branches: 92
+	},
+	'src/routes/api/**/+server.ts': {
+		statements: 95,
+		lines: 95,
+		functions: 100,
+		branches: 90
 	}
 } as const satisfies ScopedCoverageThresholds;
 
@@ -212,6 +218,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const knipPath = join(rootDir, 'knip.deploylint.jsonc');
 	const viteConfigPath = join(preflightRoot, 'vite.config.ts');
 	const mcpViteConfigPath = join(preflightMcpRoot, 'vite.config.ts');
+	const playwrightConfigPath = join(preflightRoot, 'playwright.config.ts');
 	const preflightGateWorkflowPath = join(rootDir, '.github/workflows/preflight-gate.yml');
 	const dogfoodWorkflowPath = join(rootDir, '.github/workflows/deploylint-dogfood.yml');
 	const checked: string[] = [];
@@ -236,6 +243,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		knipPath,
 		viteConfigPath,
 		mcpViteConfigPath,
+		playwrightConfigPath,
 		preflightGateWorkflowPath,
 		dogfoodWorkflowPath
 	];
@@ -285,6 +293,8 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const configuredScopedCoverageThresholds = readScopedCoverageThresholds(viteConfigPath);
 	const configuredMcpCoverageThresholds = readCoverageThresholds(mcpViteConfigPath);
 	const configuredSharedCoverageThresholds = readCoverageThresholds(deploylintSharedViteConfigPath);
+	const viteConfigSource = readFileSync(viteConfigPath, 'utf8');
+	const playwrightConfig = readFileSync(playwrightConfigPath, 'utf8');
 	const preflightGateWorkflow = readFileSync(preflightGateWorkflowPath, 'utf8');
 	const dogfoodWorkflow = readFileSync(dogfoodWorkflowPath, 'utf8');
 
@@ -468,6 +478,16 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
+		'vitest coverage includes SvelteKit server route entrypoints',
+		[
+			'src/routes/**/+server.{ts,js}',
+			'src/routes/**/+page.server.{ts,js}',
+			'src/routes/**/+layout.server.{ts,js}'
+		].every((pattern) => viteConfigSource.includes(pattern))
+	);
+	pushCheck(
+		checked,
+		failures,
 		'preflight-mcp coverage thresholds meet enterprise minimums',
 		Object.entries(ENTERPRISE_COVERAGE_MINIMUMS).every(
 			([metric, minimum]) =>
@@ -488,6 +508,9 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		failures,
 		'GitHub workflows enforce canonical deploylint CI and MCP dogfood gates',
 		preflightGateWorkflow.includes('npm run verify:deploylint:ci') &&
+			preflightGateWorkflow.includes('concurrency:') &&
+			preflightGateWorkflow.includes('cancel-in-progress: true') &&
+			preflightGateWorkflow.includes('timeout-minutes: 30') &&
 			preflightGateWorkflow.includes('push:') &&
 			preflightGateWorkflow.includes('branches: [main]') &&
 			preflightGateWorkflow.includes('node-version-file: .nvmrc') &&
@@ -495,6 +518,8 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			preflightGateWorkflow.includes('apps/deploylint-shared/coverage/**') &&
 			preflightGateWorkflow.includes('apps/preflight/coverage/**') &&
 			preflightGateWorkflow.includes('apps/preflight/playwright-report/**') &&
+			preflightGateWorkflow.includes('apps/preflight/test-results/**') &&
+			preflightGateWorkflow.includes('retention-days: 14') &&
 			preflightGateWorkflow.includes('apps/preflight-mcp/coverage/**') &&
 			!preflightGateWorkflow.includes("node-version: '24'") &&
 			preflightGateWorkflow.includes('apps/preflight-mcp/**') &&
@@ -528,6 +553,18 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		'GitHub workflows declare least-privilege token permissions',
 		hasLeastPrivilegeWorkflowPermissions(preflightGateWorkflow) &&
 			hasLeastPrivilegeWorkflowPermissions(dogfoodWorkflow)
+	);
+	pushCheck(
+		checked,
+		failures,
+		'Playwright CI captures screenshots, videos, traces, junit, and html failure reports',
+		playwrightConfig.includes("trace: 'on-first-retry'") &&
+			playwrightConfig.includes("screenshot: 'only-on-failure'") &&
+			playwrightConfig.includes("video: 'on-first-retry'") &&
+			playwrightConfig.includes("['junit', { outputFile: 'test-results/playwright-junit.xml' }]") &&
+			playwrightConfig.includes("['html', { open: 'never' }]") &&
+			preflightGateWorkflow.includes('apps/preflight/playwright-report/**') &&
+			preflightGateWorkflow.includes('apps/preflight/test-results/**')
 	);
 	pushCheck(
 		checked,

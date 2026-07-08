@@ -48,7 +48,7 @@
 			<div
 				class="relative flex h-14 w-14 shrink-0 items-center justify-center"
 				aria-hidden="true"
-				title="Progress updates after re-scan"
+				title="Progress updates after verification"
 			>
 				<svg class="h-14 w-14 -rotate-90" viewBox="0 0 36 36">
 					<circle cx="18" cy="18" r="15.5" fill="none" class="stroke-zinc-700" stroke-width="3" />
@@ -90,8 +90,8 @@
 					>3</span
 				>
 				<span
-					>Hit <strong class="text-white">Re-scan to verify</strong> — we'll show your score delta so
-					you can keep evidence with the gate.</span
+					>Rerun the <strong class="text-white">advisory report</strong> to verify fixes — we'll show
+					your score delta so you can keep proof with the gate.</span
 				>
 			</li>
 		</ol>
@@ -101,7 +101,7 @@
 		<div class="flex flex-wrap items-start justify-between gap-4">
 			<div>
 				<p class="text-xs font-semibold tracking-widest text-emerald-400 uppercase">
-					Re-scan proof — ready for gate mode
+					Gate proof — ready for gate mode
 				</p>
 				<h2 class="mt-2 text-lg font-semibold text-white">Fix loop complete</h2>
 				<div class="mt-3">
@@ -118,7 +118,7 @@
 						Fixed {fixProgress.fixedCount} of {fixProgress.totalIssues} issue{fixProgress.totalIssues ===
 						1
 							? ''
-							: 's'} from your first scan.
+							: 's'} from your first report.
 					</p>
 				{/if}
 			</div>
@@ -165,11 +165,11 @@
 					>✓</span
 				>
 				<span>
-					Re-scanned with verified delta —
+					Verified with score delta —
 					{#if deltaImproved}
 						score improved. Keep the proof with the deploy.
 					{:else if deltaFlat}
-						no score change yet — keep fixing or re-scan after deploy propagates.
+						no score change yet — keep fixing or rerun after deploy propagates.
 					{:else}
 						score dropped — review regressions before the next deploy.
 					{/if}

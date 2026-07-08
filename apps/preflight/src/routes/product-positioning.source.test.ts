@@ -39,6 +39,8 @@ describe('Deploylint CI workspace positioning', () => {
 		const developersPage = source('routes', 'developers', '+page.svelte');
 
 		expect(developersPage).toContain('workspace-backed project gate');
+		expect(developersPage).toContain('Recommended path');
+		expect(developersPage).toContain('URL-only advisory workflow below is a quick signal check');
 		expect(developersPage).toContain("resolve('/app#install')");
 		expect(developersPage).toContain('DEPLOYLINT_PROJECT_ID');
 	});
@@ -139,6 +141,7 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(homePage).toContain('Monitored projects');
 		expect(reportPage).toContain('Readiness brief');
 		expect(reportSummary).toContain('Copy readiness brief');
+		expect(reportSummary).toContain('Project evidence reviewed');
 		expect(preflightSession).toContain('Add Deploylint to CI');
 		expect(unlockComparePanel).toContain('Baseline readiness brief (you have this)');
 		expect(unlockComparePanel).toContain('Monitored project');

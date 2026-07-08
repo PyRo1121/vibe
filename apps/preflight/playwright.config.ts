@@ -15,7 +15,9 @@ export default defineConfig({
 		: 'list',
 	use: {
 		baseURL: 'http://localhost:4199',
-		trace: 'on-first-retry'
+		screenshot: 'only-on-failure',
+		trace: 'on-first-retry',
+		video: 'on-first-retry'
 	},
 	projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 	webServer: {

@@ -52,7 +52,8 @@ export const PUBLIC_SITE_ROUTES = [
 	{
 		path: '/checks',
 		title: 'Check catalog',
-		description: 'Browse the launch, security, SEO, social preview, and AI discovery checks.',
+		description:
+			'Browse CI, repo, deploy target, security, detection, and false-positive guidance checks.',
 		lastmod: SITE_LASTMOD,
 		changefreq: 'weekly',
 		priority: '0.9'

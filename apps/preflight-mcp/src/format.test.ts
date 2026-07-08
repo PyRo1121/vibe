@@ -15,7 +15,7 @@ function report(overrides: Partial<ScanReport> = {}): ScanReport {
 		finalUrl: 'https://app.test/',
 		score: 72,
 		verdict: 'no-go',
-		verdictMessage: 'Fix blockers before launch',
+		verdictMessage: 'Fix blockers before gate mode',
 		summary: { pass: 10, warn: 2, fail: 3 },
 		checks: [
 			{
@@ -36,8 +36,8 @@ function report(overrides: Partial<ScanReport> = {}): ScanReport {
 			}
 		],
 		launchBrief: {
-			headline: 'Launch risk',
-			embarrassmentRisks: ['Missing privacy policy is a trust killer on Product Hunt.']
+			headline: 'Deploy risk',
+			embarrassmentRisks: ['Missing privacy policy weakens deploy trust.']
 		},
 		paymentReadiness: {
 			status: 'blocked',
@@ -56,7 +56,7 @@ function report(overrides: Partial<ScanReport> = {}): ScanReport {
 }
 
 describe('buildAgentScanPayload', () => {
-	it('includes embarrassment risks and sample fix prompt', () => {
+	it('includes deploy evidence risks and sample fix prompt', () => {
 		const payload = buildAgentScanPayload(report());
 		expect(payload.embarrassmentRisks[0]).toContain('privacy');
 		expect(payload.issues.find((i) => i.id === 'privacy')?.fixPrompt).toContain('/privacy');
@@ -167,7 +167,7 @@ describe('buildAgentScanPayload', () => {
 describe('formatScanMarkdown', () => {
 	it('renders fix prompt block for sample issue', () => {
 		const md = formatScanMarkdown(report());
-		expect(md).toContain('Embarrassment radar');
+		expect(md).toContain('Deploy evidence to fix');
 		expect(md).toContain('Add a /privacy page');
 		expect(md).toContain('Payment readiness');
 		expect(md).toContain('Payment blockers');

@@ -1,7 +1,7 @@
 # Deploylint
 
 Build CI/deploy readiness evidence before production traffic depends on it:
-project verdicts, deploy-gate blockers, guided repair plans, and re-scan proof.
+project verdicts, deploy-gate blockers, guided repair plans, and gate proof.
 
 **Test deployment:** [deploylint.com](https://deploylint.com)
 (Internal package name remains `preflight` in the monorepo.)
@@ -9,7 +9,7 @@ project verdicts, deploy-gate blockers, guided repair plans, and re-scan proof.
 ## Product
 
 - **Free:** readiness verdict, deploy surface brief, social preview, one sample guided fix
-- **Paid subscriptions:** Solo $9/mo, Builder $29/mo, Agency $149/mo for guided repair plans, MCP access, monitoring, and re-scan proof
+- **Paid subscriptions:** Solo $9/mo, Builder $29/mo, Agency $149/mo for guided repair plans, MCP access, monitoring, and gate proof
 - **CI gate** - zero-install script (`/gate-remote.mjs`). See [/developers](https://deploylint.com/developers).
 
 ## Dev
