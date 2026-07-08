@@ -354,11 +354,13 @@ export function buildAdvisoryWorkflow(opts: {
 	appUrl: string;
 	projectId: string;
 	deployUrl: string;
+	repoLabel?: string;
 	mode?: ProjectGateMode;
 	minScore: number;
 }): string {
 	const appUrl = normalizeAppUrl(opts.appUrl);
 	const mode = opts.mode ?? 'advisory';
+	const repoEnvLine = opts.repoLabel ? `          DEPLOYLINT_REPO_URL: ${opts.repoLabel}\n` : '';
 
 	return `name: Deploylint readiness report
 
@@ -380,7 +382,7 @@ jobs:
           DEPLOYLINT_PROJECT_ID: ${opts.projectId}
           DEPLOYLINT_INGEST_TOKEN: \${{ secrets.DEPLOYLINT_INGEST_TOKEN }}
           DEPLOYLINT_URL: ${opts.deployUrl}
-          DEPLOYLINT_API: ${appUrl}
+${repoEnvLine}          DEPLOYLINT_API: ${appUrl}
           DEPLOYLINT_MODE: ${mode}
           DEPLOYLINT_MIN_SCORE: '${opts.minScore}'
           GITHUB_TOKEN: \${{ github.token }}

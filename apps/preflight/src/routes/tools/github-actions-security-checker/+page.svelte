@@ -72,6 +72,12 @@ jobs:
 		return 'Next';
 	}
 
+	function policyStatusClass(status: string): string {
+		if (status === 'ready') return 'border-emerald-500/20 bg-emerald-500/5 text-emerald-300';
+		if (status === 'blocked') return 'border-red-500/20 bg-red-500/5 text-red-300';
+		return 'border-sky-500/20 bg-sky-500/5 text-sky-300';
+	}
+
 	async function copyText(id: string, text: string) {
 		await navigator.clipboard.writeText(text);
 		copied = id;
@@ -180,6 +186,47 @@ jobs:
 						</li>
 					{/each}
 				</ol>
+			</section>
+
+			<section class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+				<div class="mb-3 flex items-start justify-between gap-3">
+					<div>
+						<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
+							Branch protection policy
+						</p>
+						<h2 class="mt-1 font-semibold text-white">{result.branchProtection.title}</h2>
+					</div>
+					<span
+						class="rounded-lg border px-2 py-1 text-[10px] font-bold tracking-wide uppercase {policyStatusClass(
+							result.branchProtection.status
+						)}"
+					>
+						{result.branchProtection.status}
+					</span>
+				</div>
+				<p class="text-sm leading-6 text-zinc-400">{result.branchProtection.summary}</p>
+				<div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+					<div>
+						<h3 class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
+							Required checks
+						</h3>
+						<ul class="mt-2 space-y-1 text-sm text-zinc-300">
+							{#each result.branchProtection.requiredChecks as check (check)}
+								<li><code class="rounded bg-zinc-950 px-1.5 py-0.5 text-sky-300">{check}</code></li>
+							{/each}
+						</ul>
+					</div>
+					<div>
+						<h3 class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
+							Repository rules
+						</h3>
+						<ul class="mt-2 space-y-1 text-sm leading-5 text-zinc-300">
+							{#each result.branchProtection.rules as rule (rule)}
+								<li>{rule}</li>
+							{/each}
+						</ul>
+					</div>
+				</div>
 			</section>
 
 			<section class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">

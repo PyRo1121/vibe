@@ -72,6 +72,7 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
 					appUrl,
 					projectId: project.id,
 					deployUrl: project.deployUrl,
+					repoLabel: project.repoLabel,
 					mode: project.gateMode,
 					minScore: project.minScore
 				})

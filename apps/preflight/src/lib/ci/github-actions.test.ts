@@ -67,6 +67,12 @@ describe('GitHub Actions hardening tool analyzer', () => {
 				state: 'blocked'
 			})
 		]);
+		expect(result.branchProtection).toMatchObject({
+			status: 'blocked',
+			title: 'Do not make this workflow required yet'
+		});
+		expect(result.branchProtection.requiredChecks).toContain('deploylint-advisory');
+		expect(result.branchProtection.summary).toContain('Fix blocking workflow risk');
 	});
 
 	it('passes least-privilege workflows with full quality gates', () => {
@@ -114,6 +120,23 @@ describe('GitHub Actions hardening tool analyzer', () => {
 				state: 'next'
 			})
 		]);
+		expect(result.branchProtection).toMatchObject({
+			status: 'ready',
+			title: 'Ready for protected-branch enforcement'
+		});
+		expect(result.branchProtection.requiredChecks).toEqual([
+			'verify',
+			'dependency-review',
+			'codeql',
+			'deploylint-advisory'
+		]);
+		expect(result.branchProtection.rules).toEqual([
+			'Require pull request reviews before merging',
+			'Require status checks to pass before merging',
+			'Require branches to be up to date before merging',
+			'Restrict who can push to protected branches',
+			'Require conversation resolution before merging'
+		]);
 	});
 
 	it('marks least-privilege workflows with missing hardening as needs-work', () => {
@@ -146,5 +169,10 @@ jobs:
 			['workspace-history', 'next'],
 			['promote-gate', 'blocked']
 		]);
+		expect(result.branchProtection).toMatchObject({
+			status: 'advisory-only',
+			title: 'Use advisory checks before blocking merges'
+		});
+		expect(result.branchProtection.summary).toContain('Patch warnings before requiring');
 	});
 });

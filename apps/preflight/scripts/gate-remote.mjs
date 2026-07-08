@@ -8,6 +8,7 @@
  *
  * Env:
  *   DEPLOYLINT_URL       Target URL (or first CLI arg)
+ *   DEPLOYLINT_REPO_URL  Optional GitHub repository URL/label for deploy-path repo checks
  *   DEPLOYLINT_PROJECT_ID Workspace project id for persistent CI report history
  *   DEPLOYLINT_INGEST_TOKEN Workspace project write token for persistent CI report history
  *   DEPLOYLINT_API       API base (default https://deploylint.com)
@@ -67,6 +68,7 @@ const targetUrl =
 	process.env.PREFLIGHT_GATE_URL?.trim();
 const projectId = process.env.DEPLOYLINT_PROJECT_ID?.trim();
 const ingestToken = process.env.DEPLOYLINT_INGEST_TOKEN?.trim();
+const repoUrl = process.env.DEPLOYLINT_REPO_URL?.trim();
 const minScore = Number(
 	process.env.DEPLOYLINT_MIN_SCORE ?? process.env.PREFLIGHT_MIN_SCORE ?? '80'
 );
@@ -90,6 +92,7 @@ function printHelp() {
 	console.error('');
 	console.error('Env:');
 	console.error('  DEPLOYLINT_URL        Target URL or public GitHub repo');
+	console.error('  DEPLOYLINT_REPO_URL   Optional GitHub repo for combined deploy-path checks');
 	console.error('  DEPLOYLINT_PROJECT_ID Workspace project id for persistent report history');
 	console.error('  DEPLOYLINT_INGEST_TOKEN Workspace write token for persistent report history');
 	console.error('  DEPLOYLINT_API        API base (default https://deploylint.com)');
@@ -365,6 +368,7 @@ async function main() {
 	console.log(`Scanning ${targetUrl} via ${apiBase} …`);
 	const scanPayload = {
 		url: targetUrl,
+		...(repoUrl ? { repoUrl } : {}),
 		...(projectId ? { projectId } : {}),
 		...(ingestToken ? { ingestToken } : {}),
 		...githubCiContext()

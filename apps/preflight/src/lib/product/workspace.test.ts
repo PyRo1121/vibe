@@ -41,6 +41,7 @@ describe('Deploylint workspace model', () => {
 			appUrl: 'https://deploylint.com/',
 			projectId: 'proj_demo_123',
 			deployUrl: 'https://app.example.com',
+			repoLabel: 'github.com/acme/app',
 			minScore: 80
 		});
 
@@ -51,6 +52,7 @@ describe('Deploylint workspace model', () => {
 		expect(workflow).toContain('DEPLOYLINT_PROJECT_ID: proj_demo_123');
 		expect(workflow).toContain('DEPLOYLINT_INGEST_TOKEN: ${{ secrets.DEPLOYLINT_INGEST_TOKEN }}');
 		expect(workflow).toContain('DEPLOYLINT_URL: https://app.example.com');
+		expect(workflow).toContain('DEPLOYLINT_REPO_URL: github.com/acme/app');
 		expect(workflow).toContain('DEPLOYLINT_MODE: advisory');
 		expect(workflow).toContain('DEPLOYLINT_API: https://deploylint.com');
 		expect(workflow).toContain('GITHUB_TOKEN: ${{ github.token }}');
@@ -153,9 +155,11 @@ describe('Deploylint workspace model', () => {
 			appUrl: 'https://deploylint.com',
 			projectId: project.id,
 			deployUrl: project.deployUrl,
+			repoLabel: project.repoLabel,
 			minScore: project.minScore
 		});
 		expect(workflow).toContain('DEPLOYLINT_URL: https://app.acme.com');
+		expect(workflow).toContain('DEPLOYLINT_REPO_URL: github.com/acme/control-plane');
 		expect(workflow).toContain("DEPLOYLINT_MIN_SCORE: '92'");
 	});
 

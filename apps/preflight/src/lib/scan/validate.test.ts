@@ -25,13 +25,24 @@ describe('parseScanRequestBody', () => {
 		expect(
 			parseScanRequestBody({
 				url: 'https://app.test',
+				repoUrl: '  github.com/acme/app  ',
 				projectId: '  proj_live-123  ',
 				ingestToken: '  dlint_ingest_token  '
 			})
 		).toMatchObject({
+			repoUrl: 'github.com/acme/app',
 			projectId: 'proj_live-123',
 			ingestToken: 'dlint_ingest_token'
 		});
+	});
+
+	it('drops non-GitHub repo context instead of treating it as CI evidence', () => {
+		expect(
+			parseScanRequestBody({
+				url: 'https://app.test',
+				repoUrl: 'https://gitlab.com/acme/app'
+			}).repoUrl
+		).toBeUndefined();
 	});
 
 	it('drops unsafe project ids instead of treating them as workspace context', () => {

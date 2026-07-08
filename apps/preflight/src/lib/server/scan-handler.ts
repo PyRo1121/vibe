@@ -1,10 +1,15 @@
 import { sanitizeReport } from '$lib/billing/report';
 import { logFunnelEvent } from '$lib/metrics/funnel';
 import { resolveAlphaFreeUnlock } from '$lib/product/alpha';
+import { buildLaunchBrief } from '$lib/scan/brief';
 import { scanUrl } from '$lib/scan/engine';
 import { createScanDeps } from '$lib/scan/fetchers';
+import { buildPaymentReadinessSummary } from '$lib/scan/payment-readiness';
 import { parseRepoUrl } from '$lib/scan/repo/parse';
 import { scanRepo } from '$lib/scan/repo/scan';
+import { scoreChecks } from '$lib/scan/score';
+import type { ScanCheck, ScanReport } from '$lib/scan/types';
+import { computeVerdict, resolvePriority } from '$lib/scan/verdict';
 import { parseScanJsonBody, rejectValidation } from '$lib/server/api';
 import { buildCopyReview } from '$lib/server/copy-review';
 import { recordProjectReport } from '$lib/server/project-reports';
@@ -13,6 +18,38 @@ import { appendHistory, computeScanDiff, issueMap, saveReport } from '$lib/serve
 import { resolveUnlock } from '$lib/server/resolve-unlock';
 import { assertDailyScanBudget, reserveAiCopyReview } from '$lib/server/usage-budget';
 import { json, error } from '@sveltejs/kit';
+
+function repoEvidenceCheck(check: ScanCheck): ScanCheck {
+	return {
+		...check,
+		id: `repo:${check.id}`,
+		title: check.title.startsWith('Repo: ') ? check.title : `Repo: ${check.title}`,
+		priority: check.priority ?? resolvePriority(check)
+	};
+}
+
+function mergeDeployAndRepoReports(deployReport: ScanReport, repoReport: ScanReport): ScanReport {
+	const checks = [...deployReport.checks, ...repoReport.checks.map(repoEvidenceCheck)];
+	const summary = {
+		pass: checks.filter((c) => c.status === 'pass').length,
+		warn: checks.filter((c) => c.status === 'warn').length,
+		fail: checks.filter((c) => c.status === 'fail').length
+	};
+	const score = scoreChecks(checks);
+	const { verdict, verdictMessage } = computeVerdict(checks, score);
+	const merged: ScanReport = {
+		...deployReport,
+		score,
+		verdict,
+		verdictMessage,
+		checks,
+		summary,
+		paymentReadiness: buildPaymentReadinessSummary(checks),
+		...(repoReport.licenseAudit ? { licenseAudit: repoReport.licenseAudit } : {}),
+		...(repoReport.repo ? { repo: repoReport.repo } : {})
+	};
+	return { ...merged, launchBrief: buildLaunchBrief(merged) };
+}
 
 export async function handleScanPost(request: Request, env?: Env) {
 	let parsed;
@@ -26,11 +63,17 @@ export async function handleScanPost(request: Request, env?: Env) {
 	await assertScanRateLimit(env?.REPORTS, clientIp(request), env?.LIMITER);
 
 	const repoRef = parseRepoUrl(parsed.url);
+	const attachedRepoRef = parsed.repoUrl ? parseRepoUrl(parsed.repoUrl) : null;
 	const alphaFreeUnlock = resolveAlphaFreeUnlock(env);
 	const deps = createScanDeps(env);
 	const report = repoRef
 		? await scanRepo(repoRef, { token: env?.GITHUB_TOKEN })
 		: await scanUrl(parsed.url, deps);
+	const repoReport =
+		!repoRef && attachedRepoRef
+			? await scanRepo(attachedRepoRef, { token: env?.GITHUB_TOKEN })
+			: null;
+	const fullReport = repoReport ? mergeDeployAndRepoReports(report, repoReport) : report;
 	const stripeKey = env?.STRIPE_SECRET_KEY;
 
 	if (!alphaFreeUnlock && parsed.unlockSessionId && !stripeKey && !env?.REPORTS) {
@@ -47,29 +90,29 @@ export async function handleScanPost(request: Request, env?: Env) {
 		});
 	}
 
-	const sanitized = sanitizeReport(report, unlocked, {
+	const sanitized = sanitizeReport(fullReport, unlocked, {
 		previousScore: unlocked ? parsed.previousScore : undefined
 	});
 
 	// Store the free (prompt-stripped) version so share links never leak paid prompts.
 	if (env?.REPORTS) {
-		const stored = unlocked ? sanitizeReport(report, false) : sanitized;
+		const stored = unlocked ? sanitizeReport(fullReport, false) : sanitized;
 		const reportId = await saveReport(env.REPORTS, stored);
 		if (reportId) {
 			sanitized.reportId = reportId;
-			const previous = await appendHistory(env.REPORTS, report.finalUrl, {
+			const previous = await appendHistory(env.REPORTS, fullReport.finalUrl, {
 				id: reportId,
-				score: report.score,
-				verdict: report.verdict,
-				at: report.scannedAt,
-				issues: issueMap(report.checks)
+				score: fullReport.score,
+				verdict: fullReport.verdict,
+				at: fullReport.scannedAt,
+				issues: issueMap(fullReport.checks)
 			});
 			if (previous.length > 0) {
 				sanitized.history = previous
 					.slice(-5)
 					.map(({ id, score, verdict, at }) => ({ id, score, verdict, at }));
 				const lastIssues = previous.at(-1)?.issues;
-				if (lastIssues) sanitized.scanDiff = computeScanDiff(lastIssues, report.checks);
+				if (lastIssues) sanitized.scanDiff = computeScanDiff(lastIssues, fullReport.checks);
 			}
 		}
 	}
@@ -88,14 +131,14 @@ export async function handleScanPost(request: Request, env?: Env) {
 
 	// Paid extra: AI copy critique. Unlocked-only + daily cap keeps Workers AI inside
 	// the free 10k neurons/day allocation.
-	if (unlocked && env?.AI && !repoRef && report.scanCoverage !== 'blocked') {
+	if (unlocked && env?.AI && !repoRef && fullReport.scanCoverage !== 'blocked') {
 		const allowed = await reserveAiCopyReview(env.REPORTS, env.LIMITER);
 		if (allowed) {
 			const review = await buildCopyReview(env.AI, {
-				url: report.finalUrl,
-				title: report.socialPreview?.title ?? null,
-				description: report.socialPreview?.description ?? null,
-				topIssues: report.checks
+				url: fullReport.finalUrl,
+				title: fullReport.socialPreview?.title ?? null,
+				description: fullReport.socialPreview?.description ?? null,
+				topIssues: fullReport.checks
 					.filter((c) => c.status !== 'pass')
 					.slice(0, 5)
 					.map((c) => `${c.title}: ${c.message}`)

@@ -116,6 +116,14 @@ export interface GithubActionsReleasePlanStep {
 	state: 'blocked' | 'ready' | 'next';
 }
 
+export interface GithubActionsBranchProtectionPolicy {
+	status: 'blocked' | 'advisory-only' | 'ready';
+	title: string;
+	summary: string;
+	requiredChecks: string[];
+	rules: string[];
+}
+
 export interface GithubActionsToolResult {
 	score: number;
 	pass: number;
@@ -127,6 +135,7 @@ export interface GithubActionsToolResult {
 	repairPrompt: string;
 	nextAction: string;
 	releasePlan: GithubActionsReleasePlanStep[];
+	branchProtection: GithubActionsBranchProtectionPolicy;
 	hardenedWorkflow: string;
 }
 
@@ -248,6 +257,51 @@ function buildReleasePlan(
 	];
 }
 
+const REQUIRED_BRANCH_CHECKS = ['verify', 'dependency-review', 'codeql', 'deploylint-advisory'];
+
+const PROTECTED_BRANCH_RULES = [
+	'Require pull request reviews before merging',
+	'Require status checks to pass before merging',
+	'Require branches to be up to date before merging',
+	'Restrict who can push to protected branches',
+	'Require conversation resolution before merging'
+];
+
+function buildBranchProtectionPolicy(
+	resultVerdict: GithubActionsToolResult['verdict']
+): GithubActionsBranchProtectionPolicy {
+	if (resultVerdict === 'hardened') {
+		return {
+			status: 'ready',
+			title: 'Ready for protected-branch enforcement',
+			summary:
+				'Require the hardened workflow checks, keep Deploylint advisory until the workspace has report history, then promote clean signal to a blocking deploy gate.',
+			requiredChecks: REQUIRED_BRANCH_CHECKS,
+			rules: PROTECTED_BRANCH_RULES
+		};
+	}
+
+	if (resultVerdict === 'needs-work') {
+		return {
+			status: 'advisory-only',
+			title: 'Use advisory checks before blocking merges',
+			summary:
+				'Patch warnings before requiring this workflow on protected branches. Keep Deploylint advisory so pull requests collect readiness evidence without trapping active work.',
+			requiredChecks: REQUIRED_BRANCH_CHECKS,
+			rules: PROTECTED_BRANCH_RULES
+		};
+	}
+
+	return {
+		status: 'blocked',
+		title: 'Do not make this workflow required yet',
+		summary:
+			'Fix blocking workflow risk before adding this workflow to protected-branch required checks. Deploylint can still run as deploylint-advisory while the workflow is being repaired.',
+		requiredChecks: ['deploylint-advisory'],
+		rules: PROTECTED_BRANCH_RULES
+	};
+}
+
 export function analyzeGithubActionsYaml(
 	yaml: string,
 	path = '.github/workflows/workflow.yml'
@@ -272,6 +326,7 @@ export function analyzeGithubActionsYaml(
 		repairPrompt: buildRepairPrompt(findings),
 		nextAction: buildNextAction(resultVerdict),
 		releasePlan: buildReleasePlan(findings, resultVerdict),
+		branchProtection: buildBranchProtectionPolicy(resultVerdict),
 		hardenedWorkflow: HARDENED_GITHUB_ACTIONS_WORKFLOW
 	};
 }

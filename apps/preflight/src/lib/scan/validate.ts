@@ -1,8 +1,10 @@
 import { normalizeProjectId } from '$lib/product/project-id';
+import { parseRepoUrl } from '$lib/scan/repo/parse';
 import { UrlValidationError, assertPublicHttpUrl } from '$lib/scan/url-guard';
 
 export interface ScanRequestBody {
 	url?: string;
+	repoUrl?: string;
 	unlockSessionId?: string;
 	previousScore?: number;
 	projectId?: string;
@@ -14,6 +16,7 @@ export interface ScanRequestBody {
 
 export function parseScanRequestBody(body: unknown): {
 	url: string;
+	repoUrl?: string;
 	unlockSessionId?: string;
 	previousScore?: number;
 	projectId?: string;
@@ -37,11 +40,14 @@ export function parseScanRequestBody(body: unknown): {
 		typeof record.previousScore === 'number' && Number.isFinite(record.previousScore)
 			? Math.round(record.previousScore)
 			: undefined;
+	const repoRef = typeof record.repoUrl === 'string' ? parseRepoUrl(record.repoUrl) : null;
+	const repoUrl = repoRef ? `github.com/${repoRef.owner}/${repoRef.repo}` : undefined;
 	const projectId = normalizeProjectId(record.projectId);
 	const ingestToken = cleanCiContext(record.ingestToken, 128);
 
 	return {
 		url,
+		repoUrl,
 		unlockSessionId: unlockSessionId || undefined,
 		previousScore,
 		projectId,

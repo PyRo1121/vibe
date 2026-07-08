@@ -193,6 +193,9 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(workflowToolPage).toContain('Release gate rollout');
 		expect(workflowToolPage).toContain('planStateLabel');
 		expect(workflowToolPage).toContain('result.releasePlan');
+		expect(workflowToolPage).toContain('Branch protection policy');
+		expect(workflowToolPage).toContain('Required checks');
+		expect(workflowToolPage).toContain('result.branchProtection');
 		expect(reportPage).toContain('Readiness brief');
 		expect(reportSummary).toContain('Copy readiness brief');
 		expect(reportSummary).toContain('Project evidence reviewed');

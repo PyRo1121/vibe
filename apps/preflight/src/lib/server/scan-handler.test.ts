@@ -196,6 +196,172 @@ describe('handleScanPost', () => {
 		expect(scanUrl).not.toHaveBeenCalled();
 	});
 
+	it('enriches deploy-target CI reports with attached repository evidence', async () => {
+		vi.mocked(scanRepo).mockResolvedValueOnce({
+			url: 'https://github.com/acme/shop',
+			finalUrl: 'https://github.com/acme/shop',
+			scannedAt: new Date().toISOString(),
+			score: 50,
+			verdict: 'conditional',
+			verdictMessage: 'repo needs CI hardening',
+			repo: {
+				owner: 'acme',
+				repo: 'shop',
+				branch: 'main',
+				description: 'Checkout app',
+				stars: 12,
+				license: 'MIT',
+				filesSampled: ['package.json', '.github/workflows/ci.yml'],
+				depCount: 4
+			},
+			checks: [
+				{
+					id: 'ci-config',
+					category: 'launch',
+					title: 'CI configured',
+					status: 'warn',
+					message: 'CI workflow found but quality gates are incomplete.',
+					priority: 'p2',
+					fixPrompt: 'Add lint, check, test, and build before deploy.'
+				}
+			],
+			summary: { pass: 0, warn: 1, fail: 0 }
+		});
+		const request = new Request('http://localhost/api/scan', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				url: 'https://app.test',
+				repoUrl: 'github.com/acme/shop',
+				projectId: 'proj_live-123',
+				ingestToken: 'dlint_ingest_token'
+			})
+		});
+
+		const res = await handleScanPost(request, { GITHUB_TOKEN: 'gh_test_token' } as Env);
+		const body = (await res.json()) as {
+			finalUrl?: string;
+			repo?: { owner: string; repo: string };
+			checks?: Array<{ id: string; title: string; priority?: string }>;
+			summary?: { pass: number; warn: number; fail: number };
+		};
+
+		expect(body.finalUrl).toBe('https://app.test/');
+		expect(body.repo).toMatchObject({ owner: 'acme', repo: 'shop' });
+		expect(body.checks).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					id: 'repo:ci-config',
+					title: 'Repo: CI configured',
+					priority: 'p2'
+				})
+			])
+		);
+		expect(body.summary?.warn).toBeGreaterThanOrEqual(1);
+		expect(scanUrl).toHaveBeenCalledWith('https://app.test', expect.any(Object));
+		expect(scanRepo).toHaveBeenCalledWith(
+			{ owner: 'acme', repo: 'shop' },
+			{ token: 'gh_test_token' }
+		);
+	});
+
+	it('includes attached repository evidence in repeat-scan diffs', async () => {
+		const repoBase = {
+			url: 'https://github.com/acme/shop',
+			finalUrl: 'https://github.com/acme/shop',
+			scannedAt: new Date().toISOString(),
+			score: 100,
+			verdict: 'go' as const,
+			verdictMessage: 'repo clean',
+			repo: {
+				owner: 'acme',
+				repo: 'shop',
+				branch: 'main',
+				description: 'Checkout app',
+				stars: 12,
+				license: 'MIT',
+				filesSampled: ['package.json', '.github/workflows/ci.yml'],
+				depCount: 4
+			},
+			licenseAudit: {
+				libraries: [],
+				sellable: 'yes' as const,
+				summary: 'No dependency license risk found.'
+			}
+		};
+		vi.mocked(scanRepo)
+			.mockResolvedValueOnce({
+				...repoBase,
+				checks: [
+					{
+						id: 'ci-config',
+						category: 'launch',
+						title: 'Repo: CI configured',
+						status: 'pass',
+						message: 'CI has quality gates.',
+						fixPrompt: 'Keep CI gates in place.'
+					}
+				],
+				summary: { pass: 1, warn: 0, fail: 0 }
+			})
+			.mockResolvedValueOnce({
+				...repoBase,
+				score: 50,
+				verdict: 'conditional',
+				verdictMessage: 'repo needs CI hardening',
+				checks: [
+					{
+						id: 'ci-config',
+						category: 'launch',
+						title: 'Repo: CI configured',
+						status: 'warn',
+						message: 'CI workflow found but quality gates are incomplete.',
+						fixPrompt: 'Add lint, check, test, and build before deploy.'
+					}
+				],
+				summary: { pass: 0, warn: 1, fail: 0 }
+			});
+		const store = new Map<string, string>();
+		const kv = {
+			put: async (key: string, value: string) => {
+				store.set(key, value);
+			},
+			get: async (key: string) => {
+				const raw = store.get(key);
+				return raw == null ? null : JSON.parse(raw);
+			}
+		} as unknown as KVNamespace;
+		const requestBody = {
+			url: 'https://app.test',
+			repoUrl: 'github.com/acme/shop'
+		};
+
+		await handleScanPost(
+			new Request('http://localhost/api/scan', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(requestBody)
+			}),
+			{ REPORTS: kv } as Env
+		);
+		const second = (await (
+			await handleScanPost(
+				new Request('http://localhost/api/scan', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(requestBody)
+				}),
+				{ REPORTS: kv } as Env
+			)
+		).json()) as {
+			licenseAudit?: { summary: string };
+			scanDiff?: { regressed: string[] };
+		};
+
+		expect(second.licenseAudit?.summary).toContain('No dependency license risk');
+		expect(second.scanDiff?.regressed).toContain('Repo: CI configured');
+	});
+
 	it('stores the report and returns a permalink id when KV is bound', async () => {
 		const store = new Map<string, string>();
 		const kv = {

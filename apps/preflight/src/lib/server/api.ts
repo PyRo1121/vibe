@@ -30,6 +30,7 @@ export async function readJsonBody(request: Request, maxBytes = 4096): Promise<u
 
 export async function parseScanJsonBody(request: Request): Promise<{
 	url: string;
+	repoUrl?: string;
 	unlockSessionId?: string;
 	previousScore?: number;
 	projectId?: string;
