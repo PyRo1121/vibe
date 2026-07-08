@@ -63,21 +63,21 @@ describe('Deploylint product plans', () => {
 });
 
 describe('Deploylint alpha pricing mode', () => {
-	it('defaults production scans to paid unlock mode', () => {
-		expect(resolveAlphaFreeUnlock()).toBe(false);
-		expect(resolveAlphaFreeUnlock({})).toBe(false);
+	it('defaults production scans to free unlock mode while collecting usage data', () => {
+		expect(resolveAlphaFreeUnlock()).toBe(true);
+		expect(resolveAlphaFreeUnlock({})).toBe(true);
 		expect(resolveAlphaFreeUnlock({ [ALPHA_FREE_UNLOCK_ENV]: 'false' })).toBe(false);
 		expect(ALPHA_PRICE_PREVIEW.current).toBe('Free review, paid repair workflow');
 		expect(ALPHA_PRICE_PREVIEW.later).toBe('Solo starts at $9/mo');
 		expect(ALPHA_DISCLAIMER).toContain('Subscriptions unlock every guided fix');
 	});
 
-	it('requires an explicit env flag for alpha free unlock mode', () => {
+	it('allows the env flag to explicitly keep free unlock mode enabled', () => {
 		expect(resolveAlphaFreeUnlock({ [ALPHA_FREE_UNLOCK_ENV]: 'true' })).toBe(true);
 		expect(resolveAlphaFreeUnlock({ [ALPHA_FREE_UNLOCK_ENV]: '1' })).toBe(true);
 		expect(resolveAlphaFreeUnlock({ [ALPHA_FREE_UNLOCK_ENV]: 'yes' })).toBe(true);
 		expect(resolveAlphaFreeUnlock({ [ALPHA_FREE_UNLOCK_ENV]: 'on' })).toBe(true);
-		expect(ALPHA_FREE_DISCLAIMER).toContain('Alpha mode is enabled');
+		expect(ALPHA_FREE_DISCLAIMER).toContain('Free mode is enabled');
 		expect(ALPHA_FREE_DISCLAIMER).toContain('checkout stays out of the way');
 	});
 });

@@ -1,6 +1,10 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { handleEventsPost } from './events-handler';
+
+afterEach(() => {
+	vi.restoreAllMocks();
+});
 
 describe('handleEventsPost', () => {
 	it('accepts valid funnel events', async () => {
@@ -16,13 +20,48 @@ describe('handleEventsPost', () => {
 		expect(body.ok).toBe(true);
 	});
 
+	it('logs only sanitized telemetry fields for product learning events', async () => {
+		const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+		const res = await handleEventsPost(
+			new Request('http://localhost/api/events', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					event: 'free_report_viewed',
+					surface: 'review',
+					targetType: 'github_repo',
+					scoreBucket: '50-79',
+					blockerCount: 1,
+					url: 'https://customer.example.com',
+					repoUrl: 'https://github.com/acme/private',
+					email: 'buyer@example.com'
+				})
+			})
+		);
+		const logged = JSON.parse(String(log.mock.calls[0]?.[0] ?? '{}')) as Record<string, unknown>;
+
+		expect(res.status).toBe(200);
+		expect(logged).toMatchObject({
+			type: 'preflight_funnel',
+			event: 'free_report_viewed',
+			surface: 'review',
+			targetType: 'github_repo',
+			scoreBucket: '50-79',
+			blockerCount: 1
+		});
+		expect(logged.url).toBeUndefined();
+		expect(logged.repoUrl).toBeUndefined();
+		expect(logged.email).toBeUndefined();
+	});
+
 	it('rejects unknown events', async () => {
 		await expect(
 			handleEventsPost(
 				new Request('http://localhost/api/events', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ event: 'page_view' })
+					body: JSON.stringify({ event: 'evil' })
 				})
 			)
 		).rejects.toThrow('Unknown event');

@@ -1592,8 +1592,16 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		playwrightConfig.includes('forbidOnly: true') &&
 			playwrightConfig.includes('retries: process.env.CI ? 1 : 0') &&
 			playwrightConfig.includes('workers: process.env.CI ? 1 : undefined') &&
+			playwrightConfig.includes("const freeServerUrl = 'http://localhost:4299'") &&
+			playwrightConfig.includes("const paidServerUrl = 'http://localhost:4300'") &&
+			playwrightConfig.includes("name: 'chromium'") &&
+			playwrightConfig.includes('testIgnore: /billing-flow\\.spec\\.ts/') &&
+			playwrightConfig.includes('baseURL: freeServerUrl') &&
+			playwrightConfig.includes("name: 'billing-paid'") &&
+			playwrightConfig.includes('testMatch: /billing-flow\\.spec\\.ts/') &&
+			playwrightConfig.includes('baseURL: paidServerUrl') &&
 			playwrightConfig.includes("DEPLOYLINT_PLATFORM_PROXY_CONFIG: 'wrangler.e2e.jsonc'") &&
-			playwrightConfig.includes("baseURL: 'http://localhost:4299'") &&
+			playwrightConfig.includes("DEPLOYLINT_PLATFORM_PROXY_CONFIG: 'wrangler.e2e.paid.jsonc'") &&
 			playwrightConfig.includes('reuseExistingServer: false')
 	);
 	pushCheck(

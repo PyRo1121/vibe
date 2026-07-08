@@ -57,7 +57,7 @@
 		aria-label="Unlocked report notice"
 	>
 		<p class="text-xs font-semibold tracking-widest text-sky-300 uppercase">
-			Alpha workspace access
+			Free workspace access
 		</p>
 		<p class="mt-2 text-sm text-zinc-300">
 			Your plan includes the repair plan, workspace workflow, copy readiness review, and

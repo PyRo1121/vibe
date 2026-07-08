@@ -7,6 +7,10 @@ const appRoot = fileURLToPath(new URL('../', import.meta.url));
 const wrangler = readFileSync(new URL('../../wrangler.jsonc', import.meta.url), 'utf8');
 const localWrangler = readFileSync(new URL('../../wrangler.local.jsonc', import.meta.url), 'utf8');
 const e2eWrangler = readFileSync(new URL('../../wrangler.e2e.jsonc', import.meta.url), 'utf8');
+const paidE2eWrangler = readFileSync(
+	new URL('../../wrangler.e2e.paid.jsonc', import.meta.url),
+	'utf8'
+);
 const envTypes = readFileSync(new URL('../cloudflare-env.d.ts', import.meta.url), 'utf8');
 
 describe('auth wiring source', () => {
@@ -28,8 +32,10 @@ describe('auth wiring source', () => {
 		expect(localWrangler).toContain('"DEPLOYLINT_ALPHA_FREE_UNLOCK": "true"');
 	});
 
-	it('keeps browser E2E in paid-mode billing behavior', () => {
+	it('keeps browser E2E free by default and isolates paid billing behavior', () => {
 		expect(e2eWrangler).toContain('"binding": "AUTH_DB"');
 		expect(e2eWrangler).not.toContain('DEPLOYLINT_ALPHA_FREE_UNLOCK');
+		expect(paidE2eWrangler).toContain('"BETTER_AUTH_URL": "http://localhost:4300"');
+		expect(paidE2eWrangler).toContain('"DEPLOYLINT_ALPHA_FREE_UNLOCK": "false"');
 	});
 });

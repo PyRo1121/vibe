@@ -429,11 +429,11 @@ export function buildWorkspaceSetupState(opts: {
 	return {
 		id: 'workspace_demo',
 		ownerLabel:
-			opts.ownerLabel ?? (opts.alphaFreeUnlock ? 'Early access workspace' : 'Deploylint workspace'),
+			opts.ownerLabel ?? (opts.alphaFreeUnlock ? 'Free access workspace' : 'Deploylint workspace'),
 		storageStatus: 'available',
 		billing: {
 			mode: opts.alphaFreeUnlock ? 'alpha' : 'setup',
-			planLabel: opts.alphaFreeUnlock ? 'Early access' : 'Solo',
+			planLabel: opts.alphaFreeUnlock ? 'Free access' : 'Solo',
 			projectLimit: 1
 		},
 		projects: [project],

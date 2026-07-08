@@ -1,5 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const freeServerUrl = 'http://localhost:4299';
+const paidServerUrl = 'http://localhost:4300';
+
 export default defineConfig({
 	testDir: 'e2e',
 	fullyParallel: true,
@@ -14,20 +17,44 @@ export default defineConfig({
 			]
 		: 'list',
 	use: {
-		baseURL: 'http://localhost:4299',
 		screenshot: 'only-on-failure',
 		trace: 'on-first-retry',
 		video: 'on-first-retry'
 	},
-	projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-	webServer: {
-		command: 'npm run dev -- --port 4299',
-		env: {
-			...process.env,
-			DEPLOYLINT_PLATFORM_PROXY_CONFIG: 'wrangler.e2e.jsonc'
+	projects: [
+		{
+			name: 'chromium',
+			testIgnore: /billing-flow\.spec\.ts/,
+			use: { ...devices['Desktop Chrome'], baseURL: freeServerUrl }
 		},
-		url: 'http://localhost:4299',
-		reuseExistingServer: false,
-		timeout: 120_000
-	}
+		{
+			name: 'billing-paid',
+			testMatch: /billing-flow\.spec\.ts/,
+			use: { ...devices['Desktop Chrome'], baseURL: paidServerUrl }
+		}
+	],
+	webServer: [
+		{
+			name: 'free-mode',
+			command: 'npm run dev -- --port 4299',
+			env: {
+				...process.env,
+				DEPLOYLINT_PLATFORM_PROXY_CONFIG: 'wrangler.e2e.jsonc'
+			},
+			url: freeServerUrl,
+			reuseExistingServer: false,
+			timeout: 120_000
+		},
+		{
+			name: 'paid-billing-mode',
+			command: 'npm run dev -- --port 4300',
+			env: {
+				...process.env,
+				DEPLOYLINT_PLATFORM_PROXY_CONFIG: 'wrangler.e2e.paid.jsonc'
+			},
+			url: paidServerUrl,
+			reuseExistingServer: false,
+			timeout: 120_000
+		}
+	]
 });

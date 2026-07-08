@@ -54,6 +54,7 @@
 	let sessionHydrated = false;
 	let pricingTracked = false;
 	let lockedPromptTrackedFor: string | null = null;
+	let freeReportTrackedFor: string | null = null;
 
 	const PROGRESS_STEPS = [
 		'Preparing advisory evidence...',
@@ -139,8 +140,21 @@
 	$effect(() => {
 		if (pricingTracked) return;
 		pricingTracked = true;
-		trackFunnel('pricing_viewed', { mode: alphaFreeUnlock ? 'alpha' : 'paid' });
+		const mode: 'free' | 'paid' = alphaFreeUnlock ? 'free' : 'paid';
+		trackFunnel('page_view', { surface: 'review', source: 'browser', mode });
+		trackFunnel('pricing_viewed', { mode, surface: 'review', source: 'browser' });
 	});
+
+	function targetTypeFor(target: string): 'deploy_url' | 'github_repo' | 'deploy_and_repo' {
+		if (deployTarget.trim() && repositoryUrl.trim()) return 'deploy_and_repo';
+		return /github\.com[:/]/i.test(target) ? 'github_repo' : 'deploy_url';
+	}
+
+	function scoreBucket(score: number): '0-49' | '50-79' | '80-100' {
+		if (score < 50) return '0-49';
+		if (score < 80) return '50-79';
+		return '80-100';
+	}
 
 	function hydrateProjectTarget(target: string) {
 		const trimmed = target.trim();
@@ -217,6 +231,14 @@
 		clearScanError();
 		if (!rescan) report = null;
 		loading = true;
+		const targetType = targetTypeFor(scanTarget);
+		const mode: 'free' | 'paid' = alphaFreeUnlock ? 'free' : 'paid';
+		trackFunnel('scan_started', {
+			mode,
+			targetType,
+			surface: 'review',
+			source: 'browser'
+		});
 		try {
 			const payload: {
 				url: string;
@@ -241,6 +263,19 @@
 				error = normalized.message;
 				errorCode = normalized.code;
 				errorRetryAt = normalized.retryAt;
+				trackFunnel(
+					normalized.code === 'daily_scan_capacity_reached' ? 'capacity_reached' : 'scan_failed',
+					{
+						mode,
+						targetType,
+						surface: 'review',
+						source: 'browser',
+						reason:
+							normalized.code === 'daily_scan_capacity_reached'
+								? 'daily_scan_capacity_reached'
+								: 'scan_error'
+					}
+				);
 				return;
 			}
 			report = (await res.json()) as ScanReport;
@@ -260,7 +295,7 @@
 					checkoutMessage = `Verified: ${report.previousScore} → ${report.score} (${sign}${report.scoreDelta})`;
 				} else {
 					checkoutMessage = alphaFreeUnlock
-						? 'Alpha access active - repair plans and verification proof are available.'
+						? 'Free access active - repair plans and verification proof are available.'
 						: 'Workspace repair plan active - follow the fixes below, then verify fixes.';
 				}
 			}
@@ -272,15 +307,38 @@
 					verdict: report.verdict,
 					score: report.score,
 					issueCount,
-					mode: alphaFreeUnlock ? 'alpha' : 'paid'
+					mode
 				});
+			}
+			if (alphaFreeUnlock && freeReportTrackedFor !== report.finalUrl) {
+				freeReportTrackedFor = report.finalUrl;
+				const common = {
+					mode,
+					targetType,
+					surface: 'review' as const,
+					source: 'browser' as const,
+					score: report.score,
+					scoreBucket: scoreBucket(report.score),
+					issueCount
+				};
+				trackFunnel('free_report_viewed', common);
+				if (report.masterPrompt) {
+					trackFunnel('repair_plan_viewed', { ...common, feature: 'repair_plan' });
+				}
+				if (report.scoreDelta != null || report.previousScore != null) {
+					trackFunnel('verification_proof_viewed', { ...common, feature: 'verification' });
+				}
 			}
 			trackFunnel(rescan && report.scoreDelta != null ? 'rescan_completed' : 'scan_completed', {
 				verdict: report.verdict,
 				score: report.score,
+				scoreBucket: scoreBucket(report.score),
 				unlocked: report.unlocked,
 				issueCount,
-				mode: alphaFreeUnlock ? 'alpha' : 'paid',
+				mode,
+				targetType,
+				surface: 'review',
+				source: 'browser',
 				...(report.scoreDelta == null ? {} : { scoreDelta: report.scoreDelta })
 			});
 		} catch (err) {
@@ -288,6 +346,13 @@
 			errorCode = null;
 			errorRetryAt = null;
 			error = err instanceof Error ? err.message : 'Review failed';
+			trackFunnel('scan_failed', {
+				mode,
+				targetType,
+				surface: 'review',
+				source: 'browser',
+				reason: 'scan_error'
+			});
 		} finally {
 			loading = false;
 		}
@@ -296,6 +361,14 @@
 	async function startCheckout(plan: DeploylintPlanId = 'solo') {
 		if (!url.trim() || !report) return;
 		if (alphaFreeUnlock) {
+			trackFunnel('unlock_click', {
+				verdict: report.verdict,
+				score: report.score,
+				mode: 'free',
+				surface: 'review',
+				source: 'browser',
+				reason: 'checkout_disabled_free'
+			});
 			checkoutMessage = 'Checkout is disabled while paid features are included free.';
 			return;
 		}
@@ -368,6 +441,12 @@
 	async function copyPrompt(id: string, text: string) {
 		await navigator.clipboard.writeText(text);
 		copiedId = id;
+		trackFunnel('prompt_copied', {
+			mode: alphaFreeUnlock ? 'free' : 'paid',
+			surface: 'review',
+			source: 'browser',
+			feature: id === 'master' ? 'repair_plan' : 'report'
+		});
 		copyTimeouts.push(
 			setTimeout(() => {
 				if (copiedId === id) copiedId = null;
@@ -378,6 +457,14 @@
 	async function copyShareText() {
 		if (!report) return;
 		await navigator.clipboard.writeText(buildShareText(report, data.appUrl));
+		trackFunnel('share_copied', {
+			mode: alphaFreeUnlock ? 'free' : 'paid',
+			surface: 'review',
+			source: 'browser',
+			feature: 'share',
+			score: report.score,
+			scoreBucket: scoreBucket(report.score)
+		});
 		shareCopied = true;
 		copyTimeouts.push(setTimeout(() => (shareCopied = false), 2000));
 	}
@@ -564,6 +651,13 @@
 		aria-label="Project profile"
 		onsubmit={(e) => {
 			e.preventDefault();
+			trackFunnel('project_setup_started', {
+				mode: alphaFreeUnlock ? 'free' : 'paid',
+				targetType: targetTypeFor(projectReadinessTarget),
+				surface: 'review',
+				source: 'browser',
+				feature: 'workspace'
+			});
 			window.location.href = projectWorkspaceHref;
 		}}
 	>
@@ -668,6 +762,14 @@
 						type="button"
 						class="rounded-lg bg-amber-300 px-4 py-2 text-center text-sm font-semibold text-zinc-950 hover:bg-amber-200"
 						onclick={() => {
+							trackFunnel('project_setup_started', {
+								mode: alphaFreeUnlock ? 'free' : 'paid',
+								targetType: targetTypeFor(projectReadinessTarget),
+								surface: 'review',
+								source: 'browser',
+								feature: 'workflow',
+								reason: 'daily_scan_capacity_reached'
+							});
 							window.location.href = projectWorkspaceHref;
 						}}
 					>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { trackFunnel } from '$lib/client/track';
 	import SeoHead from '$lib/components/SeoHead.svelte';
 	import { DEPLOYLINT_PLAN_LIST } from '$lib/product/plans';
 	import {
@@ -23,6 +24,7 @@
 	let ingestTokenCopyError = $state<string | null>(null);
 	let copyTimer: ReturnType<typeof setTimeout> | null = null;
 	let tokenCopyTimer: ReturnType<typeof setTimeout> | null = null;
+	let workspaceViewTracked = false;
 
 	const workspace = $derived(data.workspace);
 	const workspaceProjects = $derived(workspace.projects);
@@ -131,6 +133,31 @@
 	]);
 
 	$effect(() => {
+		if (!workspaceViewTracked) {
+			workspaceViewTracked = true;
+			const mode = telemetryMode(workspace.billing.mode);
+			trackFunnel('page_view', {
+				mode,
+				surface: 'workspace',
+				source: 'browser'
+			});
+			trackFunnel('workspace_opened', {
+				mode,
+				surface: 'workspace',
+				source: 'browser',
+				feature: 'workspace'
+			});
+			if (project) {
+				trackFunnel('gate_config_viewed', {
+					mode,
+					surface: 'workspace',
+					source: 'browser',
+					feature: 'gate',
+					gateMode: project.gateMode
+				});
+			}
+		}
+
 		return () => {
 			if (copyTimer) clearTimeout(copyTimer);
 			if (tokenCopyTimer) clearTimeout(tokenCopyTimer);
@@ -162,10 +189,16 @@
 	}
 
 	function billingStatusLabel(mode: WorkspaceBillingState['mode']): string {
-		if (mode === 'alpha') return 'Included during alpha';
+		if (mode === 'alpha') return 'Free access active';
 		if (mode === 'paid') return 'Billing active';
 		if (mode === 'past_due') return 'Payment update needed';
 		return 'Billing setup pending';
+	}
+
+	function telemetryMode(mode: WorkspaceBillingState['mode']): 'free' | 'paid' | 'workspace' {
+		if (mode === 'alpha') return 'free';
+		if (mode === 'paid' || mode === 'past_due') return 'paid';
+		return 'workspace';
 	}
 
 	function checkoutNoticeCopy(status: PageData['checkoutStatus']) {
@@ -252,6 +285,13 @@
 
 		try {
 			await navigator.clipboard.writeText(data.advisoryWorkflow);
+			trackFunnel('workflow_copied', {
+				mode: telemetryMode(workspace.billing.mode),
+				surface: 'workspace',
+				source: 'browser',
+				feature: 'workflow',
+				gateMode: project?.gateMode ?? 'advisory'
+			});
 			workflowCopied = true;
 			if (copyTimer) clearTimeout(copyTimer);
 			copyTimer = setTimeout(() => (workflowCopied = false), 2000);

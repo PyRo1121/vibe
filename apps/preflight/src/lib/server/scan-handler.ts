@@ -17,7 +17,33 @@ import { assertScanRateLimit, clientIp } from '$lib/server/rate-limit';
 import { appendHistory, computeScanDiff, issueMap, saveReport } from '$lib/server/report-store';
 import { resolveUnlock } from '$lib/server/resolve-unlock';
 import { assertDailyScanBudget, reserveAiCopyReview } from '$lib/server/usage-budget';
-import { json, error } from '@sveltejs/kit';
+import { json, error, isHttpError } from '@sveltejs/kit';
+
+type TelemetryTargetType = 'deploy_url' | 'github_repo' | 'deploy_and_repo';
+
+function telemetryMode(alphaFreeUnlock: boolean): 'free' | 'paid' {
+	return alphaFreeUnlock ? 'free' : 'paid';
+}
+
+function telemetryTargetType(repoRef: unknown, attachedRepoRef: unknown): TelemetryTargetType {
+	if (repoRef) return 'github_repo';
+	if (attachedRepoRef) return 'deploy_and_repo';
+	return 'deploy_url';
+}
+
+function scoreBucket(score: number): '0-49' | '50-79' | '80-100' {
+	if (score < 50) return '0-49';
+	if (score < 80) return '50-79';
+	return '80-100';
+}
+
+function isDailyCapacityError(err: unknown): boolean {
+	return (
+		isHttpError(err) &&
+		err.status === 503 &&
+		/(daily scan capacity reached|advisory preview capacity reached)/i.test(err.body.message)
+	);
+}
 
 function repoEvidenceCheck(check: ScanCheck): ScanCheck {
 	return {
@@ -59,12 +85,35 @@ export async function handleScanPost(request: Request, env?: Env) {
 		rejectValidation(err);
 	}
 
-	await assertDailyScanBudget(env?.REPORTS, env?.LIMITER);
-	await assertScanRateLimit(env?.REPORTS, clientIp(request), env?.LIMITER);
-
 	const repoRef = parseRepoUrl(parsed.url);
 	const attachedRepoRef = parsed.repoUrl ? parseRepoUrl(parsed.repoUrl) : null;
 	const alphaFreeUnlock = resolveAlphaFreeUnlock(env);
+	const targetType = telemetryTargetType(repoRef, attachedRepoRef);
+	const mode = telemetryMode(alphaFreeUnlock);
+
+	logFunnelEvent('scan_started', {
+		mode,
+		targetType,
+		surface: 'api',
+		source: 'api'
+	});
+
+	try {
+		await assertDailyScanBudget(env?.REPORTS, env?.LIMITER);
+	} catch (err) {
+		if (isDailyCapacityError(err)) {
+			logFunnelEvent('capacity_reached', {
+				mode,
+				targetType,
+				surface: 'api',
+				source: 'api',
+				reason: 'daily_scan_capacity_reached'
+			});
+		}
+		throw err;
+	}
+	await assertScanRateLimit(env?.REPORTS, clientIp(request), env?.LIMITER);
+
 	const deps = createScanDeps(env);
 	const report = repoRef
 		? await scanRepo(repoRef, { token: env?.GITHUB_TOKEN })
@@ -148,14 +197,26 @@ export async function handleScanPost(request: Request, env?: Env) {
 	}
 
 	const issueCount = sanitized.checks.filter((c) => c.status !== 'pass').length;
+	const warnCount = sanitized.checks.filter((c) => c.status === 'warn').length;
+	const failCount = sanitized.checks.filter((c) => c.status === 'fail').length;
+	const blockerCount = sanitized.checks.filter(
+		(c) => c.status === 'fail' && (c.priority === 'p0' || c.priority == null)
+	).length;
 	const isRescan = unlocked && parsed.previousScore != null;
 
 	logFunnelEvent(isRescan ? 'rescan_completed' : 'scan_completed', {
 		verdict: sanitized.verdict,
 		score: sanitized.score,
+		scoreBucket: scoreBucket(sanitized.score),
 		issueCount,
+		blockerCount,
+		warnCount,
+		failCount,
 		unlocked,
-		mode: alphaFreeUnlock ? 'alpha' : 'paid',
+		mode,
+		targetType,
+		surface: 'api',
+		source: 'api',
 		...(sanitized.scoreDelta == null ? {} : { scoreDelta: sanitized.scoreDelta })
 	});
 

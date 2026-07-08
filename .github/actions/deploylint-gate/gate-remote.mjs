@@ -152,6 +152,27 @@ function isRetryableFetchError(err) {
 	);
 }
 
+function isCapacityResponse(status, body) {
+	const message = body && typeof body.message === 'string' ? body.message : '';
+	return (
+		status === 503 &&
+		(body?.code === 'daily_scan_capacity_reached' ||
+			/(daily scan capacity reached|advisory preview capacity reached)/i.test(message))
+	);
+}
+
+function formatCapacityNotice(body) {
+	const message =
+		body && typeof body.message === 'string'
+			? body.message
+			: 'Shared advisory preview capacity reached.';
+	return [
+		'Deploylint capacity: ADVISORY',
+		message,
+		'Free mode is active - not blocking the build while free shared scan capacity is exhausted.'
+	].join('\n');
+}
+
 async function drainResponse(res) {
 	await res.arrayBuffer().catch(() => {});
 }
@@ -385,6 +406,31 @@ async function main() {
 
 	const body = await res.json().catch(() => null);
 	if (!res.ok) {
+		if (isCapacityResponse(res.status, body)) {
+			const notice = formatCapacityNotice(body);
+			if (flags.has('--json')) {
+				console.log(
+					JSON.stringify({
+						pass: true,
+						gatePass: null,
+						advisory: true,
+						capacityReached: true,
+						reasons: ['daily_scan_capacity_reached']
+					})
+				);
+			} else {
+				console.log(notice);
+				if (process.env.GITHUB_STEP_SUMMARY) {
+					try {
+						appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${notice}\n`);
+					} catch {
+						// Summary is cosmetic - never fail the gate over it.
+					}
+				}
+			}
+			process.exitCode = 0;
+			return;
+		}
 		const message = body && typeof body.message === 'string' ? body.message : `HTTP ${res.status}`;
 		throw new Error(message);
 	}

@@ -145,7 +145,7 @@ function fallbackWorkspace(opts: WorkspaceStoreOptions): DeploylintWorkspace {
 		storageStatus: 'unavailable',
 		billing: {
 			mode: opts.alphaFreeUnlock ? 'alpha' : 'setup',
-			planLabel: opts.alphaFreeUnlock ? 'Early access' : 'Solo',
+			planLabel: opts.alphaFreeUnlock ? 'Free access' : 'Solo',
 			projectLimit: 1
 		},
 		projects: [],
@@ -407,7 +407,7 @@ function billingState(
 	if (alphaFreeUnlock) {
 		return {
 			mode: 'alpha',
-			planLabel: 'Early access',
+			planLabel: 'Free access',
 			projectLimit: 1
 		};
 	}

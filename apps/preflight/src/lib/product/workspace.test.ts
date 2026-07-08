@@ -18,7 +18,7 @@ describe('Deploylint workspace model', () => {
 			alphaFreeUnlock: true
 		});
 
-		expect(workspace.ownerLabel).toBe('Early access workspace');
+		expect(workspace.ownerLabel).toBe('Free access workspace');
 		expect(workspace.storageStatus).toBe('available');
 		expect(workspace.billing.mode).toBe('alpha');
 		expect(workspace.projects).toHaveLength(1);

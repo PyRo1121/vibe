@@ -27,7 +27,7 @@
 			<span
 				class="rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] font-semibold tracking-wider text-sky-300 uppercase"
 			>
-				{alphaFreeUnlock ? 'Free in alpha' : 'Included in Solo workspace'}
+				{alphaFreeUnlock ? 'Free while we learn' : 'Included in Solo workspace'}
 			</span>
 		</div>
 		<ul class="mt-3 space-y-2 text-sm text-zinc-300">

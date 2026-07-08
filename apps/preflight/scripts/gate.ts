@@ -21,6 +21,16 @@ import { evaluateGate, formatGateReport } from '../src/lib/gate/evaluate';
  */
 import type { ScanReport } from '../src/lib/scan/types';
 
+type ScanApiErrorBody = {
+	code?: string;
+	message?: string;
+};
+
+type CapacityResult = {
+	capacityReached: true;
+	message: string;
+};
+
 const apiBase = (
 	process.env.DEPLOYLINT_API ??
 	process.env.PREFLIGHT_API ??
@@ -86,6 +96,22 @@ function isRetryableFetchError(err: unknown): boolean {
 	);
 }
 
+function isCapacityResponse(status: number, body: ScanApiErrorBody | null): boolean {
+	return (
+		status === 503 &&
+		(body?.code === 'daily_scan_capacity_reached' ||
+			/(daily scan capacity reached|advisory preview capacity reached)/i.test(body?.message ?? ''))
+	);
+}
+
+function formatCapacityNotice(message: string): string {
+	return [
+		'Deploylint capacity: ADVISORY',
+		message,
+		'Free mode is active - not blocking the build while free shared scan capacity is exhausted.'
+	].join('\n');
+}
+
 async function fetchWithTimeout(url: string, init: RequestInit, label: string): Promise<Response> {
 	const controller = new AbortController();
 	const timeout = setTimeout(() => controller.abort(), fetchTimeoutMs);
@@ -118,7 +144,7 @@ async function fetchWithRetry(url: string, init: RequestInit, label: string): Pr
 	}
 }
 
-async function scanUrl(url: string): Promise<ScanReport> {
+async function scanUrl(url: string): Promise<ScanReport | CapacityResult> {
 	const res = await fetchWithRetry(
 		`${apiBase}/api/scan`,
 		{
@@ -129,8 +155,15 @@ async function scanUrl(url: string): Promise<ScanReport> {
 		`POST ${apiBase}/api/scan`
 	);
 
-	const body = (await res.json().catch(() => null)) as ScanReport | { message?: string } | null;
+	const body = (await res.json().catch(() => null)) as ScanReport | ScanApiErrorBody | null;
 	if (!res.ok) {
+		if (isCapacityResponse(res.status, body as ScanApiErrorBody | null)) {
+			return {
+				capacityReached: true,
+				message:
+					(body as ScanApiErrorBody | null)?.message ?? 'Shared advisory preview capacity reached.'
+			};
+		}
 		const message = body && 'message' in body ? body.message : `HTTP ${res.status}`;
 		throw new Error(message ?? `Scan failed (${res.status})`);
 	}
@@ -141,6 +174,11 @@ async function scanUrl(url: string): Promise<ScanReport> {
 async function main() {
 	console.log(`Scanning ${targetUrl} via ${apiBase} …`);
 	const report = await scanUrl(targetUrl);
+	if ('capacityReached' in report) {
+		console.log(formatCapacityNotice(report.message));
+		setImmediate(() => process.exit(0));
+		return;
+	}
 	const result = evaluateGate(report, { minScore });
 	console.log(formatGateReport(result, { advisory }));
 	const code = result.pass || advisory ? 0 : 1;
