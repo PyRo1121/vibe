@@ -83,6 +83,11 @@ describe('/app workspace source', () => {
 		expect(pageSource).toContain('DEPLOYLINT_PROJECT_ID');
 		expect(pageSource).toContain('DEPLOYLINT_INGEST_TOKEN');
 		expect(pageSource).toContain('copyIngestToken');
+		expect(pageSource).toContain('tokenRevealed');
+		expect(pageSource).toContain('maskedIngestToken');
+		expect(pageSource).toContain('Store this as a GitHub secret. Do not commit it.');
+		expect(pageSource).toContain('Reveal token');
+		expect(pageSource).toContain('Hide token');
 		expect(pageSource).toContain('navigator.clipboard.writeText');
 		expect(pageSource).toContain('Blocking gate workflow');
 		expect(pageSource).toContain('data.activation');
@@ -98,6 +103,9 @@ describe('/app workspace source', () => {
 		expect(pageSource).not.toContain('Tighten checkout verification');
 		expect(pageSource).not.toContain(
 			'Latest reports fixed {workspaceCommandStats.latestFixedCount}'
+		);
+		expect(pageSource).not.toContain(
+			'<code class="mt-4 block overflow-x-auto rounded-lg bg-zinc-900 p-3 text-xs text-zinc-300">\n\t\t\t\t\t{project.ingestToken}'
 		);
 		expect(pageSource).toContain('This workspace includes');
 	});

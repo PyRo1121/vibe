@@ -18,6 +18,7 @@
 
 	let workflowCopied = $state(false);
 	let ingestTokenCopied = $state(false);
+	let tokenRevealed = $state(false);
 	let workflowCopyError = $state<string | null>(null);
 	let ingestTokenCopyError = $state<string | null>(null);
 	let copyTimer: ReturnType<typeof setTimeout> | null = null;
@@ -234,6 +235,11 @@
 		if (delta > 0) return 'border-emerald-500/40 text-emerald-300';
 		if (delta < 0) return 'border-rose-500/40 text-rose-300';
 		return 'border-zinc-700 text-zinc-300';
+	}
+
+	function maskedIngestToken(token: string): string {
+		if (token.length <= 10) return '********';
+		return `${token.slice(0, 6)}********${token.slice(-4)}`;
 	}
 
 	async function copyWorkflow() {
@@ -643,16 +649,28 @@
 							before enabling workspace-backed report history.
 						</p>
 					</div>
-					<button
-						type="button"
-						class="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-100 hover:border-sky-400 hover:text-sky-200 focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:outline-none"
-						onclick={copyIngestToken}
-					>
-						{ingestTokenCopied ? 'Copied' : 'Copy token'}
-					</button>
+					<div class="flex flex-wrap gap-2">
+						<button
+							type="button"
+							class="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-100 hover:border-sky-400 hover:text-sky-200 focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:outline-none"
+							onclick={() => (tokenRevealed = !tokenRevealed)}
+						>
+							{tokenRevealed ? 'Hide token' : 'Reveal token'}
+						</button>
+						<button
+							type="button"
+							class="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-100 hover:border-sky-400 hover:text-sky-200 focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:outline-none"
+							onclick={copyIngestToken}
+						>
+							{ingestTokenCopied ? 'Copied' : 'Copy token'}
+						</button>
+					</div>
 				</div>
+				<p class="mt-3 text-xs leading-5 text-amber-200/90">
+					Store this as a GitHub secret. Do not commit it.
+				</p>
 				<code class="mt-4 block overflow-x-auto rounded-lg bg-zinc-900 p-3 text-xs text-zinc-300">
-					{project.ingestToken}
+					{tokenRevealed ? project.ingestToken : maskedIngestToken(project.ingestToken)}
 				</code>
 			</div>
 		{/if}
