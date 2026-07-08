@@ -431,14 +431,15 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
-		'preflight-mcp verify runs typecheck, lint, type-aware lint, coverage, and build',
+		'preflight-mcp verify runs typecheck, lint, type-aware lint, clean build, and coverage',
 		hasScriptCommand(preflightMcpPackage.scripts, 'verify', [
 			'check',
 			'lint',
 			'lint:type-aware',
-			'test:coverage',
-			'build'
+			'build',
+			'test:coverage'
 		]) &&
+			hasScriptCommand(preflightMcpPackage.scripts, 'build', ['npm run clean', 'tsc']) &&
 			hasScriptCommand(preflightMcpPackage.scripts, 'lint:type-aware', [
 				'oxlint',
 				'--type-aware',

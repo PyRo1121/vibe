@@ -102,64 +102,78 @@ afterEach(async () => {
 });
 
 describe('stdio transport integration', () => {
-	it(
-		'starts the CLI, lists tools, and calls the deploy gate over MCP stdio',
-		async () => {
-			const scanRequests: unknown[] = [];
-			activeServer = createServer((req: IncomingMessage, res: ServerResponse) => {
-				void (async () => {
-					if (req.method !== 'POST' || req.url !== '/api/scan') {
-						res.writeHead(404).end();
-						return;
-					}
-
-					scanRequests.push(await readJsonBody(req));
-					res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify(report()));
-				})();
-			});
-			const port = await listen(activeServer);
-
-			const transport = new StdioClientTransport({
-				command: process.execPath,
-				args: ['--import', 'tsx', 'src/index.ts'],
-				cwd: packageRoot,
-				env: stringEnv({ DEPLOYLINT_API: `http://127.0.0.1:${port}` }),
-				stderr: 'pipe'
-			});
-			const stderrChunks: Buffer[] = [];
-			transport.stderr?.on('data', (chunk) => stderrChunks.push(Buffer.from(chunk)));
-			activeClient = new Client({ name: 'preflight-mcp-transport-test', version: '0.0.0' });
-
-			await activeClient.connect(transport);
-			const tools = await activeClient.listTools();
-			expect(tools.tools.map((tool) => tool.name).toSorted()).toEqual([
-				'deploylint_gate',
-				'deploylint_scan',
-				'preflight_gate',
-				'preflight_scan'
-			]);
-
-			const result = await activeClient.callTool({
-				name: 'deploylint_gate',
-				arguments: {
-					url: ' https://app.test ',
-					format: 'json',
-					min_score: 90
+	async function expectDeployGateTransport(args: string[]): Promise<void> {
+		const scanRequests: unknown[] = [];
+		activeServer = createServer((req: IncomingMessage, res: ServerResponse) => {
+			void (async () => {
+				if (req.method !== 'POST' || req.url !== '/api/scan') {
+					res.writeHead(404).end();
+					return;
 				}
-			});
-			const payload = JSON.parse(textContent(result)) as Record<string, unknown>;
 
-			expect(payload).toMatchObject({
-				pass: false,
-				minScore: 90,
-				reasons: expect.arrayContaining([
-					expect.stringContaining('NO-GO'),
-					expect.stringContaining('Score 72 below minimum 90'),
-					expect.stringContaining('P0')
-				])
-			});
-			expect(scanRequests).toEqual([{ url: 'https://app.test' }]);
-			expect(Buffer.concat(stderrChunks).toString('utf8')).toBe('');
+				scanRequests.push(await readJsonBody(req));
+				res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify(report()));
+			})();
+		});
+		const port = await listen(activeServer);
+
+		const transport = new StdioClientTransport({
+			command: process.execPath,
+			args,
+			cwd: packageRoot,
+			env: stringEnv({ DEPLOYLINT_API: `http://127.0.0.1:${port}` }),
+			stderr: 'pipe'
+		});
+		const stderrChunks: Buffer[] = [];
+		transport.stderr?.on('data', (chunk) => stderrChunks.push(Buffer.from(chunk)));
+		activeClient = new Client({ name: 'preflight-mcp-transport-test', version: '0.0.0' });
+
+		await activeClient.connect(transport);
+		const tools = await activeClient.listTools();
+		expect(tools.tools.map((tool) => tool.name).toSorted()).toEqual([
+			'deploylint_gate',
+			'deploylint_scan',
+			'preflight_gate',
+			'preflight_scan'
+		]);
+
+		const result = await activeClient.callTool({
+			name: 'deploylint_gate',
+			arguments: {
+				url: ' https://app.test ',
+				format: 'json',
+				min_score: 90
+			}
+		});
+		const payload = JSON.parse(textContent(result)) as Record<string, unknown>;
+
+		expect(payload).toMatchObject({
+			pass: false,
+			minScore: 90,
+			reasons: expect.arrayContaining([
+				expect.stringContaining('NO-GO'),
+				expect.stringContaining('Score 72 below minimum 90'),
+				expect.stringContaining('P0')
+			])
+		});
+		expect(scanRequests).toEqual([{ url: 'https://app.test' }]);
+		expect(Buffer.concat(stderrChunks).toString('utf8')).toBe('');
+	}
+
+	it(
+		'starts the source CLI, lists tools, and calls the deploy gate over MCP stdio',
+		async () => {
+			expect.hasAssertions();
+			await expectDeployGateTransport(['--import', 'tsx', 'src/index.ts']);
+		},
+		transportTimeoutMs
+	);
+
+	it(
+		'starts the compiled CLI, lists tools, and calls the deploy gate over MCP stdio',
+		async () => {
+			expect.hasAssertions();
+			await expectDeployGateTransport(['dist/index.js']);
 		},
 		transportTimeoutMs
 	);

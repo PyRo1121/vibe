@@ -31,7 +31,7 @@ describe('quality standards guard', () => {
 			expect.arrayContaining([
 				'preflight scripts run oxfmt, oxlint, and type-aware oxlint with zero-warning lint',
 				'preflight verify runs standards, typecheck, lint, type-aware lint, coverage, and build',
-				'preflight-mcp verify runs typecheck, lint, type-aware lint, coverage, and build',
+				'preflight-mcp verify runs typecheck, lint, type-aware lint, clean build, and coverage',
 				'deploylint-shared verify runs typecheck, lint, type-aware lint, coverage, and syntax checks',
 				'root dependency audit fails on any known vulnerability',
 				'root deploylint CI verify runs audit, shared, preflight, mcp, Playwright install, and e2e',
@@ -231,7 +231,7 @@ describe('quality standards guard', () => {
 				expect.arrayContaining([
 					'preflight scripts run oxfmt, oxlint, and type-aware oxlint with zero-warning lint',
 					'preflight verify runs standards, typecheck, lint, type-aware lint, coverage, and build',
-					'preflight-mcp verify runs typecheck, lint, type-aware lint, coverage, and build',
+					'preflight-mcp verify runs typecheck, lint, type-aware lint, clean build, and coverage',
 					'deploylint-shared verify runs typecheck, lint, type-aware lint, coverage, and syntax checks',
 					'root dependency audit fails on any known vulnerability',
 					'root deploylint CI verify runs audit, shared, preflight, mcp, Playwright install, and e2e',
