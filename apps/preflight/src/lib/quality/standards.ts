@@ -307,7 +307,9 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const rootPackagePath = join(rootDir, 'package.json');
 	const rootLockPath = join(rootDir, 'package-lock.json');
 	const preflightPackagePath = join(preflightRoot, 'package.json');
+	const preflightTsconfigPath = join(preflightRoot, 'tsconfig.json');
 	const preflightMcpPackagePath = join(preflightMcpRoot, 'package.json');
+	const preflightMcpTsconfigPath = join(preflightMcpRoot, 'tsconfig.json');
 	const deploylintSharedPackagePath = join(deploylintSharedRoot, 'package.json');
 	const deploylintSharedTsconfigPath = join(deploylintSharedRoot, 'tsconfig.json');
 	const deploylintSharedViteConfigPath = join(deploylintSharedRoot, 'vitest.config.ts');
@@ -332,7 +334,9 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		rootPackagePath,
 		rootLockPath,
 		preflightPackagePath,
+		preflightTsconfigPath,
 		preflightMcpPackagePath,
+		preflightMcpTsconfigPath,
 		deploylintSharedPackagePath,
 		deploylintSharedTsconfigPath,
 		deploylintSharedViteConfigPath,
@@ -365,18 +369,34 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const rootPackage = readJson(rootPackagePath) as {
 		scripts: Record<string, string>;
 		devDependencies: Record<string, string>;
+		engines?: {
+			node?: string;
+		};
+		packageManager?: string;
+	};
+	const rootLock = readJson(rootLockPath) as {
+		lockfileVersion?: number;
 	};
 	const preflightPackage = readJson(preflightPackagePath) as {
 		scripts: Record<string, string>;
 		devDependencies: Record<string, string>;
 	};
+	const preflightTsconfig = readJson(preflightTsconfigPath) as {
+		compilerOptions?: Record<string, unknown>;
+	};
 	const preflightMcpPackage = readJson(preflightMcpPackagePath) as {
 		scripts: Record<string, string>;
 		devDependencies: Record<string, string>;
 	};
+	const preflightMcpTsconfig = readJson(preflightMcpTsconfigPath) as {
+		compilerOptions?: Record<string, unknown>;
+	};
 	const deploylintSharedPackage = readJson(deploylintSharedPackagePath) as {
 		scripts: Record<string, string>;
 		devDependencies: Record<string, string>;
+	};
+	const deploylintSharedTsconfig = readJson(deploylintSharedTsconfigPath) as {
+		compilerOptions?: Record<string, unknown>;
 	};
 	const oxlint = readJson(oxlintPath) as {
 		categories: Record<string, string>;
@@ -399,6 +419,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const preflightGateWorkflow = readFileSync(preflightGateWorkflowPath, 'utf8');
 	const dogfoodWorkflow = readFileSync(dogfoodWorkflowPath, 'utf8');
 	const disabledE2eTests = findDisabledTestModifiers(rootDir);
+	const nvmrcMajor = Number.parseInt(readFileSync(nvmrcPath, 'utf8').trim(), 10);
 
 	pushCheck(
 		checked,
@@ -471,6 +492,34 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			deploylintSharedPackage.devDependencies.vitest !== undefined &&
 			deploylintSharedPackage.devDependencies['@vitest/coverage-v8'] !== undefined &&
 			deploylintSharedPackage.devDependencies.typescript !== undefined
+	);
+	pushCheck(
+		checked,
+		failures,
+		'root runtime pins Node and npm for deterministic installs',
+		rootPackage.packageManager?.startsWith('npm@') === true &&
+			/^npm@\d+\.\d+\.\d+$/.test(rootPackage.packageManager) &&
+			rootLock.lockfileVersion === 3 &&
+			rootPackage.engines?.node?.includes('>=22') === true &&
+			Number.isFinite(nvmrcMajor) &&
+			nvmrcMajor >= 22
+	);
+	pushCheck(
+		checked,
+		failures,
+		'Deploylint TypeScript configs keep strict compiler settings',
+		preflightTsconfig.compilerOptions?.strict === true &&
+			preflightTsconfig.compilerOptions?.checkJs === true &&
+			preflightTsconfig.compilerOptions?.forceConsistentCasingInFileNames === true &&
+			preflightTsconfig.compilerOptions?.moduleResolution === 'bundler' &&
+			preflightMcpTsconfig.compilerOptions?.strict === true &&
+			preflightMcpTsconfig.compilerOptions?.declaration === true &&
+			preflightMcpTsconfig.compilerOptions?.moduleResolution === 'NodeNext' &&
+			preflightMcpTsconfig.compilerOptions?.target === 'ES2023' &&
+			deploylintSharedTsconfig.compilerOptions?.strict === true &&
+			deploylintSharedTsconfig.compilerOptions?.checkJs === true &&
+			deploylintSharedTsconfig.compilerOptions?.moduleResolution === 'NodeNext' &&
+			deploylintSharedTsconfig.compilerOptions?.skipLibCheck === false
 	);
 	pushCheck(
 		checked,

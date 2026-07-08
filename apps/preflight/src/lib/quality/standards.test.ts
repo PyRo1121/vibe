@@ -33,6 +33,8 @@ describe('quality standards guard', () => {
 				'preflight verify runs standards, typecheck, lint, type-aware lint, coverage, and build',
 				'preflight-mcp verify runs typecheck, lint, type-aware lint, clean build, and coverage',
 				'deploylint-shared verify runs typecheck, lint, type-aware lint, coverage, and syntax checks',
+				'root runtime pins Node and npm for deterministic installs',
+				'Deploylint TypeScript configs keep strict compiler settings',
 				'root dependency audit fails on any known vulnerability',
 				'root deploylint CI verify runs audit, shared, preflight, mcp, Playwright install, and e2e',
 				'root deploylint local verify skips network-heavy CI-only gates',
@@ -70,11 +72,24 @@ describe('quality standards guard', () => {
 						'verify:deploylint:local': 'npm run audit:security && npm run verify -w preflight',
 						'verify:deploylint': 'npm run verify -w preflight'
 					},
+					engines: {
+						node: '>=18'
+					},
 					devDependencies: {}
 				})
 			);
 			writeFixtureFile(join(root, 'package-lock.json'), JSON.stringify({ lockfileVersion: 3 }));
 			writeFixtureFile(join(root, '.nvmrc'), '24\n');
+			writeFixtureFile(
+				join(root, 'apps/preflight/tsconfig.json'),
+				JSON.stringify({
+					compilerOptions: {
+						strict: false,
+						forceConsistentCasingInFileNames: false,
+						moduleResolution: 'node'
+					}
+				})
+			);
 			writeFixtureFile(
 				join(root, 'apps/preflight/package.json'),
 				JSON.stringify({
@@ -82,6 +97,16 @@ describe('quality standards guard', () => {
 						verify: 'npm run check'
 					},
 					devDependencies: {}
+				})
+			);
+			writeFixtureFile(
+				join(root, 'apps/preflight-mcp/tsconfig.json'),
+				JSON.stringify({
+					compilerOptions: {
+						strict: false,
+						declaration: false,
+						moduleResolution: 'node'
+					}
 				})
 			);
 			writeFixtureFile(
@@ -233,6 +258,8 @@ describe('quality standards guard', () => {
 					'preflight verify runs standards, typecheck, lint, type-aware lint, coverage, and build',
 					'preflight-mcp verify runs typecheck, lint, type-aware lint, clean build, and coverage',
 					'deploylint-shared verify runs typecheck, lint, type-aware lint, coverage, and syntax checks',
+					'root runtime pins Node and npm for deterministic installs',
+					'Deploylint TypeScript configs keep strict compiler settings',
 					'root dependency audit fails on any known vulnerability',
 					'root deploylint CI verify runs audit, shared, preflight, mcp, Playwright install, and e2e',
 					'root deploylint local verify skips network-heavy CI-only gates',
