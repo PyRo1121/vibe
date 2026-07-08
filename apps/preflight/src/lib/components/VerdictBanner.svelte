@@ -26,7 +26,7 @@
 	<p class="mt-2 text-sm opacity-90">{report.verdictMessage}</p>
 	{#if report.scoreDelta != null && report.previousScore != null}
 		<div class="mt-4 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm" role="status">
-			<p class="font-medium">Re-scan verification</p>
+			<p class="font-medium">Verification run</p>
 			<div class="mt-2">
 				<ScoreDeltaBadge
 					previousScore={report.previousScore}
@@ -40,7 +40,7 @@
 				<p class="mt-1 text-emerald-200">Score improved — keep fixing until verdict is GO.</p>
 			{:else if deltaFlat}
 				<p class="mt-1 text-amber-200">
-					No score change yet — apply fix prompts and re-scan again.
+					No score change yet — apply fix prompts and run verification again.
 				</p>
 			{:else}
 				<p class="mt-1 text-amber-200">

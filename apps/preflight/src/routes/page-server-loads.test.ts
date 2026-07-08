@@ -5,6 +5,7 @@ import { csr as checksCsr, load as checksLoad } from './checks/+page.server';
 import { csr as compareCsr, load as compareLoad } from './compare/+page.server';
 import { csr as developersCsr, load as developersLoad } from './developers/+page.server';
 import { load as loginLoad } from './login/+page.server';
+import { load as reviewLoad } from './review/+page.server';
 import { load as toolsLoad } from './tools/+page.server';
 import { load as workflowCheckerLoad } from './tools/github-actions-security-checker/+page.server';
 
@@ -13,16 +14,31 @@ function pageUrl(path: string) {
 }
 
 describe('public route server loads', () => {
-	it('returns checkout state, canonical app URL, and alpha unlock state for the home route', () => {
+	it('keeps the home route as a static workspace handoff', () => {
 		const data = homeLoad({
 			url: pageUrl('/?checkout=success&billing=portal&session_id=cs_test_123'),
+			platform: {
+				env: {
+					PUBLIC_APP_URL: 'https://deploylint.com'
+				}
+			}
+		} as Parameters<typeof homeLoad>[0]);
+
+		expect(data).toEqual({
+			appUrl: 'https://deploylint.com'
+		});
+	});
+
+	it('returns checkout state, canonical app URL, and alpha unlock state for the review route', () => {
+		const data = reviewLoad({
+			url: pageUrl('/review?checkout=success&billing=portal&session_id=cs_test_123'),
 			platform: {
 				env: {
 					DEPLOYLINT_ALPHA_FREE_UNLOCK: 'true',
 					PUBLIC_APP_URL: 'https://deploylint.com'
 				}
 			}
-		} as Parameters<typeof homeLoad>[0]);
+		} as Parameters<typeof reviewLoad>[0]);
 
 		expect(data).toEqual({
 			alphaFreeUnlock: true,

@@ -112,7 +112,7 @@ jobs:
 			></textarea>
 			<p class="mt-2 text-xs text-zinc-500">
 				Checks up to {maxWorkflowYamlLength.toLocaleString()} characters. Large repos should use the repo
-				scan or CI gate.
+				review or CI gate.
 			</p>
 		</section>
 
@@ -256,7 +256,8 @@ jobs:
 		>
 			<p class="font-semibold text-white">Create release-readiness project</p>
 			<p class="mt-2 text-sm leading-6 text-zinc-400">
-				Check the live URL or public repo after the workflow path is under control.
+				Attach the deploy target or public repo to workspace history after the workflow path is
+				under control.
 			</p>
 		</a>
 		<a

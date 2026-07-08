@@ -109,8 +109,9 @@ export async function createCheckoutSession(opts: {
 	priceId: string;
 }): Promise<CheckoutSession> {
 	const { scanUrl, appUrl, secretKey, plan, priceId } = opts;
-	const successUrl = `${appUrl.replace(/\/$/, '')}/?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
-	const cancelUrl = `${appUrl.replace(/\/$/, '')}/?checkout=cancel`;
+	const returnBase = `${appUrl.replace(/\/$/, '')}/review`;
+	const successUrl = `${returnBase}?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
+	const cancelUrl = `${returnBase}?checkout=cancel`;
 	const canonicalUrl = canonicalScanUrl(scanUrl).slice(0, 500);
 
 	const body = new URLSearchParams({
@@ -205,7 +206,7 @@ export async function createBillingPortalSession(opts: {
 
 	const body = new URLSearchParams({
 		customer,
-		return_url: `${appUrl.replace(/\/$/, '')}/?billing=return&session_id=${sessionId}`
+		return_url: `${appUrl.replace(/\/$/, '')}/review?billing=return&session_id=${sessionId}`
 	});
 
 	const res = await fetch(`${STRIPE_API}/billing_portal/sessions`, {

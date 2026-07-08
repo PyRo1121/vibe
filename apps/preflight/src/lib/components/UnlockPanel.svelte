@@ -29,7 +29,7 @@
 
 		{#if offer.projectedScore != null}
 			<p class="mt-2 text-sm text-zinc-500">
-				Typical after fixes: re-scan shows
+				Typical after fixes: verification run shows
 				<span class="font-mono text-zinc-300">{report.score} -> {offer.projectedScore}</span>
 				(+{offer.projectedScore - report.score}) - proof before gate mode.
 			</p>

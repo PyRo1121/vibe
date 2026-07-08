@@ -6,7 +6,7 @@ import { mockScanApi, runMockScan } from './helpers';
 test.describe('deep dives', () => {
 	test('shows social preview deep dive with issues badge', async ({ page }) => {
 		await mockScanApi(page, mockScanReport);
-		await page.goto('/');
+		await page.goto('/review');
 		await runMockScan(page);
 
 		await expect(page.getByRole('heading', { name: 'Evidence lanes' })).toBeVisible();
@@ -16,7 +16,7 @@ test.describe('deep dives', () => {
 
 	test('shows customer access readiness deep dive with blockers and warnings', async ({ page }) => {
 		await mockScanApi(page, mockScanReport);
-		await page.goto('/');
+		await page.goto('/review');
 		await runMockScan(page);
 
 		const deepDives = page.locator('section').filter({

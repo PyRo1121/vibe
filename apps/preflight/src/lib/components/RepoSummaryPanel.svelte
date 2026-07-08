@@ -15,7 +15,9 @@
 	<section class="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
 		<div class="flex flex-wrap items-start justify-between gap-4">
 			<div class="min-w-0">
-				<p class="text-xs font-semibold tracking-widest text-sky-400 uppercase">Repository scan</p>
+				<p class="text-xs font-semibold tracking-widest text-sky-400 uppercase">
+					Repository evidence
+				</p>
 				<h2 class="mt-1 truncate text-xl font-bold text-white">
 					<a
 						href="https://github.com/{repo.owner}/{repo.repo}"

@@ -127,9 +127,9 @@ export function buildAgentGatePayload(
 export function formatScanMarkdown(report: ScanReport, maxIssues = 25): string {
 	const payload = buildAgentScanPayload(report, maxIssues);
 	const lines = [
-		`# Deploylint scan`,
+		`# Deploylint readiness review`,
 		``,
-		`- **URL:** ${payload.finalUrl}`,
+		`- **Deploy target:** ${payload.finalUrl}`,
 		`- **Score:** ${payload.score}/100`,
 		`- **Verdict:** ${payload.verdict.toUpperCase()}`,
 		`- **Summary:** ${payload.summary.pass} pass · ${payload.summary.warn} warn · ${payload.summary.fail} fail`
@@ -146,7 +146,9 @@ export function formatScanMarkdown(report: ScanReport, maxIssues = 25): string {
 		lines.push(`- **Repo:** ${payload.repo.owner}/${payload.repo.repo}@${payload.repo.branch}`);
 	}
 	if (payload.pagesScanned?.length) {
-		lines.push(`- **Pages scanned:** ${payload.pagesScanned.map((p) => p.role).join(', ')}`);
+		lines.push(
+			`- **Public surfaces reviewed:** ${payload.pagesScanned.map((p) => p.role).join(', ')}`
+		);
 	}
 
 	lines.push('', payload.verdictMessage);

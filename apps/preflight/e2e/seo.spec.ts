@@ -11,7 +11,8 @@ const pages = [
 			'Review CI risk, repo hygiene, license and sell-rights evidence, payment readiness, and public deploy blockers before production.',
 		canonical: `${baseUrl}/`,
 		heading: /Prove the project is ready before deploy/i,
-		jsonLdTypes: ['WebApplication', 'Organization']
+		jsonLdTypes: ['WebApplication', 'Organization'],
+		staticPage: true
 	},
 	{
 		path: '/compare',

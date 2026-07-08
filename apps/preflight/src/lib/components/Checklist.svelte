@@ -61,7 +61,7 @@
 		<div class="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-6 text-center">
 			<p class="font-medium text-emerald-300">Every check passed.</p>
 			<p class="mt-1 text-sm text-zinc-400">
-				Re-scan after any last-minute changes before the next deploy.
+				Run verification after any last-minute changes before the next deploy.
 			</p>
 		</div>
 	{/if}

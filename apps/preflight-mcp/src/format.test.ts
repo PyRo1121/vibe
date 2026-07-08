@@ -167,6 +167,8 @@ describe('buildAgentScanPayload', () => {
 describe('formatScanMarkdown', () => {
 	it('renders fix prompt block for sample issue', () => {
 		const md = formatScanMarkdown(report());
+		expect(md).toContain('# Deploylint readiness review');
+		expect(md).toContain('Deploy target');
 		expect(md).toContain('Deploy evidence to fix');
 		expect(md).toContain('Add a /privacy page');
 		expect(md).toContain('Payment readiness');
@@ -193,6 +195,7 @@ describe('formatScanMarkdown', () => {
 		expect(md).toContain('72');
 		expect(md).toContain('+16');
 		expect(md).toContain('acme/site@main');
+		expect(md).toContain('Public surfaces reviewed');
 		expect(md).toContain('home, pricing');
 		expect(md).toContain('Master repair prompt');
 	});

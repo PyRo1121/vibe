@@ -310,7 +310,7 @@ describe('createBillingPortalSession', () => {
 				const body = init?.body as URLSearchParams;
 				expect(body.get('customer')).toBe('cus_123');
 				expect(body.get('return_url')).toBe(
-					'https://deploylint.com/?billing=return&session_id=cs_test_abc123'
+					'https://deploylint.com/review?billing=return&session_id=cs_test_abc123'
 				);
 				return {
 					ok: true,

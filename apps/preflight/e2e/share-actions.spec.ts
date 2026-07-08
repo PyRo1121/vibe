@@ -7,7 +7,7 @@ test.describe('share actions', () => {
 	test('copies share text from the report summary', async ({ page, context }) => {
 		await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 		await mockScanApi(page, mockScanReport);
-		await page.goto('/');
+		await page.goto('/review');
 		await runMockScan(page);
 
 		await page.getByRole('button', { name: 'Copy share text' }).click();

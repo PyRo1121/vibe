@@ -48,7 +48,7 @@
 		{
 			name: 'Repo Hygiene Checker',
 			href: '/developers',
-			status: 'Repo scan',
+			status: 'Repo evidence',
 			kicker: 'Repo hygiene',
 			description:
 				'Fold env files, lockfiles, package scripts, runtime pins, dependency signals, and license checks into the advisory workflow.',

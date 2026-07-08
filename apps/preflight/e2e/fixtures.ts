@@ -99,7 +99,7 @@ export const mockScanReport: ScanReport = {
 	masterPrompt: undefined
 };
 
-/** Repository scan report for E2E — proves repo-first product surfaces render. */
+/** Repository evidence report for E2E — proves repo-first product surfaces render. */
 export const mockRepoScanReport: ScanReport = {
 	url: 'https://github.com/acme/control-plane',
 	finalUrl: 'https://github.com/acme/control-plane',

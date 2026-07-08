@@ -6,7 +6,7 @@ import { DEPLOY_TARGET_BUTTON, mockScanApi, runMockScan } from './helpers';
 test.describe('scan flow', () => {
 	test('submits a URL and renders the verdict report', async ({ page }) => {
 		await mockScanApi(page, mockScanReport);
-		await page.goto('/');
+		await page.goto('/review');
 		await runMockScan(page);
 
 		await expect(page.getByText('CONDITIONAL GO')).toBeVisible();
@@ -34,10 +34,10 @@ test.describe('scan flow', () => {
 			});
 		});
 
-		await page.goto('/');
+		await page.goto('/review');
 		await page.getByLabel(/Project name/i).fill('Control plane');
 		await page.getByLabel(/GitHub repository/i).fill('https://github.com/acme/control-plane');
-		await page.getByLabel(/Release URL/i).fill('https://app.acme.test');
+		await page.getByLabel(/Deploy target/i).fill('https://app.acme.test');
 		await page.getByRole('button', { name: DEPLOY_TARGET_BUTTON }).click();
 
 		await expect(page.getByText('Gate readiness decision')).toBeVisible({ timeout: 15_000 });
@@ -56,13 +56,13 @@ test.describe('scan flow', () => {
 			});
 		});
 
-		await page.goto('/');
+		await page.goto('/review');
 		await page.getByLabel(/GitHub repository/i).fill('github.com/acme/control-plane');
 		await page.getByRole('button', { name: DEPLOY_TARGET_BUTTON }).click();
 
 		await expect(page.getByText('Gate readiness decision')).toBeVisible({ timeout: 15_000 });
 		expect(submitted).toEqual([{ url: 'github.com/acme/control-plane' }]);
-		await expect(page.getByText('Repository scan')).toBeVisible();
+		await expect(page.getByText('Repository evidence')).toBeVisible();
 		await expect(page.getByRole('link', { name: /acme\/control-plane/i })).toBeVisible();
 		await expect(page.getByText('main', { exact: true })).toBeVisible();
 		await expect(page.getByText('MIT', { exact: true }).first()).toBeVisible();
@@ -87,14 +87,14 @@ test.describe('scan flow', () => {
 			});
 		});
 
-		await page.goto('/');
+		await page.goto('/review');
 		await page.evaluate(() => {
 			sessionStorage.setItem('preflight_scan_url', 'https://old.example.com');
 			sessionStorage.setItem('preflight_unlock_session', 'cs_old');
 			sessionStorage.setItem('preflight_baseline_score', '62');
 			sessionStorage.setItem('preflight_baseline_checks', '[]');
 		});
-		await page.getByLabel(/Release URL/i).fill('https://new.example.com');
+		await page.getByLabel(/Deploy target/i).fill('https://new.example.com');
 		await page.getByRole('button', { name: DEPLOY_TARGET_BUTTON }).click();
 
 		await expect(page.getByText('Gate readiness decision')).toBeVisible({ timeout: 15_000 });

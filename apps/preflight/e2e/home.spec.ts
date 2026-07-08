@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 
-import { DEPLOY_TARGET_BUTTON, WORKSPACE_SETUP_BUTTON } from './helpers';
+import { WORKSPACE_SETUP_BUTTON } from './helpers';
 
 test.describe('home', () => {
-	test('shows hero and pre-scan differentiators', async ({ page }) => {
+	test('shows hero and CI workspace differentiators', async ({ page }) => {
 		await page.goto('/');
 		await expect(page).toHaveTitle(/project readiness before deploy/i);
 		await expect(page.locator('meta[name="description"]')).toHaveAttribute(
@@ -17,7 +17,7 @@ test.describe('home', () => {
 			'href',
 			'#project-setup'
 		);
-		await expect(page.getByRole('link', { name: /Check workflow YAML/i })).toBeVisible();
+		await expect(page.getByRole('link', { name: /Check workflow YAML/i }).first()).toBeVisible();
 		await expect(page.getByText('Advisory PR report preview')).toBeVisible();
 		await expect(page.getByText('Workspace loop')).toBeVisible();
 		await expect(page.getByText('What the workspace keeps enforcing')).toBeVisible();
@@ -34,9 +34,9 @@ test.describe('home', () => {
 		await expect(page.getByRole('heading', { name: /Create a monitored project/i })).toBeVisible();
 		await expect(page.getByLabel(/Project name/i)).toBeVisible();
 		await expect(page.getByLabel(/GitHub repository/i)).toBeVisible();
-		await expect(page.getByLabel(/Release URL/i)).toBeVisible();
-		await expect(page.getByRole('button', { name: DEPLOY_TARGET_BUTTON })).toBeVisible();
+		await expect(page.getByLabel(/Deploy target/i)).toBeVisible();
 		await expect(page.getByRole('button', { name: WORKSPACE_SETUP_BUTTON })).toBeVisible();
+		await expect(page.getByRole('button', { name: /Run advisory review/i })).toHaveCount(0);
 		await expect(page.getByText('Project readiness audit')).toBeVisible();
 		await expect(page.getByRole('link', { name: /See how we compare/i })).toBeVisible();
 	});
@@ -46,7 +46,7 @@ test.describe('home', () => {
 
 		await page.getByLabel(/Project name/i).fill('Acme control plane');
 		await page.getByLabel(/GitHub repository/i).fill('https://github.com/acme/control-plane');
-		await page.getByLabel(/Release URL/i).fill('https://app.acme.test/');
+		await page.getByLabel(/Deploy target/i).fill('https://app.acme.test/');
 		await page.getByRole('button', { name: WORKSPACE_SETUP_BUTTON }).click();
 
 		await expect(page).toHaveURL(/\/login\?redirectTo=/);
@@ -56,5 +56,6 @@ test.describe('home', () => {
 		expect(redirectTo).toContain('name=Acme+control+plane');
 		expect(redirectTo).toContain('repo=https%3A%2F%2Fgithub.com%2Facme%2Fcontrol-plane');
 		expect(redirectTo).toContain('deploy=https%3A%2F%2Fapp.acme.test%2F');
+		expect(redirectTo).toContain('minScore=80');
 	});
 });

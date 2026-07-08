@@ -28,7 +28,7 @@
 	<h1 class="mb-4 text-3xl font-bold text-white sm:text-4xl">About Deploylint</h1>
 	<p class="mb-8 text-lg leading-8 text-zinc-400">
 		Deploylint helps builders harden the path from pull request to production. The toolbox starts
-		with GitHub Actions security checks, deploy gates, repo hygiene, and public release URL reviews.
+		with GitHub Actions security checks, deploy gates, repo hygiene, and deploy target evidence.
 	</p>
 
 	<section class="mb-10">
@@ -76,7 +76,9 @@
 			>Check GitHub Actions</a
 		>
 		<span class="mx-2 text-zinc-600">&middot;</span>
-		<a class="text-sky-400 hover:underline" href={resolve('/')}>Start release-readiness review</a>
+		<a class="text-sky-400 hover:underline" href={resolve('/app#project')}
+			>Create monitored project</a
+		>
 		<span class="mx-2 text-zinc-600">&middot;</span>
 		<a class="text-sky-400 hover:underline" href={resolve('/checks')}>Browse the checks</a>
 	</p>

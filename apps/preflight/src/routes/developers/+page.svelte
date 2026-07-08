@@ -393,6 +393,8 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 	</section>
 
 	<p>
-		<a class="text-sky-400 hover:underline" href={resolve('/')}>Build readiness evidence</a>
+		<a class="text-sky-400 hover:underline" href={resolve('/app#project')}
+			>Build readiness evidence</a
+		>
 	</p>
 </div>

@@ -25,7 +25,7 @@
 
 	<h2 class="mb-3 text-xl font-semibold text-white">What we collect</h2>
 	<ul class="mb-6 list-disc space-y-2 pl-6">
-		<li>Release URLs, public report links, and public repository references you submit</li>
+		<li>Deploy targets, public report links, and public repository references you submit</li>
 		<li>Workspace, project, gate policy, report history, and install-state records</li>
 		<li>Account profile details from your sign-in provider, such as email, name, and avatar</li>
 		<li>Basic request metadata (timestamp, IP) via our hosting provider</li>
@@ -58,9 +58,9 @@
 	<p class="mb-6">
 		We use <a class="text-sky-400 hover:underline" href="https://plausible.io">Plausible</a> on deploylint.com
 		for privacy-friendly, cookieless traffic analytics and conversion goals (target audits, workspace
-		setup, checkout, billing portal opens, and re-scans). Analytics uses Plausible's official browser
-		library; funnel events send only aggregate fields such as verdict, score, plan, or mode and avoid
-		personal data.
+		setup, checkout, billing portal opens, and verification runs). Analytics uses Plausible's official
+		browser library; funnel events send only aggregate fields such as verdict, score, plan, or mode and
+		avoid personal data.
 	</p>
 
 	<h2 class="mb-3 text-xl font-semibold text-white">Contact</h2>

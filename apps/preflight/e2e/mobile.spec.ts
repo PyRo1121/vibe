@@ -1,7 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 
-import { mockScanReport } from './fixtures';
-import { DEPLOY_TARGET_BUTTON, WORKSPACE_SETUP_BUTTON, mockScanApi, runMockScan } from './helpers';
+import { WORKSPACE_SETUP_BUTTON } from './helpers';
 
 test.use({
 	viewport: { width: 390, height: 844 },
@@ -20,8 +19,7 @@ async function expectNoHorizontalOverflow(page: Page) {
 }
 
 test.describe('mobile UX', () => {
-	test('keeps the homepage scan workflow usable on a phone viewport', async ({ page }) => {
-		await mockScanApi(page, mockScanReport);
+	test('keeps the homepage workspace handoff usable on a phone viewport', async ({ page }) => {
 		await page.goto('/');
 
 		await expect(
@@ -29,19 +27,16 @@ test.describe('mobile UX', () => {
 		).toBeVisible();
 		await expect(page.getByLabel(/Project name/i)).toBeVisible();
 		await expect(page.getByLabel(/GitHub repository/i)).toBeVisible();
-		await expect(page.getByLabel(/Release URL/i)).toBeVisible();
-		await expect(page.getByRole('button', { name: DEPLOY_TARGET_BUTTON })).toBeVisible();
+		await expect(page.getByLabel(/Deploy target/i)).toBeVisible();
 		await expect(page.getByRole('button', { name: WORKSPACE_SETUP_BUTTON })).toBeVisible();
+		await expect(page.getByRole('button', { name: /Run advisory review/i })).toHaveCount(0);
 		await expectNoHorizontalOverflow(page);
 
-		await runMockScan(page);
+		await page.getByLabel(/Project name/i).fill('Mobile project');
+		await page.getByLabel(/GitHub repository/i).fill('https://github.com/acme/mobile-project');
+		await page.getByLabel(/Deploy target/i).fill('https://mobile.acme.test/');
+		await page.getByRole('button', { name: WORKSPACE_SETUP_BUTTON }).click();
 
-		await expect(page.getByText('Deploy gate decision', { exact: true }).first()).toBeVisible();
-		await expect(page.getByText('CI adoption path')).toBeVisible();
-		await expect(
-			page.getByText('Customer access readiness', { exact: true }).first()
-		).toBeVisible();
-		await expect(page.getByRole('heading', { name: 'Findings' })).toBeVisible();
-		await expectNoHorizontalOverflow(page);
+		await expect(page).toHaveURL(/\/login\?redirectTo=/);
 	});
 });

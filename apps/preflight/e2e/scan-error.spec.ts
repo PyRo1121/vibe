@@ -10,13 +10,13 @@ import {
 test.describe('review error', () => {
 	test('surfaces API errors without leaving the page', async ({ page }) => {
 		await mockScanApi(page, 'error', 502);
-		await page.goto('/');
+		await page.goto('/review');
 		await page.getByPlaceholder(DEPLOY_TARGET_INPUT).fill('https://broken.test');
 		await page.getByRole('button', { name: DEPLOY_TARGET_BUTTON }).click();
 
 		await expect(page.getByRole('alert')).toContainText(/Could not reach that URL/i);
 		await expect(
-			page.getByRole('heading', { name: /Prove the project is ready before deploy/i })
+			page.getByRole('heading', { name: /Get deploy evidence before workspace setup/i })
 		).toBeVisible();
 	});
 
@@ -39,11 +39,11 @@ test.describe('review error', () => {
 			});
 		});
 
-		await page.goto('/');
+		await page.goto('/review');
 		await page.getByPlaceholder(DEPLOY_TARGET_INPUT).fill('https://capacity.test');
 		await page.getByRole('button', { name: DEPLOY_TARGET_BUTTON }).click();
 
-		await expect(page.getByRole('alert')).toContainText('Shared scan capacity is full');
+		await expect(page.getByRole('alert')).toContainText('Shared review capacity is full');
 		await expect(page.getByRole('alert')).toContainText(
 			'You can still generate the advisory workflow now'
 		);

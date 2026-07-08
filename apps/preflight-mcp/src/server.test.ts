@@ -88,7 +88,7 @@ describe('MCP handlers', () => {
 
 		const result = await handlers.handleScan({ url: 'https://app.test' });
 
-		expect(text(result)).toContain('# Deploylint scan');
+		expect(text(result)).toContain('# Deploylint readiness review');
 		expect(text(result)).toContain('Privacy policy');
 	});
 

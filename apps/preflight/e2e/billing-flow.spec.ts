@@ -28,7 +28,7 @@ test.describe('billing flow', () => {
 			});
 		});
 
-		await page.goto('/');
+		await page.goto('/review');
 		await runMockScan(page, scanUrl);
 		await page.getByRole('button', { name: 'Start Solo - $9/mo' }).first().click();
 
@@ -49,11 +49,11 @@ test.describe('billing flow', () => {
 			});
 		});
 
-		await page.goto('/');
+		await page.goto('/review');
 		await runMockScan(page, scanUrl);
 		await page.getByRole('button', { name: 'Start Solo - $9/mo' }).first().click();
 
-		await expect(page).toHaveURL('/');
+		await expect(page).toHaveURL('/review');
 		await expect(page.getByRole('alert')).toContainText('Checkout temporarily unavailable');
 		await expect(page.getByRole('button', { name: 'Start Solo - $9/mo' }).first()).toBeEnabled();
 		expect(checkoutRequests).toEqual([{ url: scanUrl, plan: 'solo' }]);
@@ -96,7 +96,7 @@ test.describe('billing flow', () => {
 			});
 		});
 
-		await page.goto('/?checkout=success&session_id=cs_paid_e2e');
+		await page.goto('/review?checkout=success&session_id=cs_paid_e2e');
 		const manageBilling = page.getByRole('button', { name: 'Manage billing' });
 		await expect(manageBilling).toBeVisible({ timeout: 15_000 });
 		await expect.poll(() => new URL(page.url()).search).toBe('');
@@ -133,12 +133,12 @@ test.describe('billing flow', () => {
 			});
 		});
 
-		await page.goto('/?checkout=success&session_id=cs_paid_e2e');
+		await page.goto('/review?checkout=success&session_id=cs_paid_e2e');
 		const manageBilling = page.getByRole('button', { name: 'Manage billing' });
 		await expect(manageBilling).toBeVisible({ timeout: 15_000 });
 		await manageBilling.click();
 
-		await expect(page).toHaveURL('/');
+		await expect(page).toHaveURL('/review');
 		await expect(page.getByRole('alert')).toContainText('Billing portal temporarily unavailable');
 		await expect(manageBilling).toBeEnabled();
 	});
@@ -174,7 +174,7 @@ test.describe('billing flow', () => {
 			});
 		});
 
-		await page.goto('/?checkout=success&session_id=cs_paid_e2e');
+		await page.goto('/review?checkout=success&session_id=cs_paid_e2e');
 		await expect(page.getByRole('button', { name: 'Manage billing' })).toBeVisible({
 			timeout: 15_000
 		});

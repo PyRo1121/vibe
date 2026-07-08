@@ -225,7 +225,7 @@
 
 			<div class="mt-6 grid gap-4 sm:grid-cols-4">
 				<div>
-					<p class="text-xs text-zinc-500">Release URL</p>
+					<p class="text-xs text-zinc-500">Deploy target</p>
 					<p class="mt-1 font-mono text-sm break-all text-zinc-200">
 						{project?.deployUrl ?? 'Not set'}
 					</p>

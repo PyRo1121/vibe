@@ -26,7 +26,7 @@
 			<h2 class="mt-2 text-2xl font-bold text-white">Artifacts for reviewers</h2>
 			<p class="mt-2 text-sm text-zinc-400">
 				Package the current {verdictLabels[report.verdict].toLowerCase()} decision as a brief, badge,
-				and CI workflow path tied to the scanned target.
+				and CI workflow path tied to the reviewed target.
 			</p>
 		</div>
 		<p class="rounded-full border border-zinc-700 px-3 py-1 text-xs text-zinc-300">

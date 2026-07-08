@@ -288,12 +288,13 @@ export function buildProjectDraftFromSearchParams(params: URLSearchParams): Proj
 	const repoLabel = normalizeRepoLabel(params.get('repo') ?? '');
 	const deployUrl = normalizeDeployUrl(params.get('deploy') ?? '');
 	const minScore = normalizeMinScore(params.get('minScore'));
+	const hasProjectIdentity = Boolean(name || repoLabel || deployUrl);
 
 	return {
 		...(name ? { name } : {}),
 		...(repoLabel ? { repoLabel } : {}),
 		...(deployUrl ? { deployUrl } : {}),
-		...(minScore ? { minScore } : {})
+		...(minScore && hasProjectIdentity ? { minScore } : {})
 	};
 }
 

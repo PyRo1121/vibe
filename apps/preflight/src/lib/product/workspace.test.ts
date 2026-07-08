@@ -103,6 +103,10 @@ describe('Deploylint workspace model', () => {
 		});
 	});
 
+	it('ignores a min score without project identity fields', () => {
+		expect(buildProjectDraftFromSearchParams(new URLSearchParams({ minScore: '80' }))).toEqual({});
+	});
+
 	it('applies a project draft to the workspace setup state and advisory workflow target', () => {
 		const workspace = buildWorkspaceSetupState({
 			appUrl: 'https://deploylint.com',
