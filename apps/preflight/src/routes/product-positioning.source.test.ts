@@ -61,7 +61,8 @@ describe('Deploylint CI workspace positioning', () => {
 		const preflightSession = source('lib', 'client', 'preflight-session.ts');
 
 		expect(reportPage).toContain('Deploy readiness report');
-		expect(reportPage).toContain('Must fix before gate mode');
+		expect(reportPage).toContain('P0 gate blockers');
+		expect(reportPage).toContain('Important issues before broad rollout');
 		expect(reportPage).toContain('Ready for deploy gate review.');
 		expect(launchBriefPanel).toContain('Before this reaches production');
 		expect(launchBriefPanel).toContain('Public deploy surface risk');

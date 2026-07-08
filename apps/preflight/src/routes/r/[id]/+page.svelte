@@ -10,6 +10,7 @@
 	import ScanIncompleteBanner from '$lib/components/ScanIncompleteBanner.svelte';
 	import ScoreDeltaBadge from '$lib/components/ScoreDeltaBadge.svelte';
 	import VerdictBanner from '$lib/components/VerdictBanner.svelte';
+	import { resolvePriority } from '$lib/scan/verdict';
 	import { verdictLabels } from '$lib/ui/scan-styles';
 
 	import type { PageData } from './$types';
@@ -20,6 +21,8 @@
 	const permalink = $derived(`${data.appUrl.replace(/\/$/, '')}/r/${page.params.id}`);
 	const briefView = $derived(page.url.searchParams.get('view') === 'brief');
 	const failing = $derived(report.checks.filter((c) => c.status === 'fail'));
+	const gateBlockers = $derived(failing.filter((c) => resolvePriority(c) === 'p0'));
+	const importantIssues = $derived(failing.filter((c) => resolvePriority(c) !== 'p0'));
 	const warnings = $derived(report.checks.filter((c) => c.status === 'warn'));
 
 	let shareCopied = $state(false);
@@ -93,14 +96,27 @@
 			<div class="mb-4 flex flex-wrap items-baseline justify-between gap-2">
 				<h2 class="text-xl font-semibold text-white">Status at a glance</h2>
 				<p class="text-sm text-zinc-400">
-					Score {report.score}/100 · {failing.length} blocking · {warnings.length} to improve · {report
-						.summary.pass} passing
+					Score {report.score}/100 · {gateBlockers.length} gate blockers · {importantIssues.length}
+					issues · {warnings.length} to improve · {report.summary.pass} passing
 				</p>
 			</div>
-			{#if failing.length > 0}
-				<h3 class="mb-2 text-sm font-semibold text-red-400">Must fix before gate mode</h3>
+			{#if gateBlockers.length > 0}
+				<h3 class="mb-2 text-sm font-semibold text-red-400">P0 gate blockers</h3>
 				<ul class="mb-4 space-y-1.5">
-					{#each failing as check (check.id)}
+					{#each gateBlockers as check (check.id)}
+						<li class="text-sm text-zinc-300">
+							<span class="font-medium text-white">{check.title}</span>
+							<span class="text-zinc-500"> — {check.message}</span>
+						</li>
+					{/each}
+				</ul>
+			{/if}
+			{#if importantIssues.length > 0}
+				<h3 class="mb-2 text-sm font-semibold text-orange-300">
+					Important issues before broad rollout
+				</h3>
+				<ul class="mb-4 space-y-1.5">
+					{#each importantIssues as check (check.id)}
 						<li class="text-sm text-zinc-300">
 							<span class="font-medium text-white">{check.title}</span>
 							<span class="text-zinc-500"> — {check.message}</span>
@@ -119,7 +135,7 @@
 					{/each}
 				</ul>
 			{/if}
-			{#if failing.length === 0 && warnings.length === 0}
+			{#if gateBlockers.length === 0 && importantIssues.length === 0 && warnings.length === 0}
 				<p class="text-sm text-emerald-400">
 					Everything we checked passed. Ready for deploy gate review.
 				</p>
