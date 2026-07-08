@@ -8,7 +8,9 @@ test.describe('developers', () => {
 		).toBeVisible();
 		await expect(page.getByText('DEPLOYLINT_URL').first()).toBeVisible();
 		await expect(
-			page.getByRole('heading', { name: /Quick signal check: URL-only advisory workflow/i })
+			page.getByRole('heading', {
+				name: /Optional quick signal check: URL-only advisory workflow/i
+			})
 		).toBeVisible();
 		await expect(page.getByText('Sample PR report')).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Switch to blocking mode' })).toBeVisible();

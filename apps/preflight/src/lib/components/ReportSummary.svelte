@@ -84,7 +84,7 @@
 	<div class="grid gap-8 lg:grid-cols-[minmax(0,320px)_1fr]">
 		<div class="min-w-0">
 			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
-				Project readiness score
+				Gate readiness evidence
 			</p>
 			<div class="mt-1 flex items-baseline gap-3">
 				<p class="text-6xl font-bold tabular-nums {scoreColor(report.score)}">{report.score}</p>

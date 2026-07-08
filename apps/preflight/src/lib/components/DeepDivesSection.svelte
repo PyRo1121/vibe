@@ -40,10 +40,10 @@
 
 {#if report.scanCoverage !== 'blocked'}
 	<section class="mb-10">
-		<h2 class="mb-4 text-xl font-semibold text-white">Deep dives</h2>
+		<h2 class="mb-4 text-xl font-semibold text-white">Evidence lanes</h2>
 		{#if report.socialPreview}
 			<DeepDive
-				title="Social preview"
+				title="Public trust evidence"
 				hint="How your link renders on X and Slack"
 				badge={socialIssues > 0
 					? { label: `${socialIssues} issue${socialIssues === 1 ? '' : 's'}`, tone: 'warn' }
@@ -67,7 +67,7 @@
 		{/if}
 		{#if paymentReadiness && paymentReadiness.status !== 'not-detected'}
 			<DeepDive
-				title="Revenue readiness"
+				title="Customer access and payment readiness"
 				hint="Checkout, webhooks, fulfillment, and customer access"
 				badge={{
 					label: paymentBadgeLabel(),

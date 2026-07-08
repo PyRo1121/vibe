@@ -65,11 +65,12 @@
 				<a href={resolvePath('/app')} class="font-medium text-sky-300 hover:text-sky-200"
 					>Workspace</a
 				>
-				<a href={resolvePath('/tools')} class="hover:text-white">Tools</a>
+				<a href={resolvePath('/tools/github-actions-security-checker')} class="hover:text-white"
+					>GitHub Actions</a
+				>
 				<a href={resolvePath('/compare')} class="hidden hover:text-white sm:inline">Compare</a>
 				<a href={resolvePath('/checks')} class="hidden hover:text-white sm:inline">Checks</a>
-				<a href={resolvePath('/tools')} class="hidden hover:text-white sm:inline">Docs</a>
-				<a href={resolvePath('/developers')} class="hover:text-white">Setup</a>
+				<a href={resolvePath('/developers')} class="hover:text-white">Gate setup</a>
 				<span class="hidden text-zinc-400 sm:inline">Readiness reviews &middot; CI gates</span>
 			</nav>
 		</div>

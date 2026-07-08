@@ -9,7 +9,7 @@ test.describe('deep dives', () => {
 		await page.goto('/');
 		await runMockScan(page);
 
-		await expect(page.getByRole('heading', { name: 'Deep dives' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Evidence lanes' })).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Social preview', exact: true })).toBeVisible();
 		await expect(page.getByText('1 issue')).toBeVisible();
 	});
@@ -20,7 +20,7 @@ test.describe('deep dives', () => {
 		await runMockScan(page);
 
 		const deepDives = page.locator('section').filter({
-			has: page.getByRole('heading', { name: 'Deep dives' })
+			has: page.getByRole('heading', { name: 'Evidence lanes' })
 		});
 		await expect(deepDives.getByText('Revenue readiness', { exact: true }).first()).toBeVisible();
 		await expect(

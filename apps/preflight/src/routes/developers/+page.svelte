@@ -197,8 +197,8 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 					Generate the workspace-backed project gate first
 				</h2>
 				<p class="mt-3 text-sm leading-6 text-zinc-400">
-					The URL-only advisory workflow below is a quick signal check. A workspace-backed project
-					gate is the product path: it adds <code
+					The optional URL-only advisory workflow below is a quick signal check. A workspace-backed
+					project gate is the product path: it adds <code
 						class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">DEPLOYLINT_PROJECT_ID</code
 					>, report history, billing context, and gate status inside your Deploylint workspace.
 				</p>
@@ -223,7 +223,7 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 
 	<section class="mb-10 rounded-2xl border border-sky-900/50 bg-sky-950/20 p-6">
 		<h2 class="mb-2 text-xl font-semibold text-white">
-			1. Quick signal check: URL-only advisory workflow
+			Optional quick signal check: URL-only advisory workflow
 		</h2>
 		<p class="mb-4 text-sm leading-6 text-zinc-400">
 			Set a GitHub secret named

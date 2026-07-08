@@ -36,7 +36,7 @@ test.describe('mobile UX', () => {
 
 		await runMockScan(page);
 
-		await expect(page.getByText('Project readiness score')).toBeVisible();
+		await expect(page.getByText('Gate readiness evidence')).toBeVisible();
 		await expect(page.getByText('Revenue readiness', { exact: true }).first()).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Findings' })).toBeVisible();
 		await expectNoHorizontalOverflow(page);

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-import { mockScanReport } from './fixtures';
+import { mockRepoScanReport, mockScanReport } from './fixtures';
 import { DEPLOY_TARGET_BUTTON, mockScanApi, runMockScan } from './helpers';
 
 test.describe('scan flow', () => {
@@ -10,7 +10,7 @@ test.describe('scan flow', () => {
 		await runMockScan(page);
 
 		await expect(page.getByText('CONDITIONAL GO')).toBeVisible();
-		await expect(page.getByText('Project readiness score')).toBeVisible();
+		await expect(page.getByText('Gate readiness evidence')).toBeVisible();
 		await expect(page.getByText('72', { exact: true }).first()).toBeVisible();
 		await expect(page.getByText('Revenue readiness', { exact: true }).first()).toBeVisible();
 		await expect(page.getByText('1 revenue blocker', { exact: true })).toBeVisible();
@@ -37,7 +37,7 @@ test.describe('scan flow', () => {
 		await page.getByLabel(/Deploy target/i).fill('https://app.acme.test');
 		await page.getByRole('button', { name: DEPLOY_TARGET_BUTTON }).click();
 
-		await expect(page.getByText('Deploy verdict')).toBeVisible({ timeout: 15_000 });
+		await expect(page.getByText('Gate readiness decision')).toBeVisible({ timeout: 15_000 });
 		expect(submitted).toEqual([{ url: 'https://app.acme.test' }]);
 	});
 
@@ -49,7 +49,7 @@ test.describe('scan flow', () => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
-				body: JSON.stringify(mockScanReport)
+				body: JSON.stringify(mockRepoScanReport)
 			});
 		});
 
@@ -57,8 +57,19 @@ test.describe('scan flow', () => {
 		await page.getByLabel(/GitHub repository/i).fill('github.com/acme/control-plane');
 		await page.getByRole('button', { name: DEPLOY_TARGET_BUTTON }).click();
 
-		await expect(page.getByText('Deploy verdict')).toBeVisible({ timeout: 15_000 });
+		await expect(page.getByText('Gate readiness decision')).toBeVisible({ timeout: 15_000 });
 		expect(submitted).toEqual([{ url: 'github.com/acme/control-plane' }]);
+		await expect(page.getByText('Repository scan')).toBeVisible();
+		await expect(page.getByRole('link', { name: /acme\/control-plane/i })).toBeVisible();
+		await expect(page.getByText('main', { exact: true })).toBeVisible();
+		await expect(page.getByText('MIT', { exact: true }).first()).toBeVisible();
+		await expect(page.getByText(/5 sampled files/)).toBeVisible();
+		await expect(page.locator('body')).toContainText('2 production dependencies');
+		const licenseDive = page.locator('details').filter({ hasText: 'License & sell rights' });
+		await expect(licenseDive).toBeVisible();
+		await expect(licenseDive.getByText(/highcharts/).first()).toBeVisible();
+		await expect(licenseDive.getByText('Sell risk')).toBeVisible();
+		await expect(page.locator('body')).not.toContainText('Core Web Vitals');
 	});
 
 	test('clears stored unlock state when the project target changes', async ({ page }) => {
@@ -83,7 +94,7 @@ test.describe('scan flow', () => {
 		await page.getByLabel(/Deploy target/i).fill('https://new.example.com');
 		await page.getByRole('button', { name: DEPLOY_TARGET_BUTTON }).click();
 
-		await expect(page.getByText('Deploy verdict')).toBeVisible({ timeout: 15_000 });
+		await expect(page.getByText('Gate readiness decision')).toBeVisible({ timeout: 15_000 });
 		expect(submitted).toEqual([{ url: 'https://new.example.com' }]);
 		await expect
 			.poll(() =>

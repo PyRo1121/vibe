@@ -30,7 +30,7 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(reportPage).toContain('Install advisory workflow');
 		expect(reportPage).not.toContain('Scan your own site free');
 		expect(reportPage).not.toContain('Want fix prompts for these issues?');
-		expect(reportSummary).toContain('Project readiness score');
+		expect(reportSummary).toContain('Gate readiness evidence');
 		expect(reportSummary).not.toContain('Deploy risk score');
 		expect(reportSummary).not.toContain('Launch score');
 	});
@@ -40,7 +40,9 @@ describe('Deploylint CI workspace positioning', () => {
 
 		expect(developersPage).toContain('workspace-backed project gate');
 		expect(developersPage).toContain('Recommended path');
-		expect(developersPage).toContain('URL-only advisory workflow below is a quick signal check');
+		expect(developersPage).toContain(
+			'optional URL-only advisory workflow below is a quick signal check'
+		);
 		expect(developersPage).toContain("resolve('/app#install')");
 		expect(developersPage).toContain('DEPLOYLINT_PROJECT_ID');
 	});
@@ -102,7 +104,7 @@ describe('Deploylint CI workspace positioning', () => {
 		const verdict = source('lib', 'scan', 'verdict.ts');
 		const prompts = source('lib', 'scan', 'prompts.ts');
 
-		expect(verdictBanner).toContain('Deploy verdict');
+		expect(verdictBanner).toContain('Gate readiness decision');
 		expect(unlockGuide).toContain('Three steps before gate mode');
 		expect(checklist).toContain('Production blockers');
 		expect(brief).toContain('Ready for gate mode');
@@ -135,18 +137,18 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(loginPage).toContain('Sign in to manage deploy gates');
 		expect(loginPage).toMatch(/monitored\s+workspace/);
 		expect(homePage).toContain('Project profile');
-		expect(homePage).toContain('Create a project readiness brief');
+		expect(homePage).toContain('Create a monitored project');
 		expect(homePage).toContain('GitHub repository');
 		expect(homePage).toContain('Deploy target');
-		expect(homePage).toContain('Subscription loop');
-		expect(homePage).toContain('What stays alive after the first check');
+		expect(homePage).toContain('Workspace loop');
+		expect(homePage).toContain('What the workspace keeps enforcing');
 		expect(homePage).toContain('Monitored projects');
 		expect(reportPage).toContain('Readiness brief');
 		expect(reportSummary).toContain('Copy readiness brief');
 		expect(reportSummary).toContain('Project evidence reviewed');
 		expect(preflightSession).toContain('Add Deploylint to CI');
-		expect(unlockComparePanel).toContain('Baseline readiness brief (you have this)');
-		expect(unlockComparePanel).toContain('Monitored project');
+		expect(unlockComparePanel).toContain('Snapshot brief');
+		expect(unlockComparePanel).toContain('Monitored CI gate');
 
 		for (const fileSource of [
 			ogSvg,

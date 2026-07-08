@@ -21,7 +21,7 @@
 </script>
 
 <section class="mb-6 rounded-2xl border p-6 {verdictClass(report.verdict)}">
-	<p class="text-xs font-semibold tracking-widest uppercase opacity-80">Deploy verdict</p>
+	<p class="text-xs font-semibold tracking-widest uppercase opacity-80">Gate readiness decision</p>
 	<p class="mt-1 text-3xl font-bold">{verdictLabels[report.verdict]}</p>
 	<p class="mt-2 text-sm opacity-90">{report.verdictMessage}</p>
 	{#if report.scoreDelta != null && report.previousScore != null}

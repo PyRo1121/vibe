@@ -98,3 +98,136 @@ export const mockScanReport: ScanReport = {
 	unlocked: false,
 	masterPrompt: undefined
 };
+
+/** Repository scan report for E2E — proves repo-first product surfaces render. */
+export const mockRepoScanReport: ScanReport = {
+	url: 'https://github.com/acme/control-plane',
+	finalUrl: 'https://github.com/acme/control-plane',
+	scannedAt,
+	score: 79,
+	verdict: 'conditional',
+	verdictMessage: 'Repo is close, but license and CI findings should be fixed before handoff.',
+	checks: [
+		{
+			id: 'env-committed',
+			category: 'security',
+			title: 'Committed .env files',
+			status: 'pass',
+			message: 'No .env files committed.',
+			fixPrompt: 'Keep .env files ignored and rotate anything that was previously committed.'
+		},
+		{
+			id: 'dependency-vulns',
+			category: 'security',
+			title: 'Known vulnerabilities (OSV)',
+			status: 'pass',
+			message: 'No known vulnerabilities across 128 lockfile dependencies (OSV.dev).',
+			fixPrompt: 'Keep dependency updates automated and run OSV in CI.'
+		},
+		{
+			id: 'repo-license',
+			category: 'legal',
+			title: 'Repo license & sell rights',
+			status: 'pass',
+			message: 'Repository license is MIT.',
+			fixPrompt: 'Keep the LICENSE file current before commercial handoff.'
+		},
+		{
+			id: 'license-risk',
+			category: 'legal',
+			title: 'Dependency licenses',
+			status: 'warn',
+			message:
+				'1 dependency needs commercial-use review. Audited 2 direct dependencies and screened lockfile packages.',
+			fixPrompt:
+				'Replace risky dependencies or document the paid license before selling the project.'
+		},
+		{
+			id: 'ci-config',
+			category: 'launch',
+			title: 'CI configured',
+			status: 'warn',
+			message: 'CI workflow found, but deploy protection is not wired to Deploylint gate mode.',
+			fixPrompt: 'Add Deploylint gate mode to the pull request workflow before deploy.'
+		},
+		{
+			id: 'tests-present',
+			category: 'launch',
+			title: 'Tests present',
+			status: 'pass',
+			message: 'Unit and Playwright test files found.',
+			fixPrompt: 'Keep critical deploy and billing paths covered by tests.'
+		}
+	],
+	summary: { pass: 4, warn: 2, fail: 0 },
+	paymentReadiness: {
+		status: 'needs-attention',
+		headline: 'Revenue readiness needs attention before paid rollout.',
+		pass: 2,
+		warn: 1,
+		fail: 0,
+		checked: ['checkout-server-owned', 'signed-webhooks', 'billing-portal'],
+		blockers: [],
+		warnings: ['Deploylint gate mode is not enforced in CI before production deploys.']
+	},
+	samplePromptId: 'license-risk',
+	launchBrief: {
+		headline: 'Nearly ready for handoff — close the license and gate-mode gaps first.',
+		embarrassmentRisks: [
+			'A buyer or client will ask whether every dependency is safe for commercial use.',
+			'Deploys can still bypass the readiness gate when CI does not enforce it.'
+		],
+		shareReady: false,
+		categoryScores: [
+			{ category: 'security', label: 'Security', score: 100, pass: 2, warn: 0, fail: 0 },
+			{ category: 'legal', label: 'Legal', score: 75, pass: 1, warn: 1, fail: 0 },
+			{ category: 'launch', label: 'Launch polish', score: 75, pass: 1, warn: 1, fail: 0 }
+		]
+	},
+	licenseAudit: {
+		sellable: 'risk',
+		summary: '1 dependency needs commercial-use review before this repo is sold or handed off.',
+		libraries: [
+			{
+				name: 'highcharts',
+				version: '12.1.0',
+				source: 'package.json',
+				license: 'Highsoft Commercial License',
+				spdx: null,
+				category: 'commercial',
+				sellable: 'risk',
+				note: 'Commercial use requires a paid Highcharts license.'
+			},
+			{
+				name: 'lodash',
+				version: '4.17.21',
+				source: 'package.json',
+				license: 'MIT',
+				spdx: 'MIT',
+				category: 'permissive',
+				sellable: 'yes',
+				note: 'Permissive license generally allows commercial use with attribution.'
+			}
+		]
+	},
+	repo: {
+		owner: 'acme',
+		repo: 'control-plane',
+		branch: 'main',
+		description: 'Internal launch control plane for paid customer environments.',
+		stars: 128,
+		license: 'MIT',
+		filesSampled: [
+			'package.json',
+			'package-lock.json',
+			'.github/workflows/deploy.yml',
+			'src/routes/billing/+server.ts',
+			'src/lib/gate/evaluate.ts'
+		],
+		depCount: 2
+	},
+	stack: ['SvelteKit', 'Cloudflare'],
+	reportId: 'e2e-repo-report',
+	unlocked: false,
+	masterPrompt: undefined
+};

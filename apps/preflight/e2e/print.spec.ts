@@ -13,7 +13,7 @@ test.describe('print', () => {
 
 		await page.emulateMedia({ media: 'print' });
 		await expect(page.locator('header')).toBeHidden();
-		await expect(page.getByText('Deploy verdict')).toBeVisible();
-		await expect(page.getByText('Project readiness score')).toBeVisible();
+		await expect(page.getByText('Gate readiness decision')).toBeVisible();
+		await expect(page.getByText('Gate readiness evidence')).toBeVisible();
 	});
 });

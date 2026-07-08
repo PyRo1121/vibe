@@ -341,7 +341,7 @@
 			value: 'Start non-blocking so every risky change gets a readable CI brief.'
 		},
 		{
-			label: 'Readiness history',
+			label: 'PR readiness history',
 			value: 'Track score movement, fixed blockers, and regressions across scans.'
 		},
 		{
@@ -431,12 +431,8 @@ jobs:
 	<section class="mb-8 rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 print:hidden">
 		<div class="grid gap-5 md:grid-cols-[220px_minmax(0,1fr)] md:items-start">
 			<div>
-				<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
-					Subscription loop
-				</p>
-				<h2 class="mt-2 text-xl font-semibold text-white">
-					What stays alive after the first check
-				</h2>
+				<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Workspace loop</p>
+				<h2 class="mt-2 text-xl font-semibold text-white">What the workspace keeps enforcing</h2>
 			</div>
 			<div class="grid gap-3 sm:grid-cols-2">
 				{#each subscriptionLoop as item (item.label)}
@@ -531,7 +527,7 @@ jobs:
 	>
 		<div class="mb-4">
 			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Project profile</p>
-			<h2 class="mt-2 text-lg font-semibold text-white">Create a project readiness brief</h2>
+			<h2 class="mt-2 text-lg font-semibold text-white">Create a monitored project</h2>
 			<p class="mt-1 text-sm leading-6 text-zinc-400">
 				Name the project, attach the repository, and point Deploylint at the deploy target that
 				should become a monitored CI gate.
@@ -597,14 +593,14 @@ jobs:
 						runScan(false, target);
 					}}
 				>
-					{loading ? 'Checking...' : 'Run one-time check'}
+					{loading ? 'Checking...' : 'Preview readiness brief'}
 				</button>
 				<button
 					type="submit"
 					disabled={!projectReadinessTarget}
 					class="rounded-xl bg-sky-600 px-6 py-3 text-sm font-semibold text-white hover:bg-sky-500 disabled:bg-sky-900 disabled:text-sky-100"
 				>
-					Open workspace setup
+					Generate advisory workflow
 				</button>
 			</div>
 		</div>

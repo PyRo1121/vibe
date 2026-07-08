@@ -21,24 +21,24 @@
 		class="mb-10 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6"
 		aria-labelledby="unlock-compare-heading"
 	>
-		<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Why subscribe?</p>
+		<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
+			Why create a workspace?
+		</p>
 
 		<h2 id="unlock-compare-heading" class="mt-2 text-xl font-bold text-white">
 			Workspace-backed gate, history, and monitoring
 		</h2>
 
 		<p class="mt-2 text-sm text-zinc-400">
-			Free gives you a baseline readiness brief. Solo turns it into a monitored project with CI
-			history, deploy gate enforcement, MCP workflow access, and repair guidance.
+			The free brief is a snapshot. Solo turns it into a monitored project with advisory PR reports,
+			history, repair guidance, and gate enforcement.
 		</p>
 
 		<p class="mt-2 text-sm text-sky-300">{offer.valuePitch}</p>
 
 		<div class="mt-6 grid gap-4 md:grid-cols-2">
 			<div class="rounded-xl border border-zinc-700 bg-zinc-950/80 p-5">
-				<p class="text-xs font-semibold tracking-wider text-zinc-500 uppercase">
-					Baseline readiness brief (you have this)
-				</p>
+				<p class="text-xs font-semibold tracking-wider text-zinc-500 uppercase">Snapshot brief</p>
 
 				<ul class="mt-3 space-y-2 text-sm text-zinc-400">
 					<li>+ GO / NO-GO verdict + score ({report.score}/100)</li>
@@ -52,7 +52,7 @@
 
 			<div class="rounded-xl border border-sky-500/40 bg-sky-500/5 p-5">
 				<p class="text-xs font-semibold tracking-wider text-sky-400 uppercase">
-					Monitored project - $9/mo Solo
+					Monitored CI gate - $9/mo Solo
 				</p>
 
 				<ul class="mt-3 space-y-2 text-sm text-zinc-200">

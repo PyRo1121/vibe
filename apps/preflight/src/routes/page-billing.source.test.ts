@@ -27,6 +27,6 @@ describe('homepage billing self-service source', () => {
 		expect(pageSource).toContain("params.set('name'");
 		expect(pageSource).toContain("params.set('repo'");
 		expect(pageSource).toContain("params.set('deploy'");
-		expect(pageSource).toContain('Open workspace setup');
+		expect(pageSource).toContain('Generate advisory workflow');
 	});
 });
