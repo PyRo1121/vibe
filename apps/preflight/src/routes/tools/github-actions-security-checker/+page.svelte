@@ -15,7 +15,7 @@
 	const base = $derived(data.appUrl.replace(/\/$/, ''));
 	const title = buildSeoTitle('GitHub Actions security checker');
 	const description =
-		'Paste GitHub Actions workflow YAML and find risky permissions, pull_request_target usage, floating action refs, and missing quality gates.';
+		'Paste GitHub Actions workflow YAML and find risky permissions, pull_request_target usage, non-immutable action refs, missing CodeQL, dependency review, and quality gates.';
 	const canonical = $derived(`${base}/tools/github-actions-security-checker`);
 	const jsonLd = $derived([
 		buildPageJsonLd({ base, canonical, title, description, type: 'SoftwareApplication' })
@@ -82,12 +82,12 @@ jobs:
 		<p class="mt-4 max-w-3xl text-lg leading-8 text-zinc-400">
 			Paste a GitHub Actions workflow. Deploylint checks token permissions,
 			<code class="rounded bg-zinc-900 px-1.5 py-0.5 text-sky-300">pull_request_target</code>
-			usage, floating third-party action refs, and whether CI actually runs lint, typecheck, tests, and
-			build.
+			usage, moving refs, immutable action pins, CodeQL, dependency review, and whether CI actually runs
+			lint, typecheck, tests, and build.
 		</p>
 		<p class="mt-3 max-w-3xl text-sm leading-6 text-zinc-500">
 			Automated heuristic check. It does not execute workflows, inspect repository settings, or
-			prove a workflow is secure.
+			prove a workflow is secure. If GitHub default setup owns CodeQL, document that in your repo.
 		</p>
 	</section>
 
@@ -167,7 +167,7 @@ jobs:
 
 			<section class="rounded-xl border border-sky-500/30 bg-sky-500/5 p-5">
 				<div class="mb-3 flex items-center justify-between gap-3">
-					<h2 class="font-semibold text-white">Least-privilege starter workflow</h2>
+					<h2 class="font-semibold text-white">SHA-pinned starter workflow</h2>
 					<button
 						type="button"
 						class="rounded-lg border border-sky-500/50 bg-sky-500/10 px-3 py-1.5 text-xs font-medium text-sky-300 hover:bg-sky-500/20"
@@ -179,7 +179,8 @@ jobs:
 				<p class="mb-3 text-sm leading-6 text-zinc-400">
 					Paste this as <code class="rounded bg-zinc-950 px-1.5 py-0.5 text-sky-300"
 						>.github/workflows/ci.yml</code
-					>, then require it before deploy jobs run.
+					>, then require it before deploy jobs run. Review and update the pinned SHAs with your
+					dependency bot policy.
 				</p>
 				<pre
 					class="max-h-64 overflow-auto rounded-lg bg-zinc-950 p-3 text-xs leading-5 whitespace-pre-wrap text-zinc-300"><code

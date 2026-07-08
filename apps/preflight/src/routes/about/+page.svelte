@@ -43,7 +43,7 @@
 	<section class="mb-10">
 		<h2 class="mb-3 text-xl font-semibold text-white">What it checks</h2>
 		<ul class="list-disc space-y-2 pl-6 leading-7 text-zinc-400">
-			<li>GitHub Actions permissions, pull_request_target hazards, and floating action refs</li>
+			<li>GitHub Actions permissions, pull_request_target hazards, immutable pins, and CodeQL</li>
 			<li>Missing lint, typecheck, test, and build gates before deploy jobs</li>
 			<li>Repo hygiene such as committed env files, lockfiles, scripts, and runtime pins</li>
 			<li>

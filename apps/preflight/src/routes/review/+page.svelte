@@ -486,8 +486,8 @@
 			<p class="text-xs font-semibold tracking-widest text-sky-300 uppercase">Workflow risk</p>
 			<h2 class="mt-2 font-semibold text-white">Audit GitHub Actions before merge</h2>
 			<p class="mt-2 text-sm leading-6 text-zinc-400">
-				Paste workflow YAML and catch risky permissions, pull_request_target usage, floating refs,
-				and missing quality gates.
+				Paste workflow YAML and catch risky permissions, pull_request_target usage, weak pins,
+				missing CodeQL, dependency review, and quality gates.
 			</p>
 		</a>
 		<a
@@ -720,7 +720,7 @@
 			<div class="rounded-xl border border-zinc-800 p-5">
 				<p class="font-medium text-white">Workflow hardening</p>
 				<p class="mt-1 text-sm text-zinc-400">
-					Check GitHub Actions for risky permissions, pull_request_target, and floating refs
+					Check GitHub Actions for risky permissions, pull_request_target, weak pins, and CodeQL
 				</p>
 			</div>
 			<div class="rounded-xl border border-zinc-800 p-5">

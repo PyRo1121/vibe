@@ -19,6 +19,16 @@ describe('GitHub Actions hardening tool analyzer', () => {
 			status: 'fail',
 			shortTitle: 'pull_request_target safety'
 		});
+		expect(
+			result.findings.find((finding) => finding.id === 'workflow-immutable-action-pins')
+		).toMatchObject({
+			status: 'warn',
+			shortTitle: 'Immutable action pins'
+		});
+		expect(result.findings.find((finding) => finding.id === 'codeql-code-scanning')).toMatchObject({
+			status: 'warn',
+			shortTitle: 'CodeQL scanning'
+		});
 		expect(result.repairPrompt).toContain('Fix this GitHub Actions workflow');
 		expect(result.repairPrompt).toContain('pull_request_target');
 		expect(result.nextAction).toContain('use advisory mode first');
@@ -29,13 +39,15 @@ describe('GitHub Actions hardening tool analyzer', () => {
 
 		expect(result).toMatchObject({
 			score: 100,
-			pass: 5,
+			pass: 7,
 			warn: 0,
 			fail: 0,
 			verdict: 'hardened'
 		});
 		expect(result.repairPrompt).toContain('keep the current hardening posture intact');
+		expect(result.repairPrompt).toContain('full commit SHAs');
 		expect(result.hardenedWorkflow).toContain('dependency-review-action');
+		expect(result.hardenedWorkflow).toContain('github/codeql-action/analyze');
 	});
 
 	it('marks least-privilege workflows with missing hardening as needs-work', () => {

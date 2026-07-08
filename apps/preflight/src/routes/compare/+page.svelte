@@ -30,7 +30,7 @@
 			checklists: 'partial',
 			githubNative: 'partial',
 			securityScanners: 'partial',
-			note: 'Focuses on risky permissions, pull_request_target, floating refs, and missing quality gates.'
+			note: 'Focuses on risky permissions, pull_request_target, immutable pins, CodeQL, dependency review, and quality gates.'
 		},
 		{
 			feature: 'Advisory CI report before blocking',

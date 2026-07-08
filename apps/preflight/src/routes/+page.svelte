@@ -34,7 +34,7 @@
 	const advisoryChecks = [
 		{
 			title: 'Workflow hardening',
-			description: 'Risky permissions, pull_request_target, floating refs, and missing CI gates.'
+			description: 'Risky permissions, pull_request_target, weak pins, CodeQL, and CI gates.'
 		},
 		{
 			title: 'Deploy gates',
@@ -78,9 +78,9 @@
 			</h1>
 			<p class="max-w-3xl text-lg leading-8 text-zinc-400">
 				Deploylint reviews the path from pull request to production: GitHub Actions permissions,
-				pull_request_target hazards, floating actions, missing quality gates, repo hygiene, license
-				and sell-rights evidence, payment readiness, public trust, and the last checks that should
-				block a bad deploy. Start with the
+				pull_request_target hazards, moving refs, immutable action pins, CodeQL, dependency review,
+				quality gates, repo hygiene, license and sell-rights evidence, payment readiness, public
+				trust, and the last checks that should block a bad deploy. Start with the
 				<a
 					href={resolve('/tools/github-actions-security-checker')}
 					class="font-medium text-sky-300 underline underline-offset-4 hover:text-sky-200"
@@ -138,8 +138,8 @@
 			<p class="text-xs font-semibold tracking-widest text-sky-300 uppercase">Workflow risk</p>
 			<h2 class="mt-2 font-semibold text-white">Audit GitHub Actions before merge</h2>
 			<p class="mt-2 text-sm leading-6 text-zinc-400">
-				Paste workflow YAML and catch risky permissions, pull_request_target usage, floating refs,
-				and missing quality gates.
+				Paste workflow YAML and catch risky permissions, pull_request_target usage, weak pins,
+				missing CodeQL, dependency review, and quality gates.
 			</p>
 		</a>
 		<a

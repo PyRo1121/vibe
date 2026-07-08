@@ -17,7 +17,7 @@ export const PUBLIC_SITE_ROUTES = [
 		path: '/',
 		title: 'Deploylint',
 		description:
-			'Find risky GitHub Actions permissions, missing quality gates, and deploy blockers before production.',
+			'Find risky GitHub Actions permissions, weak action pins, missing CodeQL, quality gates, and deploy blockers before production.',
 		lastmod: SITE_LASTMOD,
 		changefreq: 'weekly',
 		priority: '1.0'
@@ -35,7 +35,7 @@ export const PUBLIC_SITE_ROUTES = [
 		path: '/tools/github-actions-security-checker',
 		title: 'GitHub Actions Security Checker',
 		description:
-			'Paste workflow YAML and find risky permissions, pull_request_target usage, floating action refs, and missing quality gates.',
+			'Paste workflow YAML and find risky permissions, pull_request_target usage, weak action pins, missing CodeQL, dependency review, and quality gates.',
 		lastmod: SITE_LASTMOD,
 		changefreq: 'weekly',
 		priority: '0.95'
@@ -146,7 +146,7 @@ export function buildLlmsTxt(origin = DEFAULT_DEPLOYLINT_API): string {
 
 > CI hardening tools for GitHub Actions advisory PR reports, deploy gates, repo hygiene, and deploy workflows before production.
 
-Deploylint helps builders catch risky workflow permissions, pull_request_target hazards, floating GitHub Action refs, missing quality gates, exposed repo secrets, broken deploy surfaces, and production blockers before they reach users.
+Deploylint helps builders catch risky workflow permissions, pull_request_target hazards, weak action pins, missing CodeQL, missing quality gates, exposed repo secrets, broken deploy surfaces, and production blockers before they reach users.
 
 The current product loop includes a GitHub Actions Security Checker, advisory PR reports, deploy gate setup, repo hygiene checks, and public deploy target audits. The product direction is CI hardening and broader builder DevOps utilities, not a generic scanner dashboard.
 

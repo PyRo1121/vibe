@@ -48,7 +48,7 @@ const pages = [
 		path: '/tools/github-actions-security-checker',
 		title: 'GitHub Actions security checker - Deploylint',
 		description:
-			'Paste GitHub Actions workflow YAML and find risky permissions, pull_request_target usage, floating action refs, and missing quality gates.',
+			'Paste GitHub Actions workflow YAML and find risky permissions, pull_request_target usage, non-immutable action refs, missing CodeQL, dependency review, and quality gates.',
 		canonical: `${baseUrl}/tools/github-actions-security-checker`,
 		heading: /Check workflow YAML before it deploys risky code/i,
 		jsonLdTypes: ['SoftwareApplication']

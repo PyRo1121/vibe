@@ -7,7 +7,9 @@ const TOOL_FINDING_IDS = new Set([
 	'dependency-review-action',
 	'workflow-permissions',
 	'workflow-pull-request-target',
-	'workflow-action-pinning'
+	'workflow-action-pinning',
+	'workflow-immutable-action-pins',
+	'codeql-code-scanning'
 ]);
 
 const FINDING_COPY: Record<
@@ -50,11 +52,24 @@ permissions:
 		fix: 'Pin third-party actions to a release tag or commit SHA.',
 		snippet: `- uses: vendor/action@v1`
 	},
+	'workflow-immutable-action-pins': {
+		shortTitle: 'Immutable action pins',
+		why: 'Release tags can move; full commit SHAs make workflow dependencies immutable and reviewable.',
+		fix: 'Pin every external action to a full 40-character commit SHA and update those pins deliberately.',
+		snippet: `- uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10`
+	},
+	'codeql-code-scanning': {
+		shortTitle: 'CodeQL scanning',
+		why: 'CodeQL catches source and workflow security issues before pull requests merge.',
+		fix: 'Add CodeQL init and analyze jobs, or document that GitHub default setup owns code scanning.',
+		snippet: `- uses: github/codeql-action/init@1ad29ea4a422cce9a242a9fae469541dcd08addc
+- uses: github/codeql-action/analyze@1ad29ea4a422cce9a242a9fae469541dcd08addc`
+	},
 	'dependency-review-action': {
 		shortTitle: 'Dependency review',
 		why: 'Dependency review blocks vulnerable package changes before they land in a pull request.',
 		fix: 'Run GitHub dependency review on pull requests before merge.',
-		snippet: `- uses: actions/dependency-review-action@v4`
+		snippet: `- uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294`
 	}
 };
 
@@ -124,7 +139,7 @@ function buildRepairPrompt(findings: GithubActionsToolFinding[]): string {
 	if (issues.length === 0) {
 		return [
 			'Review this GitHub Actions workflow and keep the current hardening posture intact.',
-			'Do not broaden token permissions, introduce pull_request_target for untrusted code, remove quality gates, or switch third-party actions to floating refs.'
+			'Do not broaden token permissions, introduce pull_request_target for untrusted code, remove quality gates, remove CodeQL or dependency review, or switch external actions away from full commit SHAs.'
 		].join('\n');
 	}
 
@@ -188,8 +203,10 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      # actions/checkout v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      # actions/setup-node v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: 22
           cache: npm
@@ -203,8 +220,22 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/dependency-review-action@v4`;
+      # actions/checkout v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      # actions/dependency-review-action v5.0.0
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294
+
+  codeql:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      # actions/checkout v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      # github/codeql-action v4
+      - uses: github/codeql-action/init@1ad29ea4a422cce9a242a9fae469541dcd08addc
+      - uses: github/codeql-action/analyze@1ad29ea4a422cce9a242a9fae469541dcd08addc`;
 
 export const SAMPLE_GITHUB_ACTIONS_WORKFLOW = `name: Deploy
 

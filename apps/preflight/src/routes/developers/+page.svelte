@@ -105,7 +105,8 @@ jobs:
   deploylint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # actions/checkout v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
 
       # Copy .github/actions/deploylint-gate from a reviewed release tag or commit SHA.
       # Or use the zero-install workflow above.

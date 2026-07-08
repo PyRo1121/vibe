@@ -24,7 +24,7 @@
 			status: 'Live',
 			kicker: 'Workflow risk',
 			description:
-				'Paste workflow YAML and catch risky permissions, pull_request_target usage, floating action refs, and missing quality gates.',
+				'Paste workflow YAML and catch risky permissions, pull_request_target usage, non-immutable action refs, missing CodeQL, dependency review, and quality gates.',
 			action: 'Check workflow YAML'
 		},
 		{
@@ -59,7 +59,8 @@
 	const packages = [
 		{
 			name: 'Workflow Risk',
-			description: 'Paste YAML, find risky permissions, and get a repair prompt before merge.'
+			description:
+				'Paste YAML, find risky permissions, missing CodeQL, weak pins, and get a repair prompt before merge.'
 		},
 		{
 			name: 'Advisory PR Report',

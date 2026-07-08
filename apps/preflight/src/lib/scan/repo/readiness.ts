@@ -496,7 +496,9 @@ function workflowPermissionFinding(workflows: RepoFileEvidence[]): RepoReadiness
 			);
 		}
 
-		const writeScopes = permissions.writeScopes;
+		const writeScopes = permissions.writeScopes.filter(
+			(scope) => !(scope === 'security-events' && hasCodeqlAction(text))
+		);
 		if (writeScopes.length > 0) {
 			return finding(
 				'workflow-permissions',

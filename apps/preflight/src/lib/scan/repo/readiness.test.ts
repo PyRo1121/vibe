@@ -764,6 +764,61 @@ jobs:
 		});
 	});
 
+	it('allows the CodeQL security-events write permission when code scanning is configured', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/codeql.yml',
+				text: `
+name: CodeQL
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@${FULL_ACTION_SHA}
+      - uses: github/codeql-action/init@${FULL_ACTION_SHA}
+      - uses: github/codeql-action/analyze@${FULL_ACTION_SHA}
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'workflow-permissions')).toMatchObject({
+			status: 'pass'
+		});
+		expect(findings.find((finding) => finding.id === 'codeql-code-scanning')).toMatchObject({
+			status: 'pass'
+		});
+	});
+
+	it('warns on security-events write permission when CodeQL is not configured', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/release.yml',
+				text: `
+name: Release
+on: [push]
+permissions:
+  contents: read
+  security-events: write
+jobs:
+  release:
+    steps:
+      - run: npm test
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'workflow-permissions')).toMatchObject({
+			status: 'warn',
+			message: expect.stringContaining('security-events')
+		});
+	});
+
 	it('fails pull_request_target workflows with clear untrusted script execution', () => {
 		const findings = analyzeCiWorkflows([
 			{
