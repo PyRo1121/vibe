@@ -112,7 +112,7 @@
 		<div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
 			<div>
 				<p class="mb-3 text-sm font-medium tracking-widest text-sky-400 uppercase">
-					Workspace setup preview
+					{data.projectDraftApplied ? 'Project draft applied' : 'Workspace setup preview'}
 				</p>
 				<h1 class="max-w-4xl text-3xl font-bold tracking-tight text-white sm:text-5xl">
 					Turn a workflow check into a deploy gate.

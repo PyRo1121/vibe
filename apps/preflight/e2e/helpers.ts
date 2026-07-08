@@ -2,7 +2,8 @@ import { expect, type Page } from '@playwright/test';
 
 import type { ScanReport } from '../src/lib/scan/types';
 
-export const DEPLOY_TARGET_BUTTON = 'Build project readiness brief';
+export const DEPLOY_TARGET_BUTTON = 'Run one-time check';
+export const WORKSPACE_SETUP_BUTTON = 'Open workspace setup';
 export const DEPLOY_TARGET_INPUT = 'https://app.example.com';
 
 export async function mockScanApi(page: Page, report: ScanReport | 'error', status = 200) {

@@ -21,4 +21,12 @@ describe('homepage billing self-service source', () => {
 		expect(pageSource).toContain("resolve('/app')");
 		expect(pageSource).toContain('Create project');
 	});
+
+	it('can carry a project profile into the workspace setup surface', () => {
+		expect(pageSource).toContain('projectWorkspaceHref');
+		expect(pageSource).toContain("params.set('name'");
+		expect(pageSource).toContain("params.set('repo'");
+		expect(pageSource).toContain("params.set('deploy'");
+		expect(pageSource).toContain('Open workspace setup');
+	});
 });

@@ -28,6 +28,13 @@ export interface DeploylintProject {
 	latestReport: ProjectReportSummary | null;
 }
 
+export interface ProjectDraft {
+	name?: string;
+	deployUrl?: string;
+	repoLabel?: string;
+	minScore?: number;
+}
+
 export interface WorkspaceMetrics {
 	activeProjects: number;
 	gatesEnabled: number;
@@ -231,6 +238,63 @@ function normalizeAppUrl(appUrl: string): string {
 	return appUrl.trim().replace(/\/$/, '');
 }
 
+function cleanSingleLine(value: string, maxLength: number): string {
+	return value.replace(/\s+/g, ' ').trim().slice(0, maxLength);
+}
+
+function normalizeDeployUrl(value: string): string | undefined {
+	const raw = cleanSingleLine(value, 200);
+	if (!raw) return undefined;
+	try {
+		const parsed = new URL(raw);
+		if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return undefined;
+		if (!parsed.hostname) return undefined;
+		return parsed.toString().replace(/\/$/, '');
+	} catch {
+		return undefined;
+	}
+}
+
+function normalizeRepoLabel(value: string): string | undefined {
+	const raw = cleanSingleLine(value, 160);
+	if (!raw) return undefined;
+
+	const sshMatch = /^git@github\.com:([^/\s]+)\/([^/\s]+?)(?:\.git)?$/i.exec(raw);
+	if (sshMatch) return `github.com/${sshMatch[1]}/${sshMatch[2]}`;
+
+	const candidate = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+	try {
+		const parsed = new URL(candidate);
+		if (parsed.hostname.toLowerCase() !== 'github.com') return undefined;
+		const [owner, repo] = parsed.pathname.split('/').filter(Boolean);
+		if (!owner || !repo) return undefined;
+		return `github.com/${owner}/${repo.replace(/\.git$/i, '')}`;
+	} catch {
+		return undefined;
+	}
+}
+
+function normalizeMinScore(value: string | null): number | undefined {
+	if (!value) return undefined;
+	const score = Number.parseInt(value, 10);
+	if (!Number.isInteger(score) || score < 1 || score > 100) return undefined;
+	return score;
+}
+
+export function buildProjectDraftFromSearchParams(params: URLSearchParams): ProjectDraft {
+	const name = cleanSingleLine(params.get('name') ?? '', 80);
+	const repoLabel = normalizeRepoLabel(params.get('repo') ?? '');
+	const deployUrl = normalizeDeployUrl(params.get('deploy') ?? '');
+	const minScore = normalizeMinScore(params.get('minScore'));
+
+	return {
+		...(name ? { name } : {}),
+		...(repoLabel ? { repoLabel } : {}),
+		...(deployUrl ? { deployUrl } : {}),
+		...(minScore ? { minScore } : {})
+	};
+}
+
 export function buildAdvisoryWorkflow(opts: {
 	appUrl: string;
 	projectId: string;
@@ -272,16 +336,18 @@ export function buildDemoWorkspace(opts: {
 	appUrl: string;
 	alphaFreeUnlock: boolean;
 	ownerLabel?: string;
+	projectDraft?: ProjectDraft;
 }): DeploylintWorkspace {
+	const draft = opts.projectDraft ?? {};
 	const project: DeploylintProject = {
 		id: 'proj_demo_123',
-		name: 'First deploy target',
-		deployUrl: 'https://your-app.com',
-		repoLabel: 'github.com/your-org/your-app',
+		name: draft.name ?? 'First deploy target',
+		deployUrl: draft.deployUrl ?? 'https://your-app.com',
+		repoLabel: draft.repoLabel ?? 'github.com/your-org/your-app',
 		workflowPath: '.github/workflows/deploylint.yml',
 		installState: 'not_installed',
 		gateMode: 'advisory',
-		minScore: 80,
+		minScore: draft.minScore ?? 80,
 		latestReport: null
 	};
 

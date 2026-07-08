@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-import { DEPLOY_TARGET_BUTTON } from './helpers';
+import { DEPLOY_TARGET_BUTTON, WORKSPACE_SETUP_BUTTON } from './helpers';
 
 test.describe('home', () => {
 	test('shows hero and pre-scan differentiators', async ({ page }) => {
@@ -29,7 +29,25 @@ test.describe('home', () => {
 		await expect(page.getByLabel(/GitHub repository/i)).toBeVisible();
 		await expect(page.getByLabel(/Deploy target/i)).toBeVisible();
 		await expect(page.getByRole('button', { name: DEPLOY_TARGET_BUTTON })).toBeVisible();
+		await expect(page.getByRole('button', { name: WORKSPACE_SETUP_BUTTON })).toBeVisible();
 		await expect(page.getByText('Project readiness audit')).toBeVisible();
 		await expect(page.getByRole('link', { name: /See how we compare/i })).toBeVisible();
+	});
+
+	test('carries project profile into workspace setup', async ({ page }) => {
+		await page.goto('/');
+
+		await page.getByLabel(/Project name/i).fill('Acme control plane');
+		await page.getByLabel(/GitHub repository/i).fill('https://github.com/acme/control-plane');
+		await page.getByLabel(/Deploy target/i).fill('https://app.acme.test/');
+		await page.getByRole('button', { name: WORKSPACE_SETUP_BUTTON }).click();
+
+		await expect(page).toHaveURL(/\/login\?redirectTo=/);
+		const redirected = new URL(page.url());
+		const redirectTo = redirected.searchParams.get('redirectTo') ?? '';
+		expect(redirectTo).toContain('/app?');
+		expect(redirectTo).toContain('name=Acme+control+plane');
+		expect(redirectTo).toContain('repo=https%3A%2F%2Fgithub.com%2Facme%2Fcontrol-plane');
+		expect(redirectTo).toContain('deploy=https%3A%2F%2Fapp.acme.test%2F');
 	});
 });

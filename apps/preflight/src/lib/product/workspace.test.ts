@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
 	buildAdvisoryWorkflow,
+	buildProjectDraftFromSearchParams,
 	buildDemoWorkspace,
 	buildWorkspaceGatePolicy,
 	buildWorkspaceActivation,
@@ -63,6 +64,69 @@ describe('Deploylint workspace model', () => {
 
 		expect(workflow).toContain("DEPLOYLINT_MIN_SCORE: '92'");
 		expect(workflow).not.toContain("DEPLOYLINT_MIN_SCORE: '80'");
+	});
+
+	it('builds a safe project draft from workspace setup query params', () => {
+		const draft = buildProjectDraftFromSearchParams(
+			new URLSearchParams({
+				name: '  Acme control plane  ',
+				repo: 'https://github.com/acme/control-plane',
+				deploy: 'https://app.acme.com/',
+				minScore: '92'
+			})
+		);
+
+		expect(draft).toEqual({
+			name: 'Acme control plane',
+			repoLabel: 'github.com/acme/control-plane',
+			deployUrl: 'https://app.acme.com',
+			minScore: 92
+		});
+	});
+
+	it('ignores unsafe draft values instead of putting them into workflow config', () => {
+		const draft = buildProjectDraftFromSearchParams(
+			new URLSearchParams({
+				name: 'Bad\nName',
+				repo: 'javascript:alert(1)',
+				deploy: 'javascript:alert(1)',
+				minScore: '120'
+			})
+		);
+
+		expect(draft).toEqual({
+			name: 'Bad Name'
+		});
+	});
+
+	it('applies a project draft to the workspace preview and advisory workflow target', () => {
+		const workspace = buildDemoWorkspace({
+			appUrl: 'https://deploylint.com',
+			alphaFreeUnlock: true,
+			projectDraft: {
+				name: 'Acme control plane',
+				repoLabel: 'github.com/acme/control-plane',
+				deployUrl: 'https://app.acme.com',
+				minScore: 92
+			}
+		});
+		const project = workspace.projects[0];
+
+		expect(project).toMatchObject({
+			name: 'Acme control plane',
+			repoLabel: 'github.com/acme/control-plane',
+			deployUrl: 'https://app.acme.com',
+			minScore: 92
+		});
+
+		const workflow = buildAdvisoryWorkflow({
+			appUrl: 'https://deploylint.com',
+			projectId: project.id,
+			deployUrl: project.deployUrl,
+			minScore: project.minScore
+		});
+		expect(workflow).toContain('DEPLOYLINT_URL: https://app.acme.com');
+		expect(workflow).toContain("DEPLOYLINT_MIN_SCORE: '92'");
 	});
 
 	it('keeps the activation checklist centered on first CI report, not another scan', () => {

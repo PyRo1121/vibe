@@ -118,6 +118,18 @@
 
 	const alphaFreeUnlock = $derived(data.alphaFreeUnlock);
 	const projectReadinessTarget = $derived(deployTarget.trim() || repositoryUrl.trim());
+	const projectWorkspaceHref = $derived.by(() => {
+		const params = new URLSearchParams();
+		const name = projectName.trim();
+		const repo = repositoryUrl.trim();
+		const deploy = deployTarget.trim();
+		if (name) params.set('name', name);
+		if (repo) params.set('repo', repo);
+		if (deploy) params.set('deploy', deploy);
+		params.set('minScore', '80');
+		const query = params.toString();
+		return query ? `${resolve('/app')}?${query}` : resolve('/app');
+	});
 
 	$effect(() => {
 		if (pricingTracked) return;
@@ -514,9 +526,7 @@ jobs:
 		aria-label="Project profile"
 		onsubmit={(e) => {
 			e.preventDefault();
-			const target = projectReadinessTarget;
-			clearStoredUnlockIfTargetChanged(target);
-			runScan(false, target);
+			window.location.href = projectWorkspaceHref;
 		}}
 	>
 		<div class="mb-4">
@@ -576,13 +586,27 @@ jobs:
 				Deploy targets get public-surface checks. GitHub repositories get repo and workflow
 				readiness checks.
 			</p>
-			<button
-				type="submit"
-				disabled={loading || !projectReadinessTarget}
-				class="shrink-0 rounded-xl bg-sky-600 px-6 py-3 font-semibold text-white hover:bg-sky-500 disabled:bg-sky-900 disabled:text-sky-100"
-			>
-				{loading ? 'Building brief...' : 'Build project readiness brief'}
-			</button>
+			<div class="flex shrink-0 flex-col gap-2 sm:flex-row">
+				<button
+					type="button"
+					disabled={loading || !projectReadinessTarget}
+					class="rounded-xl border border-zinc-700 px-5 py-3 text-sm font-semibold text-white hover:border-sky-500 hover:text-sky-200 disabled:border-zinc-800 disabled:text-zinc-600"
+					onclick={() => {
+						const target = projectReadinessTarget;
+						clearStoredUnlockIfTargetChanged(target);
+						runScan(false, target);
+					}}
+				>
+					{loading ? 'Checking...' : 'Run one-time check'}
+				</button>
+				<button
+					type="submit"
+					disabled={!projectReadinessTarget}
+					class="rounded-xl bg-sky-600 px-6 py-3 text-sm font-semibold text-white hover:bg-sky-500 disabled:bg-sky-900 disabled:text-sky-100"
+				>
+					Open workspace setup
+				</button>
+			</div>
 		</div>
 		{#if loading}
 			<p class="mt-3 flex items-center gap-2 text-sm text-zinc-400" role="status">

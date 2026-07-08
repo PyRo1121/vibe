@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 
 import { mockScanReport } from './fixtures';
-import { DEPLOY_TARGET_BUTTON, mockScanApi, runMockScan } from './helpers';
+import { DEPLOY_TARGET_BUTTON, WORKSPACE_SETUP_BUTTON, mockScanApi, runMockScan } from './helpers';
 
 test.use({
 	viewport: { width: 390, height: 844 },
@@ -31,6 +31,7 @@ test.describe('mobile UX', () => {
 		await expect(page.getByLabel(/GitHub repository/i)).toBeVisible();
 		await expect(page.getByLabel(/Deploy target/i)).toBeVisible();
 		await expect(page.getByRole('button', { name: DEPLOY_TARGET_BUTTON })).toBeVisible();
+		await expect(page.getByRole('button', { name: WORKSPACE_SETUP_BUTTON })).toBeVisible();
 		await expectNoHorizontalOverflow(page);
 
 		await runMockScan(page);

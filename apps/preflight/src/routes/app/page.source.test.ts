@@ -47,6 +47,8 @@ describe('/app workspace source', () => {
 		expect(pageSource).toContain('navigator.clipboard.writeText');
 		expect(pageSource).toContain('data.activation');
 		expect(pageSource).toContain('data.workspace');
+		expect(pageSource).toContain('data.projectDraftApplied');
+		expect(pageSource).toContain('Project draft applied');
 		expect(pageSource).not.toContain('URL to scan');
 		expect(pageSource).not.toContain('xl:grid-cols-4');
 		expect(pageSource).not.toContain('Solo includes');

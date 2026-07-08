@@ -1,6 +1,7 @@
 import { resolveAlphaFreeUnlock } from '$lib/product/alpha';
 import {
 	buildAdvisoryWorkflow,
+	buildProjectDraftFromSearchParams,
 	buildDemoWorkspace,
 	buildWorkspaceGatePolicy,
 	buildWorkspaceActivation
@@ -19,13 +20,16 @@ export const load: PageServerLoad = ({ locals, platform, url }) => {
 	const appUrl = env?.PUBLIC_APP_URL?.trim() || url.origin;
 	const alphaFreeUnlock = resolveAlphaFreeUnlock(env);
 	const ownerName = locals.user.name?.trim() || locals.user.email;
+	const projectDraft = buildProjectDraftFromSearchParams(url.searchParams);
 	const workspace = buildDemoWorkspace({
 		appUrl,
 		alphaFreeUnlock,
-		ownerLabel: `${ownerName}'s workspace`
+		ownerLabel: `${ownerName}'s workspace`,
+		projectDraft
 	});
 	const project = workspace.projects[0];
 	const activation = buildWorkspaceActivation(workspace);
+	const projectDraftApplied = Object.keys(projectDraft).length > 0;
 
 	return {
 		appUrl: appUrl.replace(/\/$/, ''),
@@ -37,6 +41,7 @@ export const load: PageServerLoad = ({ locals, platform, url }) => {
 		},
 		workspace,
 		activation,
+		projectDraftApplied,
 		gatePolicy: project ? buildWorkspaceGatePolicy(project) : null,
 		advisoryWorkflow: project
 			? buildAdvisoryWorkflow({

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-import { DEPLOY_TARGET_BUTTON, DEPLOY_TARGET_INPUT } from './helpers';
+import { DEPLOY_TARGET_BUTTON, DEPLOY_TARGET_INPUT, WORKSPACE_SETUP_BUTTON } from './helpers';
 
 test.describe('a11y smoke', () => {
 	test('home page has landmarks, labels, and keyboard focusable scan form', async ({ page }) => {
@@ -13,8 +13,9 @@ test.describe('a11y smoke', () => {
 		const input = page.getByPlaceholder(DEPLOY_TARGET_INPUT);
 		await expect(input).toHaveAttribute('required', '');
 		await input.fill('https://example.test');
+		await expect(page.getByRole('button', { name: WORKSPACE_SETUP_BUTTON })).toBeEnabled();
 		await expect(page.getByRole('button', { name: DEPLOY_TARGET_BUTTON })).toBeEnabled();
-		await page.getByRole('button', { name: DEPLOY_TARGET_BUTTON }).focus();
-		await expect(page.getByRole('button', { name: DEPLOY_TARGET_BUTTON })).toBeFocused();
+		await page.getByRole('button', { name: WORKSPACE_SETUP_BUTTON }).focus();
+		await expect(page.getByRole('button', { name: WORKSPACE_SETUP_BUTTON })).toBeFocused();
 	});
 });
