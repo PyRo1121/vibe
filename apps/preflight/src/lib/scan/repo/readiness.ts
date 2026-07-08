@@ -429,6 +429,114 @@ function workflowRunCommands(text: string): string[] {
 	return runs;
 }
 
+interface WorkflowJob {
+	id: string;
+	name: string | null;
+	needs: string[];
+	path: string;
+	text: string;
+}
+
+function lineIndent(line: string): number {
+	return line.search(/\S|$/);
+}
+
+function parseYamlListScalar(value: string): string[] {
+	const trimmed = value.trim();
+	if (!trimmed) return [];
+	if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+		return trimmed
+			.slice(1, -1)
+			.split(',')
+			.map((item) => unquoteYamlScalar(item.trim()))
+			.filter(Boolean);
+	}
+	return [unquoteYamlScalar(trimmed)].filter(Boolean);
+}
+
+function workflowJobName(jobText: string): string | null {
+	const lines = jobText.split(/\r?\n/);
+	const firstLine = lines.find((line) => stripYamlComment(line).trim());
+	if (!firstLine) return null;
+	const jobIndent = lineIndent(firstLine);
+	for (const line of lines.slice(1)) {
+		const cleaned = stripYamlComment(line);
+		if (lineIndent(cleaned) !== jobIndent + 2) continue;
+		const match = cleaned.match(/^\s*name\s*:\s*(.+)$/);
+		if (match) return unquoteYamlScalar(match[1]) || null;
+	}
+	return null;
+}
+
+function workflowJobNeeds(jobText: string): string[] {
+	const lines = jobText.split(/\r?\n/);
+	const firstLine = lines.find((line) => stripYamlComment(line).trim());
+	if (!firstLine) return [];
+	const jobIndent = lineIndent(firstLine);
+	for (let index = 0; index < lines.length; index += 1) {
+		const cleaned = stripYamlComment(lines[index]);
+		if (lineIndent(cleaned) !== jobIndent + 2) continue;
+		const match = cleaned.match(/^(\s*)needs\s*:\s*(.*)$/);
+		if (!match) continue;
+
+		const baseIndent = match[1].length;
+		const inlineValue = match[2].trim();
+		const inlineNeeds = parseYamlListScalar(inlineValue);
+		if (inlineNeeds.length > 0) return inlineNeeds;
+
+		const blockNeeds: string[] = [];
+		for (let nextIndex = index + 1; nextIndex < lines.length; nextIndex += 1) {
+			const nextCleaned = stripYamlComment(lines[nextIndex]);
+			if (!nextCleaned.trim()) continue;
+			if (lineIndent(nextCleaned) <= baseIndent) break;
+			const item = nextCleaned.match(/^\s*-\s*(.+)$/);
+			if (!item) break;
+			const value = unquoteYamlScalar(item[1]);
+			if (value) blockNeeds.push(value);
+		}
+		return blockNeeds;
+	}
+	return [];
+}
+
+function workflowJobs(workflow: RepoFileEvidence): WorkflowJob[] {
+	const lines = (workflow.text ?? '').split(/\r?\n/);
+	const jobsLineIndex = lines.findIndex((line) =>
+		/^(\s*)jobs\s*:\s*$/.test(stripYamlComment(line))
+	);
+	if (jobsLineIndex < 0) return [];
+
+	const jobsIndent = lineIndent(lines[jobsLineIndex]);
+	let jobIndent: number | null = null;
+	const jobs: Array<{ id: string; start: number; end: number }> = [];
+
+	for (let index = jobsLineIndex + 1; index < lines.length; index += 1) {
+		const cleaned = stripYamlComment(lines[index]);
+		if (!cleaned.trim()) continue;
+		const indent = lineIndent(cleaned);
+		if (indent <= jobsIndent) break;
+
+		const match = cleaned.match(/^\s*([A-Za-z0-9_-]+)\s*:\s*$/);
+		if (!match) continue;
+		if (jobIndent == null) jobIndent = indent;
+		if (indent !== jobIndent) continue;
+
+		if (jobs.length > 0) jobs[jobs.length - 1].end = index;
+		jobs.push({ id: match[1], start: index, end: lines.length });
+	}
+
+	return jobs.map((job) => {
+		const text = lines.slice(job.start, job.end).join('\n');
+		return {
+			id: job.id,
+			name: workflowJobName(text),
+			needs: workflowJobNeeds(text),
+			path: workflow.path,
+			text
+		};
+	});
+}
+
 function workflowUsesRefs(text: string): Array<{ action: string; ref: string }> {
 	const refs: Array<{ action: string; ref: string }> = [];
 	for (const line of meaningfulWorkflowLines(text)) {
@@ -542,6 +650,104 @@ function qualityGateSummary(text: string): string[] {
 	return gates.filter(([, pattern]) => pattern.test(text)).map(([name]) => name);
 }
 
+function jobLabel(job: WorkflowJob): string {
+	return `${job.id} ${job.name ?? ''}`.trim();
+}
+
+function isDeployLikeJob(job: WorkflowJob): boolean {
+	const label = jobLabel(job);
+	if (/deploylint/i.test(label)) return false;
+	const runText = workflowRunCommands(job.text).join('\n');
+	const usesText = workflowUsesRefs(job.text)
+		.map(({ action }) => action)
+		.join('\n');
+	return (
+		/\b(deploy|deployment|release|publish|production)\b/i.test(label) ||
+		/\b(npm|pnpm|yarn|bun)\s+(run\s+)?(deploy|release|publish)\b/i.test(runText) ||
+		/\b(wrangler|vercel|netlify|flyctl|firebase|sst|serverless)\s+deploy\b/i.test(runText) ||
+		/\bcloudflare\s+pages\s+deploy\b|\bgh\s+release\b|\bnpm\s+publish\b/i.test(runText) ||
+		/\b(actions\/deploy-pages|cloudflare\/wrangler-action|peaceiris\/actions-gh-pages)\b/i.test(
+			usesText
+		)
+	);
+}
+
+function isProtectiveWorkflowJob(job: WorkflowJob): boolean {
+	const label = jobLabel(job);
+	const runText = workflowRunCommands(job.text).join('\n');
+	const gates = qualityGateSummary(runText);
+	return (
+		/\b(verify|quality|test|tests|lint|typecheck|check|codeql|security|dependency[-_ ]?review|deploylint|preflight)\b/i.test(
+			label
+		) ||
+		gates.length >= 2 ||
+		hasCodeqlAction(job.text) ||
+		hasDependencyReviewAction(job.text) ||
+		Boolean(deploylintWorkflow([{ path: job.path, text: job.text }]))
+	);
+}
+
+function hasProtectiveDependency(
+	job: WorkflowJob,
+	jobsById: Map<string, WorkflowJob>,
+	seen = new Set<string>()
+): boolean {
+	for (const dependencyId of job.needs) {
+		if (seen.has(dependencyId)) continue;
+		seen.add(dependencyId);
+		const dependency = jobsById.get(dependencyId);
+		if (!dependency) continue;
+		if (isProtectiveWorkflowJob(dependency)) return true;
+		if (hasProtectiveDependency(dependency, jobsById, seen)) return true;
+	}
+	return false;
+}
+
+function deployJobDependencyFinding(workflows: RepoFileEvidence[]): RepoReadinessFinding {
+	const jobsByWorkflow = workflows.map((workflow) => workflowJobs(workflow));
+	const jobs = jobsByWorkflow.flat();
+	const deployJobs = jobs.filter(isDeployLikeJob);
+	if (deployJobs.length === 0) {
+		return finding(
+			'deploy-job-dependencies',
+			'Deploy job dependencies',
+			'pass',
+			'No deploy-like GitHub Actions job was found, so no CI deploy bypass was detected.',
+			{ path: workflows[0]?.path }
+		);
+	}
+
+	const workflowJobsByPath = new Map<string, WorkflowJob[]>();
+	for (const workflowJobsForFile of jobsByWorkflow) {
+		const firstJob = workflowJobsForFile[0];
+		if (firstJob) workflowJobsByPath.set(firstJob.path, workflowJobsForFile);
+	}
+	const bypassingJob = deployJobs.find((job) => {
+		const sameWorkflowJobs = workflowJobsByPath.get(job.path) ?? [];
+		const sameWorkflowJobsById = new Map(
+			sameWorkflowJobs.map((workflowJob) => [workflowJob.id, workflowJob])
+		);
+		return !hasProtectiveDependency(job, sameWorkflowJobsById);
+	});
+	if (bypassingJob) {
+		return finding(
+			'deploy-job-dependencies',
+			'Deploy job dependencies',
+			'warn',
+			`Deploy job "${bypassingJob.id}" can run without a needs dependency on verify, security, or Deploylint jobs. GitHub Actions jobs run in parallel unless needs is set.`,
+			{ path: bypassingJob.path, snippet: jobLabel(bypassingJob) }
+		);
+	}
+
+	return finding(
+		'deploy-job-dependencies',
+		'Deploy job dependencies',
+		'pass',
+		'Deploy-like GitHub Actions jobs wait for verify, security, or Deploylint jobs before running.',
+		{ path: deployJobs[0]?.path }
+	);
+}
+
 function hasRiskyPullRequestTarget(text: string): boolean {
 	return (
 		hasWorkflowEvent(text, 'pull_request_target') &&
@@ -639,6 +845,7 @@ export function analyzeCiWorkflows(files: RepoFileEvidence[]): RepoReadinessFind
 				: 'No Deploylint advisory or gate workflow found in GitHub Actions; readiness evidence will not appear on pull requests.',
 			{ path: deploylintCi?.path ?? evidencePath }
 		),
+		deployJobDependencyFinding(workflows),
 		workflowPermissionFinding(workflows),
 		finding(
 			'workflow-pull-request-target',

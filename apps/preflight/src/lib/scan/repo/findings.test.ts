@@ -34,6 +34,19 @@ describe('repo findings', () => {
 		expect(finding.launchImpact).toBe('blocker');
 	});
 
+	it('treats deploy dependency gaps as fix-soon launch risks', () => {
+		const finding = normalizeRepoFinding({
+			id: 'deploy-job-dependencies',
+			category: 'launch',
+			title: 'Deploy job dependencies',
+			status: 'warn',
+			message: 'Deploy job can run without a needs dependency on verify jobs.'
+		});
+
+		expect(finding.launchImpact).toBe('fix-soon');
+		expect(finding.fixPromptId).toBe('deploy-job-dependencies');
+	});
+
 	it('keeps explicit launch-impact overrides', () => {
 		const finding = normalizeRepoFinding({
 			id: 'dependency-review-action',

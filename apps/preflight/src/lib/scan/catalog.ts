@@ -699,6 +699,14 @@ const ADDITIONAL_CHECK_CATALOG = {
 		falsePositive:
 			'Teams may enforce Deploylint through another CI system or a reusable workflow outside the sampled repository; link or mirror that workflow if so.'
 	},
+	'deploy-job-dependencies': {
+		id: 'deploy-job-dependencies',
+		why: 'Deploy jobs must wait for verification and security jobs; otherwise production can ship while lint, tests, CodeQL, dependency review, or Deploylint are still running.',
+		detectedBy:
+			'Parses GitHub Actions jobs, deploy-like job names and commands, and jobs.<job_id>.needs dependency chains.',
+		falsePositive:
+			'Some repositories deploy through an external platform after GitHub checks pass; document that protected deployment path if a detected deploy-like workflow job is intentionally advisory only.'
+	},
 	contact: {
 		id: 'contact',
 		why: 'A public launch needs an obvious support or contact path so users, buyers, and security reporters are not left guessing.',

@@ -9,7 +9,8 @@ const TOOL_FINDING_IDS = new Set([
 	'workflow-pull-request-target',
 	'workflow-action-pinning',
 	'workflow-immutable-action-pins',
-	'codeql-code-scanning'
+	'codeql-code-scanning',
+	'deploy-job-dependencies'
 ]);
 
 const FINDING_COPY: Record<
@@ -70,6 +71,19 @@ permissions:
 		why: 'Dependency review blocks vulnerable package changes before they land in a pull request.',
 		fix: 'Run GitHub dependency review on pull requests before merge.',
 		snippet: `- uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294`
+	},
+	'deploy-job-dependencies': {
+		shortTitle: 'Deploy dependencies',
+		why: 'GitHub Actions jobs run in parallel by default, so deploy jobs can ship before checks finish unless they use needs.',
+		fix: 'Make deploy or release jobs depend on verify, security, dependency-review, CodeQL, or Deploylint jobs with needs.',
+		snippet: `jobs:
+  verify:
+    steps:
+      - run: npm test
+  deploy:
+    needs: [verify]
+    steps:
+      - run: npm run deploy`
 	}
 };
 
@@ -235,7 +249,14 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
       # github/codeql-action v4
       - uses: github/codeql-action/init@1ad29ea4a422cce9a242a9fae469541dcd08addc
-      - uses: github/codeql-action/analyze@1ad29ea4a422cce9a242a9fae469541dcd08addc`;
+      - uses: github/codeql-action/analyze@1ad29ea4a422cce9a242a9fae469541dcd08addc
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: [verify, codeql]
+    steps:
+      - run: npm run deploy`;
 
 export const SAMPLE_GITHUB_ACTIONS_WORKFLOW = `name: Deploy
 

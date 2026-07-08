@@ -72,6 +72,7 @@ const FIX_SOON_RULE_IDS = new Set([
 	'codeql-code-scanning',
 	'dependency-review-action',
 	'dependabot-config',
+	'deploy-job-dependencies',
 	'deploylint-ci-wiring',
 	'deploy-config',
 	'gitignore-env',

@@ -47,7 +47,14 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
       # github/codeql-action v4
       - uses: github/codeql-action/init@1ad29ea4a422cce9a242a9fae469541dcd08addc
-      - uses: github/codeql-action/analyze@1ad29ea4a422cce9a242a9fae469541dcd08addc`;
+      - uses: github/codeql-action/analyze@1ad29ea4a422cce9a242a9fae469541dcd08addc
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: [verify, codeql]
+    steps:
+      - run: npm run deploy`;
 
 test.describe('GitHub Actions checker', () => {
 	test('scores risky and hardened workflows in-browser', async ({ page }) => {
@@ -59,12 +66,18 @@ test.describe('GitHub Actions checker', () => {
 		await expect(page.getByRole('heading', { name: 'Immutable action pins' })).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'CodeQL scanning' })).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Dependency review' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Deploy dependencies' })).toBeVisible();
 
 		await page.getByLabel('Workflow YAML').fill(hardenedWorkflow);
 
 		await expect(page.getByText('Hardened', { exact: true })).toBeVisible();
 		await expect(page.getByText('100', { exact: true })).toBeVisible();
-		await expect(page.getByText('7 pass')).toBeVisible();
+		await expect(page.getByText('8 pass')).toBeVisible();
 		await expect(page.getByText('0 fail')).toBeVisible();
+		await expect(
+			page.getByText(
+				'Deploy-like GitHub Actions jobs wait for verify, security, or Deploylint jobs'
+			)
+		).toBeVisible();
 	});
 });

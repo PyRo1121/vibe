@@ -340,6 +340,18 @@ jobs:
 		});
 	});
 
+	it('warns when no GitHub Actions workflow exists', () => {
+		const findings = analyzeCiWorkflows([{ path: 'package.json', text: '{}' }]);
+
+		expect(findings).toEqual([
+			expect.objectContaining({
+				id: 'ci-runs-quality-gates',
+				status: 'warn',
+				message: 'No GitHub Actions workflow found to run lint, typecheck, tests, and build.'
+			})
+		]);
+	});
+
 	it('passes Deploylint PR advisory workflow wiring when the hosted gate is installed', () => {
 		const findings = analyzeCiWorkflows([
 			{
@@ -435,6 +447,277 @@ jobs:
 		expect(findings.find((finding) => finding.id === 'deploylint-ci-wiring')).toMatchObject({
 			status: 'warn',
 			message: expect.stringContaining('No Deploylint advisory or gate workflow')
+		});
+	});
+
+	it('warns when deploy jobs can bypass verify jobs', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/release.yml',
+				text: `
+name: Release
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@${FULL_ACTION_SHA}
+      - run: npm run lint
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm run deploy
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'ci-runs-quality-gates')).toMatchObject({
+			status: 'pass'
+		});
+		expect(findings.find((finding) => finding.id === 'deploy-job-dependencies')).toMatchObject({
+			status: 'warn',
+			message: expect.stringContaining('GitHub Actions jobs run in parallel unless needs is set'),
+			evidence: { path: '.github/workflows/release.yml', snippet: 'deploy' }
+		});
+	});
+
+	it('passes deploy jobs that wait on verify and security jobs', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/release.yml',
+				text: `
+name: Release
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@${FULL_ACTION_SHA}
+      - run: npm run lint
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
+  security:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: github/codeql-action/init@${FULL_ACTION_SHA}
+      - uses: github/codeql-action/analyze@${FULL_ACTION_SHA}
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [verify, security]
+    steps:
+      - run: npm run deploy
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'deploy-job-dependencies')).toMatchObject({
+			status: 'pass',
+			message: expect.stringContaining('Deploy-like GitHub Actions jobs wait')
+		});
+	});
+
+	it('passes deploy jobs through transitive needs chains and block-list needs syntax', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/release.yml',
+				text: `
+name: Release
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@${FULL_ACTION_SHA}
+      - run: npm run lint
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
+  promote:
+    name: Promote candidate
+    runs-on: ubuntu-latest
+    needs:
+      - verify
+    steps:
+      - run: echo ready
+  production-deploy:
+    name: Production deploy
+    runs-on: ubuntu-latest
+    needs: promote
+    steps:
+      - run: wrangler deploy
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'deploy-job-dependencies')).toMatchObject({
+			status: 'pass'
+		});
+	});
+
+	it('warns when deploy needs point at jobs from a different workflow file', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/ci.yml',
+				text: `
+name: CI
+on: pull_request
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@${FULL_ACTION_SHA}
+      - run: npm run lint
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
+`
+			},
+			{
+				path: '.github/workflows/release.yml',
+				text: `
+name: Release
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - run: npm run deploy
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'deploy-job-dependencies')).toMatchObject({
+			status: 'warn',
+			evidence: { path: '.github/workflows/release.yml', snippet: 'deploy' }
+		});
+	});
+
+	it('warns when deploy waits only for a build job without broader verification', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/release.yml',
+				text: `
+name: Release
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@${FULL_ACTION_SHA}
+      - run: npm run build
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - run: npm run deploy
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'deploy-job-dependencies')).toMatchObject({
+			status: 'warn',
+			evidence: { path: '.github/workflows/release.yml', snippet: 'deploy' }
+		});
+	});
+
+	it('ignores nested step inputs named needs when checking deploy dependencies', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/release.yml',
+				text: `
+name: Release
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@${FULL_ACTION_SHA}
+      - run: npm run lint
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: acme/deploy@${FULL_ACTION_SHA}
+        with:
+          needs: verify
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'deploy-job-dependencies')).toMatchObject({
+			status: 'warn',
+			evidence: { path: '.github/workflows/release.yml', snippet: 'deploy' }
+		});
+	});
+
+	it('passes deploy jobs that wait on Deploylint advisory jobs', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/release.yml',
+				text: `
+name: Release
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  deploylint:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -fsSL https://deploylint.com/gate-remote.mjs -o gate-remote.mjs
+          DEPLOYLINT_URL=https://app.example.com DEPLOYLINT_MODE=advisory node gate-remote.mjs
+  deploy:
+    runs-on: ubuntu-latest
+    needs: deploylint
+    steps:
+      - run: npm run deploy
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'deploylint-ci-wiring')).toMatchObject({
+			status: 'pass'
+		});
+		expect(findings.find((finding) => finding.id === 'deploy-job-dependencies')).toMatchObject({
+			status: 'pass'
 		});
 	});
 
