@@ -31,7 +31,7 @@ describe('review billing self-service source', () => {
 	it('points the primary product path at project setup before workspace handoff', () => {
 		expect(pageSource).toContain('href="#project-setup"');
 		expect(pageSource).toContain('id="project-setup"');
-		expect(pageSource).toContain('Create monitored project');
+		expect(pageSource).toContain('Start workspace setup');
 	});
 
 	it('can carry a project profile into the workspace setup surface', () => {
@@ -41,7 +41,7 @@ describe('review billing self-service source', () => {
 		expect(pageSource).toContain('name="repo"');
 		expect(pageSource).toContain('name="deploy"');
 		expect(pageSource).toContain('name="minScore"');
-		expect(pageSource).toContain('Generate advisory workflow');
+		expect(pageSource).toContain('Continue to workspace setup');
 	});
 
 	it('keeps report-only UI and scan APIs out of the initial homepage bundle', () => {

@@ -8,12 +8,15 @@ test.describe('home', () => {
 		await expect(page).toHaveTitle(/project readiness before deploy/i);
 		await expect(page.locator('meta[name="description"]')).toHaveAttribute(
 			'content',
-			/review ci risk, repo hygiene, license and sell-rights evidence/i
+			/turn ci evidence into workspace-backed deploy gates/i
 		);
 		await expect(
 			page.getByRole('heading', { name: /prove the project is ready before deploy/i })
 		).toBeVisible();
-		await expect(page.getByRole('link', { name: /Create monitored project/i })).toHaveAttribute(
+		await expect(page.getByText('CI risk')).toBeVisible();
+		await expect(page.getByText('Repo/license readiness')).toBeVisible();
+		await expect(page.getByText('Deploy gate evidence')).toBeVisible();
+		await expect(page.getByRole('link', { name: /Start workspace setup/i })).toHaveAttribute(
 			'href',
 			'#project-setup'
 		);
@@ -31,14 +34,15 @@ test.describe('home', () => {
 		await expect(page.getByText('DEPLOYLINT_PROJECT_ID')).toBeVisible();
 		await expect(page.getByText('Block bad deploys in CI')).toBeVisible();
 		await expect(page.getByText('Find deploy-path drift')).toBeVisible();
-		await expect(page.getByRole('heading', { name: /Create a monitored project/i })).toBeVisible();
+		await expect(page.getByRole('heading', { name: /Start workspace setup/i })).toBeVisible();
+		await expect(page.getByText(/Prefill the logged-in workspace/i)).toBeVisible();
 		await expect(page.getByLabel(/Project name/i)).toBeVisible();
 		await expect(page.getByLabel(/GitHub repository/i)).toBeVisible();
 		await expect(page.getByLabel(/Deploy target/i)).toBeVisible();
 		await expect(page.getByRole('button', { name: WORKSPACE_SETUP_BUTTON })).toBeVisible();
 		await expect(page.getByRole('button', { name: /Run advisory review/i })).toHaveCount(0);
 		await expect(page.getByText('Project readiness audit')).toBeVisible();
-		await expect(page.getByRole('link', { name: /See how we compare/i })).toBeVisible();
+		await expect(page.getByRole('link', { name: /Compare tools/i })).toBeVisible();
 	});
 
 	test('carries project profile into workspace setup', async ({ page }) => {

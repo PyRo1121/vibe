@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 
 import {
+	ADVISORY_WORKFLOW_BUTTON,
 	DEPLOY_TARGET_BUTTON,
 	DEPLOY_TARGET_INPUT,
-	WORKSPACE_SETUP_BUTTON,
 	mockScanApi
 } from './helpers';
 
@@ -50,7 +50,7 @@ test.describe('review error', () => {
 			'You can still generate the advisory workflow now'
 		);
 		await expect(
-			page.getByRole('alert').getByRole('button', { name: WORKSPACE_SETUP_BUTTON })
+			page.getByRole('alert').getByRole('button', { name: ADVISORY_WORKFLOW_BUTTON })
 		).toBeVisible();
 		await expect(page.getByRole('link', { name: 'View CI setup' })).toHaveAttribute(
 			'href',

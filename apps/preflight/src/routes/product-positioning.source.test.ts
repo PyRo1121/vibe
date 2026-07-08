@@ -167,7 +167,11 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(loginPage).toContain('Sign in to manage deploy gates');
 		expect(loginPage).toMatch(/monitored\s+workspace/);
 		expect(homePage).toContain('Project profile');
-		expect(homePage).toContain('Create a monitored project');
+		expect(homePage).toContain('CI risk');
+		expect(homePage).toContain('Repo/license readiness');
+		expect(homePage).toContain('Deploy gate evidence');
+		expect(homePage).toContain('Start workspace setup');
+		expect(homePage).toContain('Prefill the logged-in workspace');
 		expect(homePage).toContain('GitHub repository');
 		expect(homePage).toContain('Deploy target for CI evidence');
 		expect(homePage).toContain('CI gate, repo/license, customer access');
@@ -177,9 +181,12 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(homePage).toContain('Workspace workflow');
 		expect(homePage).toContain('Generate in workspace');
 		expect(homePage).toContain('DEPLOYLINT_PROJECT_ID');
-		expect(homePage).toContain('Generate advisory workflow');
-		expect(homePage).toContain('Preview no-login advisory evidence');
+		expect(homePage).toContain('Continue to workspace setup');
+		expect(homePage).toContain('Run advisory evidence runner');
 		expect(homePage).toContain('What the advisory loop checks');
+		expect(homePage).not.toContain('Need temporary evidence before workspace setup');
+		expect(homePage).not.toContain('Preview no-login advisory evidence');
+		expect(homePage).not.toContain('Create a monitored project');
 		expect(homePage).not.toContain('Run advisory review');
 		expect(homePage).not.toContain('Run a temporary advisory review');
 		expect(homePage).not.toContain('Preparing release-readiness evidence');

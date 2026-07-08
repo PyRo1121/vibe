@@ -11,8 +11,9 @@
 	const appOrigin = $derived(data.appUrl.replace(/\/$/, ''));
 	const title = buildSeoTitle('Project readiness before deploy');
 	const description =
-		'Review CI risk, repo hygiene, license and sell-rights evidence, payment readiness, and public deploy blockers before production.';
+		'Turn CI evidence into workspace-backed deploy gates with repo/license readiness and production-blocker checks before deploy.';
 	const jsonLd = $derived(buildDeploylintJsonLd({ base: appOrigin, description, price: '0.00' }));
+	const heroProofChips = ['CI risk', 'Repo/license readiness', 'Deploy gate evidence'] as const;
 	const subscriptionLoop = [
 		{
 			label: 'Monitored projects',
@@ -78,30 +79,24 @@
 				Prove the project is ready before deploy.
 			</h1>
 			<p class="max-w-3xl text-lg leading-8 text-zinc-400">
-				Deploylint reviews the path from pull request to production: GitHub Actions permissions,
-				pull_request_target hazards, moving refs, immutable action pins, CodeQL, dependency review,
-				quality gates, repo hygiene, license and sell-rights evidence, payment readiness, public
-				trust, and the last checks that should block a bad deploy. Start with the
-				<a
-					href={resolve('/tools/github-actions-security-checker')}
-					class="font-medium text-sky-300 underline underline-offset-4 hover:text-sky-200"
-				>
-					GitHub Actions Security Checker
-				</a>
-				or add Deploylint to CI as an advisory report first.
-				<a
-					href={resolve('/compare')}
-					class="font-medium text-sky-300 underline underline-offset-4 hover:text-sky-200"
-				>
-					See how we compare &rarr;
-				</a>
+				Deploylint turns CI evidence into a workspace-backed deploy gate. Catch risky workflows,
+				repo/license drift, and production blockers before they ship.
 			</p>
+			<div class="mt-5 flex flex-wrap gap-2">
+				{#each heroProofChips as chip (chip)}
+					<span
+						class="rounded-full border border-zinc-700 bg-zinc-900/70 px-3 py-1 text-xs font-semibold tracking-wide text-zinc-300"
+					>
+						{chip}
+					</span>
+				{/each}
+			</div>
 			<div class="mt-6 flex flex-col gap-3 sm:flex-row">
 				<a
 					href="#project-setup"
 					class="rounded-xl bg-sky-500 px-5 py-3 text-center text-sm font-semibold text-zinc-950 hover:bg-sky-400"
 				>
-					Create monitored project
+					Start workspace setup
 				</a>
 				<a
 					href={resolve('/tools/github-actions-security-checker')}
@@ -205,12 +200,12 @@
 				> so CI reports write back to workspace history.
 			</p>
 			<p class="mt-3 text-sm leading-6 text-zinc-500">
-				Need temporary evidence before workspace setup?
+				Need CI evidence before workspace setup?
 				<a
 					href={resolve('/review')}
 					class="font-medium text-sky-300 underline underline-offset-4 hover:text-sky-200"
 				>
-					Preview no-login advisory evidence
+					Run advisory evidence runner
 				</a>
 				without making it the center of the product.
 			</p>
@@ -226,10 +221,10 @@
 	>
 		<div class="mb-4">
 			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Project profile</p>
-			<h2 class="mt-2 text-lg font-semibold text-white">Create a monitored project</h2>
+			<h2 class="mt-2 text-lg font-semibold text-white">Start workspace setup</h2>
 			<p class="mt-1 text-sm leading-6 text-zinc-400">
-				Name the project, attach the repository, and point Deploylint at the deploy target that
-				should become a monitored CI gate.
+				Prefill the logged-in workspace with the project name, repository, deploy target, and
+				minimum score. After sign-in, Deploylint generates the project-scoped workflow.
 			</p>
 		</div>
 		<div class="grid gap-3 sm:grid-cols-2">
@@ -286,7 +281,7 @@
 					type="submit"
 					class="rounded-xl bg-sky-600 px-6 py-3 text-sm font-semibold text-white hover:bg-sky-500 focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:outline-none"
 				>
-					Generate advisory workflow
+					Continue to workspace setup
 				</button>
 				<a
 					href={resolve('/tools/github-actions-security-checker')}

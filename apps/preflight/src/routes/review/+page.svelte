@@ -630,7 +630,7 @@
 					disabled={!projectReadinessTarget}
 					class="rounded-xl bg-sky-600 px-6 py-3 text-sm font-semibold text-white hover:bg-sky-500 disabled:bg-sky-900 disabled:text-sky-100"
 				>
-					Generate advisory workflow
+					Continue to workspace setup
 				</button>
 				<button
 					type="button"

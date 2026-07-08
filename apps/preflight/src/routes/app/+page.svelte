@@ -61,6 +61,11 @@
 	const hasAdvisoryWorkflow = $derived(data.advisoryWorkflow.trim().length > 0);
 	const checkoutNotice = $derived(checkoutNoticeCopy(data.checkoutStatus));
 	const workspaceCommandStats = $derived(buildWorkspaceCommandCenterStats(workspace));
+	const commandCenterSummary = $derived(
+		workspaceCommandStats.reportsThisMonth > 0
+			? `Latest reports fixed ${workspaceCommandStats.latestFixedCount} checks and found ${workspaceCommandStats.latestRegressionCount} regressions.`
+			: 'Install the advisory workflow to start report history.'
+	);
 	const commandCenterStats = $derived([
 		{
 			id: 'projects',
@@ -165,7 +170,7 @@
 		if (status === 'success') {
 			return {
 				title: 'Checkout complete',
-				body: 'Billing will switch to active as soon as the signed Stripe webhook updates this workspace.',
+				body: 'Billing is activating for this workspace. Refresh in a moment if the status has not updated.',
 				className: 'border-emerald-500/30 bg-emerald-950/20 text-emerald-100'
 			};
 		}
@@ -312,10 +317,7 @@
 					</p>
 					<h2 class="mt-1 text-lg font-semibold text-white">Workspace readiness at a glance</h2>
 				</div>
-				<p class="text-sm text-zinc-500">
-					Latest reports fixed {workspaceCommandStats.latestFixedCount} checks and found {workspaceCommandStats.latestRegressionCount}
-					regressions.
-				</p>
+				<p class="text-sm text-zinc-500">{commandCenterSummary}</p>
 			</div>
 			<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 				{#each commandCenterStats as stat (stat.id)}

@@ -3,7 +3,8 @@ import { expect, type Page } from '@playwright/test';
 import type { ScanReport } from '../src/lib/scan/types';
 
 export const DEPLOY_TARGET_BUTTON = 'Preview CI advisory report';
-export const WORKSPACE_SETUP_BUTTON = 'Generate advisory workflow';
+export const WORKSPACE_SETUP_BUTTON = 'Continue to workspace setup';
+export const ADVISORY_WORKFLOW_BUTTON = 'Generate advisory workflow';
 export const DEPLOY_TARGET_INPUT = 'https://app.example.com';
 
 export async function mockScanApi(page: Page, report: ScanReport | 'error', status = 200) {

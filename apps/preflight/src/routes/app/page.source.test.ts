@@ -23,6 +23,8 @@ describe('/app workspace source', () => {
 		expect(pageSource).toContain('Next action');
 		expect(pageSource).toContain('CI hardening command center');
 		expect(pageSource).toContain('Workspace readiness at a glance');
+		expect(pageSource).toContain('commandCenterSummary');
+		expect(pageSource).toContain('Install the advisory workflow to start report history');
 		expect(pageSource).toContain('commandCenterStats');
 		expect(pageSource).toContain('Monitored projects');
 		expect(pageSource).toContain('Blocking gates');
@@ -94,6 +96,9 @@ describe('/app workspace source', () => {
 		expect(pageSource).not.toContain('Sample state');
 		expect(pageSource).not.toContain('project persistence is wired');
 		expect(pageSource).not.toContain('Tighten checkout verification');
+		expect(pageSource).not.toContain(
+			'Latest reports fixed {workspaceCommandStats.latestFixedCount}'
+		);
 		expect(pageSource).toContain('This workspace includes');
 	});
 
