@@ -111,6 +111,35 @@ describe('isCheckoutSessionFulfilled', () => {
 		expect(isCheckoutSessionFulfilled(event)).toBe(true);
 	});
 
+	it('extracts subscription status and price ids from subscription lifecycle events', () => {
+		const event = parseStripeWebhookEvent(
+			JSON.stringify({
+				type: 'customer.subscription.updated',
+				data: {
+					object: {
+						id: 'sub_123',
+						status: 'past_due',
+						metadata: { plan: 'builder' },
+						items: {
+							data: [
+								{
+									price: { id: 'price_agency' }
+								}
+							]
+						}
+					}
+				}
+			})
+		);
+
+		expect(event.data.object).toMatchObject({
+			id: 'sub_123',
+			status: 'past_due',
+			metadata: { plan: 'builder' },
+			items: { data: [{ price: { id: 'price_agency' } }] }
+		});
+	});
+
 	it('does not fulfill failed async payments or subscription lifecycle events', () => {
 		const failed = parseStripeWebhookEvent(
 			JSON.stringify({

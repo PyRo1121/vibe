@@ -60,6 +60,13 @@ export interface StripeCheckoutSessionObject {
 		workspace_id?: string;
 	};
 	customer?: string | { id?: string };
+	items?: {
+		data: Array<{
+			price?: {
+				id?: string;
+			};
+		}>;
+	};
 	subscription?: string | { id?: string };
 }
 
@@ -83,6 +90,10 @@ function stripeObjectId(value: unknown): string | { id: string } | undefined {
 	return undefined;
 }
 
+function nonEmptyString(value: unknown): string | undefined {
+	return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+}
+
 function stripeMetadata(value: unknown): StripeCheckoutSessionObject['metadata'] | undefined {
 	if (!isRecord(value)) return undefined;
 
@@ -95,15 +106,29 @@ function stripeMetadata(value: unknown): StripeCheckoutSessionObject['metadata']
 	return Object.keys(metadata).length > 0 ? metadata : undefined;
 }
 
+function stripeSubscriptionItems(value: unknown): StripeCheckoutSessionObject['items'] | undefined {
+	if (!isRecord(value) || !Array.isArray(value.data)) return undefined;
+
+	const data = value.data
+		.map((item) => {
+			const price = isRecord(item) && isRecord(item.price) ? item.price : null;
+			const id = nonEmptyString(price?.id);
+			return id ? { price: { id } } : null;
+		})
+		.filter((item): item is { price: { id: string } } => item !== null);
+	return data.length > 0 ? { data } : undefined;
+}
+
 function stripeSessionObject(value: unknown): StripeCheckoutSessionObject | null {
 	if (!isRecord(value)) return null;
 
 	return {
-		id: typeof value.id === 'string' ? value.id : undefined,
-		payment_status: typeof value.payment_status === 'string' ? value.payment_status : undefined,
-		status: typeof value.status === 'string' ? value.status : undefined,
+		id: nonEmptyString(value.id),
+		payment_status: nonEmptyString(value.payment_status),
+		status: nonEmptyString(value.status),
 		metadata: stripeMetadata(value.metadata),
 		customer: stripeObjectId(value.customer),
+		items: stripeSubscriptionItems(value.items),
 		subscription: stripeObjectId(value.subscription)
 	};
 }

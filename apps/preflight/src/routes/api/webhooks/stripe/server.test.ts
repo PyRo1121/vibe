@@ -493,6 +493,169 @@ describe('Stripe webhook route', () => {
 		]);
 	});
 
+	it('updates D1 workspace subscription status and plan from subscription update events', async () => {
+		const secret = 'whsec_test';
+		const db = new FakeD1();
+		const store = new Map<string, string>();
+		const kv = {
+			get: async (key: string) => {
+				const raw = store.get(key);
+				return raw == null ? null : JSON.parse(raw);
+			},
+			put: async (key: string, value: string) => {
+				store.set(key, value);
+			}
+		} as unknown as KVNamespace;
+
+		await saveUnlock(kv, 'https://app.test', 'cs_test_workspace', {
+			customerId: 'cus_123',
+			subscriptionId: 'sub_workspace',
+			plan: 'builder'
+		});
+
+		const payload = JSON.stringify({
+			id: 'evt_subscription_updated',
+			type: 'customer.subscription.updated',
+			data: {
+				object: {
+					id: 'sub_workspace',
+					customer: 'cus_123',
+					status: 'past_due',
+					metadata: { plan: 'builder' },
+					items: {
+						data: [
+							{
+								price: { id: 'price_agency' }
+							}
+						]
+					}
+				}
+			}
+		});
+
+		const response = await POST({
+			request: webhookRequest(payload, secret),
+			platform: {
+				env: {
+					AUTH_DB: db as unknown as D1Database,
+					REPORTS: kv,
+					STRIPE_PRICE_AGENCY: 'price_agency',
+					STRIPE_WEBHOOK_SECRET: secret
+				}
+			}
+		} as Parameters<typeof POST>[0]);
+
+		expect(await response.json()).toEqual({
+			received: true,
+			ignored: 'customer.subscription.updated'
+		});
+		expect(await loadUnlockBySubscription(kv, 'sub_workspace')).toMatchObject({
+			active: false,
+			status: 'past_due'
+		});
+		expect(db.calls).toEqual([
+			expect.objectContaining({
+				sql: expect.stringContaining('plan = ?'),
+				values: ['past_due', 'agency', expect.any(Number), 'sub_workspace']
+			})
+		]);
+	});
+
+	it('uses subscription metadata plan when no configured price id matches', async () => {
+		const secret = 'whsec_test';
+		const db = new FakeD1();
+		const store = new Map<string, string>();
+		const kv = {
+			get: async (key: string) => {
+				const raw = store.get(key);
+				return raw == null ? null : JSON.parse(raw);
+			},
+			put: async (key: string, value: string) => {
+				store.set(key, value);
+			}
+		} as unknown as KVNamespace;
+
+		await saveUnlock(kv, 'https://app.test', 'cs_test_workspace', {
+			customerId: 'cus_123',
+			subscriptionId: 'sub_workspace',
+			plan: 'builder'
+		});
+
+		const payload = JSON.stringify({
+			id: 'evt_subscription_canceled_from_update',
+			type: 'customer.subscription.updated',
+			data: {
+				object: {
+					id: 'sub_workspace',
+					status: 'incomplete_expired',
+					metadata: { plan: 'solo' },
+					items: {
+						data: [{ price: { id: 'price_unknown' } }]
+					}
+				}
+			}
+		});
+
+		const response = await POST({
+			request: webhookRequest(payload, secret),
+			platform: {
+				env: {
+					AUTH_DB: db as unknown as D1Database,
+					REPORTS: kv,
+					STRIPE_PRICE_AGENCY: 'price_agency',
+					STRIPE_WEBHOOK_SECRET: secret
+				}
+			}
+		} as Parameters<typeof POST>[0]);
+
+		expect(await response.json()).toEqual({
+			received: true,
+			ignored: 'customer.subscription.updated'
+		});
+		expect(await loadUnlockBySubscription(kv, 'sub_workspace')).toMatchObject({
+			active: false,
+			status: 'canceled'
+		});
+		expect(db.calls).toEqual([
+			expect.objectContaining({
+				sql: expect.stringContaining('plan = ?'),
+				values: ['canceled', 'solo', expect.any(Number), 'sub_workspace']
+			})
+		]);
+	});
+
+	it('ignores subscription update statuses that are not billable state changes', async () => {
+		const secret = 'whsec_test';
+		const db = new FakeD1();
+		const payload = JSON.stringify({
+			id: 'evt_subscription_unknown_status',
+			type: 'customer.subscription.updated',
+			data: {
+				object: {
+					id: 'sub_workspace',
+					status: 'paused',
+					metadata: { plan: 'agency' }
+				}
+			}
+		});
+
+		const response = await POST({
+			request: webhookRequest(payload, secret),
+			platform: {
+				env: {
+					AUTH_DB: db as unknown as D1Database,
+					STRIPE_WEBHOOK_SECRET: secret
+				}
+			}
+		} as Parameters<typeof POST>[0]);
+
+		expect(await response.json()).toEqual({
+			received: true,
+			ignored: 'customer.subscription.updated'
+		});
+		expect(db.calls).toEqual([]);
+	});
+
 	it('marks async checkout payment failures inactive by subscription id', async () => {
 		const secret = 'whsec_test';
 		const store = new Map<string, string>();

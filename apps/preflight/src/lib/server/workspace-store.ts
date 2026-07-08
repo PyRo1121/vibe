@@ -549,10 +549,26 @@ export async function loadWorkspaceBillingCustomer(
 export async function updateWorkspaceSubscriptionStatus(
 	db: D1Database | undefined,
 	stripeSubscriptionId: string | null,
-	status: WorkspaceSubscriptionStatus
+	status: WorkspaceSubscriptionStatus,
+	plan?: DeploylintPlanId | null
 ): Promise<boolean> {
 	const subscriptionId = stripeSubscriptionId?.trim();
 	if (!db || !subscriptionId) return false;
+
+	if (plan) {
+		await db
+			.prepare(
+				`UPDATE subscription
+				SET status = ?,
+					plan = ?,
+					updated_at = ?
+				WHERE stripe_subscription_id = ?`
+			)
+			.bind(status, plan, Date.now(), subscriptionId)
+			.run();
+
+		return true;
+	}
 
 	await db
 		.prepare(

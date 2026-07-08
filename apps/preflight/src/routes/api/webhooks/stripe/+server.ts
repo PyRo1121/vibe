@@ -7,8 +7,14 @@ import {
 	verifyStripeWebhookSignature
 } from '$lib/billing/webhook';
 import { logFunnelEvent } from '$lib/metrics/funnel';
+import {
+	DEPLOYLINT_PLAN_LIST,
+	isDeploylintPlanId,
+	type DeploylintPlanId
+} from '$lib/product/plans';
 import { requireStripeWebhookSecretKey } from '$lib/server/env';
 import {
+	type WorkspaceSubscriptionStatus,
 	updateWorkspaceSubscriptionStatus,
 	upsertWorkspaceSubscription
 } from '$lib/server/workspace-store';
@@ -30,6 +36,37 @@ function eventSubscriptionId(event: ReturnType<typeof parseStripeWebhookEvent>):
 	const object = event.data.object;
 	if (event.type.startsWith('customer.subscription.')) return stripeObjectId(object.id);
 	return stripeObjectId(object.subscription);
+}
+
+function workspaceSubscriptionStatus(
+	value: string | undefined
+): WorkspaceSubscriptionStatus | null {
+	if (value === 'active' || value === 'trialing') return 'active';
+	if (value === 'past_due' || value === 'unpaid' || value === 'incomplete') return 'past_due';
+	if (value === 'canceled' || value === 'incomplete_expired') return 'canceled';
+	return null;
+}
+
+function subscriptionPriceId(event: ReturnType<typeof parseStripeWebhookEvent>): string | null {
+	return event.data.object.items?.data.find((item) => item.price?.id)?.price?.id ?? null;
+}
+
+function subscriptionPlanFromEvent(
+	event: ReturnType<typeof parseStripeWebhookEvent>,
+	env: Env | undefined
+): DeploylintPlanId | null {
+	const priceId = subscriptionPriceId(event);
+	if (priceId) {
+		for (const plan of DEPLOYLINT_PLAN_LIST) {
+			const configuredPrice = env?.[plan.stripePriceEnv as keyof Env];
+			if (typeof configuredPrice === 'string' && configuredPrice.trim() === priceId) {
+				return plan.id;
+			}
+		}
+	}
+
+	const metadataPlan = event.data.object.metadata?.plan;
+	return isDeploylintPlanId(metadataPlan) ? metadataPlan : null;
 }
 
 async function hasWebhookEvent(kv: KVNamespace, eventId: string): Promise<boolean> {
@@ -139,6 +176,22 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 				});
 			}
 			await updateWorkspaceSubscriptionStatus(platform?.env?.AUTH_DB, subscriptionId, 'active');
+		} else if (event.type === 'customer.subscription.updated') {
+			const status = workspaceSubscriptionStatus(event.data.object.status);
+			if (status) {
+				if (reports) {
+					await setUnlockStatusBySubscription(reports, subscriptionId, {
+						active: status === 'active',
+						status
+					});
+				}
+				await updateWorkspaceSubscriptionStatus(
+					platform?.env?.AUTH_DB,
+					subscriptionId,
+					status,
+					subscriptionPlanFromEvent(event, platform?.env)
+				);
+			}
 		}
 	}
 

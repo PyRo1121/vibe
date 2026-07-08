@@ -471,6 +471,27 @@ describe('workspace D1 store', () => {
 		]);
 	});
 
+	it('updates workspace subscription status and plan by Stripe subscription id', async () => {
+		const db = new FakeD1();
+
+		await expect(
+			updateWorkspaceSubscriptionStatus(
+				db as unknown as D1Database,
+				'sub_123',
+				'past_due',
+				'agency'
+			)
+		).resolves.toBe(true);
+
+		expect(db.calls).toEqual([
+			expect.objectContaining({
+				method: 'run',
+				sql: expect.stringContaining('plan = ?'),
+				values: ['past_due', 'agency', expect.any(Number), 'sub_123']
+			})
+		]);
+	});
+
 	it('loads the latest billable Stripe customer for a workspace owner', async () => {
 		const db = new FakeD1();
 		db.firstRows = [{ stripe_customer_id: ' cus_workspace ', workspace_id: 'wks_live' }];
