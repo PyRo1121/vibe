@@ -42,6 +42,15 @@ const DEPLOYLINT_WORKFLOW_PATH_FILTERS = [
 	'.github/workflows/deploylint-dogfood.yml'
 ];
 
+const GITHUB_ACTION_SHA = /^[a-f0-9]{40}$/i;
+
+const PINNED_WORKFLOW_ACTIONS = {
+	checkout: 'actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0',
+	dependencyReview: 'actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294',
+	setupNode: 'actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e',
+	uploadArtifact: 'actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f'
+} as const;
+
 export const CRITICAL_COVERAGE_THRESHOLDS = {
 	'src/lib/billing/**.ts': {
 		statements: 94,
@@ -527,6 +536,28 @@ function workflowUsesStep(steps: Record<string, unknown>[], uses: string): boole
 	return steps.some((step) => step.uses === uses);
 }
 
+function workflowAllSteps(workflow: Record<string, unknown>): Record<string, unknown>[] {
+	const jobs = readRecordProperty(workflow, 'jobs');
+	return Object.values(jobs).flatMap((job) => (isRecord(job) ? workflowJobSteps(job) : []));
+}
+
+function isExternalWorkflowUse(uses: string): boolean {
+	return (
+		!uses.startsWith('./') &&
+		!uses.startsWith('../') &&
+		!uses.startsWith('/') &&
+		!uses.startsWith('docker://')
+	);
+}
+
+function workflowExternalActionUsesAreShaPinned(workflow: Record<string, unknown>): boolean {
+	return workflowAllSteps(workflow).every((step) => {
+		if (typeof step.uses !== 'string' || !isExternalWorkflowUse(step.uses)) return true;
+		const atIndex = step.uses.lastIndexOf('@');
+		return atIndex > 0 && GITHUB_ACTION_SHA.test(step.uses.slice(atIndex + 1));
+	});
+}
+
 function workflowRunStepIncludes(
 	steps: Record<string, unknown>[],
 	name: string,
@@ -550,7 +581,7 @@ function multilineValueIncludes(value: unknown, expected: string[]): boolean {
 }
 
 function hasSetupNodeStep(steps: Record<string, unknown>[]): boolean {
-	const step = steps.find((candidate) => candidate.uses === 'actions/setup-node@v6');
+	const step = steps.find((candidate) => candidate.uses === PINNED_WORKFLOW_ACTIONS.setupNode);
 	if (!step) return false;
 	const withConfig = workflowStepWith(step);
 	return withConfig['node-version-file'] === '.nvmrc' && withConfig.cache === 'npm';
@@ -562,7 +593,9 @@ function hasArtifactUploadStep(
 	expectedPaths: string[]
 ): boolean {
 	const step = workflowStepByName(steps, name);
-	if (!step || step.uses !== 'actions/upload-artifact@v6' || step.if !== 'failure()') return false;
+	if (!step || step.uses !== PINNED_WORKFLOW_ACTIONS.uploadArtifact || step.if !== 'failure()') {
+		return false;
+	}
 	const withConfig = workflowStepWith(step);
 	return (
 		withConfig['if-no-files-found'] === 'ignore' &&
@@ -589,13 +622,13 @@ function hasPreflightGateWorkflowContract(workflow: Record<string, unknown>): bo
 		workflowHasConcurrency(workflow, 'deploylint-gate-') &&
 		workflowJobHasTimeout(dependencyReview, 10) &&
 		dependencyReview.if === "github.event_name == 'pull_request'" &&
-		workflowUsesStep(dependencySteps, 'actions/checkout@v7') &&
-		workflowUsesStep(dependencySteps, 'actions/dependency-review-action@v5') &&
+		workflowUsesStep(dependencySteps, PINNED_WORKFLOW_ACTIONS.checkout) &&
+		workflowUsesStep(dependencySteps, PINNED_WORKFLOW_ACTIONS.dependencyReview) &&
 		workflowStepWith(
-			dependencySteps.find((step) => step.uses === 'actions/dependency-review-action@v5') ?? {}
+			dependencySteps.find((step) => step.uses === PINNED_WORKFLOW_ACTIONS.dependencyReview) ?? {}
 		)['fail-on-severity'] === 'moderate' &&
 		workflowJobHasTimeout(gate, 30) &&
-		workflowUsesStep(gateSteps, 'actions/checkout@v7') &&
+		workflowUsesStep(gateSteps, PINNED_WORKFLOW_ACTIONS.checkout) &&
 		hasSetupNodeStep(gateSteps) &&
 		workflowRunStepIncludes(gateSteps, 'Install dependencies', ['npm ci']) &&
 		workflowRunStepIncludes(gateSteps, 'Verify Deploylint CI suite', [
@@ -636,7 +669,7 @@ function hasDogfoodWorkflowContract(workflow: Record<string, unknown>): boolean 
 	return (
 		workflowHasConcurrency(workflow, 'deploylint-dogfood-') &&
 		workflowJobHasTimeout(gate, 45) &&
-		workflowUsesStep(steps, 'actions/checkout@v7') &&
+		workflowUsesStep(steps, PINNED_WORKFLOW_ACTIONS.checkout) &&
 		hasSetupNodeStep(steps) &&
 		workflowRunStepIncludes(steps, 'Install dependencies', ['npm ci']) &&
 		workflowRunStepIncludes(steps, 'Verify npm registry signatures', [
@@ -1115,6 +1148,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			'.github/dependabot.yml',
 			'.github/workflows/preflight-gate.yml',
 			'.github/workflows/deploylint-dogfood.yml',
+			'.github/workflows/tcg-vault-gate.yml',
 			'.github/actions/deploylint-gate/action.yml',
 			'.github/actions/deploylint-gate/gate-remote.mjs',
 			'scripts/assert-unlighthouse.mjs',
@@ -1328,13 +1362,23 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			"github.event_name == 'pull_request'" &&
 			workflowUsesStep(
 				workflowJobSteps(workflowJob(preflightGateWorkflowConfig, 'dependency-review')),
-				'actions/dependency-review-action@v5'
+				PINNED_WORKFLOW_ACTIONS.dependencyReview
 			) &&
 			workflowStepWith(
 				workflowJobSteps(workflowJob(preflightGateWorkflowConfig, 'dependency-review')).find(
-					(step) => step.uses === 'actions/dependency-review-action@v5'
+					(step) => step.uses === PINNED_WORKFLOW_ACTIONS.dependencyReview
 				) ?? {}
 			)['fail-on-severity'] === 'moderate'
+	);
+	pushCheck(
+		checked,
+		failures,
+		'GitHub workflows pin external actions to full commit SHAs',
+		[
+			preflightGateWorkflowConfig,
+			dogfoodWorkflowConfig,
+			readYamlRecord(tcgVaultWorkflowPath)
+		].every(workflowExternalActionUsesAreShaPinned)
 	);
 	pushCheck(
 		checked,

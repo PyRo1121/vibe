@@ -72,6 +72,7 @@ describe('quality standards guard', () => {
 				'GitHub dogfood runs production smoke and benchmark gates',
 				'GitHub push CI fails when production gate URL is missing',
 				'GitHub pull request CI runs dependency review for supply-chain diffs',
+				'GitHub workflows pin external actions to full commit SHAs',
 				'GitHub workflows use lockfile installs and npm dependency caching',
 				'GitHub workflows declare least-privilege token permissions',
 				'Playwright CI captures screenshots, videos, traces, junit, and html failure reports',
@@ -318,9 +319,19 @@ updates:
 					}
 				};`
 			);
-			writeFixtureFile(join(root, '.github/workflows/preflight-gate.yml'), 'npm test');
-			writeFixtureFile(join(root, '.github/workflows/deploylint-dogfood.yml'), 'npm test');
-			writeFixtureFile(join(root, '.github/workflows/tcg-vault-gate.yml'), 'npm test');
+			const weakWorkflow = `name: Weak workflow
+on:
+  push:
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: npm test
+`;
+			writeFixtureFile(join(root, '.github/workflows/preflight-gate.yml'), weakWorkflow);
+			writeFixtureFile(join(root, '.github/workflows/deploylint-dogfood.yml'), weakWorkflow);
+			writeFixtureFile(join(root, '.github/workflows/tcg-vault-gate.yml'), weakWorkflow);
 			writeFixtureFile(
 				join(root, 'apps/preflight/e2e/focused.spec.ts'),
 				`import { test } from '@playwright/test';
@@ -375,6 +386,7 @@ updates:
 					'GitHub dogfood runs production smoke and benchmark gates',
 					'GitHub push CI fails when production gate URL is missing',
 					'GitHub pull request CI runs dependency review for supply-chain diffs',
+					'GitHub workflows pin external actions to full commit SHAs',
 					'GitHub workflows use lockfile installs and npm dependency caching',
 					'GitHub workflows declare least-privilege token permissions',
 					'Playwright CI captures screenshots, videos, traces, junit, and html failure reports',
