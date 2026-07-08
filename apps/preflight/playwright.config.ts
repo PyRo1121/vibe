@@ -24,7 +24,7 @@ export default defineConfig({
 		command: 'npm run dev -- --port 4199',
 		env: {
 			...process.env,
-			DEPLOYLINT_PLATFORM_PROXY_CONFIG: 'wrangler.local.jsonc'
+			DEPLOYLINT_PLATFORM_PROXY_CONFIG: 'wrangler.e2e.jsonc'
 		},
 		url: 'http://localhost:4199',
 		reuseExistingServer: !process.env.CI,

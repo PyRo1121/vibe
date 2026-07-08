@@ -4,7 +4,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
 	buildShareText,
 	buildUnlockOffer,
-	clearCheckoutQuery,
 	computeFixProgress,
 	loadBaselineChecks,
 	saveBaselineChecks,
@@ -294,22 +293,5 @@ describe('baseline check session storage', () => {
 		vi.unstubAllGlobals();
 		expect(loadBaselineChecks()).toBeNull();
 		expect(() => saveBaselineChecks([])).not.toThrow();
-	});
-});
-
-describe('clearCheckoutQuery', () => {
-	it('removes checkout query parameters without changing the route path', () => {
-		const replaceState =
-			vi.fn<(data: unknown, unused: string, url?: string | URL | null) => void>();
-		vi.stubGlobal('window', {
-			history: { replaceState },
-			location: {
-				pathname: '/app'
-			}
-		});
-
-		clearCheckoutQuery();
-
-		expect(replaceState).toHaveBeenCalledWith({}, '', '/app');
 	});
 });

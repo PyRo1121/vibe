@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { replaceState } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import {
 		buildShareText,
-		clearCheckoutQuery,
 		saveBaselineChecks,
 		STORAGE,
 		toCheckSnapshots
@@ -63,6 +63,7 @@
 	let shareCopied = $state(false);
 	let scanController: AbortController | null = null;
 	let copyTimeouts: ReturnType<typeof setTimeout>[] = [];
+	let queryClearTimeout: ReturnType<typeof setTimeout> | null = null;
 
 	let sessionHydrated = false;
 	let pricingTracked = false;
@@ -127,6 +128,7 @@
 	$effect(() => {
 		return () => {
 			scanController?.abort();
+			if (queryClearTimeout) clearTimeout(queryClearTimeout);
 			for (const timer of copyTimeouts) clearTimeout(timer);
 		};
 	});
@@ -177,6 +179,13 @@
 		error = null;
 		errorCode = null;
 		errorRetryAt = null;
+	}
+
+	function clearCheckoutQuery() {
+		queryClearTimeout ??= setTimeout(() => {
+			queryClearTimeout = null;
+			replaceState(resolve('/'), {});
+		}, 0);
 	}
 
 	function formatRetryTime(value: string | null | undefined): string | null {

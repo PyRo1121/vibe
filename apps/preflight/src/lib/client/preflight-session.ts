@@ -269,7 +269,3 @@ export function buildShareText(report: ScanReport, appUrl: string): string {
 	];
 	return lines.join('\n');
 }
-
-export function clearCheckoutQuery(): void {
-	window.history.replaceState({}, '', window.location.pathname);
-}
