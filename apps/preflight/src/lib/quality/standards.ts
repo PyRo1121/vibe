@@ -114,6 +114,8 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const preflightPackagePath = join(preflightRoot, 'package.json');
 	const preflightMcpPackagePath = join(preflightMcpRoot, 'package.json');
 	const deploylintSharedPackagePath = join(deploylintSharedRoot, 'package.json');
+	const deploylintSharedTsconfigPath = join(deploylintSharedRoot, 'tsconfig.json');
+	const deploylintSharedViteConfigPath = join(deploylintSharedRoot, 'vitest.config.ts');
 	const oxlintPath = join(rootDir, '.oxlintrc.jsonc');
 	const oxfmtPath = join(rootDir, '.oxfmtrc.jsonc');
 	const nvmrcPath = join(rootDir, '.nvmrc');
@@ -136,6 +138,8 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		preflightPackagePath,
 		preflightMcpPackagePath,
 		deploylintSharedPackagePath,
+		deploylintSharedTsconfigPath,
+		deploylintSharedViteConfigPath,
 		oxlintPath,
 		oxfmtPath,
 		nvmrcPath,
@@ -175,6 +179,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	};
 	const deploylintSharedPackage = readJson(deploylintSharedPackagePath) as {
 		scripts: Record<string, string>;
+		devDependencies: Record<string, string>;
 	};
 	const oxlint = readJson(oxlintPath) as {
 		categories: Record<string, string>;
@@ -188,6 +193,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	};
 	const configuredCoverageThresholds = readCoverageThresholds(viteConfigPath);
 	const configuredMcpCoverageThresholds = readCoverageThresholds(mcpViteConfigPath);
+	const configuredSharedCoverageThresholds = readCoverageThresholds(deploylintSharedViteConfigPath);
 	const preflightGateWorkflow = readFileSync(preflightGateWorkflowPath, 'utf8');
 	const dogfoodWorkflow = readFileSync(dogfoodWorkflowPath, 'utf8');
 
@@ -239,9 +245,28 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
-		'deploylint-shared verify runs lint and syntax checks',
-		hasScriptCommand(deploylintSharedPackage.scripts, 'verify', ['lint', 'check']) &&
-			hasScriptCommand(deploylintSharedPackage.scripts, 'check', ['node --check index.js'])
+		'deploylint-shared verify runs typecheck, lint, type-aware lint, coverage, and syntax checks',
+		hasScriptCommand(deploylintSharedPackage.scripts, 'verify', [
+			'check',
+			'lint',
+			'lint:type-aware',
+			'test:coverage'
+		]) &&
+			hasScriptCommand(deploylintSharedPackage.scripts, 'check', [
+				'tsc --noEmit -p tsconfig.json',
+				'node --check index.js'
+			]) &&
+			hasScriptCommand(deploylintSharedPackage.scripts, 'lint:type-aware', [
+				'oxlint',
+				'--type-aware',
+				'typescript/no-unsafe-type-assertion'
+			]) &&
+			hasScriptCommand(deploylintSharedPackage.scripts, 'test:coverage', [
+				'vitest run --coverage'
+			]) &&
+			deploylintSharedPackage.devDependencies.vitest !== undefined &&
+			deploylintSharedPackage.devDependencies['@vitest/coverage-v8'] !== undefined &&
+			deploylintSharedPackage.devDependencies.typescript !== undefined
 	);
 	pushCheck(
 		checked,
@@ -350,6 +375,15 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		Object.entries(ENTERPRISE_COVERAGE_MINIMUMS).every(
 			([metric, minimum]) =>
 				configuredMcpCoverageThresholds[metric as keyof CoverageThresholds] >= minimum
+		)
+	);
+	pushCheck(
+		checked,
+		failures,
+		'deploylint-shared coverage thresholds meet enterprise minimums',
+		Object.entries(ENTERPRISE_COVERAGE_MINIMUMS).every(
+			([metric, minimum]) =>
+				configuredSharedCoverageThresholds[metric as keyof CoverageThresholds] >= minimum
 		)
 	);
 	pushCheck(

@@ -31,7 +31,7 @@ describe('quality standards guard', () => {
 				'preflight scripts run oxfmt, oxlint, and type-aware oxlint with zero-warning lint',
 				'preflight verify runs standards, typecheck, lint, type-aware lint, coverage, and build',
 				'preflight-mcp verify runs typecheck, lint, type-aware lint, coverage, and build',
-				'deploylint-shared verify runs lint and syntax checks',
+				'deploylint-shared verify runs typecheck, lint, type-aware lint, coverage, and syntax checks',
 				'root dependency audit fails on any known vulnerability',
 				'root deploylint CI verify runs audit, shared, preflight, mcp, Playwright install, and e2e',
 				'root deploylint local verify skips network-heavy CI-only gates',
@@ -41,6 +41,7 @@ describe('quality standards guard', () => {
 				'oxfmt config enforces deterministic imports, Tailwind sorting, Svelte formatting, and LF endings',
 				'vitest coverage thresholds meet enterprise minimums',
 				'preflight-mcp coverage thresholds meet enterprise minimums',
+				'deploylint-shared coverage thresholds meet enterprise minimums',
 				'GitHub workflows enforce canonical deploylint CI and MCP dogfood gates',
 				'GitHub workflows declare least-privilege token permissions'
 			])
@@ -87,8 +88,32 @@ describe('quality standards guard', () => {
 				JSON.stringify({
 					scripts: {
 						lint: 'oxfmt --check .'
+					},
+					devDependencies: {}
+				})
+			);
+			writeFixtureFile(
+				join(root, 'apps/deploylint-shared/tsconfig.json'),
+				JSON.stringify({
+					compilerOptions: {
+						strict: false
 					}
 				})
+			);
+			writeFixtureFile(
+				join(root, 'apps/deploylint-shared/vitest.config.ts'),
+				`export default {
+					test: {
+						coverage: {
+							thresholds: {
+								statements: 80,
+								lines: 80,
+								functions: 80,
+								branches: 80
+							}
+						}
+					}
+				};`
 			);
 			writeFixtureFile(
 				join(root, '.oxlintrc.jsonc'),
@@ -170,7 +195,7 @@ describe('quality standards guard', () => {
 					'preflight scripts run oxfmt, oxlint, and type-aware oxlint with zero-warning lint',
 					'preflight verify runs standards, typecheck, lint, type-aware lint, coverage, and build',
 					'preflight-mcp verify runs typecheck, lint, type-aware lint, coverage, and build',
-					'deploylint-shared verify runs lint and syntax checks',
+					'deploylint-shared verify runs typecheck, lint, type-aware lint, coverage, and syntax checks',
 					'root dependency audit fails on any known vulnerability',
 					'root deploylint CI verify runs audit, shared, preflight, mcp, Playwright install, and e2e',
 					'root deploylint local verify skips network-heavy CI-only gates',
@@ -180,6 +205,7 @@ describe('quality standards guard', () => {
 					'oxfmt config enforces deterministic imports, Tailwind sorting, Svelte formatting, and LF endings',
 					'vitest coverage thresholds meet enterprise minimums',
 					'preflight-mcp coverage thresholds meet enterprise minimums',
+					'deploylint-shared coverage thresholds meet enterprise minimums',
 					'GitHub workflows enforce canonical deploylint CI and MCP dogfood gates',
 					'GitHub workflows declare least-privilege token permissions',
 					'quality standards script is runnable from npm'
