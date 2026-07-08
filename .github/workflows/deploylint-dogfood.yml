@@ -37,9 +37,14 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: deploylint-dogfood-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   gate:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
 
@@ -60,3 +65,14 @@ jobs:
           url: https://deploylint.com
           min_score: '80'
           mode: gate
+
+      - name: Upload dogfood failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: deploylint-dogfood-failure-artifacts
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            apps/preflight-mcp/coverage/**
+            apps/preflight-mcp/test-results/**

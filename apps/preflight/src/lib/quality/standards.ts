@@ -547,6 +547,13 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			].every((path) => preflightGateWorkflow.includes(path)) &&
 			dogfoodWorkflow.includes('push:') &&
 			dogfoodWorkflow.includes('branches: [main]') &&
+			dogfoodWorkflow.includes('concurrency:') &&
+			dogfoodWorkflow.includes('cancel-in-progress: true') &&
+			dogfoodWorkflow.includes('timeout-minutes: 20') &&
+			dogfoodWorkflow.includes('actions/upload-artifact@v6') &&
+			dogfoodWorkflow.includes('apps/preflight-mcp/coverage/**') &&
+			dogfoodWorkflow.includes('apps/preflight-mcp/test-results/**') &&
+			dogfoodWorkflow.includes('retention-days: 14') &&
 			dogfoodWorkflow.includes('npm run verify -w preflight-mcp') &&
 			dogfoodWorkflow.includes('node-version-file: .nvmrc') &&
 			(dogfoodWorkflow.includes('min_score: "80"') ||
