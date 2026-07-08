@@ -43,10 +43,14 @@ describe('Deploylint workspace model', () => {
 		});
 
 		expect(workflow).toContain('name: Deploylint advisory report');
+		expect(workflow).toContain('permissions:');
+		expect(workflow).toContain('contents: read');
+		expect(workflow).toContain('pull-requests: write');
 		expect(workflow).toContain('DEPLOYLINT_PROJECT_ID: proj_demo_123');
 		expect(workflow).toContain('DEPLOYLINT_URL: https://app.example.com');
 		expect(workflow).toContain('DEPLOYLINT_MODE: advisory');
 		expect(workflow).toContain('DEPLOYLINT_API: https://deploylint.com');
+		expect(workflow).toContain('GITHUB_TOKEN: ${{ github.token }}');
 		expect(workflow).toContain('if [ -z "$DEPLOYLINT_URL" ]; then');
 		expect(workflow).toContain(
 			'Skipping Deploylint advisory report because DEPLOYLINT_URL is unavailable'

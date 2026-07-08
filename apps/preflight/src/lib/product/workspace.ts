@@ -309,7 +309,9 @@ on:
   pull_request:
   workflow_dispatch:
 
-permissions: {}
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   deploylint:
@@ -323,6 +325,7 @@ jobs:
           DEPLOYLINT_API: ${appUrl}
           DEPLOYLINT_MODE: advisory
           DEPLOYLINT_MIN_SCORE: '${opts.minScore}'
+          GITHUB_TOKEN: \${{ github.token }}
         run: |
           if [ -z "$DEPLOYLINT_URL" ]; then
             echo "Skipping Deploylint advisory report because DEPLOYLINT_URL is unavailable (forked pull request secrets are not exposed)."
