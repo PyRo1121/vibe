@@ -49,11 +49,13 @@ describe('Deploylint product plans', () => {
 
 	it('leads paid value with monitored projects and deploy gates', () => {
 		expect(DEPLOYLINT_PLANS.solo.features).toContain('Workspace-backed advisory reports');
-		expect(DEPLOYLINT_PLANS.solo.features).toContain('Deploy gate and MCP access');
-		expect(DEPLOYLINT_PLANS.builder.features).toContain(
-			'Saved report history and regression alerts'
+		expect(DEPLOYLINT_PLANS.solo.features).toContain(
+			'CI gate, MCP workflow access, and readiness evidence'
 		);
-		expect(DEPLOYLINT_PLANS.agency.features).toContain('Client-ready gate reports and exports');
+		expect(DEPLOYLINT_PLANS.builder.features).toContain(
+			'Saved readiness history and regression alerts'
+		);
+		expect(DEPLOYLINT_PLANS.agency.features).toContain('Client-ready readiness briefs and exports');
 		expect(DEPLOYLINT_PLAN_LIST.flatMap((plan) => plan.features).join(' ')).not.toMatch(
 			/Full fix prompts|master repair paste/
 		);
@@ -65,9 +67,9 @@ describe('Deploylint alpha pricing mode', () => {
 		expect(resolveAlphaFreeUnlock()).toBe(false);
 		expect(resolveAlphaFreeUnlock({})).toBe(false);
 		expect(resolveAlphaFreeUnlock({ [ALPHA_FREE_UNLOCK_ENV]: 'false' })).toBe(false);
-		expect(ALPHA_PRICE_PREVIEW.current).toBe('Free scan, paid fix plan');
+		expect(ALPHA_PRICE_PREVIEW.current).toBe('Free review, paid repair workflow');
 		expect(ALPHA_PRICE_PREVIEW.later).toBe('Solo starts at $9/mo');
-		expect(ALPHA_DISCLAIMER).toContain('Subscriptions unlock every prompt');
+		expect(ALPHA_DISCLAIMER).toContain('Subscriptions unlock every guided fix');
 	});
 
 	it('requires an explicit env flag for alpha free unlock mode', () => {

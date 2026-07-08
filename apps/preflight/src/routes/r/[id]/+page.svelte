@@ -43,7 +43,7 @@
 	}
 
 	const pageTitle = $derived(
-		`Deploylint report — ${verdictLabels[report.verdict]} ${report.score}/100 — ${report.finalUrl}`
+		`Deploylint readiness brief - ${verdictLabels[report.verdict]} ${report.score}/100 - ${report.finalUrl}`
 	);
 	const badgeUrl = $derived(`${permalink}/badge.svg`);
 </script>
@@ -66,25 +66,25 @@
 	/>
 	<meta property="og:url" content={permalink} />
 	<meta property="og:image" content={badgeUrl} />
-	<meta property="og:image:alt" content="Deploylint report score badge" />
+	<meta property="og:image:alt" content="Deploylint readiness score badge" />
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:image" content={badgeUrl} />
-	<meta name="twitter:image:alt" content="Deploylint report score badge" />
+	<meta name="twitter:image:alt" content="Deploylint readiness score badge" />
 </svelte:head>
 
 <div class="mx-auto max-w-5xl px-4 py-12">
 	<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
 		<div>
-			<p class="text-xs font-semibold tracking-widest text-sky-400 uppercase">Advisory report</p>
+			<p class="text-xs font-semibold tracking-widest text-sky-400 uppercase">Readiness brief</p>
 			<p class="mt-1 text-sm text-zinc-400">
-				Scanned {new Date(report.scannedAt).toLocaleString()} · kept for 90 days
+				Reviewed {new Date(report.scannedAt).toLocaleString()} · kept for 90 days
 			</p>
 		</div>
 		<a
 			href={resolve('/app#install')}
 			class="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500"
 		>
-			Create workspace from this report
+			Create workspace from this brief
 		</a>
 	</div>
 
@@ -145,7 +145,7 @@
 		<p class="mb-10 text-center text-sm text-zinc-500">
 			This is the summary view for stakeholders.
 			<a class="text-sky-400 hover:underline" href={resolve(`/r/${page.params.id}`)}
-				>See the full technical report →</a
+				>See the full technical brief →</a
 			>
 		</p>
 	{:else}
@@ -178,10 +178,10 @@
 	{/if}
 
 	<section class="rounded-2xl border border-sky-500/30 bg-sky-500/5 p-6 text-center">
-		<p class="font-medium text-white">Turn this report into an advisory workflow</p>
+		<p class="font-medium text-white">Turn this brief into an advisory workflow</p>
 		<p class="mt-1 text-sm text-zinc-400">
-			Create a workspace, install the advisory workflow, and let future pull requests build a report
-			history before you switch to a blocking deploy gate.
+			Create a workspace, install the advisory workflow, and let future pull requests build
+			readiness history before you switch to a blocking deploy gate.
 		</p>
 		<a
 			href={resolve('/app#install')}

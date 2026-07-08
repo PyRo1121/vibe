@@ -128,9 +128,9 @@ function buildMasterPromptPreview(report: ScanReport): string[] {
 		return [
 			`Site: ${report.finalUrl}`,
 			'',
-			'Deploylint could not read your homepage — content checks skipped.',
+			'Deploylint could not read your homepage - content checks skipped.',
 			'',
-			'Do NOT fix SEO/meta from this scan. Fix reachability or bot access, then re-scan.'
+			'Do NOT fix SEO/meta from this review. Fix reachability or bot access, then verify again.'
 		];
 	}
 
@@ -215,7 +215,7 @@ export function buildUnlockOffer(report: ScanReport): UnlockOffer | null {
 		valuePitch = `${lockedPromptCount} polish item${lockedPromptCount === 1 ? '' : 's'} + guided repair plan${deltaPart}`;
 		ctaLabel = 'Start Solo - $9/mo';
 	} else {
-		headline = 'Unlock re-scan proof for this deploy target';
+		headline = 'Unlock verification proof for this deploy target';
 		subhead =
 			'Everything passed. Start Solo for recurring monitoring and verification after last-minute edits.';
 		valuePitch = 'Verification history with score delta on this project';
@@ -244,12 +244,12 @@ export function buildShareText(report: ScanReport, appUrl: string): string {
 	const risk = report.launchBrief?.embarrassmentRisks?.[0];
 	const hook = risk
 		? `Deploylint caught this before this reaches production:\n"${risk.slice(0, 140)}${risk.length > 140 ? '...' : ''}"`
-		: `I ran Deploylint on my deploy target - ${report.score}/100 (${verdict}).`;
+		: `I ran a Deploylint readiness review - ${report.score}/100 (${verdict}).`;
 	const permalink = report.reportId ? `${base}/r/${report.reportId}` : null;
 	const lines = [
 		hook,
-		`Score: ${report.score}/100 (${verdict}) - ${report.finalUrl}`,
-		...(permalink ? [`Report: ${permalink}`] : []),
+		`Readiness score: ${report.score}/100 (${verdict}) - ${report.finalUrl}`,
+		...(permalink ? [`Readiness brief: ${permalink}`] : []),
 		`Add Deploylint to CI: ${base}/developers`
 	];
 	return lines.join('\n');

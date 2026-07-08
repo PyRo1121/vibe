@@ -6,11 +6,11 @@ const socialImage = `${baseUrl}/og.png`;
 const pages = [
 	{
 		path: '/',
-		title: 'CI hardening for fast builders - Deploylint',
+		title: 'Project readiness before deploy - Deploylint',
 		description:
-			'Find risky GitHub Actions permissions, missing quality gates, and deploy blockers before production. Deploylint is CI hardening for builders shipping with agents.',
+			'Review CI risk, repo hygiene, license and sell-rights evidence, payment readiness, and public deploy blockers before production.',
 		canonical: `${baseUrl}/`,
-		heading: /Stop risky workflows before they reach deploy/i,
+		heading: /Prove the project is ready before deploy/i,
 		jsonLdTypes: ['WebApplication', 'Organization']
 	},
 	{
@@ -96,7 +96,7 @@ const pages = [
 		path: '/guides/ai-app-launch-checker',
 		title: 'AI app deploy-readiness checker for vibe-coded products - Deploylint',
 		description:
-			'Use Deploylint to check AI-built apps for deploy blockers, CI gaps, security leaks, legal gaps, SEO mistakes, and broken social previews before production.',
+			'Use Deploylint to review AI-assisted projects for deploy blockers, CI gaps, security leaks, legal gaps, SEO mistakes, and broken social previews before production.',
 		canonical: `${baseUrl}/guides/ai-app-launch-checker`,
 		heading: /AI app deploy-readiness checker/i,
 		jsonLdTypes: ['Article', 'FAQPage'],

@@ -28,11 +28,11 @@ export const GUIDES = [
 		navTitle: 'AI deploy checker',
 		title: 'AI app deploy-readiness checker for vibe-coded products',
 		description:
-			'Use Deploylint to check AI-built apps for deploy blockers, CI gaps, security leaks, legal gaps, SEO mistakes, and broken social previews before production.',
+			'Use Deploylint to review AI-assisted projects for deploy blockers, CI gaps, security leaks, legal gaps, SEO mistakes, and broken social previews before production.',
 		eyebrow: 'AI app deploy readiness',
 		h1: 'AI app deploy-readiness checker',
 		intro:
-			'AI-built apps ship quickly, but the same speed makes production mistakes easy: exposed env files, thin metadata, broken previews, missing legal pages, placeholder copy, and weak CI gates. Deploylint checks the deploy surface before risky changes reach users.',
+			'AI-assisted projects ship quickly, but the same speed makes production mistakes easy: exposed env files, thin metadata, broken previews, missing legal pages, placeholder copy, and weak CI gates. Deploylint checks the deploy surface before risky changes reach users.',
 		sections: [
 			{
 				heading: 'What Deploylint checks first',
@@ -49,15 +49,15 @@ export const GUIDES = [
 				body: 'Lighthouse is useful for performance and accessibility lab work. Deploylint answers a different deploy question: what would block a small team from safely treating this target as production-ready?',
 				bullets: [
 					'Deploy verdicts instead of only lab scores',
-					'Fix prompts that can be pasted into Cursor or another coding agent',
-					'Re-scan proof so a builder can show deploy risk went down'
+					'Repair plans that can be used in an editor or coding agent',
+					'Verify-fixes proof so a builder can show deploy risk went down'
 				]
 			}
 		],
 		checklist: [
 			'Run the production URL, not localhost or a private preview.',
 			'Fix every P0 issue before enabling gate mode.',
-			'Re-scan after fixes and save the report link.',
+			'Verify fixes after repairs and save the readiness brief.',
 			'Wire the CI gate before the next production push.'
 		],
 		faq: [
@@ -67,7 +67,7 @@ export const GUIDES = [
 					'No. It can make the public site crawlable and catch common blockers, but Google still decides when and whether to index a URL.'
 			},
 			{
-				question: 'Should AI-built apps still use Search Console?',
+				question: 'Should AI-assisted projects still use Search Console?',
 				answer:
 					'Yes. Search Console is still the source for Google indexing state, sitemap processing, and query impressions.'
 			}

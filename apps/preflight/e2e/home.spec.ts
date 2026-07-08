@@ -5,13 +5,13 @@ import { DEPLOY_TARGET_BUTTON } from './helpers';
 test.describe('home', () => {
 	test('shows hero and pre-scan differentiators', async ({ page }) => {
 		await page.goto('/');
-		await expect(page).toHaveTitle(/ci hardening for fast builders/i);
+		await expect(page).toHaveTitle(/project readiness before deploy/i);
 		await expect(page.locator('meta[name="description"]')).toHaveAttribute(
 			'content',
-			/find risky github actions permissions, missing quality gates, and deploy blockers/i
+			/review ci risk, repo hygiene, license and sell-rights evidence/i
 		);
 		await expect(
-			page.getByRole('heading', { name: /stop risky workflows before they reach deploy/i })
+			page.getByRole('heading', { name: /prove the project is ready before deploy/i })
 		).toBeVisible();
 		await expect(page.getByRole('link', { name: /Check workflow YAML/i })).toBeVisible();
 		await expect(page.getByText('Sample PR report')).toBeVisible();

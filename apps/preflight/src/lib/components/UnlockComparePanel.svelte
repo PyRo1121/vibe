@@ -28,8 +28,8 @@
 		</h2>
 
 		<p class="mt-2 text-sm text-zinc-400">
-			Free tells you what's wrong once. Solo turns the report into a monitored project with CI
-			history, deploy gate enforcement, MCP access, and repair guidance.
+			Free gives you a baseline readiness brief. Solo turns it into a monitored project with CI
+			history, deploy gate enforcement, MCP workflow access, and repair guidance.
 		</p>
 
 		<p class="mt-2 text-sm text-sky-300">{offer.valuePitch}</p>
@@ -37,7 +37,7 @@
 		<div class="mt-6 grid gap-4 md:grid-cols-2">
 			<div class="rounded-xl border border-zinc-700 bg-zinc-950/80 p-5">
 				<p class="text-xs font-semibold tracking-wider text-zinc-500 uppercase">
-					One-off report (you have this)
+					Baseline readiness brief (you have this)
 				</p>
 
 				<ul class="mt-3 space-y-2 text-sm text-zinc-400">

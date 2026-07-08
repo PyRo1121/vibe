@@ -14,7 +14,7 @@ test.describe('deep dives', () => {
 		await expect(page.getByText('1 issue')).toBeVisible();
 	});
 
-	test('shows payment readiness deep dive with blockers and warnings', async ({ page }) => {
+	test('shows revenue readiness deep dive with blockers and warnings', async ({ page }) => {
 		await mockScanApi(page, mockScanReport);
 		await page.goto('/');
 		await runMockScan(page);
@@ -22,7 +22,7 @@ test.describe('deep dives', () => {
 		const deepDives = page.locator('section').filter({
 			has: page.getByRole('heading', { name: 'Deep dives' })
 		});
-		await expect(deepDives.getByText('Payment readiness', { exact: true }).first()).toBeVisible();
+		await expect(deepDives.getByText('Revenue readiness', { exact: true }).first()).toBeVisible();
 		await expect(
 			deepDives.getByText('Server-owned checkout: Checkout is browser-owned.', { exact: true })
 		).toBeVisible();

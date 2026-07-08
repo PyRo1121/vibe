@@ -76,14 +76,16 @@
 	}
 
 	function blockerLabel(count: number): string {
-		return `${count} payment blocker${count === 1 ? '' : 's'}`;
+		return `${count} revenue blocker${count === 1 ? '' : 's'}`;
 	}
 </script>
 
 <section class="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8">
 	<div class="grid gap-8 lg:grid-cols-[minmax(0,320px)_1fr]">
 		<div>
-			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Deploy risk score</p>
+			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
+				Project readiness score
+			</p>
 			<div class="mt-1 flex items-baseline gap-3">
 				<p class="text-6xl font-bold tabular-nums {scoreColor(report.score)}">{report.score}</p>
 				<p class="text-lg text-zinc-600">/100</p>
@@ -104,7 +106,7 @@
 			{#if report.history?.length}
 				<div class="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
 					<span class="text-[10px] font-semibold tracking-wider text-zinc-600 uppercase">
-						History
+						Proof history
 					</span>
 					{#each report.history as h (h.id)}
 						<a
@@ -126,7 +128,7 @@
 				<div class="mt-2 space-y-0.5 text-xs">
 					{#if report.scanDiff.fixed.length > 0}
 						<p class="text-emerald-400" title={report.scanDiff.fixed.join(', ')}>
-							✓ Fixed since last scan: {report.scanDiff.fixed.slice(0, 3).join(', ')}{report
+							✓ Fixed since last review: {report.scanDiff.fixed.slice(0, 3).join(', ')}{report
 								.scanDiff.fixed.length > 3
 								? ` +${report.scanDiff.fixed.length - 3} more`
 								: ''}
@@ -134,7 +136,7 @@
 					{/if}
 					{#if report.scanDiff.regressed.length > 0}
 						<p class="text-red-400" title={report.scanDiff.regressed.join(', ')}>
-							▲ New since last scan: {report.scanDiff.regressed.slice(0, 3).join(', ')}{report
+							▲ New since last review: {report.scanDiff.regressed.slice(0, 3).join(', ')}{report
 								.scanDiff.regressed.length > 3
 								? ` +${report.scanDiff.regressed.length - 3} more`
 								: ''}
@@ -162,7 +164,7 @@
 
 			{#if paymentReadiness && paymentReadiness.status !== 'not-detected'}
 				<div class="mt-4 rounded-xl border p-3 {paymentTone(paymentReadiness.status)}">
-					<p class="text-[10px] font-semibold tracking-wider uppercase">Payment readiness</p>
+					<p class="text-[10px] font-semibold tracking-wider uppercase">Revenue readiness</p>
 					<p class="mt-1 text-sm font-medium">{paymentReadiness.headline}</p>
 					<div class="mt-2 flex flex-wrap gap-2 text-xs">
 						<span>{blockerLabel(paymentReadiness.fail)}</span>
@@ -177,7 +179,7 @@
 			{/if}
 
 			<p class="mt-4 truncate text-xs text-zinc-500" title={report.finalUrl}>
-				{report.finalUrl} · {new Date(report.scannedAt).toLocaleString()}
+				Target reviewed: {report.finalUrl} · {new Date(report.scannedAt).toLocaleString()}
 			</p>
 
 			{#if report.stack?.length}
@@ -201,15 +203,15 @@
 						class="rounded-lg border border-sky-500/50 bg-sky-500/10 px-3 py-1.5 text-xs font-medium text-sky-300 hover:bg-sky-500/20"
 						onclick={copyPermalink}
 					>
-						{linkCopied ? 'Link copied!' : 'Copy advisory link'}
+						{linkCopied ? 'Link copied!' : 'Copy readiness brief'}
 					</button>
 					<button
 						type="button"
 						class="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800"
 						onclick={copyBadge}
-						title="Markdown badge for your README"
+						title="Markdown readiness badge for your README"
 					>
-						{badgeCopied ? 'Copied!' : 'Copy README badge'}
+						{badgeCopied ? 'Copied!' : 'Copy readiness badge'}
 					</button>
 					<button
 						type="button"
@@ -241,7 +243,7 @@
 						class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
 						onclick={onRescan}
 					>
-						{loading ? 'Scanning…' : 'Re-scan to verify'}
+						{loading ? 'Reviewing…' : 'Verify fixes'}
 					</button>
 				{/if}
 			</div>

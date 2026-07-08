@@ -4,14 +4,14 @@ import { mockScanReport } from './fixtures';
 import { mockScanApi, runMockScan } from './helpers';
 
 test.describe('multi-page coverage', () => {
-	test('shows pages scanned strip when report includes sub-pages', async ({ page }) => {
+	test('shows public surfaces reviewed strip when report includes sub-pages', async ({ page }) => {
 		await mockScanApi(page, mockScanReport);
 		await page.goto('/');
 		await runMockScan(page);
 
-		const strip = page.getByRole('status', { name: 'Pages scanned' });
+		const strip = page.getByRole('status', { name: 'Public surfaces reviewed' });
 		await expect(strip).toBeVisible();
-		await expect(strip.getByText('Scanned 2 pages:')).toBeVisible();
+		await expect(strip.getByText('Reviewed 2 public surfaces:')).toBeVisible();
 		await expect(strip.getByText('Privacy', { exact: true })).toBeVisible();
 		await expect(strip.getByText('/privacy')).toBeVisible();
 	});
@@ -24,6 +24,6 @@ test.describe('multi-page coverage', () => {
 		await page.goto('/');
 		await runMockScan(page);
 
-		await expect(page.getByText('Scanned 1 pages:')).not.toBeVisible();
+		await expect(page.getByText('Reviewed 1 public surfaces:')).not.toBeVisible();
 	});
 });

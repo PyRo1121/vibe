@@ -67,7 +67,7 @@
 		{/if}
 		{#if paymentReadiness && paymentReadiness.status !== 'not-detected'}
 			<DeepDive
-				title="Payment readiness"
+				title="Revenue readiness"
 				hint="Checkout, webhooks, fulfillment, and customer access"
 				badge={{
 					label: paymentBadgeLabel(),

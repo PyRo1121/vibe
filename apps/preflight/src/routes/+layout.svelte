@@ -70,10 +70,10 @@
 				<a href={resolvePath('/checks')} class="hidden hover:text-white sm:inline">Checks</a>
 				<a
 					href={resolvePath('/guides/website-launch-checklist')}
-					class="hidden hover:text-white sm:inline">Guides</a
+					class="hidden hover:text-white sm:inline">Docs</a
 				>
-				<a href={resolvePath('/developers')} class="hover:text-white">CI gate</a>
-				<span class="hidden text-zinc-400 sm:inline">CI hardening &middot; deploy gates</span>
+				<a href={resolvePath('/developers')} class="hover:text-white">Setup</a>
+				<span class="hidden text-zinc-400 sm:inline">Readiness reviews &middot; CI gates</span>
 			</nav>
 		</div>
 	</header>
@@ -89,7 +89,7 @@
 			<span class="mx-2">&middot;</span>
 			<a href={resolvePath('/app')} class="hover:text-white">Workspace</a>
 			<span class="mx-2">&middot;</span>
-			<a href={resolvePath('/')} class="hover:text-white">Deploy ops</a>
+			<a href={resolvePath('/')} class="hover:text-white">Home</a>
 			<span class="mx-2">&middot;</span>
 			<a href={resolvePath('/about')} class="hover:text-white">About</a>
 			<span class="mx-2">&middot;</span>
@@ -97,7 +97,7 @@
 			<span class="mx-2">&middot;</span>
 			<a href={resolvePath('/checks')} class="hover:text-white">Checks</a>
 			<span class="mx-2">&middot;</span>
-			<a href={resolvePath('/guides/website-launch-checklist')} class="hover:text-white">Guides</a>
+			<a href={resolvePath('/guides/website-launch-checklist')} class="hover:text-white">Docs</a>
 			<span class="mx-2">&middot;</span>
 			<a href={resolvePath('/changelog')} class="hover:text-white">Changelog</a>
 			<span class="mx-2">&middot;</span>

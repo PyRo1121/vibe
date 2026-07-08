@@ -208,7 +208,7 @@ describe('buildUnlockOffer', () => {
 			checks: []
 		});
 
-		expect(offer?.headline).toContain('re-scan proof');
+		expect(offer?.headline).toContain('verification proof');
 		expect(offer?.valuePitch).toBe('Verification history with score delta on this project');
 	});
 

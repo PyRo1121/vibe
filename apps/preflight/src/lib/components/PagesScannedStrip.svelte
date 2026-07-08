@@ -43,9 +43,9 @@
 	<div
 		class="mb-6 flex flex-wrap items-center gap-2 text-xs text-zinc-500"
 		role="status"
-		aria-label="Pages scanned"
+		aria-label="Public surfaces reviewed"
 	>
-		<span class="font-medium text-zinc-400">Scanned {pages.length} pages:</span>
+		<span class="font-medium text-zinc-400">Reviewed {pages.length} public surfaces:</span>
 		{#each pages as page (page.url)}
 			<span
 				class="inline-flex items-center gap-1.5 rounded-full border border-zinc-800 bg-zinc-900/60 px-2.5 py-1"

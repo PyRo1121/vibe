@@ -162,8 +162,8 @@
 					checkoutMessage = `Verified: ${report.previousScore} → ${report.score} (${sign}${report.scoreDelta})`;
 				} else {
 					checkoutMessage = alphaFreeUnlock
-						? 'Alpha access active - all fix prompts are available.'
-						: 'Fix prompts unlocked - copy prompts below, then re-scan after fixing.';
+						? 'Alpha access active - repair plans and verification proof are available.'
+						: 'Repair plan unlocked - follow the fixes below, then verify fixes.';
 				}
 			}
 
@@ -283,9 +283,9 @@
 	}
 
 	const appOrigin = $derived(data.appUrl.replace(/\/$/, ''));
-	const title = buildSeoTitle('CI hardening for fast builders');
+	const title = buildSeoTitle('Project readiness before deploy');
 	const description =
-		'Find risky GitHub Actions permissions, missing quality gates, and deploy blockers before production. Deploylint is CI hardening for builders shipping with agents.';
+		'Review CI risk, repo hygiene, license and sell-rights evidence, payment readiness, and public deploy blockers before production.';
 	const jsonLd = $derived(buildDeploylintJsonLd({ base: appOrigin, description, price: '0.00' }));
 	const quickInstallYaml = $derived(`name: Deploylint advisory report
 
@@ -324,15 +324,16 @@ jobs:
 	<section class="mb-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-end print:hidden">
 		<div>
 			<p class="mb-3 text-sm font-medium tracking-widest text-sky-400 uppercase">
-				CI hardening for agent-built apps
+				Project readiness + CI hardening
 			</p>
 			<h1 class="mb-4 max-w-4xl text-4xl font-bold tracking-tight text-white sm:text-5xl">
-				Stop risky workflows before they reach deploy.
+				Prove the project is ready before deploy.
 			</h1>
 			<p class="max-w-3xl text-lg leading-8 text-zinc-400">
 				Deploylint reviews the path from pull request to production: GitHub Actions permissions,
-				pull_request_target hazards, floating actions, missing quality gates, repo hygiene, and the
-				last public checks that should block a bad deploy. Start with the
+				pull_request_target hazards, floating actions, missing quality gates, repo hygiene, license
+				and sell-rights evidence, payment readiness, public trust, and the last checks that should
+				block a bad deploy. Start with the
 				<a
 					href={resolve('/tools/github-actions-security-checker')}
 					class="font-medium text-sky-300 underline underline-offset-4 hover:text-sky-200"
@@ -439,7 +440,7 @@ jobs:
 
 	<form
 		class="mx-auto mb-10 max-w-2xl rounded-xl border border-zinc-800 bg-zinc-900/30 p-5 print:hidden"
-		aria-label="Deploy target evidence"
+		aria-label="Readiness evidence"
 		onsubmit={(e) => {
 			e.preventDefault();
 			const trimmed = url.trim();
@@ -455,12 +456,12 @@ jobs:
 	>
 		<div class="mb-4">
 			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
-				Deploy target evidence
+				Readiness evidence
 			</p>
-			<h2 class="mt-2 text-lg font-semibold text-white">Add a live URL or repo to the CI report</h2>
+			<h2 class="mt-2 text-lg font-semibold text-white">Run a project readiness review</h2>
 			<p class="mt-1 text-sm leading-6 text-zinc-400">
-				Use this for crawler, trust, payment, preview, and repo hygiene signals after the CI path is
-				under control.
+				Add a deploy URL or GitHub repo to collect public surface, trust, payment, license, preview,
+				and repo hygiene evidence after the CI path is under control.
 			</p>
 		</div>
 		<div class="flex flex-col gap-3 sm:flex-row">
@@ -480,7 +481,7 @@ jobs:
 				disabled={loading || !url.trim()}
 				class="rounded-xl bg-sky-600 px-6 py-3 font-semibold text-white hover:bg-sky-500 disabled:bg-sky-900 disabled:text-sky-100"
 			>
-				{loading ? 'Building report...' : 'Build readiness report'}
+				{loading ? 'Building brief...' : 'Build readiness brief'}
 			</button>
 		</div>
 		{#if loading}
@@ -509,8 +510,8 @@ jobs:
 					Alpha access unlocked
 				</p>
 				<p class="mt-2 text-sm text-zinc-300">
-					Your plan unlocks the prompts, master paste, AI copy review, and re-scan proof shown
-					below.
+					Your plan unlocks the repair plan, workspace workflow, copy readiness review, and
+					verify-fixes proof shown below.
 				</p>
 			</section>
 		{/if}
@@ -580,7 +581,7 @@ jobs:
 	{:else if !loading}
 		<section class="mb-8 text-center">
 			<p class="text-xs font-semibold tracking-widest text-zinc-400 uppercase">
-				Deploy-control surfaces
+				Readiness evidence lanes
 			</p>
 		</section>
 		<section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

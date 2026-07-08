@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 import { DEPLOY_TARGET_BUTTON, DEPLOY_TARGET_INPUT, mockScanApi } from './helpers';
 
-test.describe('scan error', () => {
+test.describe('review error', () => {
 	test('surfaces API errors without leaving the page', async ({ page }) => {
 		await mockScanApi(page, 'error', 502);
 		await page.goto('/');
@@ -11,7 +11,7 @@ test.describe('scan error', () => {
 
 		await expect(page.getByRole('alert')).toContainText(/Could not reach that URL/i);
 		await expect(
-			page.getByRole('heading', { name: /Stop risky workflows before they reach deploy/i })
+			page.getByRole('heading', { name: /Prove the project is ready before deploy/i })
 		).toBeVisible();
 	});
 });

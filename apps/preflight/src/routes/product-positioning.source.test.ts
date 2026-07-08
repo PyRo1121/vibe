@@ -26,11 +26,12 @@ describe('Deploylint CI workspace positioning', () => {
 		const reportPage = source('routes', 'r', '[id]', '+page.svelte');
 		const reportSummary = source('lib', 'components', 'ReportSummary.svelte');
 
-		expect(reportPage).toContain('Create workspace from this report');
+		expect(reportPage).toContain('Create workspace from this brief');
 		expect(reportPage).toContain('Install advisory workflow');
 		expect(reportPage).not.toContain('Scan your own site free');
 		expect(reportPage).not.toContain('Want fix prompts for these issues?');
-		expect(reportSummary).toContain('Deploy risk score');
+		expect(reportSummary).toContain('Project readiness score');
+		expect(reportSummary).not.toContain('Deploy risk score');
 		expect(reportSummary).not.toContain('Launch score');
 	});
 
@@ -131,12 +132,12 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(ogSvg).toContain('Advisory PR reports | deploy gates | repo hygiene');
 		expect(loginPage).toContain('Sign in to manage deploy gates');
 		expect(loginPage).toMatch(/monitored\s+workspace/);
-		expect(homePage).toContain('Deploy target evidence');
-		expect(homePage).toMatch(/Add a live URL or repo\s+to the CI report/);
-		expect(reportPage).toContain('Advisory report');
-		expect(reportSummary).toContain('Copy advisory link');
+		expect(homePage).toContain('Readiness evidence');
+		expect(homePage).toMatch(/Run a project readiness review/);
+		expect(reportPage).toContain('Readiness brief');
+		expect(reportSummary).toContain('Copy readiness brief');
 		expect(preflightSession).toContain('Add Deploylint to CI');
-		expect(unlockComparePanel).toContain('One-off report (you have this)');
+		expect(unlockComparePanel).toContain('Baseline readiness brief (you have this)');
 		expect(unlockComparePanel).toContain('Monitored project');
 
 		for (const fileSource of [
@@ -157,6 +158,7 @@ describe('Deploylint CI workspace positioning', () => {
 			expect(fileSource).not.toContain('Copy report link');
 			expect(fileSource).not.toContain('Check yours free');
 			expect(fileSource).not.toContain('Free scan (you have this)');
+			expect(fileSource).not.toContain('One-off report (you have this)');
 		}
 	});
 

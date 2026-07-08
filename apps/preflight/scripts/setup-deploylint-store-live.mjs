@@ -25,7 +25,7 @@ const PLANS = [
 		lookupKey: 'deploylint_solo_monthly',
 		unitAmount: 900,
 		description:
-			'One monitored AI-built app with fix prompts, MCP scan access, deploy gate, and weekly launch monitoring.'
+			'One monitored project with readiness briefs, repair plans, CI gate evidence, MCP workflow access, and weekly monitoring.'
 	},
 	{
 		id: 'builder',
@@ -34,7 +34,7 @@ const PLANS = [
 		lookupKey: 'deploylint_builder_monthly',
 		unitAmount: 2900,
 		description:
-			'Five monitored AI-built apps with daily monitoring, saved history, re-scan deltas, and launch regression alerts.'
+			'Five monitored projects with daily readiness monitoring, saved history, verify-fixes deltas, and deploy regression alerts.'
 	},
 	{
 		id: 'agency',
@@ -43,7 +43,7 @@ const PLANS = [
 		lookupKey: 'deploylint_agency_monthly',
 		unitAmount: 14900,
 		description:
-			'Twenty-five monitored AI-built apps with client-ready reports, exports, and webhook-ready alert workflows.'
+			'Twenty-five monitored projects with client-ready readiness briefs, exports, and webhook-ready alert workflows.'
 	}
 ];
 

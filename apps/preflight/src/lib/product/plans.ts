@@ -7,12 +7,12 @@ export const DEPLOYLINT_PLANS = {
 		priceLabel: '$9/mo',
 		unitAmount: 900,
 		stripePriceEnv: 'STRIPE_PRICE_SOLO',
-		tagline: 'For one AI-built app you are actively shipping.',
+		tagline: 'For one monitored project moving toward production.',
 		limits: '1 monitored project',
 		cadence: 'Weekly monitoring',
 		features: [
 			'Workspace-backed advisory reports',
-			'Deploy gate and MCP access',
+			'CI gate, MCP workflow access, and readiness evidence',
 			'10 full reports per month'
 		],
 		ctaLabel: 'Start Solo - $9/mo'
@@ -23,13 +23,13 @@ export const DEPLOYLINT_PLANS = {
 		priceLabel: '$29/mo',
 		unitAmount: 2900,
 		stripePriceEnv: 'STRIPE_PRICE_BUILDER',
-		tagline: 'For builders running several launches or client experiments.',
+		tagline: 'For builders running several projects or client experiments.',
 		limits: '5 monitored projects',
 		cadence: 'Daily monitoring',
 		features: [
 			'Everything in Solo',
-			'Saved report history and regression alerts',
-			'CVE and launch drift monitoring'
+			'Saved readiness history and regression alerts',
+			'CVE and readiness drift monitoring'
 		],
 		ctaLabel: 'Start Builder - $29/mo'
 	},
@@ -39,12 +39,12 @@ export const DEPLOYLINT_PLANS = {
 		priceLabel: '$149/mo',
 		unitAmount: 14900,
 		stripePriceEnv: 'STRIPE_PRICE_AGENCY',
-		tagline: 'For teams shipping AI-built apps for multiple clients.',
+		tagline: 'For teams hardening multiple client projects.',
 		limits: '25 monitored projects',
 		cadence: 'Daily monitoring',
 		features: [
 			'Everything in Builder',
-			'Client-ready gate reports and exports',
+			'Client-ready readiness briefs and exports',
 			'Webhook-ready alert workflow'
 		],
 		ctaLabel: 'Start Agency - $149/mo'

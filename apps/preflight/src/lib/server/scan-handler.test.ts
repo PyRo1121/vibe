@@ -189,7 +189,7 @@ describe('handleScanPost', () => {
 		expect(second.history?.[0].score).toBe(80);
 	});
 
-	it('attaches AI copy review only after paid unlock or explicit alpha access', async () => {
+	it('attaches copy readiness review only after paid unlock or explicit alpha access', async () => {
 		const ai = {
 			run: async () => ({
 				response:
