@@ -109,11 +109,21 @@ describe('/app server load', () => {
 	});
 
 	it('returns the authenticated user with the workspace data', async () => {
+		const db = new FakeD1();
+		db.firstRows = [null, null, { count: 0 }];
+		db.allRows = [[]];
+
 		const data = await loadApp({
 			locals: {
 				session: null,
 				user
-			}
+			},
+			platform: {
+				env: {
+					AUTH_DB: db as unknown as D1Database,
+					PUBLIC_APP_URL: 'https://deploylint.com'
+				}
+			} as unknown as App.Platform
 		});
 
 		const pageData = data as Exclude<Awaited<ReturnType<typeof load>>, void>;
@@ -124,6 +134,7 @@ describe('/app server load', () => {
 			email: 'olen@example.com'
 		});
 		expect(pageData.workspace.ownerLabel).toBe("Olen's workspace");
+		expect(pageData.workspace.storageStatus).toBe('available');
 		expect(pageData.activation.nextAction).toMatchObject({
 			id: 'workflow',
 			ctaLabel: 'Copy workflow'
@@ -139,14 +150,55 @@ describe('/app server load', () => {
 			minScore: 80,
 			enforcementLabel: 'Advisory only'
 		});
+		expect(pageData.advisoryWorkflow).toContain('DEPLOYLINT_PROJECT_ID:');
+		expect(pageData.advisoryWorkflow).not.toContain('proj_demo_123');
+	});
+
+	it('does not generate a fake project workflow when workspace storage is missing', async () => {
+		const data = await loadApp({
+			locals: {
+				session: null,
+				user
+			}
+		});
+
+		const pageData = data as Exclude<Awaited<ReturnType<typeof load>>, void>;
+
+		expect(pageData.workspace).toMatchObject({
+			id: 'workspace_unavailable',
+			storageStatus: 'unavailable',
+			projects: [],
+			metrics: { activeProjects: 0, gatesEnabled: 0, reportsThisMonth: 0 }
+		});
+		expect(pageData.activation.nextAction).toMatchObject({
+			id: 'project',
+			ctaLabel: 'Review project'
+		});
+		expect(pageData.activation.progress).toEqual({
+			completed: 0,
+			total: 4,
+			percentage: 0
+		});
+		expect(pageData.gatePolicy).toBeNull();
+		expect(pageData.advisoryWorkflow).toBe('');
 	});
 
 	it('uses project setup query params as the workspace draft', async () => {
+		const db = new FakeD1();
+		db.firstRows = [null, null, { count: 0 }];
+		db.allRows = [[]];
+
 		const data = await loadApp({
 			locals: {
 				session: null,
 				user
 			},
+			platform: {
+				env: {
+					AUTH_DB: db as unknown as D1Database,
+					PUBLIC_APP_URL: 'https://deploylint.com'
+				}
+			} as unknown as App.Platform,
 			url: new URL(
 				'https://deploylint.com/app?name=Acme&repo=https%3A%2F%2Fgithub.com%2Facme%2Fapp&deploy=https%3A%2F%2Fapp.acme.com%2F&minScore=92'
 			)

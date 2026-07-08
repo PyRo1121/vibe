@@ -55,6 +55,7 @@ export interface WorkspaceMetrics {
 export interface DeploylintWorkspace {
 	id: string;
 	ownerLabel: string;
+	storageStatus: 'available' | 'unavailable';
 	billing: WorkspaceBillingState;
 	projects: DeploylintProject[];
 	metrics: WorkspaceMetrics;
@@ -374,6 +375,7 @@ export function buildWorkspaceSetupState(opts: {
 		id: 'workspace_demo',
 		ownerLabel:
 			opts.ownerLabel ?? (opts.alphaFreeUnlock ? 'Early access workspace' : 'Deploylint workspace'),
+		storageStatus: 'available',
 		billing: {
 			mode: opts.alphaFreeUnlock ? 'alpha' : 'setup',
 			planLabel: opts.alphaFreeUnlock ? 'Early access' : 'Solo',

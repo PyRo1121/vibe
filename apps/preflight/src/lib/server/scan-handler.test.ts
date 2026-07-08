@@ -254,9 +254,9 @@ describe('handleScanPost', () => {
 			body: JSON.stringify({
 				url: 'https://app.test',
 				projectId: 'proj_live-123',
-				commitSha: 'abc1234',
-				branch: 'main',
-				pullRequest: 'refs/pull/42/merge'
+				commitSha: 'headabc123',
+				branch: 'feature/gate-hardening',
+				pullRequest: '42'
 			})
 		});
 		const authDb = {} as D1Database;
@@ -267,9 +267,9 @@ describe('handleScanPost', () => {
 			authDb,
 			{
 				projectId: 'proj_live-123',
-				commitSha: 'abc1234',
-				branch: 'main',
-				pullRequest: 'refs/pull/42/merge'
+				commitSha: 'headabc123',
+				branch: 'feature/gate-hardening',
+				pullRequest: '42'
 			},
 			expect.objectContaining({
 				finalUrl: 'https://app.test/',

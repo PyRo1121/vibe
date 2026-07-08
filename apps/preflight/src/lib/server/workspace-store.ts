@@ -126,16 +126,31 @@ function monthStartMs(now = new Date()): number {
 }
 
 function fallbackWorkspace(opts: WorkspaceStoreOptions): DeploylintWorkspace {
-	return buildWorkspaceSetupState({
+	return {
+		id: 'workspace_unavailable',
+		ownerLabel: opts.ownerLabel,
+		storageStatus: 'unavailable',
+		billing: {
+			mode: opts.alphaFreeUnlock ? 'alpha' : 'setup',
+			planLabel: opts.alphaFreeUnlock ? 'Early access' : 'Solo',
+			projectLimit: 1
+		},
+		projects: [],
+		metrics: {
+			activeProjects: 0,
+			gatesEnabled: 0,
+			reportsThisMonth: 0
+		}
+	};
+}
+
+function defaultProjectDraft(opts: WorkspaceStoreOptions): DeploylintProject {
+	const workspace = buildWorkspaceSetupState({
 		appUrl: 'https://deploylint.com',
 		alphaFreeUnlock: opts.alphaFreeUnlock,
 		ownerLabel: opts.ownerLabel,
 		projectDraft: opts.projectDraft
 	});
-}
-
-function defaultProjectDraft(opts: WorkspaceStoreOptions): DeploylintProject {
-	const workspace = fallbackWorkspace(opts);
 	return workspace.projects[0];
 }
 
@@ -352,6 +367,7 @@ export async function loadOrCreateWorkspaceState(
 		return {
 			id: workspace.id,
 			ownerLabel: workspace.name,
+			storageStatus: 'available',
 			billing: billingState(opts.alphaFreeUnlock, subscription),
 			projects,
 			metrics: {

@@ -1101,7 +1101,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			'npm run verify -w preflight',
 			'npm run verify -w preflight-mcp',
 			'npm run test:e2e:install -w preflight',
-			'npm run test:e2e -w preflight'
+			'npm run test:e2e -w preflight -- --forbid-only'
 		])
 	);
 	pushCheck(
@@ -1115,7 +1115,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			]) &&
 			hasScriptCommand(rootPackage.scripts, 'verify:preflight:full', [
 				'npm run verify:preflight:unit',
-				'npm run test:e2e -w preflight'
+				'npm run test:e2e -w preflight -- --forbid-only'
 			])
 	);
 	pushCheck(
@@ -1129,7 +1129,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			'npm run verify -w apps/deploylint-shared',
 			'npm run verify -w preflight',
 			'npm run verify -w preflight-mcp',
-			'npm run test:e2e -w preflight'
+			'npm run test:e2e -w preflight -- --forbid-only'
 		]) &&
 			!rootPackage.scripts['verify:deploylint:local']?.includes('npm audit') &&
 			!rootPackage.scripts['verify:deploylint:local']?.includes('test:e2e:install')

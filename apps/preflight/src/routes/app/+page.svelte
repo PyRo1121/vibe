@@ -22,6 +22,7 @@
 
 	const workspace = $derived(data.workspace);
 	const project = $derived(data.workspace.projects[0]);
+	const storageUnavailable = $derived(workspace.storageStatus === 'unavailable');
 	const activation = $derived(data.activation);
 	const gatePolicy = $derived(data.gatePolicy);
 	const pendingReport: ProjectReportSummary = {
@@ -223,6 +224,15 @@
 				<p class="mt-1 text-sm opacity-80">{checkoutNotice.body}</p>
 			</div>
 		{/if}
+		{#if storageUnavailable}
+			<div class="mb-5 rounded-lg border border-amber-500/30 bg-amber-950/20 p-4 text-amber-100">
+				<p class="text-sm font-semibold">Workspace storage unavailable</p>
+				<p class="mt-1 text-sm text-amber-100/80">
+					Deploylint cannot load or create monitored projects in this environment, so workflow
+					generation and billing checkout are paused until storage is connected.
+				</p>
+			</div>
+		{/if}
 
 		<div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
 			<div class="rounded-xl border border-sky-500/30 bg-sky-950/20 p-5">
@@ -299,7 +309,12 @@
 					<p class="mt-1 text-sm font-semibold text-zinc-200">
 						{billingStatusLabel(workspace.billing.mode)}
 					</p>
-					{#if workspace.billing.mode === 'setup'}
+					{#if workspace.billing.mode === 'setup' && storageUnavailable}
+						<p class="mt-3 text-sm leading-6 text-zinc-400">
+							Connect workspace storage before starting billing or generating a project-scoped
+							workflow.
+						</p>
+					{:else if workspace.billing.mode === 'setup'}
 						<form method="POST" action={resolve('/api/workspace/checkout')} class="mt-4 space-y-3">
 							<label class="block">
 								<span class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">

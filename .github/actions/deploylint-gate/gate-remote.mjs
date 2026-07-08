@@ -269,6 +269,35 @@ function githubPrContext() {
 	}
 }
 
+function githubEvent() {
+	const eventPath = process.env.GITHUB_EVENT_PATH;
+	if (!eventPath) return null;
+	try {
+		return JSON.parse(readFileSync(eventPath, 'utf8'));
+	} catch {
+		return null;
+	}
+}
+
+function githubCiContext() {
+	const event = githubEvent();
+	const pullRequest = event?.pull_request;
+	const isPullRequestRun = (process.env.GITHUB_EVENT_NAME ?? '').startsWith('pull_request');
+	const prNumber = isPullRequestRun ? (pullRequest?.number ?? event?.number) : null;
+	return {
+		...(pullRequest?.head?.sha || process.env.GITHUB_SHA
+			? { commitSha: pullRequest?.head?.sha ?? process.env.GITHUB_SHA }
+			: {}),
+		...(pullRequest?.head?.ref || process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME
+			? {
+					branch:
+						pullRequest?.head?.ref ?? process.env.GITHUB_HEAD_REF ?? process.env.GITHUB_REF_NAME
+				}
+			: {}),
+		...(prNumber ? { pullRequest: String(prNumber) } : {})
+	};
+}
+
 async function upsertPrComment(ctx, markdown) {
 	const headers = {
 		Authorization: `Bearer ${ctx.token}`,
@@ -334,9 +363,7 @@ async function main() {
 	const scanPayload = {
 		url: targetUrl,
 		...(projectId ? { projectId } : {}),
-		...(process.env.GITHUB_SHA ? { commitSha: process.env.GITHUB_SHA } : {}),
-		...(process.env.GITHUB_REF_NAME ? { branch: process.env.GITHUB_REF_NAME } : {}),
-		...(process.env.GITHUB_REF ? { pullRequest: process.env.GITHUB_REF } : {})
+		...githubCiContext()
 	};
 	const res = await fetchWithRetry(
 		`${apiBase}/api/scan`,

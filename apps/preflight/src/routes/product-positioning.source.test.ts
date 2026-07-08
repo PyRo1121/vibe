@@ -21,6 +21,12 @@ function repoSource(...segments: string[]) {
 	return readFileSync(join(repoDir, ...segments), 'utf8');
 }
 
+function exportedStringConstant(fileSource: string, constantName: string) {
+	const match = new RegExp(`export const ${constantName} = '([^']+)';`).exec(fileSource);
+	expect(match).not.toBeNull();
+	return match?.[1] ?? '';
+}
+
 describe('Deploylint CI workspace positioning', () => {
 	it('points shared reports toward workspace-backed advisory workflows', () => {
 		const reportPage = source('routes', 'r', '[id]', '+page.svelte');
@@ -229,14 +235,21 @@ describe('Deploylint CI workspace positioning', () => {
 
 	it('keeps the no-login review utility and evidence components workspace-first', () => {
 		const reviewPage = source('routes', 'review', '+page.svelte');
+		const homePage = source('routes', '+page.svelte');
 		const pagesScannedStrip = source('lib', 'components', 'PagesScannedStrip.svelte');
 		const scanIncompleteBanner = source('lib', 'components', 'ScanIncompleteBanner.svelte');
 		const licenseAuditPanel = source('lib', 'components', 'LicenseAuditPanel.svelte');
+		const e2eHelpers = appSource('e2e', 'helpers.ts');
+		const deployTargetButton = exportedStringConstant(e2eHelpers, 'DEPLOY_TARGET_BUTTON');
+		const workspaceSetupButton = exportedStringConstant(e2eHelpers, 'WORKSPACE_SETUP_BUTTON');
 
 		expect(reviewPage).toContain('No-login advisory trial');
 		expect(reviewPage).toContain('Preview CI advisory report');
+		expect(reviewPage).toContain(deployTargetButton);
 		expect(reviewPage).toContain('Deploy target for CI evidence');
 		expect(reviewPage).toContain('Open workspace setup');
+		expect(reviewPage).toContain(workspaceSetupButton);
+		expect(homePage).toContain(workspaceSetupButton);
 		expect(reviewPage).toContain('project history or gate status');
 		expect(reviewPage).toContain('Preparing advisory evidence');
 		expect(reviewPage).toContain('Scoring advisory gate decision');

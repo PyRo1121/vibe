@@ -226,10 +226,33 @@ describe('workspace D1 store', () => {
 		});
 
 		expect(workspace).toMatchObject({
-			id: 'workspace_demo',
+			id: 'workspace_unavailable',
 			ownerLabel: "Olen's workspace",
+			storageStatus: 'unavailable',
 			billing: { mode: 'setup' },
-			metrics: { activeProjects: 1, gatesEnabled: 0, reportsThisMonth: 0 }
+			projects: [],
+			metrics: { activeProjects: 0, gatesEnabled: 0, reportsThisMonth: 0 }
+		});
+	});
+
+	it('does not invent a project when workspace storage is not configured', async () => {
+		const workspace = await loadOrCreateWorkspaceState(undefined, {
+			alphaFreeUnlock: true,
+			ownerLabel: "Olen's workspace",
+			ownerUserId: 'user_123',
+			projectDraft: {
+				name: 'Acme launch',
+				deployUrl: 'https://app.acme.com',
+				repoLabel: 'github.com/acme/app'
+			}
+		});
+
+		expect(workspace).toMatchObject({
+			id: 'workspace_unavailable',
+			storageStatus: 'unavailable',
+			billing: { mode: 'alpha' },
+			projects: [],
+			metrics: { activeProjects: 0, gatesEnabled: 0, reportsThisMonth: 0 }
 		});
 	});
 

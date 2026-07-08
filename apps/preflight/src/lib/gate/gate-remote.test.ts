@@ -213,7 +213,16 @@ async function withGitHubApi<T>(
 function pullRequestEventPath(number = 42) {
 	const dir = makeTempDir();
 	const path = join(dir, 'event.json');
-	writeFileSync(path, JSON.stringify({ pull_request: { number } }));
+	writeFileSync(
+		path,
+		JSON.stringify({
+			number,
+			pull_request: {
+				number,
+				head: { ref: 'feature/gate-hardening', sha: 'headabc123' }
+			}
+		})
+	);
 	return path;
 }
 
@@ -254,8 +263,11 @@ describe('gate-remote advisory output', () => {
 			const result = await runGate(apiBase, {
 				env: {
 					DEPLOYLINT_PROJECT_ID: 'proj_live-123',
-					GITHUB_SHA: 'abc1234',
-					GITHUB_REF_NAME: 'main',
+					GITHUB_SHA: 'mergeabc123',
+					GITHUB_HEAD_REF: 'feature/gate-hardening',
+					GITHUB_REF_NAME: '42/merge',
+					GITHUB_EVENT_NAME: 'pull_request',
+					GITHUB_EVENT_PATH: pullRequestEventPath(42),
 					GITHUB_REF: 'refs/pull/42/merge'
 				}
 			});
@@ -264,9 +276,9 @@ describe('gate-remote advisory output', () => {
 			expect(JSON.parse(requests[0] ?? '{}')).toMatchObject({
 				url: 'https://target.test',
 				projectId: 'proj_live-123',
-				commitSha: 'abc1234',
-				branch: 'main',
-				pullRequest: 'refs/pull/42/merge'
+				commitSha: 'headabc123',
+				branch: 'feature/gate-hardening',
+				pullRequest: '42'
 			});
 		});
 	});

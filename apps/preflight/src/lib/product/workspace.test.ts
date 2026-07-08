@@ -18,6 +18,7 @@ describe('Deploylint workspace model', () => {
 		});
 
 		expect(workspace.ownerLabel).toBe('Early access workspace');
+		expect(workspace.storageStatus).toBe('available');
 		expect(workspace.billing.mode).toBe('alpha');
 		expect(workspace.projects).toHaveLength(1);
 		expect(workspace.projects[0]).toMatchObject({

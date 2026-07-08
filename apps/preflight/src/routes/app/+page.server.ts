@@ -36,7 +36,7 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
 	});
 	const project = workspace.projects[0];
 	const activation = buildWorkspaceActivation(workspace);
-	const projectDraftApplied = Object.keys(projectDraft).length > 0;
+	const projectDraftApplied = project != null && Object.keys(projectDraft).length > 0;
 
 	return {
 		appUrl: appUrl.replace(/\/$/, ''),

@@ -52,6 +52,9 @@ describe('/app workspace source', () => {
 		expect(pageSource).toContain('Checkout complete');
 		expect(pageSource).toContain('Checkout canceled');
 		expect(pageSource).toContain('checkoutNoticeCopy');
+		expect(pageSource).toContain('Workspace storage unavailable');
+		expect(pageSource).toContain('generation and billing checkout are paused');
+		expect(pageSource).toContain('storageUnavailable');
 		expect(pageSource).toContain('/api/workspace/billing/portal');
 		expect(pageSource).toContain('Manage billing');
 		expect(pageSource).toContain('billingStatusLabel');
