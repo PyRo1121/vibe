@@ -31,6 +31,20 @@ function fakeKv() {
 	};
 }
 
+function failingKv(): KVNamespace {
+	return {
+		put: async () => {
+			throw new Error('put failed');
+		},
+		get: async () => {
+			throw new Error('get failed');
+		},
+		delete: async () => {
+			throw new Error('delete failed');
+		}
+	} as unknown as KVNamespace;
+}
+
 const SNAPSHOT: SecuritySnapshot = {
 	url: 'https://app.test',
 	finalUrl: 'https://app.test/',
@@ -69,6 +83,61 @@ describe('monitor store', () => {
 		expect(second?.notifications.enabled).toBe(true);
 	});
 
+	it('rejects unsafe monitor URLs before writing', async () => {
+		const { kv, store } = fakeKv();
+
+		await expect(
+			upsertMonitorTarget(kv, {
+				ownerKey: 'alpha:anon',
+				url: 'javascript:alert(1)',
+				now: '2026-07-05T00:00:00.000Z'
+			})
+		).resolves.toBeNull();
+		await expect(
+			upsertMonitorTarget(kv, {
+				ownerKey: 'alpha:anon',
+				url: 'https://user:pass@app.test',
+				now: '2026-07-05T00:00:00.000Z'
+			})
+		).resolves.toBeNull();
+		expect(store.size).toBe(0);
+	});
+
+	it('preserves existing target state unless updates override it', async () => {
+		const { kv, store } = fakeKv();
+		const first = await upsertMonitorTarget(kv, {
+			ownerKey: 'alpha:anon',
+			url: 'https://app.test',
+			now: '2026-07-05T00:00:00.000Z',
+			cadence: 'weekly',
+			plan: 'paid',
+			notifications: { enabled: false, email: 'ops@app.test' }
+		});
+		const stored = JSON.parse(store.get(monitorTargetKey(first?.id as string)) ?? '{}');
+		stored.lastScanAt = '2026-07-06T00:00:00.000Z';
+		stored.lastStatus = 'alert';
+		store.set(monitorTargetKey(first?.id as string), JSON.stringify(stored));
+
+		const second = await upsertMonitorTarget(kv, {
+			ownerKey: 'alpha:anon',
+			url: 'https://app.test/',
+			now: '2026-07-07T00:00:00.000Z',
+			notifications: { webhookUrl: 'https://hooks.test/deploylint' }
+		});
+
+		expect(second).toMatchObject({
+			cadence: 'weekly',
+			plan: 'paid',
+			lastScanAt: '2026-07-06T00:00:00.000Z',
+			lastStatus: 'alert'
+		});
+		expect(second?.notifications).toEqual({
+			enabled: false,
+			email: 'ops@app.test',
+			webhookUrl: 'https://hooks.test/deploylint'
+		});
+	});
+
 	it('lists targets by owner only', async () => {
 		const { kv } = fakeKv();
 		const owned = await upsertMonitorTarget(kv, {
@@ -98,6 +167,18 @@ describe('monitor store', () => {
 		expect(await deleteMonitorTarget(kv, 'alpha:anon', target?.id as string)).toBe(true);
 		expect(await listMonitorTargets(kv, 'alpha:anon')).toEqual([]);
 		expect(store.has(monitorTargetKey(target?.id as string))).toBe(false);
+	});
+
+	it('refuses missing or cross-owner deletes', async () => {
+		const { kv } = fakeKv();
+		const target = await upsertMonitorTarget(kv, {
+			ownerKey: 'alpha:owner',
+			url: 'https://app.test',
+			now: '2026-07-05T00:00:00.000Z'
+		});
+
+		await expect(deleteMonitorTarget(kv, 'alpha:owner', 'missing')).resolves.toBe(false);
+		await expect(deleteMonitorTarget(kv, 'alpha:other', target?.id as string)).resolves.toBe(false);
 	});
 
 	it('round-trips the last security snapshot', async () => {
@@ -131,5 +212,30 @@ describe('monitor store', () => {
 		expect(events).toHaveLength(20);
 		expect(events[0].id).toBe('event25');
 		expect(events.at(-1)?.id).toBe('event6');
+	});
+
+	it('returns safe fallbacks when KV operations fail', async () => {
+		const kv = failingKv();
+
+		await expect(
+			upsertMonitorTarget(kv, {
+				ownerKey: 'alpha:anon',
+				url: 'https://app.test',
+				now: '2026-07-05T00:00:00.000Z'
+			})
+		).resolves.toBeNull();
+		await expect(listMonitorTargets(kv, 'alpha:anon')).resolves.toEqual([]);
+		await expect(deleteMonitorTarget(kv, 'alpha:anon', 'target123')).resolves.toBe(false);
+		await expect(saveSecuritySnapshot(kv, 'target123', SNAPSHOT)).resolves.toBe(false);
+		await expect(loadSecuritySnapshot(kv, 'target123')).resolves.toBeNull();
+		await expect(
+			recordMonitorEvent(kv, 'target123', {
+				id: 'event1',
+				targetId: 'target123',
+				createdAt: '2026-07-05T00:00:00.000Z',
+				type: 'scan-error',
+				issueIds: []
+			})
+		).resolves.toEqual([]);
 	});
 });

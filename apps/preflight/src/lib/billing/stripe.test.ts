@@ -98,6 +98,26 @@ describe('createCheckoutSession', () => {
 		expect(keys).toHaveLength(2);
 		expect(keys[0]).not.toBe(keys[1]);
 	});
+
+	it('surfaces Stripe checkout errors without leaking unbounded response bodies', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async () => ({
+				ok: false,
+				text: async () => 'x'.repeat(300)
+			}))
+		);
+
+		await expect(
+			createCheckoutSession({
+				scanUrl: 'https://app.test',
+				appUrl: 'https://preflight.test',
+				secretKey: 'sk_test_x',
+				plan: 'solo',
+				priceId: 'price_solo'
+			})
+		).rejects.toThrow(/^Stripe checkout failed: x{200}$/);
+	});
 });
 
 describe('verifyCheckoutSession', () => {
@@ -183,6 +203,50 @@ describe('verifyCheckoutSession', () => {
 			false
 		);
 	});
+
+	it('rejects sessions that Stripe cannot retrieve', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async () => ({
+				ok: false
+			}))
+		);
+
+		expect(await verifyCheckoutSession('cs_test_missing', 'https://app.test', 'sk_test_x')).toBe(
+			false
+		);
+	});
+
+	it('rejects paid sessions that are not complete', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async () => ({
+				ok: true,
+				json: async () => ({
+					payment_status: 'paid',
+					status: 'open',
+					metadata: { scan_url: 'https://app.test' }
+				})
+			}))
+		);
+
+		expect(await verifyCheckoutSession('cs_test_abc123', 'https://app.test', 'sk_test_x')).toBe(
+			false
+		);
+	});
+
+	it('returns false when Stripe retrieval throws', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async () => {
+				throw new Error('network down');
+			})
+		);
+
+		expect(await verifyCheckoutSession('cs_test_abc123', 'https://app.test', 'sk_test_x')).toBe(
+			false
+		);
+	});
 });
 
 describe('createBillingPortalSession', () => {
@@ -249,6 +313,74 @@ describe('createBillingPortalSession', () => {
 				secretKey: 'sk_test_x'
 			})
 		).rejects.toThrow('No Stripe customer');
+	});
+
+	it('accepts object-shaped Stripe customers when creating a portal session', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async (url: string, init?: RequestInit) => {
+				if (url.endsWith('/checkout/sessions/cs_test_abc123')) {
+					return {
+						ok: true,
+						json: async () => ({
+							payment_status: 'paid',
+							status: 'complete',
+							customer: { id: 'cus_object_123' },
+							metadata: { scan_url: 'https://app.test' }
+						})
+					};
+				}
+
+				const body = init?.body as URLSearchParams;
+				expect(body.get('customer')).toBe('cus_object_123');
+				return {
+					ok: true,
+					json: async () => ({ id: 'bps_test_123', url: 'https://billing.stripe.com/p/session' })
+				};
+			})
+		);
+
+		await expect(
+			createBillingPortalSession({
+				sessionId: 'cs_test_abc123',
+				scanUrl: 'https://app.test/',
+				appUrl: 'https://deploylint.com',
+				secretKey: 'sk_test_x'
+			})
+		).resolves.toMatchObject({ id: 'bps_test_123' });
+	});
+
+	it('surfaces Stripe portal creation failures', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async (url: string) => {
+				if (url.endsWith('/checkout/sessions/cs_test_abc123')) {
+					return {
+						ok: true,
+						json: async () => ({
+							payment_status: 'paid',
+							status: 'complete',
+							customer: 'cus_123',
+							metadata: { scan_url: 'https://app.test' }
+						})
+					};
+				}
+
+				return {
+					ok: false,
+					text: async () => 'portal disabled'
+				};
+			})
+		);
+
+		await expect(
+			createBillingPortalSession({
+				sessionId: 'cs_test_abc123',
+				scanUrl: 'https://app.test',
+				appUrl: 'https://deploylint.com',
+				secretKey: 'sk_test_x'
+			})
+		).rejects.toThrow('Stripe billing portal failed: portal disabled');
 	});
 });
 

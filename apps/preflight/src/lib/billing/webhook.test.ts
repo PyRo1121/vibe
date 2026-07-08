@@ -49,6 +49,25 @@ describe('verifyStripeWebhookSignature', () => {
 		const header = `t=${Math.floor(Date.now() / 1000)},v1=${invalidSig},v1=${validSig}`;
 		expect(verifyStripeWebhookSignature(payload, header, secret)).toBe(true);
 	});
+
+	it('rejects missing, malformed, or non-numeric signature headers', () => {
+		const payload = '{"type":"checkout.session.completed"}';
+		const secret = 'whsec_test';
+
+		expect(verifyStripeWebhookSignature(payload, null, secret)).toBe(false);
+		expect(verifyStripeWebhookSignature(payload, 'bad-header', secret)).toBe(false);
+		expect(verifyStripeWebhookSignature(payload, 't=now,v1=abc', secret)).toBe(false);
+	});
+
+	it('skips invalid hex signatures and keeps checking later signatures', () => {
+		const payload = '{"type":"checkout.session.completed"}';
+		const secret = 'whsec_test';
+		const valid = signPayload(payload, secret);
+		const validSig = valid.split('v1=')[1];
+		const header = `t=${Math.floor(Date.now() / 1000)},v1=not-hex,v1=abc,v1=${validSig}`;
+
+		expect(verifyStripeWebhookSignature(payload, header, secret)).toBe(true);
+	});
 });
 
 describe('isCheckoutSessionFulfilled', () => {
@@ -81,5 +100,23 @@ describe('isCheckoutSessionFulfilled', () => {
 			})
 		);
 		expect(isCheckoutSessionFulfilled(event)).toBe(true);
+	});
+
+	it('does not fulfill failed async payments or subscription lifecycle events', () => {
+		const failed = parseStripeWebhookEvent(
+			JSON.stringify({
+				type: 'checkout.session.async_payment_failed',
+				data: { object: { id: 'cs_test_1' } }
+			})
+		);
+		const deleted = parseStripeWebhookEvent(
+			JSON.stringify({
+				type: 'customer.subscription.deleted',
+				data: { object: { subscription: 'sub_1' } }
+			})
+		);
+
+		expect(isCheckoutSessionFulfilled(failed)).toBe(false);
+		expect(isCheckoutSessionFulfilled(deleted)).toBe(false);
 	});
 });

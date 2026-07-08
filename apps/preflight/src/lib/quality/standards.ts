@@ -14,6 +14,40 @@ export const ENTERPRISE_COVERAGE_MINIMUMS = {
 } as const;
 
 type CoverageThresholds = Record<keyof typeof ENTERPRISE_COVERAGE_MINIMUMS, number>;
+type ScopedCoverageThresholds = Record<string, CoverageThresholds>;
+
+export const CRITICAL_COVERAGE_THRESHOLDS = {
+	'src/lib/billing/**.ts': {
+		statements: 94,
+		lines: 96,
+		functions: 100,
+		branches: 92
+	},
+	'src/lib/ci/**.ts': {
+		statements: 95,
+		lines: 97,
+		functions: 100,
+		branches: 84
+	},
+	'src/lib/monitoring/**.ts': {
+		statements: 95,
+		lines: 97,
+		functions: 100,
+		branches: 91
+	},
+	'src/lib/scan/repo/**.ts': {
+		statements: 97,
+		lines: 98,
+		functions: 97,
+		branches: 90
+	},
+	'src/lib/server/**.ts': {
+		statements: 97,
+		lines: 98,
+		functions: 97,
+		branches: 92
+	}
+} as const satisfies ScopedCoverageThresholds;
 
 export interface QualityStandardsReport {
 	checked: string[];
@@ -90,6 +124,62 @@ function readCoverageThresholds(viteConfigPath: string): CoverageThresholds {
 		functions: values.functions ?? 0,
 		branches: values.branches ?? 0
 	};
+}
+
+function readScopedCoverageThresholds(viteConfigPath: string): ScopedCoverageThresholds {
+	const source = ts.createSourceFile(
+		viteConfigPath,
+		readFileSync(viteConfigPath, 'utf8'),
+		ts.ScriptTarget.Latest,
+		true
+	);
+	const thresholds = findObjectProperty(source, 'thresholds');
+	const scoped: ScopedCoverageThresholds = {};
+
+	for (const prop of thresholds?.properties ?? []) {
+		if (!ts.isPropertyAssignment(prop) || !ts.isObjectLiteralExpression(prop.initializer)) {
+			continue;
+		}
+		const name = propertyNameText(prop.name);
+		if (!name) continue;
+
+		const values: Partial<CoverageThresholds> = {};
+		for (const thresholdProp of prop.initializer.properties) {
+			if (
+				!ts.isPropertyAssignment(thresholdProp) ||
+				!ts.isNumericLiteral(thresholdProp.initializer)
+			) {
+				continue;
+			}
+			const thresholdName = propertyNameText(thresholdProp.name);
+			if (!thresholdName || !(thresholdName in ENTERPRISE_COVERAGE_MINIMUMS)) continue;
+			values[thresholdName as keyof CoverageThresholds] = Number(thresholdProp.initializer.text);
+		}
+
+		scoped[name] = {
+			statements: values.statements ?? 0,
+			lines: values.lines ?? 0,
+			functions: values.functions ?? 0,
+			branches: values.branches ?? 0
+		};
+	}
+
+	return scoped;
+}
+
+function includesScopedThresholds(
+	actual: ScopedCoverageThresholds,
+	expected: ScopedCoverageThresholds
+): boolean {
+	return Object.entries(expected).every(([pattern, thresholds]) => {
+		const configured = actual[pattern];
+		return (
+			configured !== undefined &&
+			Object.entries(thresholds).every(
+				([metric, minimum]) => configured[metric as keyof CoverageThresholds] >= minimum
+			)
+		);
+	});
 }
 
 function pushCheck(checked: string[], failures: string[], label: string, pass: boolean) {
@@ -192,6 +282,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		workspaces: Record<string, unknown>;
 	};
 	const configuredCoverageThresholds = readCoverageThresholds(viteConfigPath);
+	const configuredScopedCoverageThresholds = readScopedCoverageThresholds(viteConfigPath);
 	const configuredMcpCoverageThresholds = readCoverageThresholds(mcpViteConfigPath);
 	const configuredSharedCoverageThresholds = readCoverageThresholds(deploylintSharedViteConfigPath);
 	const preflightGateWorkflow = readFileSync(preflightGateWorkflowPath, 'utf8');
@@ -367,6 +458,12 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			([metric, minimum]) =>
 				configuredCoverageThresholds[metric as keyof CoverageThresholds] >= minimum
 		)
+	);
+	pushCheck(
+		checked,
+		failures,
+		'vitest scoped coverage thresholds protect critical Deploylint folders',
+		includesScopedThresholds(configuredScopedCoverageThresholds, CRITICAL_COVERAGE_THRESHOLDS)
 	);
 	pushCheck(
 		checked,

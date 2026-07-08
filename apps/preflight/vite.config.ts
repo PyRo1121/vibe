@@ -30,7 +30,37 @@ export default defineConfig({
 				lines: 95,
 				functions: 98,
 				branches: 90,
-				statements: 95
+				statements: 95,
+				'src/lib/billing/**.ts': {
+					lines: 96,
+					functions: 100,
+					branches: 92,
+					statements: 94
+				},
+				'src/lib/ci/**.ts': {
+					lines: 97,
+					functions: 100,
+					branches: 84,
+					statements: 95
+				},
+				'src/lib/monitoring/**.ts': {
+					lines: 97,
+					functions: 100,
+					branches: 91,
+					statements: 95
+				},
+				'src/lib/scan/repo/**.ts': {
+					lines: 98,
+					functions: 97,
+					branches: 90,
+					statements: 97
+				},
+				'src/lib/server/**.ts': {
+					lines: 98,
+					functions: 97,
+					branches: 92,
+					statements: 97
+				}
 			}
 		}
 	}

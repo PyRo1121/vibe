@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
 	assertQualityStandards,
+	CRITICAL_COVERAGE_THRESHOLDS,
 	ENTERPRISE_COVERAGE_MINIMUMS,
 	inspectQualityStandards
 } from './standards';
@@ -40,6 +41,7 @@ describe('quality standards guard', () => {
 				'oxlint config enables correctness, suspicious, TypeScript, Vitest, Promise, and Unicorn guards',
 				'oxfmt config enforces deterministic imports, Tailwind sorting, Svelte formatting, and LF endings',
 				'vitest coverage thresholds meet enterprise minimums',
+				'vitest scoped coverage thresholds protect critical Deploylint folders',
 				'preflight-mcp coverage thresholds meet enterprise minimums',
 				'deploylint-shared coverage thresholds meet enterprise minimums',
 				'GitHub workflows enforce canonical deploylint CI and MCP dogfood gates',
@@ -164,6 +166,12 @@ describe('quality standards guard', () => {
 								lines: 70,
 								functions: 70,
 								branches: 70
+							},
+							'src/lib/billing/**.ts': {
+								statements: 80,
+								lines: 80,
+								functions: 80,
+								branches: 80
 							}
 						}
 					}
@@ -204,6 +212,7 @@ describe('quality standards guard', () => {
 					'oxlint config enables correctness, suspicious, TypeScript, Vitest, Promise, and Unicorn guards',
 					'oxfmt config enforces deterministic imports, Tailwind sorting, Svelte formatting, and LF endings',
 					'vitest coverage thresholds meet enterprise minimums',
+					'vitest scoped coverage thresholds protect critical Deploylint folders',
 					'preflight-mcp coverage thresholds meet enterprise minimums',
 					'deploylint-shared coverage thresholds meet enterprise minimums',
 					'GitHub workflows enforce canonical deploylint CI and MCP dogfood gates',
@@ -215,6 +224,41 @@ describe('quality standards guard', () => {
 		} finally {
 			rmSync(root, { recursive: true, force: true });
 		}
+	});
+
+	it('documents the critical folder coverage floors', () => {
+		expect(CRITICAL_COVERAGE_THRESHOLDS).toEqual({
+			'src/lib/billing/**.ts': {
+				statements: 94,
+				lines: 96,
+				functions: 100,
+				branches: 92
+			},
+			'src/lib/ci/**.ts': {
+				statements: 95,
+				lines: 97,
+				functions: 100,
+				branches: 84
+			},
+			'src/lib/monitoring/**.ts': {
+				statements: 95,
+				lines: 97,
+				functions: 100,
+				branches: 91
+			},
+			'src/lib/scan/repo/**.ts': {
+				statements: 97,
+				lines: 98,
+				functions: 97,
+				branches: 90
+			},
+			'src/lib/server/**.ts': {
+				statements: 97,
+				lines: 98,
+				functions: 97,
+				branches: 92
+			}
+		});
 	});
 
 	it('reports missing standards files without throwing raw file errors', () => {
