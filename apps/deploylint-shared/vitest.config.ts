@@ -1,11 +1,20 @@
 import { defineConfig } from 'vitest/config';
 
+const testReporters =
+	process.env.GITHUB_ACTIONS === 'true'
+		? ['default', 'github-actions', 'junit']
+		: ['default', 'junit'];
+
 export default defineConfig({
 	test: {
 		environment: 'node',
 		include: ['*.test.js'],
 		exclude: ['coverage/**', 'node_modules/**'],
 		passWithNoTests: false,
+		reporters: testReporters,
+		outputFile: {
+			junit: 'test-results/vitest-junit.xml'
+		},
 		coverage: {
 			provider: 'v8',
 			reporter: ['text', 'json', 'html'],

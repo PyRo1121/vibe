@@ -2,6 +2,11 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vitest/config';
 
+const testReporters =
+	process.env.GITHUB_ACTIONS === 'true'
+		? ['default', 'github-actions', 'junit']
+		: ['default', 'junit'];
+
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit()],
 	build: {
@@ -13,6 +18,10 @@ export default defineConfig({
 		include: ['src/**/*.{test,spec}.{js,ts}'],
 		environment: 'node',
 		passWithNoTests: false,
+		reporters: testReporters,
+		outputFile: {
+			junit: 'test-results/vitest-junit.xml'
+		},
 		coverage: {
 			provider: 'v8',
 			reporter: ['text', 'json', 'html'],

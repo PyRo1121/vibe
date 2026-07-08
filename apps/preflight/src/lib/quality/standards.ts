@@ -188,6 +188,16 @@ function includesScopedThresholds(
 	});
 }
 
+function hasVitestJUnitArtifacts(configSource: string): boolean {
+	return (
+		configSource.includes('reporters: testReporters') &&
+		configSource.includes("'github-actions'") &&
+		configSource.includes("'junit'") &&
+		configSource.includes('outputFile:') &&
+		configSource.includes("junit: 'test-results/vitest-junit.xml'")
+	);
+}
+
 function pushCheck(checked: string[], failures: string[], label: string, pass: boolean) {
 	if (pass) {
 		checked.push(label);
@@ -294,6 +304,8 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const configuredMcpCoverageThresholds = readCoverageThresholds(mcpViteConfigPath);
 	const configuredSharedCoverageThresholds = readCoverageThresholds(deploylintSharedViteConfigPath);
 	const viteConfigSource = readFileSync(viteConfigPath, 'utf8');
+	const mcpViteConfigSource = readFileSync(mcpViteConfigPath, 'utf8');
+	const deploylintSharedViteConfigSource = readFileSync(deploylintSharedViteConfigPath, 'utf8');
 	const playwrightConfig = readFileSync(playwrightConfigPath, 'utf8');
 	const preflightGateWorkflow = readFileSync(preflightGateWorkflowPath, 'utf8');
 	const dogfoodWorkflow = readFileSync(dogfoodWorkflowPath, 'utf8');
@@ -516,11 +528,13 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			preflightGateWorkflow.includes('node-version-file: .nvmrc') &&
 			preflightGateWorkflow.includes('actions/upload-artifact@v6') &&
 			preflightGateWorkflow.includes('apps/deploylint-shared/coverage/**') &&
+			preflightGateWorkflow.includes('apps/deploylint-shared/test-results/**') &&
 			preflightGateWorkflow.includes('apps/preflight/coverage/**') &&
 			preflightGateWorkflow.includes('apps/preflight/playwright-report/**') &&
 			preflightGateWorkflow.includes('apps/preflight/test-results/**') &&
 			preflightGateWorkflow.includes('retention-days: 14') &&
 			preflightGateWorkflow.includes('apps/preflight-mcp/coverage/**') &&
+			preflightGateWorkflow.includes('apps/preflight-mcp/test-results/**') &&
 			!preflightGateWorkflow.includes("node-version: '24'") &&
 			preflightGateWorkflow.includes('apps/preflight-mcp/**') &&
 			[
@@ -565,6 +579,17 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			playwrightConfig.includes("['html', { open: 'never' }]") &&
 			preflightGateWorkflow.includes('apps/preflight/playwright-report/**') &&
 			preflightGateWorkflow.includes('apps/preflight/test-results/**')
+	);
+	pushCheck(
+		checked,
+		failures,
+		'Vitest CI captures junit test-result artifacts for preflight, MCP, and shared packages',
+		hasVitestJUnitArtifacts(viteConfigSource) &&
+			hasVitestJUnitArtifacts(mcpViteConfigSource) &&
+			hasVitestJUnitArtifacts(deploylintSharedViteConfigSource) &&
+			preflightGateWorkflow.includes('apps/deploylint-shared/test-results/**') &&
+			preflightGateWorkflow.includes('apps/preflight/test-results/**') &&
+			preflightGateWorkflow.includes('apps/preflight-mcp/test-results/**')
 	);
 	pushCheck(
 		checked,

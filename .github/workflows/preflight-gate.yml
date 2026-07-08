@@ -78,10 +78,12 @@ jobs:
           retention-days: 14
           path: |
             apps/deploylint-shared/coverage/**
+            apps/deploylint-shared/test-results/**
             apps/preflight/coverage/**
             apps/preflight/playwright-report/**
             apps/preflight/test-results/**
             apps/preflight-mcp/coverage/**
+            apps/preflight-mcp/test-results/**
 
       - name: Scan production URL (optional)
         env:
