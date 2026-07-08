@@ -21,25 +21,8 @@ on:
       - 'scripts/benchmark-lighthouse.mjs'
       - '.github/workflows/preflight-gate.yml'
       - '.github/workflows/deploylint-dogfood.yml'
-  pull_request:
-    paths:
-      - 'apps/preflight/**'
-      - 'apps/preflight-mcp/**'
-      - 'apps/deploylint-shared/**'
-      - '.github/actions/deploylint-gate/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'turbo.json'
-      - 'knip.deploylint.jsonc'
-      - '.oxlintrc.jsonc'
-      - '.oxfmtrc.jsonc'
-      - 'svelte.config.js'
-      - '.github/dependabot.yml'
-      - '.nvmrc'
-      - 'scripts/assert-unlighthouse.mjs'
-      - 'scripts/benchmark-lighthouse.mjs'
-      - '.github/workflows/preflight-gate.yml'
-      - '.github/workflows/deploylint-dogfood.yml'
+  schedule:
+    - cron: '17 11 * * *'
   workflow_dispatch:
 
 permissions:

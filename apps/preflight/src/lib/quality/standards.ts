@@ -3,6 +3,7 @@ import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import ts from 'typescript';
+import { parse as parseYaml } from 'yaml';
 
 import { analyzeWorkflowPermissions } from '../ci/workflow-permissions';
 
@@ -103,6 +104,11 @@ function isCoverageMetric(value: string): value is CoverageMetric {
 
 function readJsonRecord(path: string): Record<string, unknown> {
 	const value = readJson(path);
+	return isRecord(value) ? value : {};
+}
+
+function readYamlRecord(path: string): Record<string, unknown> {
+	const value: unknown = parseYaml(readFileSync(path, 'utf8'), { stringKeys: true });
 	return isRecord(value) ? value : {};
 }
 
@@ -434,13 +440,217 @@ function hasLeastPrivilegeWorkflowPermissions(workflow: string): boolean {
 	return permissions.contentsRead && !permissions.writeAll && permissions.writeScopes.length === 0;
 }
 
-function hasDeploylintWorkflowTriggers(workflow: string): boolean {
+function readRecordProperty(record: Record<string, unknown>, key: string): Record<string, unknown> {
+	const value = record[key];
+	return isRecord(value) ? value : {};
+}
+
+function readRecordArray(value: unknown): Record<string, unknown>[] {
+	return Array.isArray(value) ? value.filter(isRecord) : [];
+}
+
+function readWorkflowEvent(workflow: Record<string, unknown>, event: string): unknown {
+	const triggers = workflow.on;
+	if (typeof triggers === 'string') return triggers === event ? true : undefined;
+	if (Array.isArray(triggers)) return triggers.includes(event) ? true : undefined;
+	if (!isRecord(triggers)) return undefined;
+	return Object.hasOwn(triggers, event) ? triggers[event] : undefined;
+}
+
+function workflowEventHasPaths(
+	workflow: Record<string, unknown>,
+	event: string,
+	expectedPaths: string[]
+): boolean {
+	const config = readWorkflowEvent(workflow, event);
+	if (!isRecord(config)) return false;
+	const paths = readStringArray(config.paths);
+	return expectedPaths.every((path) => paths.includes(path));
+}
+
+function workflowEventHasMainBranch(workflow: Record<string, unknown>, event: string): boolean {
+	const config = readWorkflowEvent(workflow, event);
+	if (!isRecord(config)) return false;
+	return readStringArray(config.branches).includes('main');
+}
+
+function workflowHasEvent(workflow: Record<string, unknown>, event: string): boolean {
+	return readWorkflowEvent(workflow, event) !== undefined;
+}
+
+function hasDeploylintCiWorkflowTriggers(workflow: Record<string, unknown>): boolean {
 	return (
-		workflow.includes('push:') &&
-		workflow.includes('branches: [main]') &&
-		workflow.includes('pull_request:') &&
-		workflow.includes('workflow_dispatch:') &&
-		DEPLOYLINT_WORKFLOW_PATH_FILTERS.every((path) => workflow.includes(path))
+		workflowEventHasMainBranch(workflow, 'push') &&
+		workflowEventHasPaths(workflow, 'push', DEPLOYLINT_WORKFLOW_PATH_FILTERS) &&
+		workflowEventHasPaths(workflow, 'pull_request', DEPLOYLINT_WORKFLOW_PATH_FILTERS) &&
+		workflowHasEvent(workflow, 'workflow_dispatch')
+	);
+}
+
+function hasDeploylintDogfoodWorkflowTriggers(workflow: Record<string, unknown>): boolean {
+	return (
+		workflowEventHasMainBranch(workflow, 'push') &&
+		workflowEventHasPaths(workflow, 'push', DEPLOYLINT_WORKFLOW_PATH_FILTERS) &&
+		!workflowHasEvent(workflow, 'pull_request') &&
+		readRecordArray(readWorkflowEvent(workflow, 'schedule')).some(
+			(schedule) => typeof schedule.cron === 'string' && schedule.cron.length > 0
+		) &&
+		workflowHasEvent(workflow, 'workflow_dispatch')
+	);
+}
+
+function workflowHasConcurrency(workflow: Record<string, unknown>, prefix: string): boolean {
+	const concurrency = readRecordProperty(workflow, 'concurrency');
+	return (
+		typeof concurrency.group === 'string' &&
+		concurrency.group.startsWith(prefix) &&
+		concurrency['cancel-in-progress'] === true
+	);
+}
+
+function workflowJob(workflow: Record<string, unknown>, name: string): Record<string, unknown> {
+	return readRecordProperty(readRecordProperty(workflow, 'jobs'), name);
+}
+
+function workflowJobSteps(job: Record<string, unknown>): Record<string, unknown>[] {
+	return readRecordArray(job.steps);
+}
+
+function workflowStepByName(
+	steps: Record<string, unknown>[],
+	name: string
+): Record<string, unknown> | null {
+	return steps.find((step) => step.name === name) ?? null;
+}
+
+function workflowUsesStep(steps: Record<string, unknown>[], uses: string): boolean {
+	return steps.some((step) => step.uses === uses);
+}
+
+function workflowRunStepIncludes(
+	steps: Record<string, unknown>[],
+	name: string,
+	fragments: string[]
+): boolean {
+	const step = workflowStepByName(steps, name);
+	const run = step?.run;
+	return typeof run === 'string' && fragments.every((fragment) => run.includes(fragment));
+}
+
+function workflowStepWith(step: Record<string, unknown>): Record<string, unknown> {
+	return isRecord(step.with) ? step.with : {};
+}
+
+function workflowStepEnv(step: Record<string, unknown>): Record<string, unknown> {
+	return isRecord(step.env) ? step.env : {};
+}
+
+function multilineValueIncludes(value: unknown, expected: string[]): boolean {
+	return typeof value === 'string' && expected.every((item) => value.includes(item));
+}
+
+function hasSetupNodeStep(steps: Record<string, unknown>[]): boolean {
+	const step = steps.find((candidate) => candidate.uses === 'actions/setup-node@v6');
+	if (!step) return false;
+	const withConfig = workflowStepWith(step);
+	return withConfig['node-version-file'] === '.nvmrc' && withConfig.cache === 'npm';
+}
+
+function hasArtifactUploadStep(
+	steps: Record<string, unknown>[],
+	name: string,
+	expectedPaths: string[]
+): boolean {
+	const step = workflowStepByName(steps, name);
+	if (!step || step.uses !== 'actions/upload-artifact@v6' || step.if !== 'failure()') return false;
+	const withConfig = workflowStepWith(step);
+	return (
+		withConfig['if-no-files-found'] === 'ignore' &&
+		withConfig['retention-days'] === 14 &&
+		multilineValueIncludes(withConfig.path, expectedPaths)
+	);
+}
+
+function workflowJobHasTimeout(job: Record<string, unknown>, minutes: number): boolean {
+	return job['runs-on'] === 'ubuntu-latest' && job['timeout-minutes'] === minutes;
+}
+
+function hasPreflightGateWorkflowContract(workflow: Record<string, unknown>): boolean {
+	const gate = workflowJob(workflow, 'gate');
+	const dependencyReview = workflowJob(workflow, 'dependency-review');
+	const gateSteps = workflowJobSteps(gate);
+	const dependencySteps = workflowJobSteps(dependencyReview);
+	const requireUrl = workflowStepByName(gateSteps, 'Require production gate URL on main pushes');
+	const requireUrlEnv = requireUrl ? workflowStepEnv(requireUrl) : {};
+	const scanProduction = workflowStepByName(gateSteps, 'Scan production URL');
+	const scanEnv = scanProduction ? workflowStepEnv(scanProduction) : {};
+
+	return (
+		workflowHasConcurrency(workflow, 'deploylint-gate-') &&
+		workflowJobHasTimeout(dependencyReview, 10) &&
+		dependencyReview.if === "github.event_name == 'pull_request'" &&
+		workflowUsesStep(dependencySteps, 'actions/checkout@v7') &&
+		workflowUsesStep(dependencySteps, 'actions/dependency-review-action@v5') &&
+		workflowStepWith(
+			dependencySteps.find((step) => step.uses === 'actions/dependency-review-action@v5') ?? {}
+		)['fail-on-severity'] === 'moderate' &&
+		workflowJobHasTimeout(gate, 30) &&
+		workflowUsesStep(gateSteps, 'actions/checkout@v7') &&
+		hasSetupNodeStep(gateSteps) &&
+		workflowRunStepIncludes(gateSteps, 'Install dependencies', ['npm ci']) &&
+		workflowRunStepIncludes(gateSteps, 'Verify Deploylint CI suite', [
+			'npm run verify:deploylint:ci'
+		]) &&
+		hasArtifactUploadStep(gateSteps, 'Upload Deploylint failure artifacts', [
+			'apps/deploylint-shared/coverage/**',
+			'apps/deploylint-shared/test-results/**',
+			'apps/preflight/coverage/**',
+			'apps/preflight/playwright-report/**',
+			'apps/preflight/test-results/**',
+			'apps/preflight-mcp/coverage/**',
+			'apps/preflight-mcp/test-results/**'
+		]) &&
+		requireUrl?.if === "github.event_name == 'push'" &&
+		requireUrlEnv.PREFLIGHT_GATE_URL === '${{ secrets.PREFLIGHT_GATE_URL }}' &&
+		requireUrlEnv.DEPLOYLINT_GATE_URL === '${{ secrets.DEPLOYLINT_GATE_URL }}' &&
+		workflowRunStepIncludes(gateSteps, 'Require production gate URL on main pushes', [
+			'::error::Set PREFLIGHT_GATE_URL or DEPLOYLINT_GATE_URL',
+			'exit 2'
+		]) &&
+		scanEnv.PREFLIGHT_URL ===
+			'${{ github.event.inputs.url || secrets.PREFLIGHT_GATE_URL || secrets.DEPLOYLINT_GATE_URL }}' &&
+		scanEnv.PREFLIGHT_MIN_SCORE === "${{ github.event.inputs.min_score || '80' }}" &&
+		scanEnv.PREFLIGHT_API === 'https://deploylint.com' &&
+		workflowRunStepIncludes(gateSteps, 'Scan production URL', [
+			'npm run gate -w preflight -- "$PREFLIGHT_URL"'
+		])
+	);
+}
+
+function hasDogfoodWorkflowContract(workflow: Record<string, unknown>): boolean {
+	const gate = workflowJob(workflow, 'gate');
+	const steps = workflowJobSteps(gate);
+	const dogfoodGate = workflowStepByName(steps, 'Gate deploylint.com');
+	const dogfoodWith = dogfoodGate ? workflowStepWith(dogfoodGate) : {};
+
+	return (
+		workflowHasConcurrency(workflow, 'deploylint-dogfood-') &&
+		workflowJobHasTimeout(gate, 20) &&
+		workflowUsesStep(steps, 'actions/checkout@v7') &&
+		hasSetupNodeStep(steps) &&
+		workflowRunStepIncludes(steps, 'Install dependencies', ['npm ci']) &&
+		workflowRunStepIncludes(steps, 'Verify npm registry signatures', [
+			'npm run audit:signatures'
+		]) &&
+		workflowRunStepIncludes(steps, 'Verify MCP package', ['npm run verify -w preflight-mcp']) &&
+		dogfoodGate?.uses === './.github/actions/deploylint-gate' &&
+		dogfoodWith.url === 'https://deploylint.com' &&
+		String(dogfoodWith.min_score) === '80' &&
+		dogfoodWith.mode === 'gate' &&
+		hasArtifactUploadStep(steps, 'Upload dogfood failure artifacts', [
+			'apps/preflight-mcp/coverage/**',
+			'apps/preflight-mcp/test-results/**'
+		])
 	);
 }
 
@@ -590,6 +800,8 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const deploylintGateAction = readFileSync(deploylintGateActionPath, 'utf8');
 	const preflightGateWorkflow = readFileSync(preflightGateWorkflowPath, 'utf8');
 	const dogfoodWorkflow = readFileSync(dogfoodWorkflowPath, 'utf8');
+	const preflightGateWorkflowConfig = readYamlRecord(preflightGateWorkflowPath);
+	const dogfoodWorkflowConfig = readYamlRecord(dogfoodWorkflowPath);
 	const disabledE2eTests = findDisabledTestModifiers(rootDir);
 	const nvmrcMajor = Number.parseInt(readFileSync(nvmrcPath, 'utf8').trim(), 10);
 	const preflightTypeAwareLint = preflightPackage.scripts['lint:type-aware'] ?? '';
@@ -742,13 +954,18 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 				'npm run audit:security',
 				'npm run audit:signatures'
 			]) &&
-			dogfoodWorkflow.includes('npm run audit:signatures')
+			workflowRunStepIncludes(
+				workflowJobSteps(workflowJob(dogfoodWorkflowConfig, 'gate')),
+				'Verify npm registry signatures',
+				['npm run audit:signatures']
+			)
 	);
 	pushCheck(
 		checked,
 		failures,
 		'root workflow semantic lint runs pinned actionlint across GitHub Actions workflows',
 		rootPackage.devDependencies['github-actionlint'] === '1.7.12' &&
+			rootPackage.devDependencies.yaml === '2.9.0' &&
 			hasScriptCommand(rootPackage.scripts, 'lint:workflows', ['github-actionlint']) &&
 			hasScriptCommand(rootPackage.scripts, 'verify:deploylint:ci', ['npm run lint:workflows']) &&
 			hasScriptCommand(rootPackage.scripts, 'verify:deploylint:local', [
@@ -959,82 +1176,62 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
-		'GitHub workflows run on push, pull request, and manual dispatch with Deploylint path filters',
-		hasDeploylintWorkflowTriggers(preflightGateWorkflow) &&
-			hasDeploylintWorkflowTriggers(dogfoodWorkflow)
+		'GitHub workflows use parsed triggers for deterministic CI and production dogfood',
+		hasDeploylintCiWorkflowTriggers(preflightGateWorkflowConfig) &&
+			hasDeploylintDogfoodWorkflowTriggers(dogfoodWorkflowConfig)
 	);
 	pushCheck(
 		checked,
 		failures,
 		'GitHub workflows enforce canonical deploylint CI and MCP dogfood gates',
-		preflightGateWorkflow.includes('npm run verify:deploylint:ci') &&
-			preflightGateWorkflow.includes('concurrency:') &&
-			preflightGateWorkflow.includes('cancel-in-progress: true') &&
-			preflightGateWorkflow.includes('timeout-minutes: 30') &&
-			preflightGateWorkflow.includes('push:') &&
-			preflightGateWorkflow.includes('branches: [main]') &&
-			preflightGateWorkflow.includes('node-version-file: .nvmrc') &&
-			preflightGateWorkflow.includes('actions/upload-artifact@v6') &&
-			preflightGateWorkflow.includes('apps/deploylint-shared/coverage/**') &&
-			preflightGateWorkflow.includes('apps/deploylint-shared/test-results/**') &&
-			preflightGateWorkflow.includes('apps/preflight/coverage/**') &&
-			preflightGateWorkflow.includes('apps/preflight/playwright-report/**') &&
-			preflightGateWorkflow.includes('apps/preflight/test-results/**') &&
-			preflightGateWorkflow.includes('retention-days: 14') &&
-			preflightGateWorkflow.includes('apps/preflight-mcp/coverage/**') &&
-			preflightGateWorkflow.includes('apps/preflight-mcp/test-results/**') &&
-			!preflightGateWorkflow.includes("node-version: '24'") &&
-			preflightGateWorkflow.includes('apps/preflight-mcp/**') &&
-			DEPLOYLINT_WORKFLOW_PATH_FILTERS.every((path) => preflightGateWorkflow.includes(path)) &&
-			dogfoodWorkflow.includes('push:') &&
-			dogfoodWorkflow.includes('branches: [main]') &&
-			dogfoodWorkflow.includes('concurrency:') &&
-			dogfoodWorkflow.includes('cancel-in-progress: true') &&
-			dogfoodWorkflow.includes('timeout-minutes: 20') &&
-			dogfoodWorkflow.includes('actions/upload-artifact@v6') &&
-			dogfoodWorkflow.includes('apps/preflight-mcp/coverage/**') &&
-			dogfoodWorkflow.includes('apps/preflight-mcp/test-results/**') &&
-			dogfoodWorkflow.includes('retention-days: 14') &&
-			dogfoodWorkflow.includes('npm run verify -w preflight-mcp') &&
-			dogfoodWorkflow.includes('node-version-file: .nvmrc') &&
-			(dogfoodWorkflow.includes('min_score: "80"') ||
-				dogfoodWorkflow.includes("min_score: '80'")) &&
-			dogfoodWorkflow.includes('mode: gate') &&
-			DEPLOYLINT_WORKFLOW_PATH_FILTERS.every((path) => dogfoodWorkflow.includes(path))
+		hasPreflightGateWorkflowContract(preflightGateWorkflowConfig) &&
+			hasDogfoodWorkflowContract(dogfoodWorkflowConfig)
 	);
 	pushCheck(
 		checked,
 		failures,
 		'GitHub push CI fails when production gate URL is missing',
-		preflightGateWorkflow.includes('Require production gate URL on main pushes') &&
-			preflightGateWorkflow.includes("if: github.event_name == 'push'") &&
-			preflightGateWorkflow.includes('PREFLIGHT_GATE_URL: ${{ secrets.PREFLIGHT_GATE_URL }}') &&
-			preflightGateWorkflow.includes('DEPLOYLINT_GATE_URL: ${{ secrets.DEPLOYLINT_GATE_URL }}') &&
-			preflightGateWorkflow.includes('::error::Set PREFLIGHT_GATE_URL or DEPLOYLINT_GATE_URL') &&
-			preflightGateWorkflow.includes('exit 2') &&
-			preflightGateWorkflow.includes('name: Scan production URL') &&
-			!preflightGateWorkflow.includes('name: Scan production URL (optional)')
+		workflowRunStepIncludes(
+			workflowJobSteps(workflowJob(preflightGateWorkflowConfig, 'gate')),
+			'Require production gate URL on main pushes',
+			['::error::Set PREFLIGHT_GATE_URL or DEPLOYLINT_GATE_URL', 'exit 2']
+		) &&
+			workflowStepByName(
+				workflowJobSteps(workflowJob(preflightGateWorkflowConfig, 'gate')),
+				'Require production gate URL on main pushes'
+			)?.if === "github.event_name == 'push'" &&
+			workflowStepByName(
+				workflowJobSteps(workflowJob(preflightGateWorkflowConfig, 'gate')),
+				'Scan production URL'
+			) !== null
 	);
 	pushCheck(
 		checked,
 		failures,
 		'GitHub pull request CI runs dependency review for supply-chain diffs',
-		preflightGateWorkflow.includes('dependency-review:') &&
-			preflightGateWorkflow.includes("if: github.event_name == 'pull_request'") &&
-			preflightGateWorkflow.includes('actions/dependency-review-action@v5') &&
-			preflightGateWorkflow.includes('fail-on-severity: moderate')
+		workflowJob(preflightGateWorkflowConfig, 'dependency-review').if ===
+			"github.event_name == 'pull_request'" &&
+			workflowUsesStep(
+				workflowJobSteps(workflowJob(preflightGateWorkflowConfig, 'dependency-review')),
+				'actions/dependency-review-action@v5'
+			) &&
+			workflowStepWith(
+				workflowJobSteps(workflowJob(preflightGateWorkflowConfig, 'dependency-review')).find(
+					(step) => step.uses === 'actions/dependency-review-action@v5'
+				) ?? {}
+			)['fail-on-severity'] === 'moderate'
 	);
 	pushCheck(
 		checked,
 		failures,
 		'GitHub workflows use lockfile installs and npm dependency caching',
-		[preflightGateWorkflow, dogfoodWorkflow].every(
-			(workflow) =>
-				workflow.includes('actions/setup-node@v6') &&
-				workflow.includes('node-version-file: .nvmrc') &&
-				workflow.includes('cache: npm') &&
-				workflow.includes('run: npm ci')
-		)
+		[preflightGateWorkflowConfig, dogfoodWorkflowConfig].every((workflow) => {
+			const steps = workflowJobSteps(workflowJob(workflow, 'gate'));
+			return (
+				hasSetupNodeStep(steps) &&
+				workflowRunStepIncludes(steps, 'Install dependencies', ['npm ci'])
+			);
+		})
 	);
 	pushCheck(
 		checked,
@@ -1052,8 +1249,11 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			playwrightConfig.includes("video: 'on-first-retry'") &&
 			playwrightConfig.includes("['junit', { outputFile: 'test-results/playwright-junit.xml' }]") &&
 			playwrightConfig.includes("['html', { open: 'never' }]") &&
-			preflightGateWorkflow.includes('apps/preflight/playwright-report/**') &&
-			preflightGateWorkflow.includes('apps/preflight/test-results/**')
+			hasArtifactUploadStep(
+				workflowJobSteps(workflowJob(preflightGateWorkflowConfig, 'gate')),
+				'Upload Deploylint failure artifacts',
+				['apps/preflight/playwright-report/**', 'apps/preflight/test-results/**']
+			)
 	);
 	pushCheck(
 		checked,
@@ -1079,9 +1279,15 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		hasVitestJUnitArtifacts(viteConfigSource) &&
 			hasVitestJUnitArtifacts(mcpViteConfigSource) &&
 			hasVitestJUnitArtifacts(deploylintSharedViteConfigSource) &&
-			preflightGateWorkflow.includes('apps/deploylint-shared/test-results/**') &&
-			preflightGateWorkflow.includes('apps/preflight/test-results/**') &&
-			preflightGateWorkflow.includes('apps/preflight-mcp/test-results/**')
+			hasArtifactUploadStep(
+				workflowJobSteps(workflowJob(preflightGateWorkflowConfig, 'gate')),
+				'Upload Deploylint failure artifacts',
+				[
+					'apps/deploylint-shared/test-results/**',
+					'apps/preflight/test-results/**',
+					'apps/preflight-mcp/test-results/**'
+				]
+			)
 	);
 	pushCheck(
 		checked,
