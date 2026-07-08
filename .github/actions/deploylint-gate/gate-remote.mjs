@@ -14,6 +14,7 @@
  *   DEPLOYLINT_FETCH_TIMEOUT_MS  Per-request timeout (default 30000)
  *   DEPLOYLINT_FETCH_RETRIES     Retry count for transient network failures (default 2)
  *   DEPLOYLINT_FETCH_RETRY_DELAY_MS  Initial retry delay (default 500)
+ *   DEPLOYLINT_GITHUB_API  GitHub API base for PR comments (default https://api.github.com)
  *
  * Backward-compatible aliases:
  *   DEPLOYLINT_GATE_URL, PREFLIGHT_URL, PREFLIGHT_GATE_URL, PREFLIGHT_API, PREFLIGHT_MIN_SCORE, PREFLIGHT_MODE
@@ -70,6 +71,10 @@ const advisory = mode === 'advisory';
 const fetchTimeoutMs = envInt('DEPLOYLINT_FETCH_TIMEOUT_MS', 30_000, 1);
 const fetchRetries = envInt('DEPLOYLINT_FETCH_RETRIES', 2);
 const fetchRetryDelayMs = envInt('DEPLOYLINT_FETCH_RETRY_DELAY_MS', 500);
+const githubApiBase = (process.env.DEPLOYLINT_GITHUB_API ?? 'https://api.github.com').replace(
+	/\/$/,
+	''
+);
 
 function printHelp() {
 	console.error('Usage: node gate-remote.mjs <url>');
@@ -87,6 +92,7 @@ function printHelp() {
 	console.error('  DEPLOYLINT_FETCH_TIMEOUT_MS  Per-request timeout in milliseconds');
 	console.error('  DEPLOYLINT_FETCH_RETRIES     Retry count for transient network failures');
 	console.error('  DEPLOYLINT_FETCH_RETRY_DELAY_MS  Initial retry delay in milliseconds');
+	console.error('  DEPLOYLINT_GITHUB_API  GitHub API base for PR comments');
 	console.error('');
 	console.error('Compatibility aliases: DEPLOYLINT_GATE_URL, PREFLIGHT_URL, PREFLIGHT_GATE_URL');
 }
@@ -135,6 +141,10 @@ function isRetryableFetchError(err) {
 	return /fetch failed|network|socket|timed out|timeout|aborted|ECONNRESET|ETIMEDOUT|ENOTFOUND|EAI_AGAIN/i.test(
 		err.message
 	);
+}
+
+async function drainResponse(res) {
+	await res.arrayBuffer().catch(() => {});
 }
 
 async function fetchWithTimeout(url, init, label) {
@@ -263,7 +273,7 @@ async function upsertPrComment(ctx, markdown) {
 		'Content-Type': 'application/json',
 		'User-Agent': 'preflight-gate'
 	};
-	const base = `https://api.github.com/repos/${ctx.repo}/issues/${ctx.prNumber}/comments`;
+	const base = `${githubApiBase}/repos/${ctx.repo}/issues/${ctx.prNumber}/comments`;
 	try {
 		const list = await fetchWithRetry(
 			`${base}?per_page=100`,
@@ -279,8 +289,8 @@ async function upsertPrComment(ctx, markdown) {
 					c.body.includes(COMMENT_MARKER)
 			);
 			if (existing) {
-				await fetchWithRetry(
-					`https://api.github.com/repos/${ctx.repo}/issues/comments/${existing.id}`,
+				const updated = await fetchWithRetry(
+					`${githubApiBase}/repos/${ctx.repo}/issues/comments/${existing.id}`,
 					{
 						method: 'PATCH',
 						headers,
@@ -288,7 +298,12 @@ async function upsertPrComment(ctx, markdown) {
 					},
 					'update GitHub PR comment'
 				);
-				console.log('Updated Deploylint PR comment.');
+				await drainResponse(updated);
+				console.log(
+					updated.ok
+						? 'Updated Deploylint PR comment.'
+						: `PR comment failed (HTTP ${updated.status}).`
+				);
 				return;
 			}
 		}
@@ -301,6 +316,7 @@ async function upsertPrComment(ctx, markdown) {
 			},
 			'create GitHub PR comment'
 		);
+		await drainResponse(created);
 		console.log(
 			created.ok ? 'Posted Deploylint PR comment.' : `PR comment failed (HTTP ${created.status}).`
 		);
@@ -343,7 +359,8 @@ async function main() {
 				finalUrl: body.finalUrl
 			})
 		);
-		process.exit(effectivePass ? 0 : 1);
+		process.exitCode = effectivePass ? 0 : 1;
+		return;
 	}
 	console.log(formatReport(body, result));
 
@@ -358,10 +375,10 @@ async function main() {
 	const prCtx = githubPrContext();
 	if (prCtx) await upsertPrComment(prCtx, markdown);
 
-	process.exit(effectivePass ? 0 : 1);
+	process.exitCode = effectivePass ? 0 : 1;
 }
 
 main().catch((err) => {
 	console.error(err instanceof Error ? err.message : err);
-	process.exit(2);
+	process.exitCode = 2;
 });

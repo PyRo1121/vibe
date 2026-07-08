@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
-import { readFileSync, mkdtempSync, rmSync } from 'node:fs';
-import { createServer } from 'node:http';
+import { readFileSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { createServer, type IncomingMessage } from 'node:http';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -21,6 +21,18 @@ interface GateRunResult {
 	code: number | null;
 	stdout: string;
 	stderr: string;
+}
+
+interface GitHubRequest {
+	method: string;
+	path: string;
+	search: string;
+	body: string;
+}
+
+interface GitHubResponse {
+	status?: number;
+	body?: unknown;
 }
 
 const failingReport = {
@@ -135,6 +147,66 @@ async function withSlowScanApi<T>(fn: (apiBase: string) => Promise<T>): Promise<
 	}
 }
 
+function readRequestBody(req: IncomingMessage) {
+	return new Promise<string>((resolve, reject) => {
+		let body = '';
+		req.setEncoding('utf8');
+		req.on('data', (chunk) => {
+			body += chunk;
+		});
+		req.on('error', reject);
+		req.on('end', () => resolve(body));
+	});
+}
+
+async function withGitHubApi<T>(
+	handler: (request: GitHubRequest) => GitHubResponse | Promise<GitHubResponse>,
+	fn: (apiBase: string, requests: GitHubRequest[]) => Promise<T>
+): Promise<T> {
+	const requests: GitHubRequest[] = [];
+	const server = createServer((req, res) => {
+		void (async () => {
+			const url = new URL(req.url ?? '/', 'http://127.0.0.1');
+			const request = {
+				method: req.method ?? '',
+				path: url.pathname,
+				search: url.search,
+				body: await readRequestBody(req)
+			};
+			requests.push(request);
+
+			const response = await handler(request);
+			res.writeHead(response.status ?? 200, { 'Content-Type': 'application/json' });
+			res.end(JSON.stringify(response.body ?? {}));
+		})().catch((err: unknown) => {
+			res.writeHead(500, { 'Content-Type': 'application/json' });
+			res.end(JSON.stringify({ message: err instanceof Error ? err.message : String(err) }));
+		});
+	});
+
+	await new Promise<void>((resolve) => server.listen({ port: 0, host: '127.0.0.1' }, resolve));
+	const address = server.address();
+	if (!address || typeof address === 'string') throw new Error('local GitHub server did not bind');
+
+	try {
+		return await fn(`http://127.0.0.1:${address.port}`, requests);
+	} finally {
+		await new Promise<void>((resolve, reject) => {
+			server.close((err) => {
+				if (err) reject(err);
+				else resolve();
+			});
+		});
+	}
+}
+
+function pullRequestEventPath(number = 42) {
+	const dir = makeTempDir();
+	const path = join(dir, 'event.json');
+	writeFileSync(path, JSON.stringify({ pull_request: { number } }));
+	return path;
+}
+
 function runGate(apiBase: string, { args = [], env = {} }: GateRunOptions = {}) {
 	return new Promise<GateRunResult>((resolve, reject) => {
 		const child = spawn(process.execPath, [scriptPath, 'https://target.test', ...args], {
@@ -186,6 +258,101 @@ describe('gate-remote advisory output', () => {
 			const summary = readFileSync(summaryPath, 'utf8');
 			expect(summary).toContain('**Advisory findings:**');
 			expect(summary).not.toContain('**Blocking:**');
+		});
+	});
+
+	it('updates an existing Deploylint PR comment instead of posting a duplicate', async () => {
+		await withScanApi(failingReport, async (apiBase) => {
+			await withGitHubApi(
+				(request) => {
+					if (
+						request.method === 'GET' &&
+						request.path === '/repos/acme/widget/issues/42/comments'
+					) {
+						return {
+							body: [
+								{
+									id: 99,
+									user: { login: 'github-actions[bot]' },
+									body: 'old body\n<!-- preflight-gate -->'
+								}
+							]
+						};
+					}
+					if (
+						request.method === 'PATCH' &&
+						request.path === '/repos/acme/widget/issues/comments/99'
+					) {
+						return { body: { id: 99 } };
+					}
+					throw new Error(`unexpected GitHub request ${request.method} ${request.path}`);
+				},
+				async (githubApi, requests) => {
+					const result = await runGate(apiBase, {
+						env: {
+							DEPLOYLINT_GITHUB_API: githubApi,
+							GITHUB_TOKEN: 'test-token',
+							GITHUB_REPOSITORY: 'acme/widget',
+							GITHUB_EVENT_NAME: 'pull_request',
+							GITHUB_EVENT_PATH: pullRequestEventPath(42)
+						}
+					});
+
+					expect(result.code, `stdout:\n${result.stdout}\nstderr:\n${result.stderr}`).toBe(0);
+					expect(result.stdout).toContain('Updated Deploylint PR comment.');
+					expect(requests.some((request) => request.method === 'POST')).toBe(false);
+					const patch = requests.find((request) => request.method === 'PATCH');
+					expect(patch).toBeTruthy();
+					const body = JSON.parse(patch?.body ?? '{}') as { body?: string };
+					expect(body.body).toContain('<!-- preflight-gate -->');
+					expect(body.body).toContain('Deploylint');
+					expect(body.body).toContain('https://target.test/');
+				}
+			);
+		});
+	});
+
+	it('creates a Deploylint PR comment when no marker comment exists', async () => {
+		await withScanApi(passingReport, async (apiBase) => {
+			await withGitHubApi(
+				(request) => {
+					if (
+						request.method === 'GET' &&
+						request.path === '/repos/acme/widget/issues/42/comments'
+					) {
+						return {
+							body: [{ id: 88, user: { login: 'octocat' }, body: 'ship it' }]
+						};
+					}
+					if (
+						request.method === 'POST' &&
+						request.path === '/repos/acme/widget/issues/42/comments'
+					) {
+						return { body: { id: 100 } };
+					}
+					throw new Error(`unexpected GitHub request ${request.method} ${request.path}`);
+				},
+				async (githubApi, requests) => {
+					const result = await runGate(apiBase, {
+						env: {
+							DEPLOYLINT_GITHUB_API: githubApi,
+							GITHUB_TOKEN: 'test-token',
+							GITHUB_REPOSITORY: 'acme/widget',
+							GITHUB_EVENT_NAME: 'pull_request',
+							GITHUB_EVENT_PATH: pullRequestEventPath(42)
+						}
+					});
+
+					expect(result.code, `stdout:\n${result.stdout}\nstderr:\n${result.stderr}`).toBe(0);
+					expect(result.stdout).toContain('Posted Deploylint PR comment.');
+					const post = requests.find((request) => request.method === 'POST');
+					expect(post).toBeTruthy();
+					const body = JSON.parse(post?.body ?? '{}') as { body?: string };
+					expect(body.body).toContain('<!-- preflight-gate -->');
+					expect(body.body).toContain('Deploylint');
+					expect(body.body).toContain('report_ok');
+				}
+			);
 		});
 	});
 
