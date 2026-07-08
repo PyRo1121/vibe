@@ -39,9 +39,9 @@ describe('buildMasterPrompt', () => {
 });
 
 describe('fixPrompt reachable template', () => {
-	it('gives bot-block guidance only for 401/403', () => {
+	it('gives automated-review access guidance only for 401/403', () => {
 		expect(fixPrompt('reachable', { url: 'https://a.test', message: 'HTTP 403' })).toContain(
-			'blocked'
+			'automated review'
 		);
 		expect(fixPrompt('reachable', { url: 'https://a.test', message: 'HTTP 500' })).not.toContain(
 			'whitelist'

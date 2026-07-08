@@ -18,9 +18,10 @@
 	<p class="mb-8 text-sm text-zinc-500">Last updated: July 2, 2026</p>
 
 	<p class="mb-6">
-		Deploylint checks release URLs, public URLs, and repository signals you submit. Logged-in
-		workspaces store project setup, advisory workflow state, report history, gate status, and
-		subscription context so the product can operate as a CI hardening workspace.
+		Deploylint reviews deploy targets, repositories, workflow evidence, workspace history, and
+		report data you submit. Logged-in workspaces store project setup, advisory workflow state,
+		report history, gate status, and subscription context so the product can operate as a CI
+		hardening workspace.
 	</p>
 
 	<h2 class="mb-3 text-xl font-semibold text-white">What we collect</h2>

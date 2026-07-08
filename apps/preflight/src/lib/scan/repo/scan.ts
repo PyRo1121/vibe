@@ -620,9 +620,9 @@ function repoLicenseCheck(url: string, spdx: string | null): ScanCheck {
 	);
 }
 
-/** GitHub unreachable / repo missing → honest blocked report, same as a blocked site scan. */
+/** GitHub unreachable / repo missing → honest blocked report, same as a blocked site review. */
 function buildBlockedRepoReport(url: string, reason: string): ScanReport {
-	const message = `Scan incomplete — ${reason}`;
+	const message = `Evidence limited — ${reason}`;
 	const checks: ScanCheck[] = [
 		{
 			id: 'fetch',

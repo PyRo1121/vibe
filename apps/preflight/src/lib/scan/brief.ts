@@ -88,13 +88,13 @@ export function buildLaunchBrief(report: ScanReport): LaunchBrief {
 	if (report.scanCoverage === 'blocked') {
 		const reachable = report.checks.find((c) => c.id === 'reachable' || c.id === 'fetch');
 		return {
-			headline: 'Scan incomplete — we could not read your real homepage.',
+			headline: 'Evidence limited — Deploylint could not read the deploy target.',
 			embarrassmentRisks: reachable
 				? [
-						'Results below are from an error or bot-block page — not your actual site.',
+						'Results below are from an error or blocked response — not the live deploy target.',
 						embarrassmentLine(reachable)
 					]
-				: ['Content checks were skipped because the homepage did not return HTTP 200.'],
+				: ['Content checks were skipped because automated review was blocked.'],
 			shareReady: false,
 			categoryScores: scoreByCategory(report.checks)
 		};

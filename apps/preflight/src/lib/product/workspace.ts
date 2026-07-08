@@ -103,7 +103,8 @@ export const workspaceActivationSteps = [
 	{
 		id: 'first-report',
 		label: 'Read the first advisory report',
-		description: 'Use the first CI report as activation, not another one-off scan.'
+		description:
+			'Use the first CI report to start workspace history, gate policy, and regression tracking.'
 	},
 	{
 		id: 'gate',

@@ -4,7 +4,7 @@
 
 Deploylint should narrow around deploy readiness for builders shipping with AI coding tools:
 
-- top-of-funnel: GitHub Actions hardening checker and public URL/repo scan
+- top-of-funnel: GitHub Actions hardening checker plus deploy-target and repository readiness evidence
 - core promise: catch common deploy blockers before production
 - paid reason: history, monitoring, deltas, alerts, private reports, and deeper repair guidance
 
@@ -62,13 +62,13 @@ Avoid positioning the product as a generic toolbox. Every new slice should make 
    - docs for advisory mode before blocking mode
 
 3. Align paid packaging:
-   - free: one-off checks and basic gate
-   - paid: monitoring, history, deltas, alerts, full fix prompts, private reports
+   - free: workflow risk check, temporary advisory evidence, and a basic gate
+   - paid: monitored projects, history, deltas, alerts, full fix prompts, private reports, and repair loops
    - de-emphasize MCP as a headline paid reason until it is externally installable
 
 4. Improve trust messaging:
-   - state scan limitations near tools and reports
-   - distinguish sampled repo scans from full audits
+   - state evidence limitations near tools and reports
+   - distinguish sampled repository evidence from full audits
    - avoid claims that imply workflows are proven secure
 
 5. Platform backbone:

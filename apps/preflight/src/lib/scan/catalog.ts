@@ -139,7 +139,7 @@ const BASE_CHECK_CATALOG = {
 		detectedBy:
 			'Probes common same-origin dotenv paths such as /.env and checks whether they return reachable secret-like content.',
 		falsePositive:
-			'A honeypot or empty placeholder file can still be confusing to scanners and attackers; remove it from the public web root.'
+			'A honeypot or empty placeholder file can still be confusing to automated reviewers and attackers; remove it from the public web root.'
 	},
 	'exposed-git': {
 		id: 'exposed-git',
@@ -162,15 +162,15 @@ const BASE_CHECK_CATALOG = {
 		detectedBy:
 			'Checks rendered homepage metadata for a favicon link discovered by the page parser.',
 		falsePositive:
-			'Browsers may still request /favicon.ico implicitly, but declaring the icon avoids ambiguity for scanners and preview systems.'
+			'Browsers may still request /favicon.ico implicitly, but declaring the icon avoids ambiguity for browsers and preview systems.'
 	},
 	fetch: {
 		id: 'fetch',
 		why: 'If Deploylint cannot fetch the target, it cannot judge SEO, legal, social preview, security headers, or app readiness with confidence.',
 		detectedBy:
-			'Runs the initial public fetch for the submitted URL and records network failures or blocked scanner responses.',
+			'Runs the initial public fetch for the submitted deploy target and records network failures or blocked automated fetches.',
 		falsePositive:
-			'Bot-protected enterprise sites may block scanners intentionally. For your own launch, test a staging URL that allows automated fetches.'
+			'Bot-protected enterprise sites may block automated reviewers intentionally. For your own launch, test a staging target that allows automated fetches.'
 	},
 	firebase: {
 		id: 'firebase',
@@ -344,7 +344,7 @@ const BASE_CHECK_CATALOG = {
 		detectedBy:
 			'Samples same-origin links discovered from rendered HTML and records how many sampled destinations fail reachability checks.',
 		falsePositive:
-			'Bot protection or rate limiting can make every sampled link fail; the scanner downgrades that pattern and asks for manual spot checks.'
+			'Bot protection or rate limiting can make every sampled link fail; Deploylint downgrades that pattern and asks for manual spot checks.'
 	},
 	'llms-txt': {
 		id: 'llms-txt',
@@ -515,15 +515,15 @@ const BASE_CHECK_CATALOG = {
 		detectedBy:
 			'Extracts same-page links and crawled legal pages looking for privacy-policy style destinations and usable content.',
 		falsePositive:
-			'Some apps host legal pages on a separate domain; link it clearly in the footer so users and scanners can find it.'
+			'Some apps host legal pages on a separate domain; link it clearly in the footer so users and automated reviewers can find it.'
 	},
 	reachable: {
 		id: 'reachable',
 		why: 'A launch URL must return a usable page. If the homepage errors, every downstream SEO, trust, and conversion signal is unreliable.',
 		detectedBy:
-			'Fetches the submitted URL, follows redirects, and records the final HTTP status and URL.',
+			'Fetches the submitted deploy target, follows redirects, and records the final HTTP status and URL.',
 		falsePositive:
-			'Scanner-blocking WAF rules can cause this even when browsers work; allow Deploylint or scan a staging URL you control.'
+			'Automation-blocking WAF rules can cause this even when browsers work; allow Deploylint or review a staging target you control.'
 	},
 	'referrer-header': {
 		id: 'referrer-header',
@@ -926,9 +926,9 @@ const ADDITIONAL_CHECK_CATALOG = {
 		id: 'response-time',
 		why: 'Slow first responses hurt users, crawlers, and link-preview bots before frontend optimization has a chance to matter.',
 		detectedBy:
-			'Records the homepage fetch duration from the scanner and classifies it as a single-sample launch signal.',
+			'Records the deploy target fetch duration from the automated runner and classifies it as a single-sample launch signal.',
 		falsePositive:
-			'One scanner region is not a full performance study; use real-user monitoring and Core Web Vitals for final performance decisions.'
+			'One runner region is not a full performance study; use real-user monitoring and Core Web Vitals for final performance decisions.'
 	},
 	robots: {
 		id: 'robots',

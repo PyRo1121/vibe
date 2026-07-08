@@ -12,7 +12,7 @@ function inlineMarkdown(text: string): string {
 	const escaped = escapeHtml(text);
 	return escaped.replaceAll(
 		/\[([^\]]+)\]\(([^)]+)\)/g,
-		'<a class="text-sky-400 hover:underline" href="$2">$1</a>'
+		'<a class="text-sky-300 underline underline-offset-4 hover:text-sky-200" href="$2">$1</a>'
 	);
 }
 

@@ -11,9 +11,9 @@ export function fixPrompt(id: string, context: { url: string; message?: string }
 
 	const templates: Record<string, string> = {
 		reachable: accessBlocked
-			? `${base}HTTP ${httpStatus} — the host blocked Deploylint's scanner or requires auth. If this is YOUR app: allow automated fetches (or whitelist User-Agent Deploylint/1.0), verify the homepage returns 200 to curl, then re-scan. Do not "fix" SEO/meta from this scan — we only saw an error page. Large enterprise sites often block scanners; Deploylint targets indie launches you control.`
-			: `${base}The site returned an error or could not be fetched. Check DNS, hosting deploy status, SSL certificate, and that the domain is publicly accessible. Fix any 4xx/5xx on the homepage.`,
-		fetch: `${base}The site returned an error or could not be fetched. Check DNS, hosting deploy status, SSL certificate, and that the domain is publicly accessible. Fix any 4xx/5xx on the homepage.`,
+			? `${base}HTTP ${httpStatus} — Deploylint could not read the deploy target or the target requires auth. If this is YOUR app: allow automated review (or whitelist User-Agent Deploylint/1.0), verify the deploy target returns 200 to curl, then verify again. Do not "fix" SEO/meta from this advisory review — we only saw an error response. Large enterprise sites often block automated reviewers; Deploylint targets apps you control.`
+			: `${base}The deploy target returned an error or could not be fetched. Check DNS, hosting deploy status, SSL certificate, and that the domain is publicly accessible. Fix any 4xx/5xx on the deploy target.`,
+		fetch: `${base}The deploy target returned an error or could not be fetched. Check DNS, hosting deploy status, SSL certificate, and that the domain is publicly accessible. Fix any 4xx/5xx on the deploy target.`,
 		https: `${base}Enable HTTPS on the hosting provider, force HTTP→HTTPS redirect, and verify all asset URLs use https://.`,
 		title: `${base}Add a unique <title> under 60 characters: product name + primary benefit. Update src/app.html or the main layout head.`,
 		description: `${base}Add <meta name="description" content="..."> with 120–160 characters describing who it's for and the outcome.`,
@@ -63,7 +63,7 @@ export function fixPrompt(id: string, context: { url: string; message?: string }
 		'security-txt': `${base}Add RFC 9116 security.txt at /.well-known/security.txt (or /security.txt) with Contact: mailto:security@yourdomain.com and a link to your security policy. Security researchers and enterprise buyers look for this.`,
 		'charset-meta': `${base}Add <meta charset="utf-8"> as the first element inside <head> so browsers decode text correctly on every page.`,
 		analytics: `${base}Add analytics before launch — GA4 via gtag/GTM, or privacy-friendly Plausible/Fathom. Verify events fire on the homepage.`,
-		'env-committed': `${base}A .env file is committed to this repository. (1) Remove it: git rm --cached <file> and commit. (2) Add .env* to .gitignore. (3) Rotate EVERY key that was in the file — treat them all as leaked, since git history keeps old commits. (4) If the repo is public, rotate immediately; scanners index GitHub within minutes. Use .env.example with placeholder values for documentation.`,
+		'env-committed': `${base}A .env file is committed to this repository. (1) Remove it: git rm --cached <file> and commit. (2) Add .env* to .gitignore. (3) Rotate EVERY key that was in the file — treat them all as leaked, since git history keeps old commits. (4) If the repo is public, rotate immediately; automated secret indexes can ingest GitHub within minutes. Use .env.example with placeholder values for documentation.`,
 		'gitignore-env': `${base}Add a .gitignore entry excluding env files (.env, .env.*, !.env.example) plus node_modules/ and build output. Without it, one accidental "git add ." commits every secret.`,
 		'dependency-vulns': `${base}Fix the known-vulnerable dependencies listed in the check message. (1) Run "npm audit" locally to see the full list with advisories. (2) Run "npm audit fix" for compatible upgrades. (3) For majors, bump the affected package manually and run your tests. (4) If a fix doesn't exist yet, check the advisory (osv.dev/<id>) for workarounds or replace the package. Re-scan to verify the vulnerabilities are gone.`,
 		'repo-license': `${base}Resolve the repository license. If this is YOUR product: add a LICENSE file (MIT for open source, or keep all-rights-reserved for closed source — but say so in the README). If you are building ON this repo: read its LICENSE — GPL/AGPL can force you to open-source your product, and non-commercial licenses forbid selling. Replace copyleft code with permissive alternatives or buy a commercial license before charging money.`,
@@ -158,23 +158,23 @@ export function buildMasterPrompt(
 		return [
 			`Site: ${url}`,
 			'',
-			`Deploylint could not read your homepage (${statusLabel}). Content checks were skipped.`,
+			`Deploylint could not read the deploy target (${statusLabel}). Content checks were skipped.`,
 			'',
-			'IMPORTANT: Do NOT fix SEO, privacy, OG tags, or analytics from this scan — those results came from an error/block page, not your real site.',
+			'IMPORTANT: Do NOT fix SEO, privacy, OG tags, or analytics from this advisory review — those results came from an error or blocked response, not the live deploy target.',
 			'',
 			reachability ? `Reachability: ${reachability.message}` : '',
 			'',
 			'If this is YOUR deploy target (an app you control):',
 			'- Confirm the homepage returns HTTP 200 in a browser and to: curl -A "Deploylint/1.0" ' +
 				url,
-			'- If using Cloudflare/WAF, allow our scanner or test on a staging URL without bot rules',
-			'- Re-run Deploylint after the homepage is reachable',
+			'- If using Cloudflare/WAF, allow the automated reviewer or test on a staging target without bot rules',
+			'- Verify again after the deploy target is reachable',
 			'',
-			'If this is a large third-party site (e.g. doordash.com), stop — Deploylint is for auditing apps you ship, not enterprise sites that block scanners.',
+			'If this is a large third-party site (e.g. doordash.com), stop — Deploylint is for reviewing apps you ship, not enterprise sites that block automated reviewers.',
 			'',
 			'Rules:',
-			'- Do not change meta tags based on this incomplete scan',
-			'- Fix reachability / bot access first, then re-scan for a full audit'
+			'- Do not change meta tags based on this limited evidence',
+			'- Fix reachability / bot access first, then verify again'
 		]
 			.filter(Boolean)
 			.join('\n');

@@ -23,7 +23,7 @@ Launch note with <script>alert("x")</script> and [docs](https://deploylint.com/d
 
 		expect(html).toContain('&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;');
 		expect(html).toContain(
-			'<a class="text-sky-400 hover:underline" href="https://deploylint.com/developers">docs</a>'
+			'<a class="text-sky-300 underline underline-offset-4 hover:text-sky-200" href="https://deploylint.com/developers">docs</a>'
 		);
 		expect(html).not.toContain('<script>');
 	});

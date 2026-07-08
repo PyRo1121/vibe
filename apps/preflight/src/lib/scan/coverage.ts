@@ -9,18 +9,18 @@ export function isBlockedHomepageStatus(status: number): boolean {
 /** Verdict/banner copy for incomplete scans. No status = fetch failed entirely. */
 export function blockedScanMessage(status?: number): string {
 	if (status == null) {
-		return 'Scan incomplete — the homepage could not be fetched. Content checks were skipped.';
+		return 'Evidence limited — Deploylint could not read the deploy target. Content checks were skipped.';
 	}
 	if (status === 403) {
-		return 'Scan incomplete — HTTP 403. The site likely blocked our scanner; checks below were skipped.';
+		return 'Evidence limited — HTTP 403. Deploylint could not read the deploy target; automated review was blocked.';
 	}
 	if (status === 401) {
-		return 'Scan incomplete — HTTP 401. The homepage requires auth or blocked our scanner.';
+		return 'Evidence limited — HTTP 401. The deploy target requires auth or blocked automated review.';
 	}
 	if (status >= 500) {
-		return `Scan incomplete — HTTP ${status}. The server errored; content checks were skipped.`;
+		return `Evidence limited — HTTP ${status}. The server errored; content checks were skipped.`;
 	}
-	return `Scan incomplete — HTTP ${status}. We could not read the real homepage; content checks were skipped.`;
+	return `Evidence limited — HTTP ${status}. Deploylint could not read the deploy target; content checks were skipped.`;
 }
 
 export function buildBlockedHomepageChecks(status: number, finalUrl: URL): ScanCheck[] {

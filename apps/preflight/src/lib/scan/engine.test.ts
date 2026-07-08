@@ -153,7 +153,7 @@ describe('scanUrl', () => {
 		expect(report.checks[0].id).toBe('fetch');
 		expect(report.checks[0].status).toBe('fail');
 		expect(report.scanCoverage).toBe('blocked');
-		expect(report.verdictMessage).toContain('Scan incomplete');
+		expect(report.verdictMessage).toContain('Evidence limited');
 	});
 
 	it('runs full checklist with injected deps', async () => {
@@ -682,7 +682,7 @@ describe('scanUrl', () => {
 		expect(report.checks.map((c) => c.id)).toEqual(['reachable', 'https']);
 		expect(report.checks.find((c) => c.id === 'privacy')).toBeUndefined();
 		expect(report.verdictMessage).toContain('403');
-		expect(report.launchBrief?.headline).toContain('incomplete');
+		expect(report.launchBrief?.headline).toContain('Evidence limited');
 	});
 
 	it('builds a license audit from detected CDN libraries', async () => {

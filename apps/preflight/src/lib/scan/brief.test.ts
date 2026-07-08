@@ -60,7 +60,7 @@ describe('buildLaunchBrief', () => {
 		expect(brief.embarrassmentRisks[0]).toContain('privacy');
 	});
 
-	it('uses incomplete messaging for blocked scans', () => {
+	it('uses limited-evidence messaging for blocked reviews', () => {
 		const brief = buildLaunchBrief(
 			report({
 				scanCoverage: 'blocked',
@@ -68,7 +68,7 @@ describe('buildLaunchBrief', () => {
 				checks: [check('reachable', 'fail', 'launch')]
 			})
 		);
-		expect(brief.headline).toContain('incomplete');
+		expect(brief.headline).toContain('Evidence limited');
 		expect(brief.embarrassmentRisks[0]).toContain('error');
 	});
 });

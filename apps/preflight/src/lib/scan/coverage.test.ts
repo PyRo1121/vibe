@@ -49,12 +49,12 @@ describe('blockedScanMessage', () => {
 		const msg = blockedScanMessage(451);
 
 		expect(msg).toContain('HTTP 451');
-		expect(msg).toContain('could not read the real homepage');
+		expect(msg).toContain('could not read the deploy target');
 	});
 
 	it('handles missing status without inventing one', () => {
 		const msg = blockedScanMessage();
-		expect(msg).toContain('Scan incomplete');
+		expect(msg).toContain('Evidence limited');
 		expect(msg).not.toMatch(/\d{3}/);
 	});
 });

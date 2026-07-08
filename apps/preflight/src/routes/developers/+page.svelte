@@ -351,8 +351,9 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 				repair prompts for agent workflows.
 			</li>
 			<li>
-				Legacy <code class="text-sky-300">preflight_scan</code> /
-				<code class="text-sky-300">preflight_gate</code> aliases still work.
+				Use <code class="text-sky-300">deploylint_scan</code> /
+				<code class="text-sky-300">deploylint_gate</code> for new installs; legacy
+				<code class="text-sky-300">preflight_*</code> aliases remain for backwards compatibility.
 			</li>
 		</ul>
 	</section>

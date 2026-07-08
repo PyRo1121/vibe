@@ -12,7 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Payment-readiness repo findings for server-owned checkout, webhook lifecycle coverage,
   entitlement fulfillment, billing portal support, and payment secret handling.
-- Homepage positioning and SEO metadata for AI-built SaaS revenue readiness.
+- Homepage positioning and SEO metadata for AI-built project readiness and CI hardening.
 
 ## [0.35.0] - 2026-07-05
 
@@ -35,7 +35,7 @@ Phase 32–34 — founder conversion UX.
 
 ### Added
 
-- Score delta badge and fixed-blocker diff after unlocked re-scans (`ScoreDeltaBadge`, session baseline checks).
+- Score delta badge and fixed-blocker diff after unlocked verification reruns (`ScoreDeltaBadge`, session baseline checks).
 - Post-unlock progress ring and completed fix-loop state.
 - `/compare` page with named competitors (ShipReady, WebsiteReady, PageLens).
 - Master prompt line count and “Fix everything in one Cursor paste” on unlock panels.
@@ -67,7 +67,7 @@ Deploylint rebrand on `deploylint.com`.
 
 ### Added
 
-- KV-backed unlock persistence — paid re-scans verify without re-hitting Stripe every time.
+- KV-backed unlock persistence — paid verification reruns verify without re-hitting Stripe every time.
 
 [unreleased]: https://github.com/PyRo1121/vibe/compare/deploylint-v0.35.0...HEAD
 [0.35.0]: https://github.com/PyRo1121/vibe/compare/deploylint-v0.34.0...deploylint-v0.35.0
