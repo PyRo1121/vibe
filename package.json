@@ -40,7 +40,10 @@
 	"overrides": {
 		"@cloudflare/workers-types": "^5.20260705.1",
 		"@sveltejs/adapter-cloudflare": "^7.2.9",
-		"@sveltejs/kit": "^2.69.1",
+		"@sveltejs/kit": {
+			".": "^2.69.1",
+			"cookie": "^0.7.2"
+		},
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@tailwindcss/vite": "^4.3.2",
 		"svelte": "^5.56.4",
