@@ -1,0 +1,39 @@
+{
+	"$schema": "https://unpkg.com/knip@latest/schema.json",
+	"svelte": false,
+	"sveltekit": {
+		"config": ["apps/tcg-vault/svelte.config.js"]
+	},
+	"ignoreExportsUsedInFile": {
+		"interface": true,
+		"type": true,
+		"variable": true
+	},
+	"workspaces": {
+		"apps/tcg-vault": {
+			"svelte": true,
+			"sveltekit": true,
+			"entry": [
+				"src/app.html",
+				"src/hooks.server.ts",
+				"src/routes/**/*.{svelte,ts,js}",
+				"src/lib/**/*.spec.{ts,js}",
+				"src/lib/**/*.test.{ts,js}",
+				"src/routes/**/*.spec.{ts,js}",
+				"src/routes/**/*.test.{ts,js}",
+				"e2e/**/*.ts",
+				"scripts/*.{js,mjs,ts}"
+			],
+			"project": ["src/**/*.{ts,js,svelte}", "e2e/**/*.ts", "scripts/*.{js,mjs,ts}"],
+			"ignoreBinaries": ["wrangler"],
+			"ignoreDependencies": [
+				"@fontsource-variable/geist",
+				"@tailwindcss/forms",
+				"@tailwindcss/typography",
+				"tailwindcss",
+				"esbuild"
+			],
+			"ignoreUnresolved": ["./\\$types", "./_worker.sk.js"]
+		}
+	}
+}

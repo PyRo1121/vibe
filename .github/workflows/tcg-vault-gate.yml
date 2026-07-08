@@ -4,24 +4,24 @@ on:
   push:
     branches: [main]
     paths:
-      - "apps/tcg-vault/**"
-      - "package.json"
-      - "package-lock.json"
-      - "turbo.json"
-      - ".oxlintrc.jsonc"
-      - ".oxfmtrc.jsonc"
-      - ".nvmrc"
-      - ".github/workflows/tcg-vault-gate.yml"
+      - 'apps/tcg-vault/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'turbo.json'
+      - '.oxlintrc.jsonc'
+      - '.oxfmtrc.jsonc'
+      - '.nvmrc'
+      - '.github/workflows/tcg-vault-gate.yml'
   pull_request:
     paths:
-      - "apps/tcg-vault/**"
-      - "package.json"
-      - "package-lock.json"
-      - "turbo.json"
-      - ".oxlintrc.jsonc"
-      - ".oxfmtrc.jsonc"
-      - ".nvmrc"
-      - ".github/workflows/tcg-vault-gate.yml"
+      - 'apps/tcg-vault/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'turbo.json'
+      - '.oxlintrc.jsonc'
+      - '.oxfmtrc.jsonc'
+      - '.nvmrc'
+      - '.github/workflows/tcg-vault-gate.yml'
   workflow_dispatch:
 
 permissions:
@@ -47,13 +47,7 @@ jobs:
         run: npm ci
 
       - name: Verify TCG Vault
-        run: npm run verify:tcg-vault
-
-      - name: Install Playwright browser
-        run: npm run test:e2e:install -w tcg-vault
-
-      - name: E2E smoke (TCG Vault)
-        run: npm run test:e2e -w tcg-vault
+        run: npm run verify:tcg-vault:ci
 
       - name: Upload TCG Vault failure artifacts
         if: failure()

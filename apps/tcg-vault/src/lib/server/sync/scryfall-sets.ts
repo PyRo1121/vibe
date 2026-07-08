@@ -1,4 +1,4 @@
-export const SCRYFALL_USER_AGENT = 'TCGVault/1.0 (https://vault.latham.cloud; olen@latham.cloud)';
+const SCRYFALL_USER_AGENT = 'TCGVault/1.0 (https://vault.latham.cloud; olen@latham.cloud)';
 
 export const SCRYFALL_HEADERS = {
 	Accept: 'application/json',
@@ -6,7 +6,7 @@ export const SCRYFALL_HEADERS = {
 } as const;
 
 /** Set types we skip — tokens/memorabilia aren't useful for price/checklist SEO. */
-export const SCRYFALL_EXCLUDED_SET_TYPES = new Set(['token', 'memorabilia', 'minigame']);
+const SCRYFALL_EXCLUDED_SET_TYPES = new Set(['token', 'memorabilia', 'minigame']);
 
 export interface ScryfallSetSummary {
 	code: string;

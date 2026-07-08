@@ -25,16 +25,6 @@ export interface CardRow {
 	set_name?: string;
 }
 
-export interface PriceRow {
-	card_id: string;
-	market_usd: number | null;
-	market_usd_foil: number | null;
-	market_eur: number | null;
-	ebay_usd: number | null;
-	price_source: string;
-	updated_at: string;
-}
-
 export interface CardWithPrice extends CardRow {
 	market_usd: number | null;
 	market_usd_foil: number | null;
