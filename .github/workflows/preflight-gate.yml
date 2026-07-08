@@ -14,7 +14,11 @@ on:
       - 'knip.deploylint.jsonc'
       - '.oxlintrc.jsonc'
       - '.oxfmtrc.jsonc'
+      - 'svelte.config.js'
+      - '.github/dependabot.yml'
       - '.nvmrc'
+      - 'scripts/assert-unlighthouse.mjs'
+      - 'scripts/benchmark-lighthouse.mjs'
       - '.github/workflows/preflight-gate.yml'
       - '.github/workflows/deploylint-dogfood.yml'
   pull_request:
@@ -29,7 +33,11 @@ on:
       - 'knip.deploylint.jsonc'
       - '.oxlintrc.jsonc'
       - '.oxfmtrc.jsonc'
+      - 'svelte.config.js'
+      - '.github/dependabot.yml'
       - '.nvmrc'
+      - 'scripts/assert-unlighthouse.mjs'
+      - 'scripts/benchmark-lighthouse.mjs'
       - '.github/workflows/preflight-gate.yml'
       - '.github/workflows/deploylint-dogfood.yml'
   workflow_dispatch:

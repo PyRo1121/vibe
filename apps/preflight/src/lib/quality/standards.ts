@@ -18,6 +18,26 @@ type ScopedCoverageThresholds = Record<string, CoverageThresholds>;
 
 const DISABLED_TEST_MODIFIERS = new Set(['only', 'skip', 'fixme']);
 
+const DEPLOYLINT_WORKFLOW_PATH_FILTERS = [
+	'apps/preflight/**',
+	'apps/preflight-mcp/**',
+	'apps/deploylint-shared/**',
+	'.github/actions/deploylint-gate/**',
+	'package.json',
+	'package-lock.json',
+	'turbo.json',
+	'knip.deploylint.jsonc',
+	'.oxlintrc.jsonc',
+	'.oxfmtrc.jsonc',
+	'svelte.config.js',
+	'.github/dependabot.yml',
+	'.nvmrc',
+	'scripts/assert-unlighthouse.mjs',
+	'scripts/benchmark-lighthouse.mjs',
+	'.github/workflows/preflight-gate.yml',
+	'.github/workflows/deploylint-dogfood.yml'
+];
+
 export const CRITICAL_COVERAGE_THRESHOLDS = {
 	'src/lib/billing/**.ts': {
 		statements: 94,
@@ -329,21 +349,7 @@ function hasDeploylintWorkflowTriggers(workflow: string): boolean {
 		workflow.includes('branches: [main]') &&
 		workflow.includes('pull_request:') &&
 		workflow.includes('workflow_dispatch:') &&
-		[
-			'apps/preflight/**',
-			'apps/preflight-mcp/**',
-			'apps/deploylint-shared/**',
-			'.github/actions/deploylint-gate/**',
-			'package.json',
-			'package-lock.json',
-			'turbo.json',
-			'knip.deploylint.jsonc',
-			'.oxlintrc.jsonc',
-			'.oxfmtrc.jsonc',
-			'.nvmrc',
-			'.github/workflows/preflight-gate.yml',
-			'.github/workflows/deploylint-dogfood.yml'
-		].every((path) => workflow.includes(path))
+		DEPLOYLINT_WORKFLOW_PATH_FILTERS.every((path) => workflow.includes(path))
 	);
 }
 
@@ -378,6 +384,17 @@ function hasBoundedGateFetch(source: string): boolean {
 	].every((fragment) => source.includes(fragment));
 }
 
+function hasActionBoundedFetchInputs(source: string): boolean {
+	return [
+		'fetch_timeout_ms:',
+		'fetch_retries:',
+		'fetch_retry_delay_ms:',
+		'DEPLOYLINT_FETCH_TIMEOUT_MS: ${{ inputs.fetch_timeout_ms }}',
+		'DEPLOYLINT_FETCH_RETRIES: ${{ inputs.fetch_retries }}',
+		'DEPLOYLINT_FETCH_RETRY_DELAY_MS: ${{ inputs.fetch_retry_delay_ms }}'
+	].every((fragment) => source.includes(fragment));
+}
+
 export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsReport {
 	const preflightRoot = join(rootDir, 'apps/preflight');
 	const preflightMcpRoot = join(rootDir, 'apps/preflight-mcp');
@@ -402,6 +419,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const viteConfigPath = join(preflightRoot, 'vite.config.ts');
 	const mcpViteConfigPath = join(preflightMcpRoot, 'vite.config.ts');
 	const playwrightConfigPath = join(preflightRoot, 'playwright.config.ts');
+	const deploylintGateActionPath = join(rootDir, '.github/actions/deploylint-gate/action.yml');
 	const preflightGateWorkflowPath = join(rootDir, '.github/workflows/preflight-gate.yml');
 	const dogfoodWorkflowPath = join(rootDir, '.github/workflows/deploylint-dogfood.yml');
 	const checked: string[] = [];
@@ -433,6 +451,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		viteConfigPath,
 		mcpViteConfigPath,
 		playwrightConfigPath,
+		deploylintGateActionPath,
 		preflightGateWorkflowPath,
 		dogfoodWorkflowPath
 	];
@@ -507,6 +526,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const rootSvelteConfigSource = readFileSync(rootSvelteConfigPath, 'utf8');
 	const dependabotSource = readFileSync(dependabotPath, 'utf8');
 	const playwrightConfig = readFileSync(playwrightConfigPath, 'utf8');
+	const deploylintGateAction = readFileSync(deploylintGateActionPath, 'utf8');
 	const preflightGateWorkflow = readFileSync(preflightGateWorkflowPath, 'utf8');
 	const dogfoodWorkflow = readFileSync(dogfoodWorkflowPath, 'utf8');
 	const disabledE2eTests = findDisabledTestModifiers(rootDir);
@@ -651,6 +671,12 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		failures,
 		'Deploylint gate scripts bound network calls with timeout and retry controls',
 		hasBoundedGateFetch(localGateScriptSource) && hasBoundedGateFetch(remoteGateScriptSource)
+	);
+	pushCheck(
+		checked,
+		failures,
+		'Deploylint GitHub Action exposes gate timeout and retry controls',
+		hasActionBoundedFetchInputs(deploylintGateAction)
 	);
 	pushCheck(
 		checked,
@@ -862,14 +888,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			preflightGateWorkflow.includes('apps/preflight-mcp/test-results/**') &&
 			!preflightGateWorkflow.includes("node-version: '24'") &&
 			preflightGateWorkflow.includes('apps/preflight-mcp/**') &&
-			[
-				'apps/deploylint-shared/**',
-				'.github/actions/deploylint-gate/**',
-				'knip.deploylint.jsonc',
-				'.oxlintrc.jsonc',
-				'.oxfmtrc.jsonc',
-				'.nvmrc'
-			].every((path) => preflightGateWorkflow.includes(path)) &&
+			DEPLOYLINT_WORKFLOW_PATH_FILTERS.every((path) => preflightGateWorkflow.includes(path)) &&
 			dogfoodWorkflow.includes('push:') &&
 			dogfoodWorkflow.includes('branches: [main]') &&
 			dogfoodWorkflow.includes('concurrency:') &&
@@ -884,14 +903,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			(dogfoodWorkflow.includes('min_score: "80"') ||
 				dogfoodWorkflow.includes("min_score: '80'")) &&
 			dogfoodWorkflow.includes('mode: gate') &&
-			[
-				'apps/deploylint-shared/**',
-				'package-lock.json',
-				'knip.deploylint.jsonc',
-				'.oxlintrc.jsonc',
-				'.oxfmtrc.jsonc',
-				'.nvmrc'
-			].every((path) => dogfoodWorkflow.includes(path))
+			DEPLOYLINT_WORKFLOW_PATH_FILTERS.every((path) => dogfoodWorkflow.includes(path))
 	);
 	pushCheck(
 		checked,

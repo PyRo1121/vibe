@@ -41,6 +41,7 @@ describe('quality standards guard', () => {
 				'root dependency audit fails on any known vulnerability',
 				'Dependabot updates npm and GitHub Actions supply-chain dependencies',
 				'Deploylint gate scripts bound network calls with timeout and retry controls',
+				'Deploylint GitHub Action exposes gate timeout and retry controls',
 				'root deploylint CI verify runs audit, shared, preflight, mcp, Playwright install, and e2e',
 				'root deploylint local verify skips network-heavy CI-only gates',
 				'root deploylint format gate checks root configs and workflows',
@@ -166,6 +167,20 @@ describe('quality standards guard', () => {
 			writeFixtureFile(
 				join(root, 'apps/preflight/scripts/gate-remote.mjs'),
 				`await fetch('https://deploylint.test/api/scan');`
+			);
+			writeFixtureFile(
+				join(root, '.github/actions/deploylint-gate/action.yml'),
+				`name: Deploylint gate
+inputs:
+  url:
+    required: true
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        DEPLOYLINT_URL: \${{ inputs.url }}
+      run: node "$GITHUB_ACTION_PATH/gate-remote.mjs"`
 			);
 			writeFixtureFile(
 				join(root, '.oxlintrc.jsonc'),
@@ -298,6 +313,7 @@ updates:
 					'root dependency audit fails on any known vulnerability',
 					'Dependabot updates npm and GitHub Actions supply-chain dependencies',
 					'Deploylint gate scripts bound network calls with timeout and retry controls',
+					'Deploylint GitHub Action exposes gate timeout and retry controls',
 					'root deploylint CI verify runs audit, shared, preflight, mcp, Playwright install, and e2e',
 					'root deploylint local verify skips network-heavy CI-only gates',
 					'root deploylint format gate checks root configs and workflows',

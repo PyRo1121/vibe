@@ -43,6 +43,26 @@ const failingReport = {
 	]
 };
 
+const passingReport = {
+	url: 'https://target.test',
+	finalUrl: 'https://target.test/',
+	score: 96,
+	verdict: 'go',
+	verdictMessage: 'Ready for release.',
+	reportId: 'report_ok',
+	summary: { pass: 3, warn: 0, fail: 0 },
+	checks: [
+		{
+			id: 'https',
+			category: 'security',
+			title: 'HTTPS',
+			status: 'pass',
+			message: 'HTTPS enforced',
+			fixPrompt: ''
+		}
+	]
+};
+
 afterEach(() => {
 	while (tempDirs.length > 0) {
 		const dir = tempDirs.pop();
@@ -204,6 +224,73 @@ describe('gate-remote advisory output', () => {
 			expect(result.code).toBe(2);
 			expect(result.stderr).toContain('Timed out after 25ms while POST');
 			expect(result.stderr).toContain('/api/scan');
+		});
+	});
+});
+
+describe('gate-remote blocking output', () => {
+	it('blocks failing reports in gate mode and writes blocking summary copy', async () => {
+		await withScanApi(failingReport, async (apiBase) => {
+			const dir = makeTempDir();
+			const summaryPath = join(dir, 'summary.md');
+			const result = await runGate(apiBase, {
+				env: {
+					DEPLOYLINT_MODE: 'gate',
+					GITHUB_STEP_SUMMARY: summaryPath
+				}
+			});
+
+			expect(result.code).toBe(1);
+			expect(result.stdout).toContain('Deploylint gate: FAIL');
+			expect(result.stdout).toContain('Failures:');
+			expect(result.stdout).toContain('P0 blocker: Privacy policy');
+			expect(result.stdout).not.toContain('Advisory mode');
+
+			const summary = readFileSync(summaryPath, 'utf8');
+			expect(summary).toContain('**Blocking:**');
+			expect(summary).not.toContain('**Advisory findings:**');
+		});
+	});
+
+	it('emits failing effective pass and raw gatePass in gate JSON', async () => {
+		await withScanApi(failingReport, async (apiBase) => {
+			const result = await runGate(apiBase, {
+				args: ['--json'],
+				env: {
+					DEPLOYLINT_MODE: 'gate'
+				}
+			});
+			const jsonLine = result.stdout
+				.trim()
+				.split(/\r?\n/)
+				.findLast((line) => line.startsWith('{'));
+			expect(jsonLine).toBeTruthy();
+			const payload = JSON.parse(jsonLine ?? '{}') as {
+				pass?: boolean;
+				gatePass?: boolean;
+				advisory?: boolean;
+				reasons?: string[];
+			};
+
+			expect(result.code).toBe(1);
+			expect(payload.pass).toBe(false);
+			expect(payload.gatePass).toBe(false);
+			expect(payload.advisory).toBe(false);
+			expect(payload.reasons).toContain('Score 40 is below minimum 80');
+		});
+	});
+
+	it('passes healthy reports in gate mode', async () => {
+		await withScanApi(passingReport, async (apiBase) => {
+			const result = await runGate(apiBase, {
+				env: {
+					DEPLOYLINT_MODE: 'gate'
+				}
+			});
+
+			expect(result.code).toBe(0);
+			expect(result.stdout).toContain('Deploylint gate: PASS');
+			expect(result.stdout).not.toContain('Failures:');
 		});
 	});
 });

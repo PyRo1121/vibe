@@ -60,4 +60,14 @@ describe('gate P0 sync', () => {
 		expect(action).toContain('default: gate');
 		expect(action).toContain('DEPLOYLINT_URL');
 	});
+
+	it('GitHub Action exposes bounded fetch controls', () => {
+		const action = readFileSync(actionPath, 'utf8');
+		expect(action).toContain('fetch_timeout_ms:');
+		expect(action).toContain('fetch_retries:');
+		expect(action).toContain('fetch_retry_delay_ms:');
+		expect(action).toContain('DEPLOYLINT_FETCH_TIMEOUT_MS: ${{ inputs.fetch_timeout_ms }}');
+		expect(action).toContain('DEPLOYLINT_FETCH_RETRIES: ${{ inputs.fetch_retries }}');
+		expect(action).toContain('DEPLOYLINT_FETCH_RETRY_DELAY_MS: ${{ inputs.fetch_retry_delay_ms }}');
+	});
 });

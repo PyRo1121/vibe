@@ -20,6 +20,18 @@ inputs:
     description: gate (fail on blockers) or advisory (report only)
     required: false
     default: gate
+  fetch_timeout_ms:
+    description: Per-request timeout for Deploylint and GitHub API calls
+    required: false
+    default: '30000'
+  fetch_retries:
+    description: Retry count for transient network failures
+    required: false
+    default: '2'
+  fetch_retry_delay_ms:
+    description: Initial retry delay for transient network failures
+    required: false
+    default: '500'
 
 runs:
   using: composite
@@ -31,6 +43,9 @@ runs:
         DEPLOYLINT_API: ${{ inputs.api }}
         DEPLOYLINT_MIN_SCORE: ${{ inputs.min_score }}
         DEPLOYLINT_MODE: ${{ inputs.mode }}
+        DEPLOYLINT_FETCH_TIMEOUT_MS: ${{ inputs.fetch_timeout_ms }}
+        DEPLOYLINT_FETCH_RETRIES: ${{ inputs.fetch_retries }}
+        DEPLOYLINT_FETCH_RETRY_DELAY_MS: ${{ inputs.fetch_retry_delay_ms }}
       run: |
         set -euo pipefail
         if [ -z "${DEPLOYLINT_URL:-}" ]; then
