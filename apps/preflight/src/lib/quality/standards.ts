@@ -10,7 +10,7 @@ export const ENTERPRISE_COVERAGE_MINIMUMS = {
 	statements: 90,
 	lines: 90,
 	functions: 95,
-	branches: 85
+	branches: 90
 } as const;
 
 type CoverageThresholds = Record<keyof typeof ENTERPRISE_COVERAGE_MINIMUMS, number>;

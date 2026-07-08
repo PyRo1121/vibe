@@ -28,8 +28,11 @@ export async function fetchScan(opts: ScanOptions): Promise<ScanReport> {
 
 	const json = (await res.json().catch(() => null)) as ScanReport | { message?: string } | null;
 	if (!res.ok) {
-		const message = json && 'message' in json ? json.message : `HTTP ${res.status}`;
-		throw new Error(message ?? `Scan failed (${res.status})`);
+		const message =
+			json && 'message' in json && typeof json.message === 'string' && json.message.trim()
+				? json.message.trim()
+				: `HTTP ${res.status}`;
+		throw new Error(message);
 	}
 
 	return json as ScanReport;

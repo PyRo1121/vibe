@@ -113,6 +113,20 @@ describe('MCP handlers', () => {
 			])
 		});
 	});
+
+	it('returns markdown gate output with default threshold and blocking behavior', async () => {
+		const handlers = createHandlers(vi.fn<ScanFetcher>().mockResolvedValue(report()));
+
+		const result = await handlers.handleGate({ url: 'https://app.test' });
+
+		expect(text(result)).toContain('FAIL');
+		expect(text(result)).toContain('Score 72 below minimum 80');
+		expect(text(result)).toContain('Gate failures');
+	});
+
+	it('uses the default scan fetcher when no dependency is injected', () => {
+		expect(createHandlers()).toHaveProperty('handleScan');
+	});
 });
 
 describe('createDeploylintServer', () => {

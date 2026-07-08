@@ -1,7 +1,7 @@
 import { DEFAULT_DEPLOYLINT_API } from '@vibe/deploylint-shared';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { apiBase, fetchScan } from './api.js';
+import { apiBase, fetchScan, reportUrl } from './api.js';
 import type { ScanReport } from './types.js';
 
 const ORIGINAL_DEPLOYLINT_API = process.env.DEPLOYLINT_API;
@@ -53,6 +53,15 @@ describe('apiBase', () => {
 
 		expect(apiBase()).toBe('https://primary.test');
 	});
+
+	it('falls back to legacy PREFLIGHT_API and omits report URLs without an id', () => {
+		delete process.env.DEPLOYLINT_API;
+		process.env.PREFLIGHT_API = 'https://legacy.test///';
+
+		expect(apiBase()).toBe('https://legacy.test');
+		expect(reportUrl(scanReport())).toBeNull();
+		expect(reportUrl(scanReport({ reportId: 'abc12345' }))).toBe('https://legacy.test/r/abc12345');
+	});
 });
 
 describe('fetchScan', () => {
@@ -82,6 +91,16 @@ describe('fetchScan', () => {
 		});
 	});
 
+	it('omits optional scan request fields when they are not provided', async () => {
+		process.env.DEPLOYLINT_API = 'https://api.test/';
+		fetchMock.mockResolvedValueOnce(jsonResponse(scanReport()));
+
+		await fetchScan({ url: ' https://app.test ' });
+
+		const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
+		expect(JSON.parse(String(init.body))).toEqual({ url: 'https://app.test' });
+	});
+
 	it('surfaces API error messages from non-2xx responses', async () => {
 		fetchMock.mockResolvedValueOnce(jsonResponse({ message: 'Too many scans' }, 429));
 
@@ -92,5 +111,13 @@ describe('fetchScan', () => {
 		fetchMock.mockResolvedValueOnce(new Response('bad gateway', { status: 502 }));
 
 		await expect(fetchScan({ url: 'https://app.test' })).rejects.toThrow('HTTP 502');
+	});
+
+	it('falls back to HTTP status when JSON error message is blank or missing', async () => {
+		fetchMock.mockResolvedValueOnce(jsonResponse({ message: '   ' }, 400));
+		fetchMock.mockResolvedValueOnce(jsonResponse({}, 401));
+
+		await expect(fetchScan({ url: 'https://app.test' })).rejects.toThrow('HTTP 400');
+		await expect(fetchScan({ url: 'https://app.test' })).rejects.toThrow('HTTP 401');
 	});
 });

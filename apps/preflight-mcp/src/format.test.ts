@@ -41,7 +41,7 @@ function report(overrides: Partial<ScanReport> = {}): ScanReport {
 		},
 		paymentReadiness: {
 			status: 'blocked',
-			headline: 'Payment readiness blocked by 1 revenue blocker.',
+			headline: 'Payment readiness blocked by 1 payment blocker.',
 			pass: 0,
 			warn: 1,
 			fail: 1,
@@ -63,6 +63,7 @@ describe('buildAgentScanPayload', () => {
 		expect(payload.reportUrl).toContain('/r/abc12345');
 		expect(payload.unlockHint).toBeNull();
 		expect(payload.paymentReadiness?.status).toBe('blocked');
+		expect(payload.paymentBlockers).toEqual(['Server-owned checkout: Checkout is browser-owned.']);
 		expect(payload.revenueBlockers).toEqual(['Server-owned checkout: Checkout is browser-owned.']);
 	});
 
@@ -131,6 +132,36 @@ describe('buildAgentScanPayload', () => {
 
 		expect(payload.issues.map((issue) => issue.id)).toEqual(['p0-failure', 'p1-warning']);
 	});
+
+	it('returns empty defaults when optional report sections are absent', () => {
+		const payload = buildAgentScanPayload(
+			report({
+				launchBrief: undefined,
+				paymentReadiness: undefined,
+				reportId: undefined,
+				samplePromptId: undefined,
+				masterPrompt: '   ',
+				pagesScanned: undefined,
+				checks: [
+					{
+						id: 'later',
+						title: 'Later',
+						status: 'warn',
+						message: 'No priority defaults to p2.'
+					}
+				]
+			})
+		);
+
+		expect(payload.reportUrl).toBeNull();
+		expect(payload.embarrassmentRisks).toEqual([]);
+		expect(payload.launchHeadline).toBeNull();
+		expect(payload.paymentReadiness).toBeNull();
+		expect(payload.paymentBlockers).toEqual([]);
+		expect(payload.revenueBlockers).toEqual([]);
+		expect(payload.masterPrompt).toBeNull();
+		expect(payload.issues[0]).toMatchObject({ id: 'later', priority: undefined });
+	});
 });
 
 describe('formatScanMarkdown', () => {
@@ -139,7 +170,9 @@ describe('formatScanMarkdown', () => {
 		expect(md).toContain('Embarrassment radar');
 		expect(md).toContain('Add a /privacy page');
 		expect(md).toContain('Payment readiness');
+		expect(md).toContain('Payment blockers');
 		expect(md).toContain('Server-owned checkout');
+		expect(md).not.toContain('Revenue blockers');
 	});
 
 	it('renders optional repo, page, delta, and master prompt context', () => {
@@ -162,6 +195,33 @@ describe('formatScanMarkdown', () => {
 		expect(md).toContain('acme/site@main');
 		expect(md).toContain('home, pricing');
 		expect(md).toContain('Master repair prompt');
+	});
+
+	it('skips not-detected payment readiness and renders negative score deltas', () => {
+		const md = formatScanMarkdown(
+			report({
+				score: 60,
+				previousScore: 72,
+				scoreDelta: -12,
+				paymentReadiness: {
+					status: 'not-detected',
+					headline: 'No payment flow detected.',
+					pass: 0,
+					warn: 0,
+					fail: 0,
+					checked: [],
+					blockers: [],
+					warnings: []
+				},
+				launchBrief: undefined,
+				checks: []
+			})
+		);
+
+		expect(md).toContain('72');
+		expect(md).toContain('(-12)');
+		expect(md).not.toContain('## Payment readiness');
+		expect(md).not.toContain('## Issues');
 	});
 });
 

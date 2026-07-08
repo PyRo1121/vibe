@@ -26,6 +26,8 @@ export interface AgentScanPayload {
 	embarrassmentRisks: string[];
 	launchHeadline: string | null;
 	paymentReadiness: ScanReport['paymentReadiness'] | null;
+	paymentBlockers: string[];
+	/** @deprecated Use paymentBlockers. Kept for existing MCP clients. */
 	revenueBlockers: string[];
 	issues: AgentIssue[];
 	masterPrompt: string | null;
@@ -94,6 +96,7 @@ export function buildAgentScanPayload(report: ScanReport, maxIssues = 25): Agent
 		embarrassmentRisks: report.launchBrief?.embarrassmentRisks ?? [],
 		launchHeadline: report.launchBrief?.headline ?? null,
 		paymentReadiness: report.paymentReadiness ?? null,
+		paymentBlockers: report.paymentReadiness?.blockers ?? [],
 		revenueBlockers: report.paymentReadiness?.blockers ?? [],
 		issues,
 		masterPrompt: report.masterPrompt?.trim() ? report.masterPrompt : null,
@@ -161,7 +164,7 @@ export function formatScanMarkdown(report: ScanReport, maxIssues = 25): string {
 	if (payload.paymentReadiness && payload.paymentReadiness.status !== 'not-detected') {
 		lines.push('', '## Payment readiness', '', payload.paymentReadiness.headline);
 		if (payload.paymentReadiness.blockers.length > 0) {
-			lines.push('', '**Revenue blockers:**');
+			lines.push('', '**Payment blockers:**');
 			for (const blocker of payload.paymentReadiness.blockers) lines.push(`- ${blocker}`);
 		}
 		if (payload.paymentReadiness.warnings.length > 0) {
