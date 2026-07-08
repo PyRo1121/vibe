@@ -82,7 +82,7 @@
 
 <section class="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8">
 	<div class="grid gap-8 lg:grid-cols-[minmax(0,320px)_1fr]">
-		<div>
+		<div class="min-w-0">
 			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
 				Project readiness score
 			</p>
@@ -250,7 +250,7 @@
 		</div>
 
 		{#if categories.length > 0}
-			<div>
+			<div class="min-w-0">
 				<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Where to focus</p>
 				<ul class="mt-3 space-y-3">
 					{#each categories as row (row.category)}
