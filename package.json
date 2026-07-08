@@ -13,7 +13,7 @@
 		"lint": "turbo run lint",
 		"format": "turbo run format",
 		"format:check": "turbo run format:check",
-		"format:deploylint:check": "oxfmt --check package.json package-lock.json turbo.json knip.deploylint.jsonc .oxlintrc.jsonc .oxfmtrc.jsonc svelte.config.js .github/workflows/preflight-gate.yml .github/workflows/deploylint-dogfood.yml",
+		"format:deploylint:check": "oxfmt --check package.json package-lock.json turbo.json knip.deploylint.jsonc .oxlintrc.jsonc .oxfmtrc.jsonc svelte.config.js .github/workflows/preflight-gate.yml .github/workflows/deploylint-dogfood.yml .github/actions/deploylint-gate/action.yml .github/actions/deploylint-gate/gate-remote.mjs scripts/assert-unlighthouse.mjs scripts/benchmark-lighthouse.mjs",
 		"audit:security": "npm audit --audit-level=low",
 		"deadcode:deploylint": "knip --config knip.deploylint.jsonc --workspace apps/preflight --workspace apps/preflight-mcp --workspace apps/deploylint-shared --no-progress --treat-config-hints-as-errors --max-issues=0",
 		"deadcode:tcg-vault": "knip --config knip.tcg-vault.jsonc --workspace apps/tcg-vault --no-progress --treat-config-hints-as-errors --max-issues=0",

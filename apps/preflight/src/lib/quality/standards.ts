@@ -639,7 +639,11 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			'.oxfmtrc.jsonc',
 			'svelte.config.js',
 			'.github/workflows/preflight-gate.yml',
-			'.github/workflows/deploylint-dogfood.yml'
+			'.github/workflows/deploylint-dogfood.yml',
+			'.github/actions/deploylint-gate/action.yml',
+			'.github/actions/deploylint-gate/gate-remote.mjs',
+			'scripts/assert-unlighthouse.mjs',
+			'scripts/benchmark-lighthouse.mjs'
 		]) && rootPackage.scripts['verify:deploylint:ci']?.includes('npm run format:deploylint:check')
 	);
 	pushCheck(
