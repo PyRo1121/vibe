@@ -58,6 +58,24 @@ describe('trackFunnel', () => {
 		});
 	});
 
+	it('queues Plausible funnel events through the Plausible client before it is ready', () => {
+		const fetchMock = vi.fn<Window['fetch']>(async () => new Response(null, { status: 204 }));
+		vi.stubGlobal('window', {});
+		vi.stubGlobal('fetch', fetchMock);
+		isPlausibleReadyMock.mockReturnValue(false);
+
+		trackFunnel('pricing_viewed', {
+			mode: 'paid',
+			plan: 'builder'
+		});
+
+		expect(fetchMock).toHaveBeenCalledOnce();
+		expect(trackPlausibleEventMock).toHaveBeenCalledWith('pricing_viewed', {
+			mode: 'paid',
+			plan: 'builder'
+		});
+	});
+
 	it('does nothing during server rendering', () => {
 		const fetchMock = vi.fn<Window['fetch']>();
 		vi.stubGlobal('fetch', fetchMock);

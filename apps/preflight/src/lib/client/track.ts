@@ -1,4 +1,4 @@
-import { isPlausibleReady, trackPlausibleEvent } from '$lib/client/plausible';
+import { trackPlausibleEvent } from '$lib/client/plausible';
 import type { FunnelEventName, FunnelPayload } from '$lib/metrics/funnel';
 
 /** Fire-and-forget funnel event for Phase 18 conversion tracking. */
@@ -11,8 +11,6 @@ export function trackFunnel(name: FunnelEventName, payload: FunnelPayload = {}):
 		body: JSON.stringify({ event: name, ...payload }),
 		keepalive: true
 	}).catch(() => {});
-
-	if (!isPlausibleReady()) return;
 
 	const props: Record<string, string | number | boolean> = {};
 	for (const [key, value] of Object.entries(payload)) {
