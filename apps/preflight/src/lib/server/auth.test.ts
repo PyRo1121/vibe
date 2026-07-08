@@ -1,34 +1,162 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { authSchemaFieldMappings } from './auth';
+const mocks = vi.hoisted(() => ({
+	betterAuth: vi.fn<(options: unknown) => unknown>((options) => ({
+		handler: vi.fn<() => Response>(() => new Response()),
+		options,
+		api: { getSession: vi.fn<() => Promise<null>>(async () => null) }
+	})),
+	sendAuthEmail: vi.fn<(...args: unknown[]) => Promise<void>>(async () => {})
+}));
 
-describe('deploylint auth', () => {
-	it('maps Better Auth logical fields to the snake_case D1 migration columns', () => {
-		const schema = authSchemaFieldMappings();
+vi.mock('better-auth', () => ({
+	betterAuth: mocks.betterAuth
+}));
 
-		expect(schema.user?.fields).toMatchObject({
-			emailVerified: 'email_verified',
-			createdAt: 'created_at',
-			updatedAt: 'updated_at'
+vi.mock('./auth-email', () => ({
+	sendAuthEmail: mocks.sendAuthEmail
+}));
+
+import { authSchemaFieldMappings, getDeploylintAuth } from './auth';
+import { AUTH_ROUTE_PREFIX } from './auth-config';
+
+describe('authSchemaFieldMappings', () => {
+	it('maps Better Auth camelCase fields to D1 snake_case columns', () => {
+		expect(authSchemaFieldMappings()).toMatchObject({
+			user: {
+				fields: {
+					emailVerified: 'email_verified',
+					createdAt: 'created_at',
+					updatedAt: 'updated_at'
+				}
+			},
+			session: {
+				fields: {
+					expiresAt: 'expires_at',
+					ipAddress: 'ip_address',
+					userAgent: 'user_agent',
+					userId: 'user_id'
+				}
+			},
+			account: {
+				fields: {
+					providerId: 'provider_id',
+					accessToken: 'access_token',
+					refreshTokenExpiresAt: 'refresh_token_expires_at'
+				}
+			},
+			verification: {
+				fields: {
+					expiresAt: 'expires_at'
+				}
+			}
 		});
-		expect(schema.session?.fields).toMatchObject({
-			expiresAt: 'expires_at',
-			ipAddress: 'ip_address',
-			userAgent: 'user_agent',
-			userId: 'user_id'
+	});
+});
+
+describe('getDeploylintAuth', () => {
+	beforeEach(() => {
+		mocks.betterAuth.mockClear();
+		mocks.sendAuthEmail.mockClear();
+	});
+
+	it('returns null when auth storage is unavailable', () => {
+		expect(getDeploylintAuth({}, 'https://deploylint.com')).toBeNull();
+		expect(mocks.betterAuth).not.toHaveBeenCalled();
+	});
+
+	it('returns null for production URLs without an auth secret', () => {
+		const env = {
+			AUTH_DB: {} as D1Database,
+			PUBLIC_APP_URL: 'https://deploylint.com'
+		};
+
+		expect(getDeploylintAuth(env, 'https://deploylint.com')).toBeNull();
+		expect(mocks.betterAuth).not.toHaveBeenCalled();
+	});
+
+	it('configures local email/password auth, email delivery, and GitHub provider', async () => {
+		const env = {
+			AUTH_DB: {} as D1Database,
+			PUBLIC_APP_URL: 'http://localhost:5173',
+			RESEND_API_KEY: 'resend-key',
+			RESEND_FROM_EMAIL: 'Deploylint <hello@example.test>',
+			GITHUB_CLIENT_ID: 'github-client',
+			GITHUB_CLIENT_SECRET: 'github-secret'
+		};
+
+		const auth = getDeploylintAuth(env, 'http://127.0.0.1:5173');
+
+		expect(auth).not.toBeNull();
+		expect(mocks.betterAuth).toHaveBeenCalledOnce();
+		expect(auth?.options).toMatchObject({
+			appName: 'Deploylint',
+			baseURL: 'http://localhost:5173',
+			basePath: AUTH_ROUTE_PREFIX,
+			database: env.AUTH_DB,
+			secret: 'dev-only-localhost:5173',
+			trustedOrigins: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+			emailAndPassword: {
+				enabled: true,
+				requireEmailVerification: true,
+				minPasswordLength: 10
+			},
+			emailVerification: {
+				sendOnSignUp: true
+			},
+			socialProviders: {
+				github: {
+					clientId: 'github-client',
+					clientSecret: 'github-secret'
+				}
+			}
 		});
-		expect(schema.account?.fields).toMatchObject({
-			accountId: 'account_id',
-			providerId: 'provider_id',
-			accessToken: 'access_token',
-			refreshToken: 'refresh_token',
-			accessTokenExpiresAt: 'access_token_expires_at',
-			refreshTokenExpiresAt: 'refresh_token_expires_at'
+
+		const authUser = {
+			id: 'user_1',
+			email: 'user@example.test',
+			emailVerified: false,
+			name: 'User',
+			createdAt: new Date('2026-01-01T00:00:00.000Z'),
+			updatedAt: new Date('2026-01-01T00:00:00.000Z')
+		};
+
+		await auth?.options.emailAndPassword?.sendResetPassword?.({
+			user: authUser,
+			url: 'https://deploylint.com/reset',
+			token: 'reset-token'
 		});
-		expect(schema.verification?.fields).toMatchObject({
-			expiresAt: 'expires_at',
-			createdAt: 'created_at',
-			updatedAt: 'updated_at'
+		await auth?.options.emailVerification?.sendVerificationEmail?.({
+			user: authUser,
+			url: 'https://deploylint.com/verify',
+			token: 'verify-token'
 		});
+
+		expect(mocks.sendAuthEmail).toHaveBeenCalledWith(env, {
+			kind: 'reset-password',
+			to: 'user@example.test',
+			userName: 'User',
+			url: 'https://deploylint.com/reset'
+		});
+		expect(mocks.sendAuthEmail).toHaveBeenCalledWith(env, {
+			kind: 'verify',
+			to: 'user@example.test',
+			userName: 'User',
+			url: 'https://deploylint.com/verify'
+		});
+	});
+
+	it('caches auth instances per D1 binding', () => {
+		const env = {
+			AUTH_DB: {} as D1Database,
+			BETTER_AUTH_URL: 'https://deploylint.com',
+			BETTER_AUTH_SECRET: 'secret'
+		};
+
+		const first = getDeploylintAuth(env, 'https://deploylint.com');
+		const second = getDeploylintAuth(env, 'https://deploylint.com');
+
+		expect(first).toBe(second);
+		expect(mocks.betterAuth).toHaveBeenCalledOnce();
 	});
 });
