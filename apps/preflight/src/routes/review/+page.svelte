@@ -56,13 +56,13 @@
 	let lockedPromptTrackedFor: string | null = null;
 
 	const PROGRESS_STEPS = [
-		'Preparing release-readiness evidence...',
-		'Checking public access and HTTPS…',
-		'Reviewing trust, legal, and payment signals…',
-		'Inspecting preview and crawler metadata…',
-		'Checking bundles for exposed secrets and licenses…',
-		'Checking repo and workflow readiness signals…',
-		'Scoring advisory-gate evidence…'
+		'Preparing advisory evidence...',
+		'Checking deploy target access and HTTPS...',
+		'Reviewing trust, legal, and payment signals...',
+		'Inspecting preview metadata and route evidence...',
+		'Checking bundles for exposed secrets and license evidence...',
+		'Checking repo and workflow readiness signals...',
+		'Scoring advisory gate decision...'
 	];
 	let progressIdx = $state(0);
 
@@ -383,9 +383,9 @@
 	}
 
 	const appOrigin = $derived(data.appUrl.replace(/\/$/, ''));
-	const title = buildSeoTitle('Temporary advisory review');
+	const title = buildSeoTitle('No-login advisory trial');
 	const description =
-		'Run a temporary Deploylint advisory review before creating a workspace-backed CI gate.';
+		'Try a no-login Deploylint advisory review, then move the project into a workspace-backed CI gate.';
 	const jsonLd = $derived(buildDeploylintJsonLd({ base: appOrigin, description, price: '0.00' }));
 	const subscriptionLoop = [
 		{
@@ -420,15 +420,15 @@
 	<section class="mb-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-end print:hidden">
 		<div>
 			<p class="mb-3 text-sm font-medium tracking-widest text-sky-400 uppercase">
-				Temporary advisory review
+				No-login advisory trial
 			</p>
 			<h1 class="mb-4 max-w-4xl text-4xl font-bold tracking-tight text-white sm:text-5xl">
-				Get deploy evidence before workspace setup.
+				Try advisory evidence before the workspace takes over.
 			</h1>
 			<p class="max-w-3xl text-lg leading-8 text-zinc-400">
-				This utility keeps temporary advisory reviews available for demos, billing callbacks, and
-				no-login trials. The product path is still a monitored project with GitHub Actions advisory
-				reports and deploy gates. Start with the
+				Use this page for temporary deploy evidence when you need proof before login. The product
+				path is still a monitored workspace: project setup, advisory PR reports, report history, and
+				blocking deploy gates. Start with the
 				<a
 					href={resolve('/tools/github-actions-security-checker')}
 					class="font-medium text-sky-300 underline underline-offset-4 hover:text-sky-200"
@@ -445,10 +445,10 @@
 			</p>
 			<div class="mt-6 flex flex-col gap-3 sm:flex-row">
 				<a
-					href="#project-setup"
+					href={resolve('/app#project')}
 					class="rounded-xl bg-sky-500 px-5 py-3 text-center text-sm font-semibold text-zinc-950 hover:bg-sky-400"
 				>
-					Create monitored project
+					Open workspace setup
 				</a>
 				<a
 					href={resolve('/tools/github-actions-security-checker')}
@@ -552,7 +552,7 @@
 				> so CI reports write back to workspace history.
 			</p>
 			<p class="mt-3 text-sm leading-6 text-zinc-500">
-				Need a no-login trial run? This page can produce temporary deploy evidence, but it will not
+				Need a no-login trial run? This page can preview temporary deploy evidence, but it will not
 				populate project history or gate status.
 			</p>
 		</div>
@@ -642,7 +642,7 @@
 						runScan(false, target);
 					}}
 				>
-					{loading ? 'Checking...' : 'Run advisory review'}
+					{loading ? 'Checking...' : 'Preview advisory evidence'}
 				</button>
 			</div>
 		</div>
@@ -738,7 +738,7 @@
 			<div class="rounded-xl border border-zinc-800 p-5">
 				<p class="font-medium text-white">Project readiness audit</p>
 				<p class="mt-1 text-sm text-zinc-400">
-					Crawler, trust, payment, preview, and repo checks after workflow risk is under control
+					Trust, payment, preview, and repo evidence after workflow risk is under control
 				</p>
 			</div>
 			<div class="rounded-xl border border-zinc-800 p-5">

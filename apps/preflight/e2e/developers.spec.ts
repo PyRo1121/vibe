@@ -21,6 +21,6 @@ test.describe('developers', () => {
 		await expect(page.getByText('Advisory PR report preview')).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Switch to blocking mode' })).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Composite GitHub Action' })).toBeVisible();
-		await expect(page.getByRole('link', { name: 'Build readiness evidence' })).toBeVisible();
+		await expect(page.getByRole('link', { name: 'Open workspace setup' })).toBeVisible();
 	});
 });

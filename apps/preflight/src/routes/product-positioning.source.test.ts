@@ -55,7 +55,13 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(developersPage).toContain("resolve('/app#install')");
 		expect(developersPage).toContain('DEPLOYLINT_PROJECT_ID');
 		expect(developersPage).toContain('Do not copy sample project IDs from documentation');
+		expect(developersPage).toContain('Agent workflows can call');
+		expect(developersPage).toContain(
+			'Use <code class="text-sky-300">deploylint_gate</code> for CI installs'
+		);
+		expect(developersPage).toContain('Open workspace setup');
 		expect(developersPage).not.toContain('proj_demo_123');
+		expect(developersPage).not.toContain('Build readiness evidence');
 	});
 
 	it('sells subscriptions as monitored projects and deploy enforcement', () => {
@@ -165,8 +171,10 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(homePage).toContain('Generate in workspace');
 		expect(homePage).toContain('DEPLOYLINT_PROJECT_ID');
 		expect(homePage).toContain('Generate advisory workflow');
+		expect(homePage).toContain('Preview no-login advisory evidence');
 		expect(homePage).toContain('What the advisory loop checks');
 		expect(homePage).not.toContain('Run advisory review');
+		expect(homePage).not.toContain('Run a temporary advisory review');
 		expect(homePage).not.toContain('Preparing release-readiness evidence');
 		expect(homePage).not.toContain("fetch('/api/scan'");
 		expect(homePage).not.toContain("import('$lib/components/ScanReportResults.svelte')");
@@ -214,6 +222,32 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(toolsPage).not.toContain('Build readiness report');
 		expect(toolsPage).not.toContain('Check repo');
 		expect(workflowToolPage).not.toContain("href={resolve('/')}");
+	});
+
+	it('keeps the no-login review utility and evidence components workspace-first', () => {
+		const reviewPage = source('routes', 'review', '+page.svelte');
+		const pagesScannedStrip = source('lib', 'components', 'PagesScannedStrip.svelte');
+		const scanIncompleteBanner = source('lib', 'components', 'ScanIncompleteBanner.svelte');
+		const licenseAuditPanel = source('lib', 'components', 'LicenseAuditPanel.svelte');
+
+		expect(reviewPage).toContain('No-login advisory trial');
+		expect(reviewPage).toContain('Preview advisory evidence');
+		expect(reviewPage).toContain('Open workspace setup');
+		expect(reviewPage).toContain('project history or gate status');
+		expect(reviewPage).toContain('Preparing advisory evidence');
+		expect(reviewPage).toContain('Scoring advisory gate decision');
+		expect(reviewPage).not.toContain('Temporary advisory review');
+		expect(reviewPage).not.toContain('Run advisory review');
+		expect(reviewPage).not.toContain('Preparing release-readiness evidence');
+		expect(reviewPage).not.toContain('crawler metadata');
+		expect(reviewPage).not.toContain('Crawler, trust');
+		expect(pagesScannedStrip).toContain('Evidence covered');
+		expect(pagesScannedStrip).toContain('Deploy evidence coverage');
+		expect(scanIncompleteBanner).toContain('Deploy target evidence limited');
+		expect(scanIncompleteBanner).toContain('automated review');
+		expect(scanIncompleteBanner).not.toContain('sites that block bots');
+		expect(licenseAuditPanel).toContain('public deploy evidence');
+		expect(licenseAuditPanel).not.toContain('not visible to this scan');
 	});
 
 	it('makes generated advisory workflows skip cleanly when fork PR secrets are unavailable', () => {

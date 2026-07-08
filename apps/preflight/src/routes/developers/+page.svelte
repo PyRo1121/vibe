@@ -347,12 +347,12 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 				<code class="text-sky-300">advisory: true</code> reports without blocking.
 			</li>
 			<li>
-				<code class="text-sky-300">deploylint_scan</code> returns target evidence, risks, issues, and
-				repair prompts for agent workflows.
+				Agent workflows can call <code class="text-sky-300">deploylint_scan</code> when they need target
+				evidence, risks, issues, and repair prompts before proposing a change.
 			</li>
 			<li>
-				Use <code class="text-sky-300">deploylint_scan</code> /
-				<code class="text-sky-300">deploylint_gate</code> for new installs; legacy
+				Use <code class="text-sky-300">deploylint_gate</code> for CI installs and
+				<code class="text-sky-300">deploylint_scan</code> for agent evidence collection; legacy
 				<code class="text-sky-300">preflight_*</code> aliases remain for backwards compatibility.
 			</li>
 		</ul>
@@ -394,8 +394,6 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 	</section>
 
 	<p>
-		<a class="text-sky-400 hover:underline" href={resolve('/app#project')}
-			>Build readiness evidence</a
-		>
+		<a class="text-sky-400 hover:underline" href={resolve('/app#project')}>Open workspace setup</a>
 	</p>
 </div>

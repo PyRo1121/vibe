@@ -66,8 +66,8 @@
 					handoff or launch.
 				{:else}
 					Detected from public page assets (CDN scripts, fonts, recognizable filenames). Server-side
-					and bundled dependencies are not visible to this scan — run a full dependency audit before
-					a commercial handoff or launch.
+					and bundled dependencies are not visible from public deploy evidence — run a full
+					dependency audit before a commercial handoff or launch.
 				{/if}
 			</p>
 		{/if}

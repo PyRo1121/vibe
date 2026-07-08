@@ -209,7 +209,7 @@
 					href={resolve('/review')}
 					class="font-medium text-sky-300 underline underline-offset-4 hover:text-sky-200"
 				>
-					Run a temporary advisory review
+					Preview no-login advisory evidence
 				</a>
 				without making it the center of the product.
 			</p>
