@@ -47,6 +47,11 @@ function isRetryableFetchError(err) {
 	return /fetch failed|connect timeout|network|timed out/i.test(err.message);
 }
 
+export function isScanRateLimitedResponse(responseOrStatus, text = '') {
+	const status = typeof responseOrStatus === 'number' ? responseOrStatus : responseOrStatus?.status;
+	return status === 429 && /too many scans/i.test(text);
+}
+
 export function installFetchRetry({
 	retries = envInt('DEPLOYLINT_SMOKE_FETCH_RETRIES', 2),
 	baseDelayMs = envInt('DEPLOYLINT_SMOKE_FETCH_RETRY_DELAY_MS', 500)

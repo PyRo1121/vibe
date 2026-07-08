@@ -6,7 +6,7 @@
  * Uses an external site with footer legal links. The Worker cannot fetch its own
  * zone (Cloudflare returns 522), so dogfooding deploylint.com is skipped.
  */
-import { installFetchRetry } from './smoke-http.mjs';
+import { installFetchRetry, isScanRateLimitedResponse } from './smoke-http.mjs';
 
 installFetchRetry();
 
@@ -53,7 +53,11 @@ async function post(path, body) {
 
 const scan = await post('/api/scan', { url: MULTIPAGE_URL });
 if (!scan.res.ok) {
-	fail('multipage scan API', `${scan.res.status} ${scan.text.slice(0, 120)}`);
+	if (isScanRateLimitedResponse(scan.res, scan.text)) {
+		skip('multipage scan API', 'scan rate limit active after earlier smoke phases');
+	} else {
+		fail('multipage scan API', `${scan.res.status} ${scan.text.slice(0, 120)}`);
+	}
 } else if (scan.json?.scanCoverage === 'blocked') {
 	skip(
 		'multipage crawl',
@@ -84,14 +88,20 @@ if (!scan.res.ok) {
 
 // Self-scan dogfood — same-zone fetch uses the SELF service binding (Phase 21).
 const selfScan = await post('/api/scan', { url: BASE });
-if (selfScan.res.ok && selfScan.json?.scanCoverage === 'blocked') {
+if (!selfScan.res.ok) {
+	if (isScanRateLimitedResponse(selfScan.res, selfScan.text)) {
+		skip('self-scan dogfood', 'scan rate limit active after earlier smoke phases');
+	} else {
+		fail('self-scan dogfood', `${selfScan.res.status} ${selfScan.text.slice(0, 120)}`);
+	}
+} else if (selfScan.json?.scanCoverage === 'blocked') {
 	fail('self-scan dogfood', `still blocked: ${selfScan.json.checks?.[0]?.message ?? 'unknown'}`);
 } else if (selfScan.res.ok && selfScan.json?.pagesScanned?.length > 1) {
 	pass('self-scan dogfood', selfScan.json.pagesScanned.map((p) => p.role).join(', '));
 } else if (selfScan.res.ok && selfScan.json?.pagesScanned) {
 	pass('self-scan dogfood', selfScan.json.pagesScanned.map((p) => p.role).join(', '));
 } else {
-	fail('self-scan dogfood', selfScan.text.slice(0, 120));
+	fail('self-scan dogfood', selfScan.text.slice(0, 120) || 'missing pagesScanned');
 }
 
 const failed = results.filter((r) => !r.ok);
