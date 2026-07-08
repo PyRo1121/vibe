@@ -37,6 +37,7 @@ test.describe('billing flow', () => {
 	});
 
 	test('opens Stripe billing portal from a restored paid unlock session', async ({ page }) => {
+		const scanRequests: unknown[] = [];
 		const portalRequests: unknown[] = [];
 		const unlockedReport = {
 			...mockScanReport,
@@ -46,7 +47,15 @@ test.describe('billing flow', () => {
 		await page.addInitScript((value) => {
 			sessionStorage.setItem('preflight_scan_url', value);
 		}, scanUrl);
-		await mockScanApi(page, unlockedReport);
+		await page.route('**/api/scan', async (route) => {
+			if (route.request().method() !== 'POST') return route.continue();
+			scanRequests.push(route.request().postDataJSON());
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify(unlockedReport)
+			});
+		});
 		await page.route('**/api/billing/portal', async (route) => {
 			if (route.request().method() !== 'POST') return route.continue();
 			portalRequests.push(route.request().postDataJSON());
@@ -65,10 +74,11 @@ test.describe('billing flow', () => {
 		});
 
 		await page.goto('/?checkout=success&session_id=cs_paid_e2e');
-		await expect(page.getByRole('button', { name: 'Manage billing' })).toBeVisible({
-			timeout: 15_000
-		});
-		await page.getByRole('button', { name: 'Manage billing' }).click();
+		const manageBilling = page.getByRole('button', { name: 'Manage billing' });
+		await expect(manageBilling).toBeVisible({ timeout: 15_000 });
+		await expect.poll(() => new URL(page.url()).search).toBe('');
+		expect(scanRequests).toEqual([{ url: scanUrl, unlockSessionId: 'cs_paid_e2e' }]);
+		await manageBilling.click();
 
 		await expect(page).toHaveURL(portalUrl);
 		expect(portalRequests).toEqual([{ url: scanUrl, unlockSessionId: 'cs_paid_e2e' }]);

@@ -16,7 +16,7 @@
 		"PUBLIC_APP_URL": "https://deploylint.com",
 		"PUBLIC_PLAUSIBLE_DOMAIN": "deploylint.local",
 		"PUBLIC_PLAUSIBLE_SCRIPT": "",
-		"BETTER_AUTH_URL": "http://localhost:4199",
+		"BETTER_AUTH_URL": "http://localhost:4299",
 		"BETTER_AUTH_SECRET": "dev-only-deploylint-e2e-auth-secret-change-for-shared-dev",
 		"STRIPE_PRICE_SOLO": "price_local_solo",
 		"STRIPE_PRICE_BUILDER": "price_local_builder",

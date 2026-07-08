@@ -14,20 +14,20 @@ export default defineConfig({
 			]
 		: 'list',
 	use: {
-		baseURL: 'http://localhost:4199',
+		baseURL: 'http://localhost:4299',
 		screenshot: 'only-on-failure',
 		trace: 'on-first-retry',
 		video: 'on-first-retry'
 	},
 	projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 	webServer: {
-		command: 'npm run dev -- --port 4199',
+		command: 'npm run dev -- --port 4299',
 		env: {
 			...process.env,
 			DEPLOYLINT_PLATFORM_PROXY_CONFIG: 'wrangler.e2e.jsonc'
 		},
-		url: 'http://localhost:4199',
-		reuseExistingServer: !process.env.CI,
+		url: 'http://localhost:4299',
+		reuseExistingServer: false,
 		timeout: 120_000
 	}
 });

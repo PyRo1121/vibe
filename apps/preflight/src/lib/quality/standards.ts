@@ -1062,7 +1062,9 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		playwrightConfig.includes('forbidOnly: !!process.env.CI') &&
 			playwrightConfig.includes('retries: process.env.CI ? 1 : 0') &&
 			playwrightConfig.includes('workers: process.env.CI ? 1 : undefined') &&
-			playwrightConfig.includes('reuseExistingServer: !process.env.CI')
+			playwrightConfig.includes("DEPLOYLINT_PLATFORM_PROXY_CONFIG: 'wrangler.e2e.jsonc'") &&
+			playwrightConfig.includes("baseURL: 'http://localhost:4299'") &&
+			playwrightConfig.includes('reuseExistingServer: false')
 	);
 	pushCheck(
 		checked,
