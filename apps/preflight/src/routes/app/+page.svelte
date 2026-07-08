@@ -22,16 +22,16 @@
 	const project = $derived(data.workspace.projects[0]);
 	const activation = $derived(data.activation);
 	const gatePolicy = $derived(data.gatePolicy);
-	const sampleReport: ProjectReportSummary = {
-		id: 'report_preview',
+	const pendingReport: ProjectReportSummary = {
+		id: 'report_pending',
 		score: 86,
 		verdict: 'review',
 		scannedAt: 'After first CI run',
 		fixedCount: 5,
 		regressedCount: 1
 	};
-	const latestReport = $derived(project?.latestReport ?? sampleReport);
-	const reportIsPreview = $derived(!project?.latestReport);
+	const latestReport = $derived(project?.latestReport ?? pendingReport);
+	const awaitingFirstReport = $derived(!project?.latestReport);
 	const reportNextFix =
 		'Tighten checkout verification and branch protection before switching DEPLOYLINT_MODE to gate.';
 	const reportProofPoints = [
@@ -112,7 +112,7 @@
 		<div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
 			<div>
 				<p class="mb-3 text-sm font-medium tracking-widest text-sky-400 uppercase">
-					{data.projectDraftApplied ? 'Project draft applied' : 'Workspace setup preview'}
+					{data.projectDraftApplied ? 'Project draft applied' : 'Setup checklist'}
 				</p>
 				<h1 class="max-w-4xl text-3xl font-bold tracking-tight text-white sm:text-5xl">
 					Turn a workflow check into a deploy gate.
@@ -166,7 +166,7 @@
 				</p>
 				<h2 class="mt-2 text-xl font-semibold text-white">{workspace.billing.planLabel}</h2>
 				<p class="mt-2 text-sm leading-6 text-zinc-400">
-					This setup preview shows {workspace.billing.projectLimit} monitored project, advisory reports,
+					This workspace includes {workspace.billing.projectLimit} monitored project, advisory reports,
 					report history, and deploy gate enforcement.
 				</p>
 				<div class="mt-5 grid grid-cols-3 gap-2">
@@ -210,7 +210,7 @@
 						{project?.name ?? 'Create your first monitored project'}
 					</h2>
 					<p class="mt-2 text-sm text-zinc-400">
-						{project?.repoLabel ?? 'Connect a repository after project persistence is wired.'}
+						{project?.repoLabel ?? 'Connect a repository to generate a workspace-backed workflow.'}
 					</p>
 				</div>
 				<span
@@ -315,10 +315,10 @@
 						Report history
 					</p>
 					<h2 class="mt-2 text-xl font-semibold text-white">
-						{reportIsPreview ? 'Preview the workspace value' : 'Latest CI report'}
+						{awaitingFirstReport ? 'Awaiting first CI report' : 'Latest CI report'}
 					</h2>
 					<p class="mt-2 text-sm leading-6 text-zinc-400">
-						{reportIsPreview
+						{awaitingFirstReport
 							? 'Install the advisory workflow and this becomes live project history with scores, regressions, and the recommended next fix.'
 							: 'Deploylint keeps the last project report attached to the workspace so every PR can prove what changed.'}
 					</p>
@@ -326,7 +326,7 @@
 				<span
 					class="w-fit rounded-full border border-sky-500/40 bg-sky-950/30 px-3 py-1 text-xs font-semibold text-sky-200"
 				>
-					{reportIsPreview ? 'Sample state' : latestReport.scannedAt}
+					{awaitingFirstReport ? 'Awaiting first run' : latestReport.scannedAt}
 				</span>
 			</div>
 

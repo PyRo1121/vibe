@@ -2,7 +2,7 @@ import { resolveAlphaFreeUnlock } from '$lib/product/alpha';
 import {
 	buildAdvisoryWorkflow,
 	buildProjectDraftFromSearchParams,
-	buildDemoWorkspace,
+	buildWorkspaceSetupState,
 	buildWorkspaceGatePolicy,
 	buildWorkspaceActivation
 } from '$lib/product/workspace';
@@ -21,7 +21,7 @@ export const load: PageServerLoad = ({ locals, platform, url }) => {
 	const alphaFreeUnlock = resolveAlphaFreeUnlock(env);
 	const ownerName = locals.user.name?.trim() || locals.user.email;
 	const projectDraft = buildProjectDraftFromSearchParams(url.searchParams);
-	const workspace = buildDemoWorkspace({
+	const workspace = buildWorkspaceSetupState({
 		appUrl,
 		alphaFreeUnlock,
 		ownerLabel: `${ownerName}'s workspace`,

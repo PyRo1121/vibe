@@ -19,15 +19,15 @@ describe('/app workspace source', () => {
 	it('presents a project workspace instead of another scanner page', () => {
 		const pageSource = source(pagePath);
 
-		expect(pageSource).toContain('Workspace setup preview');
+		expect(pageSource).toContain('Setup checklist');
 		expect(pageSource).toContain('Next action');
 		expect(pageSource).toContain('Install in GitHub Actions');
 		expect(pageSource).toContain('Report history');
-		expect(pageSource).toContain('Preview the workspace value');
-		expect(pageSource).toContain('Sample state');
+		expect(pageSource).toContain('Awaiting first CI report');
+		expect(pageSource).toContain('Awaiting first run');
 		expect(pageSource).toContain('Next fix');
 		expect(pageSource).toContain('Persistent score history');
-		expect(pageSource).toContain('reportIsPreview');
+		expect(pageSource).toContain('awaitingFirstReport');
 		expect(pageSource).toContain('latestReport');
 		expect(pageSource).toContain('Gate status');
 		expect(pageSource).toContain('Gate policy');
@@ -52,6 +52,9 @@ describe('/app workspace source', () => {
 		expect(pageSource).not.toContain('URL to scan');
 		expect(pageSource).not.toContain('xl:grid-cols-4');
 		expect(pageSource).not.toContain('Solo includes');
-		expect(pageSource).toContain('This setup preview shows');
+		expect(pageSource).not.toContain('Workspace setup preview');
+		expect(pageSource).not.toContain('Sample state');
+		expect(pageSource).not.toContain('project persistence is wired');
+		expect(pageSource).toContain('This workspace includes');
 	});
 });

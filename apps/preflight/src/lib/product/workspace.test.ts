@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	buildAdvisoryWorkflow,
 	buildProjectDraftFromSearchParams,
-	buildDemoWorkspace,
+	buildWorkspaceSetupState,
 	buildWorkspaceGatePolicy,
 	buildWorkspaceActivation,
 	workspaceActivationSteps,
@@ -12,12 +12,12 @@ import {
 
 describe('Deploylint workspace model', () => {
 	it('builds a project-shaped default workspace instead of a URL scan session', () => {
-		const workspace = buildDemoWorkspace({
+		const workspace = buildWorkspaceSetupState({
 			appUrl: 'https://deploylint.com',
 			alphaFreeUnlock: true
 		});
 
-		expect(workspace.ownerLabel).toBe('Early access setup preview');
+		expect(workspace.ownerLabel).toBe('Early access workspace');
 		expect(workspace.billing.mode).toBe('alpha');
 		expect(workspace.projects).toHaveLength(1);
 		expect(workspace.projects[0]).toMatchObject({
@@ -99,8 +99,8 @@ describe('Deploylint workspace model', () => {
 		});
 	});
 
-	it('applies a project draft to the workspace preview and advisory workflow target', () => {
-		const workspace = buildDemoWorkspace({
+	it('applies a project draft to the workspace setup state and advisory workflow target', () => {
+		const workspace = buildWorkspaceSetupState({
 			appUrl: 'https://deploylint.com',
 			alphaFreeUnlock: true,
 			projectDraft: {
@@ -151,7 +151,7 @@ describe('Deploylint workspace model', () => {
 	});
 
 	it('summarizes the deploy gate policy from project state', () => {
-		const workspace = buildDemoWorkspace({
+		const workspace = buildWorkspaceSetupState({
 			appUrl: 'https://deploylint.com',
 			alphaFreeUnlock: false
 		});
@@ -176,7 +176,7 @@ describe('Deploylint workspace model', () => {
 	});
 
 	it('marks workflow install as the current next action before CI is installed', () => {
-		const workspace = buildDemoWorkspace({
+		const workspace = buildWorkspaceSetupState({
 			appUrl: 'https://deploylint.com',
 			alphaFreeUnlock: true
 		});
@@ -198,7 +198,7 @@ describe('Deploylint workspace model', () => {
 	});
 
 	it('does not skip workflow activation when inconsistent report data exists', () => {
-		const workspace = buildDemoWorkspace({
+		const workspace = buildWorkspaceSetupState({
 			appUrl: 'https://deploylint.com',
 			alphaFreeUnlock: false
 		});
@@ -223,7 +223,7 @@ describe('Deploylint workspace model', () => {
 	});
 
 	it('moves the next action to first report after advisory install', () => {
-		const workspace = buildDemoWorkspace({
+		const workspace = buildWorkspaceSetupState({
 			appUrl: 'https://deploylint.com',
 			alphaFreeUnlock: false
 		});
@@ -246,7 +246,7 @@ describe('Deploylint workspace model', () => {
 	});
 
 	it('marks activation complete when the deploy gate is enabled', () => {
-		const workspace = buildDemoWorkspace({
+		const workspace = buildWorkspaceSetupState({
 			appUrl: 'https://deploylint.com',
 			alphaFreeUnlock: false
 		});

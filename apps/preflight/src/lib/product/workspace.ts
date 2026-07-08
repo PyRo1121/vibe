@@ -332,7 +332,7 @@ jobs:
           node gate-remote.mjs "$DEPLOYLINT_URL"`;
 }
 
-export function buildDemoWorkspace(opts: {
+export function buildWorkspaceSetupState(opts: {
 	appUrl: string;
 	alphaFreeUnlock: boolean;
 	ownerLabel?: string;
@@ -354,8 +354,7 @@ export function buildDemoWorkspace(opts: {
 	return {
 		id: 'workspace_demo',
 		ownerLabel:
-			opts.ownerLabel ??
-			(opts.alphaFreeUnlock ? 'Early access setup preview' : 'Deploylint setup preview'),
+			opts.ownerLabel ?? (opts.alphaFreeUnlock ? 'Early access workspace' : 'Deploylint workspace'),
 		billing: {
 			mode: opts.alphaFreeUnlock ? 'alpha' : 'setup',
 			planLabel: opts.alphaFreeUnlock ? 'Early access' : 'Solo',
