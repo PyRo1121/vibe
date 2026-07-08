@@ -154,22 +154,7 @@ export function buildUnlockOffer(report: ScanReport): UnlockOffer | null {
 	if (report.unlocked) return null;
 
 	if (report.scanCoverage === 'blocked') {
-		const reachable = report.checks.find((c) => c.id === 'reachable' || c.id === 'fetch');
-		return {
-			issueCount: reachable ? 1 : 0,
-			lockedPromptCount: 0,
-			blockerCount: 1,
-			hasSample: Boolean(report.samplePromptId),
-			headline: 'Access blocked — fix reachability before upgrading',
-			subhead:
-				'Deploylint only saw an error page. Upgrade after your homepage returns HTTP 200 so the report can judge real deploy readiness.',
-			valuePitch:
-				'Full readiness workflow after a successful check — not for bot-blocked error pages',
-			ctaLabel: 'Start Solo - $9/mo',
-			projectedScore: null,
-			masterPreviewLines: buildMasterPromptPreview(report),
-			masterPromptLineCount: estimateMasterPromptLineCount(report)
-		};
+		return null;
 	}
 
 	const issues = report.checks.filter((c) => c.status !== 'pass');

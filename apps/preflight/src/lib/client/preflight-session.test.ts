@@ -146,7 +146,7 @@ describe('buildUnlockOffer', () => {
 		expect(offer?.projectedScore).toBeGreaterThan(62);
 	});
 
-	it('warns on blocked scans instead of selling SEO fixes', () => {
+	it('does not sell a subscription before a blocked deploy target is reachable', () => {
 		const offer = buildUnlockOffer({
 			...baseReport,
 			scanCoverage: 'blocked',
@@ -154,12 +154,11 @@ describe('buildUnlockOffer', () => {
 			checks: [check('reachable', 'fail')],
 			samplePromptId: 'reachable'
 		});
-		expect(offer?.headline).toContain('blocked');
-		expect(offer?.projectedScore).toBeNull();
-		expect(offer?.masterPreviewLines.join('\n')).toContain('Do NOT fix SEO');
+
+		expect(offer).toBeNull();
 	});
 
-	it('does not count a blocked scan issue when no reachable/fetch check exists', () => {
+	it('does not sell a subscription for blocked scans without a reachable or fetch check', () => {
 		const offer = buildUnlockOffer({
 			...baseReport,
 			scanCoverage: 'blocked',
@@ -167,8 +166,7 @@ describe('buildUnlockOffer', () => {
 			checks: []
 		});
 
-		expect(offer?.issueCount).toBe(0);
-		expect(offer?.valuePitch).toContain('after a successful check');
+		expect(offer).toBeNull();
 	});
 
 	it('offers verification proof when a no-go report has no locked fixes', () => {
