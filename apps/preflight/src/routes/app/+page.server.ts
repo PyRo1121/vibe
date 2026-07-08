@@ -6,10 +6,10 @@ import {
 	buildWorkspaceActivation
 } from '$lib/product/workspace';
 import { buildLoginRedirect } from '$lib/server/auth-config';
-import { loadOrCreateWorkspaceState } from '$lib/server/workspace-store';
-import { redirect } from '@sveltejs/kit';
+import { loadOrCreateWorkspaceState, promoteProjectToGate } from '$lib/server/workspace-store';
+import { fail, redirect } from '@sveltejs/kit';
 
-import type { PageServerLoad } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, platform, url }) => {
 	if (!locals.user) {
@@ -48,8 +48,44 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
 					appUrl,
 					projectId: project.id,
 					deployUrl: project.deployUrl,
+					mode: project.gateMode,
 					minScore: project.minScore
 				})
 			: ''
 	};
+};
+
+function gatePromotionMessage(
+	reason: Exclude<Awaited<ReturnType<typeof promoteProjectToGate>>, { ok: true }>['reason']
+): string {
+	if (reason === 'missing-db') return 'Workspace storage is not available in this environment.';
+	if (reason === 'invalid-project') return 'Select a valid project before enabling gate mode.';
+	if (reason === 'not-found') return 'This project was not found in your workspace.';
+	if (reason === 'not-ready') {
+		return 'Run a clean advisory report that meets the minimum score before enabling gate mode.';
+	}
+	return 'Gate mode could not be enabled right now. Try again after refreshing the workspace.';
+}
+
+export const actions: Actions = {
+	enableGate: async ({ locals, platform, request, url }) => {
+		if (!locals.user) {
+			redirect(303, buildLoginRedirect(url));
+		}
+
+		const form = await request.formData();
+		const result = await promoteProjectToGate(
+			platform?.env?.AUTH_DB,
+			locals.user.id,
+			form.get('projectId')
+		);
+
+		if (!result.ok) {
+			return fail(400, {
+				enableGateError: gatePromotionMessage(result.reason)
+			});
+		}
+
+		return { gateEnabled: true };
+	}
 };

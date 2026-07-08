@@ -1,4 +1,5 @@
 import { resolveDeploylintPlan, type DeploylintPlanId } from '$lib/product/plans';
+import { normalizeProjectId } from '$lib/product/project-id';
 import {
 	buildWorkspaceSetupState,
 	type DeploylintProject,
@@ -41,6 +42,13 @@ export interface WorkspaceStoreOptions {
 	ownerUserId: string;
 	projectDraft?: ProjectDraft;
 }
+
+export type PromoteProjectToGateResult =
+	| { ok: true }
+	| {
+			ok: false;
+			reason: 'invalid-project' | 'missing-db' | 'not-found' | 'not-ready' | 'storage-error';
+	  };
 
 const PLAN_LIMITS: Record<DeploylintPlanId, number> = {
 	solo: 1,
@@ -156,6 +164,26 @@ async function loadProjectRows(db: D1Database, workspaceId: string): Promise<Pro
 		.bind(workspaceId)
 		.all();
 	return (results as unknown[]).filter(isProjectRow);
+}
+
+async function loadOwnedProjectRow(
+	db: D1Database,
+	ownerUserId: string,
+	projectId: string
+): Promise<ProjectRow | null> {
+	const row = await db
+		.prepare(
+			`SELECT project.id, project.name, project.deploy_url, project.repo_label, project.workflow_path,
+				project.install_state, project.gate_mode, project.min_score
+			FROM project
+			INNER JOIN workspace ON workspace.id = project.workspace_id
+			WHERE workspace.owner_user_id = ?
+				AND project.id = ?
+			LIMIT 1`
+		)
+		.bind(ownerUserId, projectId)
+		.first();
+	return isProjectRow(row) ? row : null;
 }
 
 async function createProjectRow(
@@ -317,5 +345,40 @@ export async function loadOrCreateWorkspaceState(
 		};
 	} catch {
 		return fallbackWorkspace(opts);
+	}
+}
+
+export async function promoteProjectToGate(
+	db: D1Database | undefined,
+	ownerUserId: string,
+	projectIdValue: unknown
+): Promise<PromoteProjectToGateResult> {
+	if (!db) return { ok: false, reason: 'missing-db' };
+
+	const projectId = normalizeProjectId(projectIdValue);
+	if (!projectId) return { ok: false, reason: 'invalid-project' };
+
+	try {
+		const project = await loadOwnedProjectRow(db, ownerUserId, projectId);
+		if (!project) return { ok: false, reason: 'not-found' };
+
+		const [latestReport] = await loadProjectReportHistory(db, project.id, 1);
+		const ready = latestReport?.verdict === 'go' && latestReport.score >= project.min_score;
+		if (!ready) return { ok: false, reason: 'not-ready' };
+
+		await db
+			.prepare(
+				`UPDATE project
+				SET install_state = 'gate_enabled',
+					gate_mode = 'gate',
+					updated_at = ?
+				WHERE id = ?`
+			)
+			.bind(Date.now(), project.id)
+			.run();
+
+		return { ok: true };
+	} catch {
+		return { ok: false, reason: 'storage-error' };
 	}
 }

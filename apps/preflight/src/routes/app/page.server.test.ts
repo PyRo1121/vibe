@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { load } from './+page.server';
+import { actions, load } from './+page.server';
 
 interface D1Call {
 	sql: string;
@@ -56,6 +56,36 @@ async function loadApp(overrides: Partial<Parameters<typeof load>[0]> = {}) {
 	} as Parameters<typeof load>[0]);
 }
 
+const user = {
+	id: 'user_123',
+	name: 'Olen',
+	email: 'olen@example.com',
+	emailVerified: true,
+	image: null,
+	createdAt: new Date('2026-07-07T00:00:00.000Z'),
+	updatedAt: new Date('2026-07-07T00:00:00.000Z')
+};
+
+function gateActionEvent(db: FakeD1, projectId = 'proj_live-123') {
+	return {
+		locals: {
+			session: null,
+			user
+		},
+		platform: {
+			env: {
+				AUTH_DB: db as unknown as D1Database,
+				PUBLIC_APP_URL: 'https://deploylint.com'
+			}
+		},
+		request: new Request('https://deploylint.com/app?/enableGate', {
+			method: 'POST',
+			body: new URLSearchParams({ projectId })
+		}),
+		url: new URL('https://deploylint.com/app')
+	} as Parameters<NonNullable<typeof actions.enableGate>>[0];
+}
+
 describe('/app server load', () => {
 	it('redirects anonymous users to login', async () => {
 		await expect(loadApp()).rejects.toMatchObject({
@@ -82,15 +112,7 @@ describe('/app server load', () => {
 		const data = await loadApp({
 			locals: {
 				session: null,
-				user: {
-					id: 'user_123',
-					name: 'Olen',
-					email: 'olen@example.com',
-					emailVerified: true,
-					image: null,
-					createdAt: new Date('2026-07-07T00:00:00.000Z'),
-					updatedAt: new Date('2026-07-07T00:00:00.000Z')
-				}
+				user
 			}
 		});
 
@@ -123,15 +145,7 @@ describe('/app server load', () => {
 		const data = await loadApp({
 			locals: {
 				session: null,
-				user: {
-					id: 'user_123',
-					name: 'Olen',
-					email: 'olen@example.com',
-					emailVerified: true,
-					image: null,
-					createdAt: new Date('2026-07-07T00:00:00.000Z'),
-					updatedAt: new Date('2026-07-07T00:00:00.000Z')
-				}
+				user
 			},
 			url: new URL(
 				'https://deploylint.com/app?name=Acme&repo=https%3A%2F%2Fgithub.com%2Facme%2Fapp&deploy=https%3A%2F%2Fapp.acme.com%2F&minScore=92'
@@ -205,15 +219,7 @@ describe('/app server load', () => {
 		const data = await loadApp({
 			locals: {
 				session: null,
-				user: {
-					id: 'user_123',
-					name: 'Olen',
-					email: 'olen@example.com',
-					emailVerified: true,
-					image: null,
-					createdAt: new Date('2026-07-07T00:00:00.000Z'),
-					updatedAt: new Date('2026-07-07T00:00:00.000Z')
-				}
+				user
 			},
 			platform: {
 				env: {
@@ -253,5 +259,71 @@ describe('/app server load', () => {
 		});
 		expect(pageData.workspace.metrics.reportsThisMonth).toBe(6);
 		expect(pageData.advisoryWorkflow).toContain('DEPLOYLINT_PROJECT_ID: proj_live-123');
+	});
+
+	it('enables blocking gate mode for a ready owned project', async () => {
+		const db = new FakeD1();
+		db.firstRows = [
+			{
+				id: 'proj_live-123',
+				name: 'Acme deploy gate',
+				deploy_url: 'https://app.acme.com',
+				repo_label: 'github.com/acme/app',
+				workflow_path: '.github/workflows/deploylint.yml',
+				install_state: 'advisory_installed',
+				gate_mode: 'advisory',
+				min_score: 88
+			}
+		];
+		db.allRows = [
+			[
+				{
+					id: 'prpt_latest',
+					report_id: 'abc123def456',
+					score: 91,
+					verdict: 'go',
+					scanned_at: '2026-07-08T12:30:00.000Z',
+					fixed_count: 3,
+					regressed_count: 0,
+					final_url: 'https://app.acme.com/',
+					commit_sha: 'abc123456789',
+					branch: 'main',
+					pull_request: '42'
+				}
+			]
+		];
+
+		await expect(actions.enableGate?.(gateActionEvent(db))).resolves.toEqual({
+			gateEnabled: true
+		});
+		expect(db.calls.at(-1)).toMatchObject({
+			method: 'run',
+			sql: expect.stringContaining("gate_mode = 'gate'")
+		});
+	});
+
+	it('returns a form error when gate promotion is not ready', async () => {
+		const db = new FakeD1();
+		db.firstRows = [
+			{
+				id: 'proj_live-123',
+				name: 'Acme deploy gate',
+				deploy_url: 'https://app.acme.com',
+				repo_label: 'github.com/acme/app',
+				workflow_path: '.github/workflows/deploylint.yml',
+				install_state: 'advisory_installed',
+				gate_mode: 'advisory',
+				min_score: 88
+			}
+		];
+		db.allRows = [[]];
+
+		await expect(actions.enableGate?.(gateActionEvent(db))).resolves.toMatchObject({
+			status: 400,
+			data: {
+				enableGateError: expect.stringContaining('Run a clean advisory report')
+			}
+		});
+		expect(db.calls.some((call) => call.method === 'run')).toBe(false);
 	});
 });

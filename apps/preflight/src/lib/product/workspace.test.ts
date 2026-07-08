@@ -34,7 +34,7 @@ describe('Deploylint workspace model', () => {
 		});
 	});
 
-	it('generates a project-scoped advisory workflow for the install loop', () => {
+	it('generates a project-scoped readiness workflow for the install loop', () => {
 		const workflow = buildAdvisoryWorkflow({
 			appUrl: 'https://deploylint.com/',
 			projectId: 'proj_demo_123',
@@ -42,7 +42,7 @@ describe('Deploylint workspace model', () => {
 			minScore: 80
 		});
 
-		expect(workflow).toContain('name: Deploylint advisory report');
+		expect(workflow).toContain('name: Deploylint readiness report');
 		expect(workflow).toContain('permissions:');
 		expect(workflow).toContain('contents: read');
 		expect(workflow).toContain('pull-requests: write');
@@ -53,9 +53,23 @@ describe('Deploylint workspace model', () => {
 		expect(workflow).toContain('GITHUB_TOKEN: ${{ github.token }}');
 		expect(workflow).toContain('if [ -z "$DEPLOYLINT_URL" ]; then');
 		expect(workflow).toContain(
-			'Skipping Deploylint advisory report because DEPLOYLINT_URL is unavailable'
+			'Skipping Deploylint readiness report because DEPLOYLINT_URL is unavailable'
 		);
 		expect(workflow).toContain('node gate-remote.mjs "$DEPLOYLINT_URL"');
+	});
+
+	it('generates gate-mode workflow config after workspace promotion', () => {
+		const workflow = buildAdvisoryWorkflow({
+			appUrl: 'https://deploylint.com',
+			projectId: 'proj_demo_123',
+			deployUrl: 'https://app.example.com',
+			mode: 'gate',
+			minScore: 90
+		});
+
+		expect(workflow).toContain('DEPLOYLINT_MODE: gate');
+		expect(workflow).toContain("DEPLOYLINT_MIN_SCORE: '90'");
+		expect(workflow).not.toContain('DEPLOYLINT_MODE: advisory');
 	});
 
 	it('uses the project score threshold in the advisory workflow', () => {
@@ -155,7 +169,7 @@ describe('Deploylint workspace model', () => {
 		]);
 		expect(workspaceGateHardeningSteps[1].label).toContain('required status check');
 		expect(workspaceGateHardeningSteps[1].description).toContain('branch protection');
-		expect(workspaceGateHardeningSteps[2].description).toContain('DEPLOYLINT_MODE');
+		expect(workspaceGateHardeningSteps[2].description).toContain('workspace');
 	});
 
 	it('summarizes the deploy gate policy from project state', () => {

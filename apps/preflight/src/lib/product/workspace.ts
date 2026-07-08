@@ -138,7 +138,7 @@ export const workspaceGateHardeningSteps = [
 		id: 'gate-mode',
 		label: 'Switch to blocking gate mode',
 		description:
-			'Change DEPLOYLINT_MODE from advisory to gate so risky production changes fail before merge.'
+			'Enable blocking gate mode from the workspace so risky production changes fail before merge.'
 	}
 ] as const;
 
@@ -312,11 +312,13 @@ export function buildAdvisoryWorkflow(opts: {
 	appUrl: string;
 	projectId: string;
 	deployUrl: string;
+	mode?: ProjectGateMode;
 	minScore: number;
 }): string {
 	const appUrl = normalizeAppUrl(opts.appUrl);
+	const mode = opts.mode ?? 'advisory';
 
-	return `name: Deploylint advisory report
+	return `name: Deploylint readiness report
 
 on:
   pull_request:
@@ -331,17 +333,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Run Deploylint advisory report
+      - name: Run Deploylint readiness report
         env:
           DEPLOYLINT_PROJECT_ID: ${opts.projectId}
           DEPLOYLINT_URL: ${opts.deployUrl}
           DEPLOYLINT_API: ${appUrl}
-          DEPLOYLINT_MODE: advisory
+          DEPLOYLINT_MODE: ${mode}
           DEPLOYLINT_MIN_SCORE: '${opts.minScore}'
           GITHUB_TOKEN: \${{ github.token }}
         run: |
           if [ -z "$DEPLOYLINT_URL" ]; then
-            echo "Skipping Deploylint advisory report because DEPLOYLINT_URL is unavailable (forked pull request secrets are not exposed)."
+            echo "Skipping Deploylint readiness report because DEPLOYLINT_URL is unavailable (forked pull request secrets are not exposed)."
             exit 0
           fi
           curl -fsSL ${appUrl}/gate-remote.mjs -o gate-remote.mjs

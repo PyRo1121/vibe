@@ -11,9 +11,9 @@
 	} from '$lib/product/workspace';
 	import { buildPageJsonLd, buildSeoTitle, defaultSeoImage } from '$lib/site/seo-metadata';
 
-	import type { PageData } from './$types';
+	import type { ActionData, PageData } from './$types';
 
-	let { data }: { data: PageData } = $props();
+	let { data, form = null }: { data: PageData; form?: ActionData } = $props();
 
 	let workflowCopied = $state(false);
 	let workflowCopyError = $state<string | null>(null);
@@ -41,6 +41,22 @@
 			: null
 	);
 	const awaitingFirstReport = $derived(!project?.latestReport);
+	const gateEnabled = $derived(
+		project?.installState === 'gate_enabled' && project.gateMode === 'gate'
+	);
+	const latestReportMeetsGate = $derived(
+		Boolean(
+			project?.latestReport?.verdict === 'go' && project.latestReport.score >= project.minScore
+		)
+	);
+	const gatePromotionReady = $derived(
+		Boolean(
+			project &&
+			!gateEnabled &&
+			project.installState === 'advisory_installed' &&
+			latestReportMeetsGate
+		)
+	);
 	const progressLabel = $derived(
 		`${activation.progress.completed}/${activation.progress.total} complete`
 	);
@@ -87,6 +103,25 @@
 		if (mode === 'alpha') return 'Included during alpha';
 		if (mode === 'paid') return 'Billing active';
 		return 'Billing setup pending';
+	}
+
+	function gateModeLabel(): string {
+		if (gateEnabled) return 'Blocking gate';
+		if (project?.installState === 'advisory_installed') return 'Advisory report';
+		return 'Not installed';
+	}
+
+	function gatePromotionHint(): string {
+		if (!project) return 'Create a project before enabling gate mode.';
+		if (gateEnabled) return 'The generated workflow now uses gate mode.';
+		if (project.installState !== 'advisory_installed') return 'Install the workflow first.';
+		if (!project.latestReport) return 'Run the first advisory CI report before promotion.';
+		if (project.latestReport.verdict !== 'go')
+			return 'Resolve blockers until the latest verdict is GO.';
+		if (project.latestReport.score < project.minScore) {
+			return `Raise the latest score to ${project.minScore} before enabling gate mode.`;
+		}
+		return 'Latest advisory report is clean enough to enable blocking gate mode.';
 	}
 
 	function formatReportDate(value: string): string {
@@ -201,21 +236,24 @@
 				</p>
 				<h2 class="mt-2 text-xl font-semibold text-white">{workspace.billing.planLabel}</h2>
 				<p class="mt-2 text-sm leading-6 text-zinc-400">
-					This workspace includes {workspace.billing.projectLimit} monitored project, advisory reports,
-					report history, and deploy gate enforcement.
+					This workspace includes {workspace.metrics.activeProjects}/{workspace.billing
+						.projectLimit}
+					monitored projects, readiness reports, report history, and deploy gate enforcement.
 				</p>
 				<div class="mt-5 grid grid-cols-3 gap-2">
 					<div class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
 						<p class="text-[10px] font-semibold tracking-widest text-zinc-500 uppercase">
-							Projects
+							Gate mode
 						</p>
-						<p class="mt-1 text-lg font-semibold text-white">
-							{workspace.metrics.activeProjects}/{workspace.billing.projectLimit}
-						</p>
+						<p class="mt-1 text-sm font-semibold text-white">{gateModeLabel()}</p>
 					</div>
 					<div class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
-						<p class="text-[10px] font-semibold tracking-widest text-zinc-500 uppercase">Gates</p>
-						<p class="mt-1 text-lg font-semibold text-white">{workspace.metrics.gatesEnabled}</p>
+						<p class="text-[10px] font-semibold tracking-widest text-zinc-500 uppercase">
+							Last score
+						</p>
+						<p class="mt-1 text-lg font-semibold text-white">
+							{awaitingFirstReport ? '--' : latestReport.score}
+						</p>
 					</div>
 					<div class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
 						<p class="text-[10px] font-semibold tracking-widest text-zinc-500 uppercase">Reports</p>
@@ -224,6 +262,9 @@
 						</p>
 					</div>
 				</div>
+				<p class="mt-3 text-xs text-zinc-500">
+					{workspace.metrics.gatesEnabled} blocking gates enabled across this workspace.
+				</p>
 				<div class="mt-4 rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
 					<p class="text-[10px] font-semibold tracking-widest text-zinc-500 uppercase">
 						Billing status
@@ -312,10 +353,13 @@
 				<p class="text-xs font-semibold tracking-widest text-sky-300 uppercase">
 					Install in GitHub Actions
 				</p>
-				<h2 class="mt-2 text-xl font-semibold text-white">Start in advisory mode</h2>
+				<h2 class="mt-2 text-xl font-semibold text-white">
+					{gateEnabled ? 'Blocking gate workflow' : 'Start in advisory mode'}
+				</h2>
 				<p class="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-					Advisory mode reports deploy risk without failing builds. Once the first report is clean,
-					this same project can become a blocking gate.
+					{gateEnabled
+						? 'This workflow now fails risky deploy changes when the score, verdict, or blocker policy does not pass.'
+						: 'Advisory mode reports deploy risk without failing builds. Once the first report is clean, this same project can become a blocking gate.'}
 				</p>
 				<p class="mt-2 max-w-2xl text-sm leading-6 text-zinc-500">
 					This project-scoped workflow writes CI reports back to this workspace through
@@ -507,6 +551,34 @@
 						</ul>
 					</div>
 				{/if}
+				{#if form?.enableGateError}
+					<p
+						class="mt-4 rounded-lg border border-amber-500/30 bg-amber-950/20 p-3 text-sm text-amber-200"
+						role="alert"
+					>
+						{form.enableGateError}
+					</p>
+				{/if}
+				{#if form?.gateEnabled || gateEnabled}
+					<p
+						class="mt-4 rounded-lg border border-emerald-500/30 bg-emerald-950/20 p-3 text-sm text-emerald-200"
+					>
+						Blocking gate mode is enabled for this project. Copy the workflow again so GitHub
+						Actions uses <code>DEPLOYLINT_MODE: gate</code>.
+					</p>
+				{:else if project}
+					<form method="POST" action="?/enableGate" class="mt-5">
+						<input type="hidden" name="projectId" value={project.id} />
+						<button
+							type="submit"
+							class="w-full rounded-lg bg-emerald-400 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-emerald-300 focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
+							disabled={!gatePromotionReady}
+						>
+							Enable blocking gate
+						</button>
+						<p class="mt-2 text-xs leading-5 text-zinc-500">{gatePromotionHint()}</p>
+					</form>
+				{/if}
 				<a
 					href={resolve('/developers')}
 					class="mt-5 inline-flex rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-white hover:border-sky-500 hover:text-sky-200 focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:outline-none"
@@ -524,7 +596,7 @@
 				</h2>
 				<p class="mt-2 text-sm leading-6 text-zinc-400">
 					After the advisory job is trusted, make Deploylint a required status check in branch
-					protection, then set <code class="text-sky-300">DEPLOYLINT_MODE</code> to gate.
+					protection, then enable blocking gate mode from this workspace.
 				</p>
 				<ol class="mt-4 space-y-3">
 					{#each workspaceGateHardeningSteps as step, index (step.id)}

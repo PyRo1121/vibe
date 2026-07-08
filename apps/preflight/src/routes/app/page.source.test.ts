@@ -36,6 +36,12 @@ describe('/app workspace source', () => {
 		expect(pageSource).toContain('Gate status');
 		expect(pageSource).toContain('Gate policy');
 		expect(pageSource).toContain('data.gatePolicy');
+		expect(pageSource).toContain('gateModeLabel');
+		expect(pageSource).toContain('gatePromotionReady');
+		expect(pageSource).toContain('gatePromotionHint');
+		expect(pageSource).toContain('Enable blocking gate');
+		expect(pageSource).toContain('action="?/enableGate"');
+		expect(pageSource).toContain('form?.enableGateError');
 		expect(pageSource).toContain('Required check');
 		expect(pageSource).toContain('Score below');
 		expect(pageSource).toContain('P0 blocker');
@@ -51,6 +57,7 @@ describe('/app workspace source', () => {
 		expect(pageSource).toContain('This project-scoped workflow writes CI reports back');
 		expect(pageSource).toContain('DEPLOYLINT_PROJECT_ID');
 		expect(pageSource).toContain('navigator.clipboard.writeText');
+		expect(pageSource).toContain('Blocking gate workflow');
 		expect(pageSource).toContain('data.activation');
 		expect(pageSource).toContain('data.workspace');
 		expect(pageSource).toContain('data.projectDraftApplied');

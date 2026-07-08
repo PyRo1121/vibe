@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { loadOrCreateWorkspaceState } from './workspace-store';
+import { loadOrCreateWorkspaceState, promoteProjectToGate } from './workspace-store';
 
 interface D1Call {
 	sql: string;
@@ -204,5 +204,97 @@ describe('workspace D1 store', () => {
 		});
 
 		expect(workspace.metrics.gatesEnabled).toBe(0);
+	});
+
+	it('promotes an owned project to blocking gate mode after a clean report', async () => {
+		const db = new FakeD1();
+		db.firstRows = [projectRow];
+		db.allRows = [
+			[
+				{
+					id: 'prpt_latest',
+					report_id: 'abc123def456',
+					score: 91,
+					verdict: 'go',
+					scanned_at: '2026-07-08T12:30:00.000Z',
+					fixed_count: 2,
+					regressed_count: 0,
+					final_url: 'https://app.acme.com/',
+					commit_sha: 'abc123456789',
+					branch: 'main',
+					pull_request: '42'
+				}
+			]
+		];
+
+		await expect(
+			promoteProjectToGate(db as unknown as D1Database, 'user_123', 'proj_live-123')
+		).resolves.toEqual({ ok: true });
+
+		expect(db.calls).toEqual([
+			expect.objectContaining({
+				method: 'first',
+				values: ['user_123', 'proj_live-123']
+			}),
+			expect.objectContaining({
+				method: 'all',
+				values: ['proj_live-123', 1]
+			}),
+			expect.objectContaining({
+				method: 'run',
+				sql: expect.stringContaining("SET install_state = 'gate_enabled'"),
+				values: [expect.any(Number), 'proj_live-123']
+			})
+		]);
+	});
+
+	it('refuses gate promotion before a clean report meets the minimum score', async () => {
+		const db = new FakeD1();
+		db.firstRows = [projectRow];
+		db.allRows = [
+			[
+				{
+					id: 'prpt_latest',
+					report_id: 'abc123def456',
+					score: 84,
+					verdict: 'conditional',
+					scanned_at: '2026-07-08T12:30:00.000Z',
+					fixed_count: 2,
+					regressed_count: 1,
+					final_url: 'https://app.acme.com/',
+					commit_sha: 'abc123456789',
+					branch: 'main',
+					pull_request: '42'
+				}
+			]
+		];
+
+		await expect(
+			promoteProjectToGate(db as unknown as D1Database, 'user_123', 'proj_live-123')
+		).resolves.toEqual({ ok: false, reason: 'not-ready' });
+		expect(db.calls.some((call) => call.method === 'run')).toBe(false);
+	});
+
+	it('rejects invalid or unowned gate promotion requests', async () => {
+		const invalidDb = new FakeD1();
+		await expect(
+			promoteProjectToGate(invalidDb as unknown as D1Database, 'user_123', '../bad')
+		).resolves.toEqual({
+			ok: false,
+			reason: 'invalid-project'
+		});
+		expect(invalidDb.calls).toEqual([]);
+
+		const missingDb = new FakeD1();
+		missingDb.firstRows = [null];
+		await expect(
+			promoteProjectToGate(missingDb as unknown as D1Database, 'user_123', 'proj_live-123')
+		).resolves.toEqual({ ok: false, reason: 'not-found' });
+		expect(missingDb.calls).toEqual([
+			expect.objectContaining({
+				method: 'first',
+				values: ['user_123', 'proj_live-123']
+			})
+		]);
 	});
 });

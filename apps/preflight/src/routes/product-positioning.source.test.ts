@@ -270,12 +270,16 @@ describe('Deploylint CI workspace positioning', () => {
 		const workspaceModel = source('lib', 'product', 'workspace.ts');
 		const compositeAction = repoSource('.github', 'actions', 'deploylint-gate', 'action.yml');
 
-		for (const fileSource of [developersPage, workflowToolPage, workspaceModel]) {
+		for (const fileSource of [developersPage, workflowToolPage]) {
 			expect(fileSource).toContain('if [ -z "$DEPLOYLINT_URL" ]; then');
 			expect(fileSource).toContain(
 				'Skipping Deploylint advisory report because DEPLOYLINT_URL is unavailable'
 			);
 		}
+		expect(workspaceModel).toContain('if [ -z "$DEPLOYLINT_URL" ]; then');
+		expect(workspaceModel).toContain(
+			'Skipping Deploylint readiness report because DEPLOYLINT_URL is unavailable'
+		);
 		expect(developersPage).toContain('# actions/checkout v7');
 		expect(developersPage).toContain('actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0');
 		expect(developersPage).not.toContain('actions/checkout v6');
