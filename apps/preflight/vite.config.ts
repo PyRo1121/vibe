@@ -38,8 +38,7 @@ export default defineConfig({
 				'src/**/*.{test,spec}.{ts,js}',
 				'src/**/*.d.ts',
 				'src/lib/test/**',
-				'src/lib/ui/**',
-				'src/lib/client/plausible.ts'
+				'src/lib/ui/**'
 			],
 			thresholds: {
 				lines: 95,
