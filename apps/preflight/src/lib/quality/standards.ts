@@ -212,11 +212,20 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
-		'root deploylint verify runs preflight, mcp, e2e, and smoke',
-		hasScriptCommand(rootPackage.scripts, 'verify:deploylint', [
+		'root deploylint CI verify runs preflight, mcp, Playwright install, and e2e',
+		hasScriptCommand(rootPackage.scripts, 'verify:deploylint:ci', [
 			'npm run verify -w preflight',
 			'npm run verify -w preflight-mcp',
-			'npm run test:e2e -w preflight',
+			'npm run test:e2e:install -w preflight',
+			'npm run test:e2e -w preflight'
+		])
+	);
+	pushCheck(
+		checked,
+		failures,
+		'root deploylint ship verify adds production smoke',
+		hasScriptCommand(rootPackage.scripts, 'verify:deploylint', [
+			'npm run verify:deploylint:ci',
 			'npm run smoke:preflight'
 		])
 	);
@@ -266,9 +275,9 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
-		'GitHub workflows enforce verify and e2e gates',
-		preflightGateWorkflow.includes('npm run verify:preflight') &&
-			preflightGateWorkflow.includes('npm run test:e2e -w preflight') &&
+		'GitHub workflows enforce canonical deploylint CI and MCP dogfood gates',
+		preflightGateWorkflow.includes('npm run verify:deploylint:ci') &&
+			preflightGateWorkflow.includes('apps/preflight-mcp/**') &&
 			dogfoodWorkflow.includes('npm run verify -w preflight-mcp')
 	);
 	pushCheck(

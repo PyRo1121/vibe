@@ -3,11 +3,12 @@ name: Deploylint gate
 on:
   pull_request:
     paths:
-      - "apps/preflight/**"
-      - "package.json"
-      - "package-lock.json"
-      - "turbo.json"
-      - ".github/workflows/preflight-gate.yml"
+      - 'apps/preflight/**'
+      - 'apps/preflight-mcp/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'turbo.json'
+      - '.github/workflows/preflight-gate.yml'
   workflow_dispatch:
     inputs:
       url:
@@ -17,7 +18,7 @@ on:
       min_score:
         description: Minimum launch score
         required: false
-        default: "80"
+        default: '80'
         type: string
 
 permissions:
@@ -31,20 +32,14 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: "24"
+          node-version: '24'
           cache: npm
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Verify Preflight package
-        run: npm run verify:preflight
-
-      - name: Install Playwright browser
-        run: npm run test:e2e:install -w preflight
-
-      - name: E2E smoke (Preflight)
-        run: npm run test:e2e -w preflight
+      - name: Verify Deploylint CI suite
+        run: npm run verify:deploylint:ci
 
       - name: Scan production URL (optional)
         env:
