@@ -33,9 +33,12 @@ export function sanitizeRedirectTo(value: string | null | undefined): string {
 }
 
 export function resolveAuthFeatureFlags(env: Partial<Env> | undefined) {
+	const emailDelivery = Boolean(clean(env?.RESEND_API_KEY) && clean(env?.RESEND_FROM_EMAIL));
+
 	return {
 		emailPassword: true,
-		emailDelivery: Boolean(clean(env?.RESEND_API_KEY) && clean(env?.RESEND_FROM_EMAIL)),
+		emailDelivery,
+		emailSignup: emailDelivery,
 		github: Boolean(clean(env?.GITHUB_CLIENT_ID) && clean(env?.GITHUB_CLIENT_SECRET))
 	};
 }

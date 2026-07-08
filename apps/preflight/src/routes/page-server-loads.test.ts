@@ -112,6 +112,7 @@ describe('/login server load', () => {
 			auth: {
 				emailPassword: true,
 				emailDelivery: true,
+				emailSignup: true,
 				github: false
 			}
 		});

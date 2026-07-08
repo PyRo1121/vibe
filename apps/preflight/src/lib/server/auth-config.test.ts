@@ -39,7 +39,15 @@ describe('auth config', () => {
 		).toEqual({
 			emailPassword: true,
 			emailDelivery: true,
+			emailSignup: true,
 			github: true
+		});
+
+		expect(resolveAuthFeatureFlags({})).toEqual({
+			emailPassword: true,
+			emailDelivery: false,
+			emailSignup: false,
+			github: false
 		});
 	});
 

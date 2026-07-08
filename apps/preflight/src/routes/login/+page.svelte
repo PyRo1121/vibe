@@ -19,6 +19,7 @@
 
 	const title = buildSeoTitle('Login');
 	const description = 'Sign in to your Deploylint project workspace.';
+	let emailSignupAvailable = $derived(data.auth.emailSignup);
 
 	async function continueWithGitHub() {
 		if (!data.auth.github || loading) return;
@@ -39,6 +40,13 @@
 
 	async function submitEmailPassword() {
 		if (loading) return;
+		if (mode === 'signup' && !emailSignupAvailable) {
+			errorMessage =
+				'Account creation is temporarily disabled until verification email is configured.';
+			message = null;
+			return;
+		}
+
 		loading = true;
 		errorMessage = null;
 		message = null;
@@ -64,9 +72,7 @@
 			}
 
 			if (mode === 'signup') {
-				message = data.auth.emailDelivery
-					? 'Check your email to verify the account.'
-					: 'Account created. Configure Resend to send verification emails.';
+				message = 'Check your email to verify the account.';
 				return;
 			}
 
@@ -112,8 +118,14 @@
 				type="button"
 				class="flex-1 rounded-md px-3 py-2 text-sm font-semibold {mode === 'signup'
 					? 'bg-zinc-800 text-white'
-					: 'text-zinc-500 hover:text-zinc-200'}"
-				onclick={() => (mode = 'signup')}
+					: 'text-zinc-500 hover:text-zinc-200 disabled:hover:text-zinc-500'}"
+				disabled={!emailSignupAvailable || loading}
+				title={emailSignupAvailable
+					? 'Create an account'
+					: 'Account creation requires verification email to be configured'}
+				onclick={() => {
+					if (emailSignupAvailable) mode = 'signup';
+				}}
 			>
 				Create account
 			</button>
@@ -186,8 +198,8 @@
 
 		{#if !data.auth.emailDelivery}
 			<p class="mt-3 text-xs leading-5 text-amber-300">
-				Email/password is wired, but verification and reset emails need Resend secrets before
-				production signup is usable.
+				Email sign-in is wired, but new account creation is disabled until verification email is
+				configured.
 			</p>
 		{/if}
 
