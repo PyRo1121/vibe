@@ -8,7 +8,7 @@ import {
 	type ProjectInstallState,
 	type WorkspaceBillingState
 } from '$lib/product/workspace';
-import { loadLatestProjectReport } from '$lib/server/project-reports';
+import { loadProjectReportHistory } from '$lib/server/project-reports';
 
 interface WorkspaceRow {
 	id: string;
@@ -261,6 +261,8 @@ function billingState(
 }
 
 async function projectFromRow(db: D1Database, row: ProjectRow): Promise<DeploylintProject> {
+	const reportHistory = await loadProjectReportHistory(db, row.id, 10);
+	const latestHistoryReport = reportHistory[0];
 	return {
 		id: row.id,
 		name: row.name,
@@ -270,7 +272,17 @@ async function projectFromRow(db: D1Database, row: ProjectRow): Promise<Deployli
 		installState: installState(row.install_state),
 		gateMode: gateMode(row.gate_mode),
 		minScore: row.min_score,
-		latestReport: await loadLatestProjectReport(db, row.id)
+		latestReport: latestHistoryReport
+			? {
+					id: latestHistoryReport.id,
+					score: latestHistoryReport.score,
+					verdict: latestHistoryReport.verdict,
+					scannedAt: latestHistoryReport.scannedAt,
+					fixedCount: latestHistoryReport.fixedCount,
+					regressedCount: latestHistoryReport.regressedCount
+				}
+			: null,
+		reportHistory
 	};
 }
 

@@ -1,12 +1,16 @@
 import type { ScanReport } from '$lib/scan/types';
 import { describe, expect, it } from 'vitest';
 
-import { loadLatestProjectReport, recordProjectReport } from './project-reports';
+import {
+	loadLatestProjectReport,
+	loadProjectReportHistory,
+	recordProjectReport
+} from './project-reports';
 
 interface D1Call {
 	sql: string;
 	values: unknown[];
-	method: 'first' | 'run';
+	method: 'all' | 'first' | 'run';
 }
 
 class FakeStatement {
@@ -28,6 +32,12 @@ class FakeStatement {
 		return { success: true };
 	}
 
+	async all(): Promise<{ results: unknown[] }> {
+		this.db.calls.push({ sql: this.sql, values: this.values, method: 'all' });
+		if (this.db.failReads) throw new Error('D1 read failed');
+		return { results: this.db.historyRows };
+	}
+
 	async first(): Promise<unknown> {
 		this.db.calls.push({ sql: this.sql, values: this.values, method: 'first' });
 		if (this.db.failReads) throw new Error('D1 read failed');
@@ -39,6 +49,7 @@ class FakeD1 {
 	calls: D1Call[] = [];
 	failReads = false;
 	failWrites = false;
+	historyRows: unknown[] = [];
 	latestRow: unknown = null;
 
 	prepare(sql: string): FakeStatement {
@@ -189,6 +200,78 @@ describe('project report storage', () => {
 		});
 	});
 
+	it('loads recent project report history with CI context and report links', async () => {
+		const db = new FakeD1();
+		db.historyRows = [
+			{
+				id: 'prpt_latest',
+				report_id: 'abc123def456',
+				score: 91,
+				verdict: 'go',
+				scanned_at: '2026-07-08T12:30:00.000Z',
+				fixed_count: 3,
+				regressed_count: 0,
+				final_url: 'https://app.test/',
+				commit_sha: 'abc123456789',
+				branch: 'main',
+				pull_request: '42'
+			},
+			{
+				id: 'prpt_previous',
+				report_id: null,
+				score: 86,
+				verdict: 'conditional',
+				scanned_at: '2026-07-08T11:30:00.000Z',
+				fixed_count: 1,
+				regressed_count: 2,
+				final_url: 'https://app.test/',
+				commit_sha: null,
+				branch: null,
+				pull_request: null
+			},
+			{
+				id: 'bad',
+				score: 10,
+				verdict: 'review'
+			}
+		];
+
+		await expect(
+			loadProjectReportHistory(db as unknown as D1Database, 'proj_live-123', 50)
+		).resolves.toEqual([
+			{
+				id: 'prpt_latest',
+				reportId: 'abc123def456',
+				score: 91,
+				verdict: 'go',
+				scannedAt: '2026-07-08T12:30:00.000Z',
+				fixedCount: 3,
+				regressedCount: 0,
+				finalUrl: 'https://app.test/',
+				commitSha: 'abc123456789',
+				branch: 'main',
+				pullRequest: '42'
+			},
+			{
+				id: 'prpt_previous',
+				reportId: null,
+				score: 86,
+				verdict: 'conditional',
+				scannedAt: '2026-07-08T11:30:00.000Z',
+				fixedCount: 1,
+				regressedCount: 2,
+				finalUrl: 'https://app.test/',
+				commitSha: null,
+				branch: null,
+				pullRequest: null
+			}
+		]);
+		expect(db.calls[0]).toMatchObject({
+			method: 'all',
+			values: ['proj_live-123', 25]
+		});
+	});
+
 	it('returns null for missing database, unsafe project ids, malformed rows, and D1 read failures', async () => {
 		await expect(loadLatestProjectReport(undefined, 'proj_live-123')).resolves.toBeNull();
 
@@ -216,5 +299,21 @@ describe('project report storage', () => {
 		await expect(
 			loadLatestProjectReport(failingDb as unknown as D1Database, 'proj_live-123')
 		).resolves.toBeNull();
+	});
+
+	it('returns empty history for missing database, unsafe project ids, and D1 read failures', async () => {
+		await expect(loadProjectReportHistory(undefined, 'proj_live-123')).resolves.toEqual([]);
+
+		const unsafeDb = new FakeD1();
+		await expect(
+			loadProjectReportHistory(unsafeDb as unknown as D1Database, '../bad')
+		).resolves.toEqual([]);
+		expect(unsafeDb.calls).toEqual([]);
+
+		const failingDb = new FakeD1();
+		failingDb.failReads = true;
+		await expect(
+			loadProjectReportHistory(failingDb as unknown as D1Database, 'proj_live-123')
+		).resolves.toEqual([]);
 	});
 });

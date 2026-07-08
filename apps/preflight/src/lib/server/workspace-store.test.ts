@@ -67,20 +67,29 @@ describe('workspace D1 store', () => {
 				name: 'Acme workspace'
 			},
 			{
-				id: 'prpt_latest',
-				score: 91,
-				verdict: 'go',
-				scanned_at: '2026-07-08T12:30:00.000Z',
-				fixed_count: 2,
-				regressed_count: 0
-			},
-			{
 				plan: 'builder',
 				status: 'active'
 			},
 			{ count: 4 }
 		];
-		db.allRows = [[projectRow]];
+		db.allRows = [
+			[projectRow],
+			[
+				{
+					id: 'prpt_latest',
+					report_id: 'abc123def456',
+					score: 91,
+					verdict: 'go',
+					scanned_at: '2026-07-08T12:30:00.000Z',
+					fixed_count: 2,
+					regressed_count: 0,
+					final_url: 'https://app.acme.com/',
+					commit_sha: 'abc123456789',
+					branch: 'main',
+					pull_request: '42'
+				}
+			]
+		];
 
 		const workspace = await loadOrCreateWorkspaceState(db as unknown as D1Database, {
 			alphaFreeUnlock: false,
@@ -113,7 +122,22 @@ describe('workspace D1 store', () => {
 				scannedAt: '2026-07-08T12:30:00.000Z',
 				fixedCount: 2,
 				regressedCount: 0
-			}
+			},
+			reportHistory: [
+				{
+					id: 'prpt_latest',
+					reportId: 'abc123def456',
+					score: 91,
+					verdict: 'go',
+					scannedAt: '2026-07-08T12:30:00.000Z',
+					fixedCount: 2,
+					regressedCount: 0,
+					finalUrl: 'https://app.acme.com/',
+					commitSha: 'abc123456789',
+					branch: 'main',
+					pullRequest: '42'
+				}
+			]
 		});
 	});
 
@@ -142,7 +166,8 @@ describe('workspace D1 store', () => {
 			deployUrl: 'https://app.acme.com',
 			repoLabel: 'github.com/acme/app',
 			minScore: 92,
-			latestReport: null
+			latestReport: null,
+			reportHistory: []
 		});
 		expect(workspace.projects[0].id).not.toBe('proj_demo_123');
 		expect(db.calls.filter((call) => call.method === 'run').map((call) => call.sql)).toEqual([

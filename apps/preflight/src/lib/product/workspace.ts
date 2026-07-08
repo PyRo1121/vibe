@@ -18,6 +18,14 @@ export interface ProjectReportSummary {
 	regressedCount: number;
 }
 
+export interface ProjectReportHistoryEntry extends ProjectReportSummary {
+	reportId: string | null;
+	finalUrl: string;
+	commitSha: string | null;
+	branch: string | null;
+	pullRequest: string | null;
+}
+
 export interface DeploylintProject {
 	id: string;
 	name: string;
@@ -28,6 +36,7 @@ export interface DeploylintProject {
 	gateMode: ProjectGateMode;
 	minScore: number;
 	latestReport: ProjectReportSummary | null;
+	reportHistory: ProjectReportHistoryEntry[];
 }
 
 export interface ProjectDraft {
@@ -355,7 +364,8 @@ export function buildWorkspaceSetupState(opts: {
 		installState: 'not_installed',
 		gateMode: 'advisory',
 		minScore: draft.minScore ?? 80,
-		latestReport: null
+		latestReport: null,
+		reportHistory: []
 	};
 
 	return {

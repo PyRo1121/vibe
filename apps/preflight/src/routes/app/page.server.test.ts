@@ -156,14 +156,6 @@ describe('/app server load', () => {
 		const db = new FakeD1();
 		db.firstRows = [
 			{ id: 'wks_live', name: 'Olen workspace' },
-			{
-				id: 'prpt_latest',
-				score: 91,
-				verdict: 'go',
-				scanned_at: '2026-07-08T12:30:00.000Z',
-				fixed_count: 3,
-				regressed_count: 0
-			},
 			{ plan: 'builder', status: 'active' },
 			{ count: 6 }
 		];
@@ -178,6 +170,34 @@ describe('/app server load', () => {
 					install_state: 'advisory_installed',
 					gate_mode: 'advisory',
 					min_score: 88
+				}
+			],
+			[
+				{
+					id: 'prpt_latest',
+					report_id: 'abc123def456',
+					score: 91,
+					verdict: 'go',
+					scanned_at: '2026-07-08T12:30:00.000Z',
+					fixed_count: 3,
+					regressed_count: 0,
+					final_url: 'https://app.acme.com/',
+					commit_sha: 'abc123456789',
+					branch: 'main',
+					pull_request: '42'
+				},
+				{
+					id: 'prpt_previous',
+					report_id: 'older123',
+					score: 86,
+					verdict: 'conditional',
+					scanned_at: '2026-07-08T11:30:00.000Z',
+					fixed_count: 1,
+					regressed_count: 2,
+					final_url: 'https://app.acme.com/',
+					commit_sha: 'def987654321',
+					branch: 'feature/readiness',
+					pull_request: '41'
 				}
 			]
 		];
@@ -214,7 +234,22 @@ describe('/app server load', () => {
 				verdict: 'go',
 				fixedCount: 3,
 				regressedCount: 0
-			}
+			},
+			reportHistory: [
+				expect.objectContaining({
+					id: 'prpt_latest',
+					reportId: 'abc123def456',
+					finalUrl: 'https://app.acme.com/',
+					branch: 'main',
+					pullRequest: '42'
+				}),
+				expect.objectContaining({
+					id: 'prpt_previous',
+					reportId: 'older123',
+					score: 86,
+					branch: 'feature/readiness'
+				})
+			]
 		});
 		expect(pageData.workspace.metrics.reportsThisMonth).toBe(6);
 		expect(pageData.advisoryWorkflow).toContain('DEPLOYLINT_PROJECT_ID: proj_live-123');

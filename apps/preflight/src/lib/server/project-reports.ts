@@ -1,5 +1,5 @@
 import { normalizeProjectId } from '$lib/product/project-id';
-import type { ProjectReportSummary } from '$lib/product/workspace';
+import type { ProjectReportHistoryEntry, ProjectReportSummary } from '$lib/product/workspace';
 import type { ScanReport } from '$lib/scan/types';
 
 export interface ProjectReportContext {
@@ -11,11 +11,16 @@ export interface ProjectReportContext {
 
 interface ProjectReportRow {
 	id: string;
+	report_id?: string | null;
 	score: number;
 	verdict: ProjectReportSummary['verdict'];
 	scanned_at: string;
 	fixed_count: number;
 	regressed_count: number;
+	final_url?: string;
+	commit_sha?: string | null;
+	branch?: string | null;
+	pull_request?: string | null;
 }
 
 const ID_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -47,6 +52,31 @@ function isProjectReportRow(value: unknown): value is ProjectReportRow {
 		'regressed_count' in value &&
 		typeof value.regressed_count === 'number'
 	);
+}
+
+function isNullableString(value: unknown): value is string | null {
+	return value === null || typeof value === 'string';
+}
+
+function isProjectReportHistoryRow(value: unknown): value is Required<ProjectReportRow> {
+	return (
+		isProjectReportRow(value) &&
+		'report_id' in value &&
+		isNullableString(value.report_id) &&
+		'final_url' in value &&
+		typeof value.final_url === 'string' &&
+		'commit_sha' in value &&
+		isNullableString(value.commit_sha) &&
+		'branch' in value &&
+		isNullableString(value.branch) &&
+		'pull_request' in value &&
+		isNullableString(value.pull_request)
+	);
+}
+
+function historyLimit(limit: number): number {
+	if (!Number.isFinite(limit)) return 10;
+	return Math.min(25, Math.max(1, Math.trunc(limit)));
 }
 
 export async function recordProjectReport(
@@ -113,6 +143,45 @@ export async function recordProjectReport(
 		return true;
 	} catch {
 		return false;
+	}
+}
+
+export async function loadProjectReportHistory(
+	db: D1Database | undefined,
+	projectId: string | undefined,
+	limit = 10
+): Promise<ProjectReportHistoryEntry[]> {
+	const normalizedProjectId = normalizeProjectId(projectId);
+	if (!db || !normalizedProjectId) return [];
+
+	try {
+		const { results } = await db
+			.prepare(
+				`SELECT id, report_id, score, verdict, scanned_at, fixed_count, regressed_count,
+					final_url, commit_sha, branch, pull_request
+				FROM project_report
+				WHERE project_id = ?
+				ORDER BY scanned_at DESC, created_at DESC
+				LIMIT ?`
+			)
+			.bind(normalizedProjectId, historyLimit(limit))
+			.all();
+
+		return (results as unknown[]).filter(isProjectReportHistoryRow).map((row) => ({
+			id: row.id,
+			reportId: row.report_id,
+			score: row.score,
+			verdict: row.verdict,
+			scannedAt: row.scanned_at,
+			fixedCount: row.fixed_count,
+			regressedCount: row.regressed_count,
+			finalUrl: row.final_url,
+			commitSha: row.commit_sha,
+			branch: row.branch,
+			pullRequest: row.pull_request
+		}));
+	} catch {
+		return [];
 	}
 }
 

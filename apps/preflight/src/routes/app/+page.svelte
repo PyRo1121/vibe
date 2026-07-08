@@ -5,6 +5,7 @@
 		workspaceGateHardeningSteps,
 		type ActivationStepStatus,
 		type ProjectInstallState,
+		type ProjectReportHistoryEntry,
 		type ProjectReportSummary,
 		type WorkspaceBillingState
 	} from '$lib/product/workspace';
@@ -31,14 +32,15 @@
 		regressedCount: 1
 	};
 	const latestReport = $derived(project?.latestReport ?? pendingReport);
+	const reportHistory = $derived(project?.reportHistory ?? []);
+	const latestHistoryEntry = $derived(reportHistory[0] ?? null);
+	const previousHistoryEntry = $derived(reportHistory[1] ?? null);
+	const scoreDelta = $derived(
+		latestHistoryEntry && previousHistoryEntry
+			? latestHistoryEntry.score - previousHistoryEntry.score
+			: null
+	);
 	const awaitingFirstReport = $derived(!project?.latestReport);
-	const reportNextFix =
-		'Tighten checkout verification and branch protection before switching DEPLOYLINT_MODE to gate.';
-	const reportProofPoints = [
-		'Persistent release history across PRs, deploy targets, and gate decisions.',
-		'Regression count so the next PR shows what got worse.',
-		'Stakeholder-ready summary that explains the next fix.'
-	] as const;
 	const progressLabel = $derived(
 		`${activation.progress.completed}/${activation.progress.total} complete`
 	);
@@ -85,6 +87,39 @@
 		if (mode === 'alpha') return 'Included during alpha';
 		if (mode === 'paid') return 'Billing active';
 		return 'Billing setup pending';
+	}
+
+	function formatReportDate(value: string): string {
+		const date = new Date(value);
+		if (Number.isNaN(date.getTime())) return value;
+		return date.toLocaleString();
+	}
+
+	function shortCommit(value: string | null): string | null {
+		return value ? value.slice(0, 7) : null;
+	}
+
+	function reportContext(report: ProjectReportHistoryEntry): string {
+		const parts = [
+			report.branch ? `Branch ${report.branch}` : null,
+			report.pullRequest ? `PR #${report.pullRequest}` : null,
+			shortCommit(report.commitSha)
+		].filter(Boolean);
+		return parts.join(' · ') || 'CI context not recorded';
+	}
+
+	function scoreDeltaLabel(delta: number | null): string {
+		if (delta == null) return 'Need second run';
+		if (delta > 0) return `+${delta} since prior run`;
+		if (delta < 0) return `${delta} since prior run`;
+		return 'No score change';
+	}
+
+	function scoreDeltaClass(delta: number | null): string {
+		if (delta == null) return 'border-zinc-700 text-zinc-400';
+		if (delta > 0) return 'border-emerald-500/40 text-emerald-300';
+		if (delta < 0) return 'border-rose-500/40 text-rose-300';
+		return 'border-zinc-700 text-zinc-300';
 	}
 
 	async function copyWorkflow() {
@@ -323,14 +358,14 @@
 					</h2>
 					<p class="mt-2 text-sm leading-6 text-zinc-400">
 						{awaitingFirstReport
-							? 'Install the advisory workflow and this becomes live project history with scores, regressions, and the recommended next fix.'
-							: 'Deploylint keeps the last project report attached to the workspace so every PR can prove what changed.'}
+							? 'Install the advisory workflow and this becomes live project history with scores, regressions, and CI context.'
+							: 'Deploylint keeps recent project reports attached to the workspace so every PR can prove what changed.'}
 					</p>
 				</div>
 				<span
 					class="w-fit rounded-full border border-sky-500/40 bg-sky-950/30 px-3 py-1 text-xs font-semibold text-sky-200"
 				>
-					{awaitingFirstReport ? 'Awaiting first run' : latestReport.scannedAt}
+					{awaitingFirstReport ? 'Awaiting first run' : formatReportDate(latestReport.scannedAt)}
 				</span>
 			</div>
 
@@ -353,16 +388,78 @@
 				</div>
 			</div>
 
-			<div class="mt-5 rounded-lg border border-amber-500/30 bg-amber-950/10 p-4">
-				<p class="text-xs font-semibold tracking-widest text-amber-200 uppercase">Next fix</p>
-				<p class="mt-2 text-sm leading-6 text-zinc-300">{reportNextFix}</p>
-			</div>
+			{#if awaitingFirstReport}
+				<div class="mt-5 rounded-lg border border-amber-500/30 bg-amber-950/10 p-4">
+					<p class="text-xs font-semibold tracking-widest text-amber-200 uppercase">
+						History starts after CI
+					</p>
+					<p class="mt-2 text-sm leading-6 text-zinc-300">
+						The first advisory run will attach score, verdict, fixed/regressed counts, branch,
+						commit, PR, and report links to this project.
+					</p>
+				</div>
+			{:else}
+				<div class="mt-5 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4">
+					<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+						<div>
+							<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
+								Readiness trend
+							</p>
+							<p class="mt-1 text-sm text-zinc-400">
+								Recent CI reports with branch, PR, commit, and deploy target evidence.
+							</p>
+						</div>
+						<span
+							class={['w-fit rounded-full border px-3 py-1 text-xs', scoreDeltaClass(scoreDelta)]}
+						>
+							{scoreDeltaLabel(scoreDelta)}
+						</span>
+					</div>
 
-			<ul class="mt-5 grid gap-2 text-sm leading-6 text-zinc-400 sm:grid-cols-3">
-				{#each reportProofPoints as point (point)}
-					<li class="rounded-lg border border-zinc-800 bg-zinc-950/40 p-3">{point}</li>
-				{/each}
-			</ul>
+					<ol class="mt-4 divide-y divide-zinc-800">
+						{#each reportHistory as report, index (report.id)}
+							<li class="grid gap-3 py-4 sm:grid-cols-[minmax(0,1fr)_160px] sm:items-center">
+								<div>
+									<p class="text-sm font-semibold text-white">
+										{index === 0 ? 'Latest report' : `Run ${index + 1}`}
+										<span class="ml-2 font-normal text-zinc-500"
+											>{formatReportDate(report.scannedAt)}</span
+										>
+									</p>
+									<p class="mt-1 text-sm text-zinc-400">{reportContext(report)}</p>
+									<p class="mt-1 font-mono text-xs break-all text-zinc-600">{report.finalUrl}</p>
+								</div>
+								<div class="flex flex-wrap items-center gap-2 sm:justify-end">
+									<span class="rounded-md border border-zinc-800 px-2 py-1 text-xs text-zinc-300">
+										Score {report.score}
+									</span>
+									<span class="rounded-md border border-zinc-800 px-2 py-1 text-xs text-zinc-300">
+										{report.verdict}
+									</span>
+									<span
+										class="rounded-md border border-emerald-500/30 px-2 py-1 text-xs text-emerald-300"
+									>
+										+{report.fixedCount}
+									</span>
+									<span
+										class="rounded-md border border-rose-500/30 px-2 py-1 text-xs text-rose-300"
+									>
+										-{report.regressedCount}
+									</span>
+									{#if report.reportId}
+										<a
+											class="rounded-md border border-sky-500/40 px-2 py-1 text-xs font-semibold text-sky-300 hover:border-sky-300 hover:text-sky-100"
+											href={resolve(`/r/${report.reportId}`)}
+										>
+											Open brief
+										</a>
+									{/if}
+								</div>
+							</li>
+						{/each}
+					</ol>
+				</div>
+			{/if}
 		</div>
 
 		<aside class="space-y-6">

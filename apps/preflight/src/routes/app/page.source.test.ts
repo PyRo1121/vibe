@@ -25,10 +25,14 @@ describe('/app workspace source', () => {
 		expect(pageSource).toContain('Report history');
 		expect(pageSource).toContain('Awaiting first CI report');
 		expect(pageSource).toContain('Awaiting first run');
-		expect(pageSource).toContain('Next fix');
-		expect(pageSource).toContain('Persistent release history');
+		expect(pageSource).toContain('Readiness trend');
+		expect(pageSource).toContain('Recent CI reports');
+		expect(pageSource).toContain('Open brief');
+		expect(pageSource).toContain('scoreDeltaLabel');
 		expect(pageSource).toContain('awaitingFirstReport');
 		expect(pageSource).toContain('latestReport');
+		expect(pageSource).toContain('reportHistory');
+		expect(pageSource).toContain('reportContext');
 		expect(pageSource).toContain('Gate status');
 		expect(pageSource).toContain('Gate policy');
 		expect(pageSource).toContain('data.gatePolicy');
@@ -57,6 +61,7 @@ describe('/app workspace source', () => {
 		expect(pageSource).not.toContain('Workspace setup preview');
 		expect(pageSource).not.toContain('Sample state');
 		expect(pageSource).not.toContain('project persistence is wired');
+		expect(pageSource).not.toContain('Tighten checkout verification');
 		expect(pageSource).toContain('This workspace includes');
 	});
 });
