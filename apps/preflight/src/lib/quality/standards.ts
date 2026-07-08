@@ -7,9 +7,9 @@ import ts from 'typescript';
 import { analyzeWorkflowPermissions } from '../ci/workflow-permissions';
 
 export const ENTERPRISE_COVERAGE_MINIMUMS = {
-	statements: 90,
-	lines: 90,
-	functions: 95,
+	statements: 95,
+	lines: 95,
+	functions: 98,
 	branches: 90
 } as const;
 

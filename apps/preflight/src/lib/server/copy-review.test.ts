@@ -44,6 +44,29 @@ describe('buildCopyReview', () => {
 		expect(review?.bullets.length).toBeGreaterThan(0);
 	});
 
+	it('returns parsed review from a raw string payload and includes missing metadata in the prompt', async () => {
+		let prompt = '';
+		const ai = {
+			run: async (_model: string, options: Record<string, unknown>) => {
+				const messages = options.messages as Array<{ content: string }>;
+				prompt = messages[0]?.content ?? '';
+				return VALID_JSON;
+			}
+		};
+
+		const review = await buildCopyReview(ai, {
+			url: 'https://app.test',
+			title: null,
+			description: null,
+			topIssues: ['Missing pricing proof', 'No support link']
+		});
+
+		expect(review?.headline).toBe('Ship your launch with confidence');
+		expect(prompt).toContain('Current title tag: (missing)');
+		expect(prompt).toContain('Current meta description: (missing)');
+		expect(prompt).toContain('Known issues: Missing pricing proof; No support link');
+	});
+
 	it('returns null when the model errors or returns junk', async () => {
 		expect(
 			await buildCopyReview(
@@ -56,5 +79,9 @@ describe('buildCopyReview', () => {
 			)
 		).toBeNull();
 		expect(await buildCopyReview({ run: async () => ({ response: 'nope' }) }, input)).toBeNull();
+	});
+
+	it('returns null when the model payload contains no text response', async () => {
+		await expect(buildCopyReview({ run: async () => ({}) }, input)).resolves.toBeNull();
 	});
 });

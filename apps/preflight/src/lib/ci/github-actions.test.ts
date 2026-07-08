@@ -37,4 +37,29 @@ describe('GitHub Actions hardening tool analyzer', () => {
 		expect(result.repairPrompt).toContain('keep the current hardening posture intact');
 		expect(result.hardenedWorkflow).toContain('dependency-review-action');
 	});
+
+	it('marks least-privilege workflows with missing hardening as needs-work', () => {
+		const result = analyzeGithubActionsYaml(`name: CI
+
+on: pull_request
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - run: npm test`);
+
+		expect(result.verdict).toBe('needs-work');
+		expect(result.verdictLabel).toBe('Needs work');
+		expect(result.fail).toBe(0);
+		expect(result.warn).toBeGreaterThan(0);
+		expect(result.score).toBeGreaterThanOrEqual(60);
+		expect(result.score).toBeLessThan(100);
+		expect(result.nextAction).toContain('Patch the warnings');
+	});
 });

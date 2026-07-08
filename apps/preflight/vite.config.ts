@@ -27,10 +27,10 @@ export default defineConfig({
 				'src/lib/client/track.ts'
 			],
 			thresholds: {
-				lines: 92,
-				functions: 95,
+				lines: 95,
+				functions: 98,
 				branches: 90,
-				statements: 90
+				statements: 95
 			}
 		}
 	}
