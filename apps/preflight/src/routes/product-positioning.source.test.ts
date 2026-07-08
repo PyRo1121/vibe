@@ -54,6 +54,8 @@ describe('Deploylint CI workspace positioning', () => {
 		);
 		expect(developersPage).toContain("resolve('/app#install')");
 		expect(developersPage).toContain('DEPLOYLINT_PROJECT_ID');
+		expect(developersPage).toContain('Do not copy sample project IDs from documentation');
+		expect(developersPage).not.toContain('proj_demo_123');
 	});
 
 	it('sells subscriptions as monitored projects and deploy enforcement', () => {
@@ -159,6 +161,10 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(homePage).toContain('Workspace loop');
 		expect(homePage).toContain('What the workspace keeps enforcing');
 		expect(homePage).toContain('Monitored projects');
+		expect(homePage).toContain('Workspace workflow');
+		expect(homePage).toContain('Generate in workspace');
+		expect(homePage).toContain('DEPLOYLINT_PROJECT_ID');
+		expect(homePage).toContain('will not populate project history or gate status');
 		expect(homePage).toContain('Generate advisory workflow');
 		expect(homePage).toContain('Run advisory review');
 		expect(homePage).toContain('Preparing release-readiness evidence');
@@ -221,12 +227,14 @@ describe('Deploylint CI workspace positioning', () => {
 		const workspaceModel = source('lib', 'product', 'workspace.ts');
 		const compositeAction = repoSource('.github', 'actions', 'deploylint-gate', 'action.yml');
 
-		for (const fileSource of [homePage, developersPage, workflowToolPage, workspaceModel]) {
+		for (const fileSource of [developersPage, workflowToolPage, workspaceModel]) {
 			expect(fileSource).toContain('if [ -z "$DEPLOYLINT_URL" ]; then');
 			expect(fileSource).toContain(
 				'Skipping Deploylint advisory report because DEPLOYLINT_URL is unavailable'
 			);
 		}
+		expect(homePage).not.toContain('quickInstallYaml');
+		expect(homePage).not.toContain('Copy into CI');
 		expect(compositeAction).toContain('if [ -z "${DEPLOYLINT_URL:-}" ]; then');
 		expect(compositeAction).toContain(
 			'Skipping Deploylint advisory report because DEPLOYLINT_URL is unavailable'

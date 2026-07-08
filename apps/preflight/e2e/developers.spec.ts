@@ -16,6 +16,8 @@ test.describe('developers', () => {
 			'href',
 			'./app#install'
 		);
+		await expect(page.getByText('Do not copy sample project IDs from documentation')).toBeVisible();
+		await expect(page.getByText('proj_demo_123')).toHaveCount(0);
 		await expect(page.getByText('Advisory PR report preview')).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Switch to blocking mode' })).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Composite GitHub Action' })).toBeVisible();

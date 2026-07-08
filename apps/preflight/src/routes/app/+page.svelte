@@ -282,6 +282,10 @@
 					Advisory mode reports deploy risk without failing builds. Once the first report is clean,
 					this same project can become a blocking gate.
 				</p>
+				<p class="mt-2 max-w-2xl text-sm leading-6 text-zinc-500">
+					This project-scoped workflow writes CI reports back to this workspace through
+					<code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">DEPLOYLINT_PROJECT_ID</code>.
+				</p>
 			</div>
 			<button
 				type="button"

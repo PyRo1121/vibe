@@ -23,7 +23,12 @@ test.describe('home', () => {
 		await expect(page.getByText('What the workspace keeps enforcing')).toBeVisible();
 		await expect(page.getByText('Monitored projects')).toBeVisible();
 		await expect(page.getByText('Install path')).toBeVisible();
-		await expect(page.getByText('Copy into CI')).toBeVisible();
+		await expect(page.getByText('Workspace workflow')).toBeVisible();
+		await expect(page.getByRole('link', { name: /Generate in workspace/i })).toHaveAttribute(
+			'href',
+			'./app#install'
+		);
+		await expect(page.getByText('DEPLOYLINT_PROJECT_ID')).toBeVisible();
 		await expect(page.getByText('Block bad deploys in CI')).toBeVisible();
 		await expect(page.getByText('Find deploy-path drift')).toBeVisible();
 		await expect(page.getByRole('heading', { name: /Create a monitored project/i })).toBeVisible();

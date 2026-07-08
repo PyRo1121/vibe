@@ -44,6 +44,8 @@ describe('/app workspace source', () => {
 		expect(pageSource).toContain('workspace.metrics.gatesEnabled');
 		expect(pageSource).toContain('workspace.metrics.reportsThisMonth');
 		expect(pageSource).toContain('DEPLOYLINT_MODE');
+		expect(pageSource).toContain('This project-scoped workflow writes CI reports back');
+		expect(pageSource).toContain('DEPLOYLINT_PROJECT_ID');
 		expect(pageSource).toContain('navigator.clipboard.writeText');
 		expect(pageSource).toContain('data.activation');
 		expect(pageSource).toContain('data.workspace');

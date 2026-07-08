@@ -419,29 +419,6 @@
 			value: 'Turn trusted signal into a required check when the project is clean.'
 		}
 	] as const;
-	const quickInstallYaml = $derived(`name: Deploylint advisory report
-
-on:
-  pull_request:
-
-permissions: {}
-
-jobs:
-  deploylint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Report deploy risk
-        env:
-          DEPLOYLINT_URL: \${{ secrets.DEPLOYLINT_URL }}
-          DEPLOYLINT_API: ${appOrigin}
-          DEPLOYLINT_MODE: advisory
-        run: |
-          if [ -z "$DEPLOYLINT_URL" ]; then
-            echo "Skipping Deploylint advisory report because DEPLOYLINT_URL is unavailable (forked pull request secrets are not exposed)."
-            exit 0
-          fi
-          curl -fsSL ${appOrigin}/gate-remote.mjs -o gate-remote.mjs
-          node gate-remote.mjs "$DEPLOYLINT_URL"`);
 </script>
 
 <SeoHead
@@ -570,20 +547,28 @@ jobs:
 				</li>
 			</ol>
 		</div>
-		<div class="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
+		<div class="rounded-xl border border-sky-900/60 bg-sky-950/20 p-5">
 			<div class="mb-3 flex items-center justify-between gap-3">
-				<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Copy into CI</p>
+				<p class="text-xs font-semibold tracking-widest text-sky-300 uppercase">
+					Workspace workflow
+				</p>
 				<a
 					class="text-xs font-semibold text-sky-300 hover:text-sky-200"
-					href={resolve('/developers')}
+					href={resolve('/app#install')}
 				>
-					Full setup →
+					Generate in workspace →
 				</a>
 			</div>
-			<pre
-				class="max-h-80 overflow-auto rounded-lg bg-zinc-900 p-3 text-xs leading-5 whitespace-pre-wrap text-zinc-300"><code
-					>{quickInstallYaml}</code
-				></pre>
+			<p class="text-sm leading-6 text-zinc-300">
+				The install that makes Deploylint a product is project-scoped. Create the monitored project
+				first, then copy the workflow with <code
+					class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">DEPLOYLINT_PROJECT_ID</code
+				> so CI reports write back to workspace history.
+			</p>
+			<p class="mt-3 text-sm leading-6 text-zinc-500">
+				Need a no-login trial run? The developers page keeps a temporary URL-only advisory snippet,
+				but it will not populate project history or gate status.
+			</p>
 		</div>
 	</section>
 

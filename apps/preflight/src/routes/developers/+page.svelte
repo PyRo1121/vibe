@@ -67,34 +67,6 @@ jobs:
           curl -fsSL ${base}/gate-remote.mjs -o gate-remote.mjs
           node gate-remote.mjs "$DEPLOYLINT_URL"`);
 
-	const workspaceBackedGateYaml = $derived(`name: Deploylint workspace advisory report
-
-on:
-  pull_request:
-  workflow_dispatch:
-
-permissions: {}
-
-jobs:
-  deploylint:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Run Deploylint workspace report
-        env:
-          DEPLOYLINT_PROJECT_ID: proj_demo_123
-          DEPLOYLINT_URL: \${{ secrets.DEPLOYLINT_URL }}
-          DEPLOYLINT_API: ${base}
-          DEPLOYLINT_MODE: advisory
-          DEPLOYLINT_MIN_SCORE: '80'
-        run: |
-          if [ -z "$DEPLOYLINT_URL" ]; then
-            echo "Skipping Deploylint advisory report because DEPLOYLINT_URL is unavailable (forked pull request secrets are not exposed)."
-            exit 0
-          fi
-          curl -fsSL ${base}/gate-remote.mjs -o gate-remote.mjs
-          node gate-remote.mjs "$DEPLOYLINT_URL"`);
-
 	const blockingGateYaml = $derived(`name: Deploylint deploy gate
 
 on:
@@ -215,10 +187,20 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 				</p>
 			</div>
 		</div>
-		<pre
-			class="mt-5 overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-xs leading-relaxed text-zinc-300"><code
-				>{workspaceBackedGateYaml}</code
-			></pre>
+		<div
+			class="mt-5 rounded-xl border border-sky-900/50 bg-sky-950/20 p-4 text-sm leading-6 text-zinc-300"
+		>
+			<p>
+				The workspace generates the exact YAML for your project. It includes the real
+				<code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">DEPLOYLINT_PROJECT_ID</code>,
+				deploy URL, score threshold, and advisory mode so reports write back to project history
+				instead of becoming one-off CI output.
+			</p>
+			<p class="mt-3 text-zinc-500">
+				Do not copy sample project IDs from documentation. Open the workspace and copy the
+				project-bound workflow from there.
+			</p>
+		</div>
 	</section>
 
 	<section class="mb-10 rounded-2xl border border-sky-900/50 bg-sky-950/20 p-6">
