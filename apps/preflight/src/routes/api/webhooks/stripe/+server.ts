@@ -8,6 +8,10 @@ import {
 } from '$lib/billing/webhook';
 import { logFunnelEvent } from '$lib/metrics/funnel';
 import { requireStripeWebhookSecretKey } from '$lib/server/env';
+import {
+	updateWorkspaceSubscriptionStatus,
+	upsertWorkspaceSubscription
+} from '$lib/server/workspace-store';
 import { json, error, text } from '@sveltejs/kit';
 
 import type { RequestHandler } from './$types';
@@ -77,43 +81,64 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 	if (isCheckoutSessionFulfilled(event)) {
 		const session = event.data.object;
 		const scanUrl = session.metadata?.scan_url?.trim();
+		const workspaceId = session.metadata?.workspace_id?.trim();
 		const sessionId = session.id;
+		const customerId = stripeObjectId(session.customer);
+		const subscriptionId = stripeObjectId(session.subscription);
 		if (scanUrl && sessionId && reports) {
 			await saveUnlock(reports, canonicalScanUrl(scanUrl), sessionId, {
-				customerId: stripeObjectId(session.customer) ?? undefined,
-				subscriptionId: stripeObjectId(session.subscription) ?? undefined,
+				customerId: customerId ?? undefined,
+				subscriptionId: subscriptionId ?? undefined,
 				plan: session.metadata?.plan
 			});
+		}
+		if (workspaceId) {
+			if (!platform?.env?.AUTH_DB) error(503, 'Workspace subscription storage unavailable');
+			const saved = await upsertWorkspaceSubscription(platform.env.AUTH_DB, {
+				customerId,
+				plan: session.metadata?.plan,
+				projectId: session.metadata?.project_id,
+				stripeSubscriptionId: subscriptionId,
+				workspaceId
+			});
+			if (!saved) error(400, 'Invalid workspace checkout metadata');
 		}
 		if (event.id && reports) await markWebhookEventProcessed(reports, event.id);
 		logFunnelEvent('checkout_paid', {});
 		return json({ received: true, sessionId: sessionId ?? null });
 	}
 
-	if (reports) {
-		const subscriptionId = eventSubscriptionId(event);
-		if (subscriptionId) {
-			if (
-				event.type === 'invoice.payment_failed' ||
-				event.type === 'checkout.session.async_payment_failed'
-			) {
+	const subscriptionId = eventSubscriptionId(event);
+	if (subscriptionId) {
+		if (
+			event.type === 'invoice.payment_failed' ||
+			event.type === 'checkout.session.async_payment_failed'
+		) {
+			if (reports) {
 				await setUnlockStatusBySubscription(reports, subscriptionId, {
 					active: false,
 					status: 'past_due'
 				});
-				logFunnelEvent('checkout_payment_failed', {});
-			} else if (event.type === 'customer.subscription.deleted') {
+			}
+			await updateWorkspaceSubscriptionStatus(platform?.env?.AUTH_DB, subscriptionId, 'past_due');
+			logFunnelEvent('checkout_payment_failed', {});
+		} else if (event.type === 'customer.subscription.deleted') {
+			if (reports) {
 				await setUnlockStatusBySubscription(reports, subscriptionId, {
 					active: false,
 					status: 'canceled'
 				});
-				logFunnelEvent('checkout_subscription_canceled', {});
-			} else if (event.type === 'invoice.paid') {
+			}
+			await updateWorkspaceSubscriptionStatus(platform?.env?.AUTH_DB, subscriptionId, 'canceled');
+			logFunnelEvent('checkout_subscription_canceled', {});
+		} else if (event.type === 'invoice.paid') {
+			if (reports) {
 				await setUnlockStatusBySubscription(reports, subscriptionId, {
 					active: true,
 					status: 'active'
 				});
 			}
+			await updateWorkspaceSubscriptionStatus(platform?.env?.AUTH_DB, subscriptionId, 'active');
 		}
 	}
 

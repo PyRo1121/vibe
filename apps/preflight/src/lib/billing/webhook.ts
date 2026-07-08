@@ -52,7 +52,13 @@ export interface StripeCheckoutSessionObject {
 	id?: string;
 	payment_status?: string;
 	status?: string;
-	metadata?: { scan_url?: string; plan?: string };
+	metadata?: {
+		deploy_url?: string;
+		plan?: string;
+		project_id?: string;
+		scan_url?: string;
+		workspace_id?: string;
+	};
 	customer?: string | { id?: string };
 	subscription?: string | { id?: string };
 }
@@ -81,8 +87,11 @@ function stripeMetadata(value: unknown): StripeCheckoutSessionObject['metadata']
 	if (!isRecord(value)) return undefined;
 
 	const metadata: StripeCheckoutSessionObject['metadata'] = {};
+	if (typeof value.deploy_url === 'string') metadata.deploy_url = value.deploy_url;
 	if (typeof value.scan_url === 'string') metadata.scan_url = value.scan_url;
 	if (typeof value.plan === 'string') metadata.plan = value.plan;
+	if (typeof value.project_id === 'string') metadata.project_id = value.project_id;
+	if (typeof value.workspace_id === 'string') metadata.workspace_id = value.workspace_id;
 	return Object.keys(metadata).length > 0 ? metadata : undefined;
 }
 

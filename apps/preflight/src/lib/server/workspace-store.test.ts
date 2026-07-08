@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { loadOrCreateWorkspaceState, promoteProjectToGate } from './workspace-store';
+import {
+	loadOrCreateWorkspaceState,
+	promoteProjectToGate,
+	updateWorkspaceSubscriptionStatus,
+	upsertWorkspaceSubscription
+} from './workspace-store';
 
 interface D1Call {
 	sql: string;
@@ -44,6 +49,12 @@ class FakeD1 {
 
 	prepare(sql: string): FakeStatement {
 		return new FakeStatement(this, sql);
+	}
+}
+
+class FailingD1 {
+	prepare(): never {
+		throw new Error('D1 unavailable');
 	}
 }
 
@@ -206,6 +217,21 @@ describe('workspace D1 store', () => {
 		expect(workspace.metrics.gatesEnabled).toBe(0);
 	});
 
+	it('falls back to setup workspace state when D1 reads fail', async () => {
+		const workspace = await loadOrCreateWorkspaceState(new FailingD1() as unknown as D1Database, {
+			alphaFreeUnlock: false,
+			ownerLabel: "Olen's workspace",
+			ownerUserId: 'user_123'
+		});
+
+		expect(workspace).toMatchObject({
+			id: 'workspace_demo',
+			ownerLabel: "Olen's workspace",
+			billing: { mode: 'setup' },
+			metrics: { activeProjects: 1, gatesEnabled: 0, reportsThisMonth: 0 }
+		});
+	});
+
 	it('promotes an owned project to blocking gate mode after a clean report', async () => {
 		const db = new FakeD1();
 		db.firstRows = [projectRow];
@@ -246,6 +272,12 @@ describe('workspace D1 store', () => {
 				values: [expect.any(Number), 'proj_live-123']
 			})
 		]);
+	});
+
+	it('reports storage errors when gate promotion cannot read D1', async () => {
+		await expect(
+			promoteProjectToGate(new FailingD1() as unknown as D1Database, 'user_123', 'proj_live-123')
+		).resolves.toEqual({ ok: false, reason: 'storage-error' });
 	});
 
 	it('refuses gate promotion before a clean report meets the minimum score', async () => {
@@ -294,6 +326,67 @@ describe('workspace D1 store', () => {
 			expect.objectContaining({
 				method: 'first',
 				values: ['user_123', 'proj_live-123']
+			})
+		]);
+	});
+
+	it('upserts workspace subscription rows from checkout metadata', async () => {
+		const db = new FakeD1();
+
+		await expect(
+			upsertWorkspaceSubscription(db as unknown as D1Database, {
+				customerId: 'cus_123',
+				plan: 'builder',
+				projectId: 'proj_live-123',
+				stripeSubscriptionId: 'sub_123',
+				workspaceId: 'wks_live'
+			})
+		).resolves.toBe(true);
+
+		expect(db.calls).toEqual([
+			expect.objectContaining({
+				method: 'run',
+				sql: expect.stringContaining('ON CONFLICT(id) DO UPDATE'),
+				values: [
+					'sub_wks_live',
+					'wks_live',
+					'cus_123',
+					'sub_123',
+					'builder',
+					expect.any(Number),
+					expect.any(Number)
+				]
+			})
+		]);
+	});
+
+	it('rejects malformed workspace subscription metadata without writing', async () => {
+		const db = new FakeD1();
+
+		await expect(
+			upsertWorkspaceSubscription(db as unknown as D1Database, {
+				customerId: 'cus_123',
+				plan: 'not-a-plan',
+				projectId: 'proj_live-123',
+				stripeSubscriptionId: 'sub_123',
+				workspaceId: 'wks_live'
+			})
+		).resolves.toBe(false);
+		expect(db.calls).toEqual([]);
+	});
+
+	it('updates workspace subscription status by Stripe subscription id', async () => {
+		const db = new FakeD1();
+
+		await expect(
+			updateWorkspaceSubscriptionStatus(db as unknown as D1Database, 'sub_123', 'past_due')
+		).resolves.toBe(true);
+
+		expect(db.calls).toEqual([
+			expect.objectContaining({
+				method: 'run',
+				sql: expect.stringContaining('WHERE stripe_subscription_id = ?'),
+				values: ['past_due', expect.any(Number), 'sub_123']
 			})
 		]);
 	});

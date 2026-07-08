@@ -101,6 +101,11 @@ function checkoutIdempotencyKey(scanUrl: string): string {
 	return `checkout-${urlHash}-${randomUUID()}`;
 }
 
+function workspaceCheckoutIdempotencyKey(workspaceId: string): string {
+	const workspaceHash = createHash('sha256').update(workspaceId).digest('hex').slice(0, 16);
+	return `workspace-checkout-${workspaceHash}-${randomUUID()}`;
+}
+
 export async function createCheckoutSession(opts: {
 	scanUrl: string;
 	appUrl: string;
@@ -146,6 +151,65 @@ export async function createCheckoutSession(opts: {
 	const data = parseSessionRedirectResponse(
 		await res.json(),
 		'Malformed Stripe checkout session response'
+	);
+	return { id: data.id, url: data.url };
+}
+
+export async function createWorkspaceCheckoutSession(opts: {
+	appUrl: string;
+	customerEmail: string;
+	deployUrl: string;
+	plan: DeploylintPlanId;
+	priceId: string;
+	projectId: string;
+	secretKey: string;
+	workspaceId: string;
+}): Promise<CheckoutSession> {
+	const { appUrl, customerEmail, deployUrl, plan, priceId, projectId, secretKey, workspaceId } =
+		opts;
+	const returnBase = `${appUrl.replace(/\/$/, '')}/app`;
+	const successUrl = `${returnBase}?checkout=success`;
+	const cancelUrl = `${returnBase}?checkout=cancel`;
+	const canonicalDeployUrl = canonicalScanUrl(deployUrl).slice(0, 500);
+
+	const body = new URLSearchParams({
+		mode: 'subscription',
+		success_url: successUrl,
+		cancel_url: cancelUrl,
+		client_reference_id: workspaceId,
+		customer_email: customerEmail,
+		allow_promotion_codes: 'true',
+		'payment_method_types[0]': 'card',
+		'line_items[0][quantity]': '1',
+		'line_items[0][price]': priceId,
+		'metadata[plan]': plan,
+		'metadata[workspace_id]': workspaceId,
+		'metadata[project_id]': projectId,
+		'metadata[deploy_url]': canonicalDeployUrl,
+		'subscription_data[metadata][plan]': plan,
+		'subscription_data[metadata][workspace_id]': workspaceId,
+		'subscription_data[metadata][project_id]': projectId,
+		'subscription_data[metadata][deploy_url]': canonicalDeployUrl
+	});
+
+	const res = await fetch(`${STRIPE_API}/checkout/sessions`, {
+		method: 'POST',
+		headers: {
+			Authorization: `Bearer ${secretKey}`,
+			'Content-Type': 'application/x-www-form-urlencoded',
+			'Idempotency-Key': workspaceCheckoutIdempotencyKey(workspaceId)
+		},
+		body
+	});
+
+	if (!res.ok) {
+		const text = await res.text();
+		throw new Error(`Stripe workspace checkout failed: ${text.slice(0, 200)}`);
+	}
+
+	const data = parseSessionRedirectResponse(
+		await res.json(),
+		'Malformed Stripe workspace checkout session response'
 	);
 	return { id: data.id, url: data.url };
 }

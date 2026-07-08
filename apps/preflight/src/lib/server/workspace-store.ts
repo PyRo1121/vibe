@@ -1,4 +1,8 @@
-import { resolveDeploylintPlan, type DeploylintPlanId } from '$lib/product/plans';
+import {
+	isDeploylintPlanId,
+	resolveDeploylintPlan,
+	type DeploylintPlanId
+} from '$lib/product/plans';
 import { normalizeProjectId } from '$lib/product/project-id';
 import {
 	buildWorkspaceSetupState,
@@ -49,6 +53,16 @@ export type PromoteProjectToGateResult =
 			ok: false;
 			reason: 'invalid-project' | 'missing-db' | 'not-found' | 'not-ready' | 'storage-error';
 	  };
+
+export interface WorkspaceSubscriptionCheckout {
+	customerId: string | null;
+	plan: unknown;
+	projectId: unknown;
+	stripeSubscriptionId: string | null;
+	workspaceId: unknown;
+}
+
+export type WorkspaceSubscriptionStatus = 'active' | 'canceled' | 'past_due';
 
 const PLAN_LIMITS: Record<DeploylintPlanId, number> = {
 	solo: 1,
@@ -381,4 +395,64 @@ export async function promoteProjectToGate(
 	} catch {
 		return { ok: false, reason: 'storage-error' };
 	}
+}
+
+export async function upsertWorkspaceSubscription(
+	db: D1Database | undefined,
+	checkout: WorkspaceSubscriptionCheckout
+): Promise<boolean> {
+	if (!db) return false;
+
+	const workspaceId = normalizeProjectId(checkout.workspaceId);
+	const projectId = normalizeProjectId(checkout.projectId);
+	const plan = isDeploylintPlanId(checkout.plan) ? checkout.plan : null;
+	const customerId = checkout.customerId?.trim();
+	const stripeSubscriptionId = checkout.stripeSubscriptionId?.trim();
+	if (!workspaceId || !projectId || !plan || !customerId || !stripeSubscriptionId) return false;
+
+	const now = Date.now();
+	await db
+		.prepare(
+			`INSERT INTO subscription (
+				id,
+				workspace_id,
+				stripe_customer_id,
+				stripe_subscription_id,
+				plan,
+				status,
+				created_at,
+				updated_at
+			) VALUES (?, ?, ?, ?, ?, 'active', ?, ?)
+			ON CONFLICT(id) DO UPDATE SET
+				stripe_customer_id = excluded.stripe_customer_id,
+				stripe_subscription_id = excluded.stripe_subscription_id,
+				plan = excluded.plan,
+				status = 'active',
+				updated_at = excluded.updated_at`
+		)
+		.bind(`sub_${workspaceId}`, workspaceId, customerId, stripeSubscriptionId, plan, now, now)
+		.run();
+
+	return true;
+}
+
+export async function updateWorkspaceSubscriptionStatus(
+	db: D1Database | undefined,
+	stripeSubscriptionId: string | null,
+	status: WorkspaceSubscriptionStatus
+): Promise<boolean> {
+	const subscriptionId = stripeSubscriptionId?.trim();
+	if (!db || !subscriptionId) return false;
+
+	await db
+		.prepare(
+			`UPDATE subscription
+			SET status = ?,
+				updated_at = ?
+			WHERE stripe_subscription_id = ?`
+		)
+		.bind(status, Date.now(), subscriptionId)
+		.run();
+
+	return true;
 }

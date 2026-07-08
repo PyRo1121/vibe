@@ -22,6 +22,39 @@ function webhookRequest(payload: string, secret: string): Request {
 	});
 }
 
+interface D1Call {
+	sql: string;
+	values: unknown[];
+	method: 'run';
+}
+
+class FakeStatement {
+	private values: unknown[] = [];
+
+	constructor(
+		private readonly db: FakeD1,
+		private readonly sql: string
+	) {}
+
+	bind(...values: unknown[]): FakeStatement {
+		this.values = values;
+		return this;
+	}
+
+	async run(): Promise<unknown> {
+		this.db.calls.push({ sql: this.sql, values: this.values, method: 'run' });
+		return { success: true };
+	}
+}
+
+class FakeD1 {
+	calls: D1Call[] = [];
+
+	prepare(sql: string): FakeStatement {
+		return new FakeStatement(this, sql);
+	}
+}
+
 describe('Stripe webhook route', () => {
 	it('rejects invalid webhook envelopes before processing', async () => {
 		const secret = 'whsec_test';
@@ -146,6 +179,66 @@ describe('Stripe webhook route', () => {
 
 		expect(await response.json()).toEqual({ received: true, sessionId: 'cs_test_paid' });
 		expect(await hasUnlock(kv, 'https://app.test/', 'cs_test_paid')).toBe(true);
+		expect(store.has(`webhook:event:${eventId}`)).toBe(true);
+	});
+
+	it('persists a fulfilled workspace checkout event to D1 subscription state', async () => {
+		const secret = 'whsec_test';
+		const eventId = 'evt_workspace_checkout_paid';
+		const store = new Map<string, string>();
+		const db = new FakeD1();
+		const payload = JSON.stringify({
+			id: eventId,
+			type: 'checkout.session.completed',
+			data: {
+				object: {
+					id: 'cs_test_workspace',
+					customer: { id: 'cus_workspace' },
+					subscription: { id: 'sub_workspace' },
+					payment_status: 'paid',
+					status: 'complete',
+					metadata: {
+						plan: 'builder',
+						workspace_id: 'wks_live',
+						project_id: 'proj_live-123',
+						deploy_url: 'https://app.test/'
+					}
+				}
+			}
+		});
+		const kv = {
+			get: async (key: string) => store.get(key) ?? null,
+			put: async (key: string, value: string) => {
+				store.set(key, value);
+			}
+		} as unknown as KVNamespace;
+
+		const response = await POST({
+			request: webhookRequest(payload, secret),
+			platform: {
+				env: {
+					AUTH_DB: db as unknown as D1Database,
+					REPORTS: kv,
+					STRIPE_WEBHOOK_SECRET: secret
+				}
+			}
+		} as Parameters<typeof POST>[0]);
+
+		expect(await response.json()).toEqual({ received: true, sessionId: 'cs_test_workspace' });
+		expect(db.calls).toEqual([
+			expect.objectContaining({
+				sql: expect.stringContaining('INSERT INTO subscription'),
+				values: [
+					'sub_wks_live',
+					'wks_live',
+					'cus_workspace',
+					'sub_workspace',
+					'builder',
+					expect.any(Number),
+					expect.any(Number)
+				]
+			})
+		]);
 		expect(store.has(`webhook:event:${eventId}`)).toBe(true);
 	});
 
@@ -367,6 +460,37 @@ describe('Stripe webhook route', () => {
 			active: true,
 			status: 'active'
 		});
+	});
+
+	it('updates D1 workspace subscription status from invoice events', async () => {
+		const secret = 'whsec_test';
+		const db = new FakeD1();
+		const payload = JSON.stringify({
+			id: 'evt_workspace_invoice_failed',
+			type: 'invoice.payment_failed',
+			data: { object: { id: 'in_failed', customer: 'cus_123', subscription: 'sub_workspace' } }
+		});
+
+		const response = await POST({
+			request: webhookRequest(payload, secret),
+			platform: {
+				env: {
+					AUTH_DB: db as unknown as D1Database,
+					STRIPE_WEBHOOK_SECRET: secret
+				}
+			}
+		} as Parameters<typeof POST>[0]);
+
+		expect(await response.json()).toEqual({
+			received: true,
+			ignored: 'invoice.payment_failed'
+		});
+		expect(db.calls).toEqual([
+			expect.objectContaining({
+				sql: expect.stringContaining('WHERE stripe_subscription_id = ?'),
+				values: ['past_due', expect.any(Number), 'sub_workspace']
+			})
+		]);
 	});
 
 	it('marks async checkout payment failures inactive by subscription id', async () => {

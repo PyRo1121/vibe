@@ -4,6 +4,7 @@ import {
 	canonicalScanUrl,
 	createBillingPortalSession,
 	createCheckoutSession,
+	createWorkspaceCheckoutSession,
 	isStripeLiveMode,
 	verifyCheckoutSession
 } from './stripe';
@@ -137,6 +138,50 @@ describe('createCheckoutSession', () => {
 				priceId: 'price_solo'
 			})
 		).rejects.toThrow('Malformed Stripe checkout session response');
+	});
+});
+
+describe('createWorkspaceCheckoutSession', () => {
+	it('creates subscription checkout with workspace metadata and app return URLs', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async (_url: string, init?: RequestInit) => {
+				const body = init?.body as URLSearchParams;
+				expect(body.get('mode')).toBe('subscription');
+				expect(body.get('success_url')).toBe('https://deploylint.com/app?checkout=success');
+				expect(body.get('cancel_url')).toBe('https://deploylint.com/app?checkout=cancel');
+				expect(body.get('client_reference_id')).toBe('wks_live');
+				expect(body.get('customer_email')).toBe('olen@example.com');
+				expect(body.get('line_items[0][price]')).toBe('price_builder');
+				expect(body.get('metadata[plan]')).toBe('builder');
+				expect(body.get('metadata[workspace_id]')).toBe('wks_live');
+				expect(body.get('metadata[project_id]')).toBe('proj_live-123');
+				expect(body.get('metadata[deploy_url]')).toBe('https://app.test');
+				expect(body.get('subscription_data[metadata][workspace_id]')).toBe('wks_live');
+				expect(body.get('subscription_data[metadata][project_id]')).toBe('proj_live-123');
+				expect(body.get('subscription_data[metadata][deploy_url]')).toBe('https://app.test');
+				return {
+					ok: true,
+					json: async () => ({ id: 'cs_test_workspace', url: 'https://checkout.stripe.com/x' })
+				};
+			})
+		);
+
+		const session = await createWorkspaceCheckoutSession({
+			appUrl: 'https://deploylint.com/',
+			customerEmail: 'olen@example.com',
+			deployUrl: 'https://app.test/',
+			plan: 'builder',
+			priceId: 'price_builder',
+			projectId: 'proj_live-123',
+			secretKey: 'sk_test_x',
+			workspaceId: 'wks_live'
+		});
+
+		expect(session).toEqual({
+			id: 'cs_test_workspace',
+			url: 'https://checkout.stripe.com/x'
+		});
 	});
 });
 

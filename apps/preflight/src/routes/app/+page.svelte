@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import SeoHead from '$lib/components/SeoHead.svelte';
+	import { DEPLOYLINT_PLAN_LIST } from '$lib/product/plans';
 	import {
 		workspaceGateHardeningSteps,
 		type ActivationStepStatus,
@@ -272,6 +273,29 @@
 					<p class="mt-1 text-sm font-semibold text-zinc-200">
 						{billingStatusLabel(workspace.billing.mode)}
 					</p>
+					{#if workspace.billing.mode === 'setup'}
+						<form method="POST" action={resolve('/api/workspace/checkout')} class="mt-4 space-y-3">
+							<label class="block">
+								<span class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
+									Plan
+								</span>
+								<select
+									name="plan"
+									class="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/30 focus:outline-none"
+								>
+									{#each DEPLOYLINT_PLAN_LIST as plan (plan.id)}
+										<option value={plan.id}>{plan.name} - {plan.priceLabel}</option>
+									{/each}
+								</select>
+							</label>
+							<button
+								type="submit"
+								class="w-full rounded-lg bg-sky-400 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-sky-300 focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:outline-none"
+							>
+								Start workspace billing
+							</button>
+						</form>
+					{/if}
 				</div>
 			</aside>
 		</div>

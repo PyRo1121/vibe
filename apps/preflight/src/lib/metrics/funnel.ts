@@ -19,7 +19,7 @@ export interface FunnelPayload {
 	unlocked?: boolean;
 	scoreDelta?: number;
 	plan?: DeploylintPlanId;
-	mode?: 'alpha' | 'paid';
+	mode?: 'alpha' | 'paid' | 'workspace';
 }
 
 const ALLOWED_EVENTS = new Set<string>([
@@ -56,7 +56,8 @@ export function sanitizeFunnelPayload(raw: Record<string, unknown>): FunnelPaylo
 		payload.scoreDelta = Math.round(raw.scoreDelta);
 	}
 	if (isDeploylintPlanId(raw.plan)) payload.plan = raw.plan;
-	if (raw.mode === 'alpha' || raw.mode === 'paid') payload.mode = raw.mode;
+	if (raw.mode === 'alpha' || raw.mode === 'paid' || raw.mode === 'workspace')
+		payload.mode = raw.mode;
 
 	return payload;
 }
