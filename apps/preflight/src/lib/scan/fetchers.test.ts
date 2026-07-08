@@ -11,6 +11,12 @@ import {
 
 type SiteFetch = typeof fetch;
 
+function requestHref(input: URL | RequestInfo): string {
+	if (typeof input === 'string') return input;
+	if (input instanceof URL) return input.href;
+	return input.url;
+}
+
 afterEach(() => {
 	vi.unstubAllGlobals();
 });
@@ -156,7 +162,7 @@ describe('buildScanDeps', () => {
 	it('returns script text under the cap and null for unreadable scripts', async () => {
 		const deps = buildScanDeps(
 			async (url) =>
-				String(url).endsWith('/missing.js')
+				requestHref(url).endsWith('/missing.js')
 					? new Response('missing', { status: 404 })
 					: new Response('console.log("ok")', { status: 200 }),
 			async () => ['93.184.216.34'],
@@ -170,7 +176,7 @@ describe('buildScanDeps', () => {
 
 	it('blocks redirects to resolved private addresses before fetching them', async () => {
 		const siteFetch = vi.fn<SiteFetch>(async (url) => {
-			const href = String(url);
+			const href = requestHref(url);
 			if (href === 'https://example.com/') {
 				return new Response('', {
 					status: 302,

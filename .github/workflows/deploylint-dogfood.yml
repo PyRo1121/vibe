@@ -1,21 +1,37 @@
 name: Deploylint dogfood
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/preflight/**'
+      - 'apps/preflight-mcp/**'
+      - 'apps/deploylint-shared/**'
+      - '.github/actions/deploylint-gate/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'turbo.json'
+      - 'knip.deploylint.jsonc'
+      - '.oxlintrc.jsonc'
+      - '.oxfmtrc.jsonc'
+      - '.nvmrc'
+      - '.github/workflows/preflight-gate.yml'
+      - '.github/workflows/deploylint-dogfood.yml'
   pull_request:
     paths:
-      - "apps/preflight/**"
-      - "apps/preflight-mcp/**"
-      - "apps/deploylint-shared/**"
-      - ".github/actions/deploylint-gate/**"
-      - "package.json"
-      - "package-lock.json"
-      - "turbo.json"
-      - "knip.deploylint.jsonc"
-      - ".oxlintrc.jsonc"
-      - ".oxfmtrc.jsonc"
-      - ".nvmrc"
-      - ".github/workflows/preflight-gate.yml"
-      - ".github/workflows/deploylint-dogfood.yml"
+      - 'apps/preflight/**'
+      - 'apps/preflight-mcp/**'
+      - 'apps/deploylint-shared/**'
+      - '.github/actions/deploylint-gate/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'turbo.json'
+      - 'knip.deploylint.jsonc'
+      - '.oxlintrc.jsonc'
+      - '.oxfmtrc.jsonc'
+      - '.nvmrc'
+      - '.github/workflows/preflight-gate.yml'
+      - '.github/workflows/deploylint-dogfood.yml'
   workflow_dispatch:
 
 permissions:
@@ -42,5 +58,5 @@ jobs:
         uses: ./.github/actions/deploylint-gate
         with:
           url: https://deploylint.com
-          min_score: "70"
-          mode: advisory
+          min_score: '80'
+          mode: gate

@@ -37,5 +37,5 @@ export function resolveAppUrl(env: Env | undefined, requestOrigin: string): stri
 		return origin.origin.replace(/\/$/, '');
 	}
 
-	error(503, 'PUBLIC_APP_URL is required for checkout');
+	return error(503, 'PUBLIC_APP_URL is required for checkout');
 }

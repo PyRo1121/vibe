@@ -84,7 +84,10 @@ describe('fetchScan', () => {
 			})
 		);
 		const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
-		expect(JSON.parse(String(init.body))).toEqual({
+		const body = init.body;
+		expect(typeof body).toBe('string');
+		if (typeof body !== 'string') throw new TypeError('Expected JSON request body');
+		expect(JSON.parse(body)).toEqual({
 			url: 'https://app.test',
 			unlockSessionId: 'cs_live_123',
 			previousScore: 72
@@ -98,7 +101,10 @@ describe('fetchScan', () => {
 		await fetchScan({ url: ' https://app.test ' });
 
 		const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
-		expect(JSON.parse(String(init.body))).toEqual({ url: 'https://app.test' });
+		const body = init.body;
+		expect(typeof body).toBe('string');
+		if (typeof body !== 'string') throw new TypeError('Expected JSON request body');
+		expect(JSON.parse(body)).toEqual({ url: 'https://app.test' });
 	});
 
 	it('surfaces API error messages from non-2xx responses', async () => {

@@ -1,5 +1,5 @@
-name: Deploylint advisory report
-description: Run Deploylint in advisory mode by default; switch to gate mode when configured launch blockers should fail CI.
+name: Deploylint gate
+description: Run Deploylint as a blocking gate by default; switch to advisory mode only for non-blocking reports.
 branding:
   icon: shield
   color: blue
@@ -15,11 +15,11 @@ inputs:
   min_score:
     description: Minimum launch score (0-100)
     required: false
-    default: "80"
+    default: '80'
   mode:
     description: gate (fail on blockers) or advisory (report only)
     required: false
-    default: advisory
+    default: gate
 
 runs:
   using: composite

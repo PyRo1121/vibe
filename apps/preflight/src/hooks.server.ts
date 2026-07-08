@@ -51,9 +51,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 		if (blocked) return applySecurityHeaders(blocked, event.url.href);
 	} catch (err) {
 		if (isHttpError(err)) {
+			const body = err.body;
 			const message =
-				typeof err.body === 'object' && err.body && 'message' in err.body
-					? String((err.body as { message: string }).message)
+				typeof body === 'object' && body && 'message' in body && typeof body.message === 'string'
+					? body.message
 					: 'Too Many Requests';
 			return applySecurityHeaders(
 				new Response(message, {

@@ -164,12 +164,19 @@ describe('assertPlausibleEventBudget', () => {
 	});
 
 	it('skips KV writes for unknown Plausible event IPs', async () => {
-		const kv = fakeKv();
+		const store = new Map<string, string>();
+		const get = vi.fn<(key: string) => Promise<string | null>>(
+			async (key) => store.get(key) ?? null
+		);
+		const put = vi.fn<(key: string, value: string) => Promise<void>>(async (key, value) => {
+			store.set(key, value);
+		});
+		const kv = { get, put } as unknown as KVNamespace;
 
 		await assertPlausibleEventBudget(kv, 'unknown');
 
-		expect(kv.get).not.toHaveBeenCalled();
-		expect(kv.put).not.toHaveBeenCalled();
+		expect(get).not.toHaveBeenCalled();
+		expect(put).not.toHaveBeenCalled();
 	});
 
 	it('normalizes malformed Plausible event counts before incrementing', async () => {

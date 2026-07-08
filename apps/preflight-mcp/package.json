@@ -14,11 +14,12 @@
 		"check": "tsc --noEmit",
 		"lint": "oxfmt --check . && oxlint -c ../../.oxlintrc.jsonc --max-warnings=0 .",
 		"lint:oxlint": "oxlint -c ../../.oxlintrc.jsonc --max-warnings=0 .",
+		"lint:type-aware": "oxlint -c ../../.oxlintrc.jsonc --type-aware -A typescript/no-unsafe-type-assertion -A typescript/no-unnecessary-type-assertion -A typescript/no-deprecated .",
 		"format": "oxfmt .",
 		"format:check": "oxfmt --check .",
 		"test": "vitest run",
 		"test:coverage": "vitest run --coverage",
-		"verify": "npm run check && npm run lint && npm run test:coverage && npm run build"
+		"verify": "npm run check && npm run lint && npm run lint:type-aware && npm run test:coverage && npm run build"
 	},
 	"dependencies": {
 		"@modelcontextprotocol/sdk": "^1.12.1",

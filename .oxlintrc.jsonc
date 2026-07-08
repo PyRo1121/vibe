@@ -18,6 +18,8 @@
 	},
 	"plugins": ["import", "node", "promise", "typescript", "unicorn", "vitest"],
 	"options": {
+		"denyWarnings": true,
+		"maxWarnings": 0,
 		"reportUnusedDisableDirectives": "error"
 	},
 	"ignorePatterns": [
@@ -45,6 +47,7 @@
 		"typescript/no-deprecated": "warn",
 		"typescript/no-duplicate-enum-values": "error",
 		"typescript/no-duplicate-type-constituents": "error",
+		"typescript/no-explicit-any": "error",
 		"typescript/no-floating-promises": "error",
 		"typescript/no-for-in-array": "error",
 		"typescript/no-misused-promises": "error",

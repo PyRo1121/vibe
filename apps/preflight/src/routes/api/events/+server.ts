@@ -7,6 +7,6 @@ export const POST: RequestHandler = async ({ request }) => {
 	try {
 		return await handleEventsPost(request);
 	} catch (err) {
-		rejectValidation(err);
+		return rejectValidation(err);
 	}
 };

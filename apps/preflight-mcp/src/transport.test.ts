@@ -106,14 +106,16 @@ describe('stdio transport integration', () => {
 		'starts the CLI, lists tools, and calls the deploy gate over MCP stdio',
 		async () => {
 			const scanRequests: unknown[] = [];
-			activeServer = createServer(async (req: IncomingMessage, res: ServerResponse) => {
-				if (req.method !== 'POST' || req.url !== '/api/scan') {
-					res.writeHead(404).end();
-					return;
-				}
+			activeServer = createServer((req: IncomingMessage, res: ServerResponse) => {
+				void (async () => {
+					if (req.method !== 'POST' || req.url !== '/api/scan') {
+						res.writeHead(404).end();
+						return;
+					}
 
-				scanRequests.push(await readJsonBody(req));
-				res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify(report()));
+					scanRequests.push(await readJsonBody(req));
+					res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify(report()));
+				})();
 			});
 			const port = await listen(activeServer);
 

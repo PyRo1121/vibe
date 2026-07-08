@@ -57,7 +57,7 @@ describe('gate P0 sync', () => {
 		const action = readFileSync(actionPath, 'utf8');
 		expect(action).not.toContain('curl');
 		expect(action).toContain('$GITHUB_ACTION_PATH/gate-remote.mjs');
-		expect(action).toContain('default: advisory');
+		expect(action).toContain('default: gate');
 		expect(action).toContain('DEPLOYLINT_URL');
 	});
 });

@@ -68,7 +68,7 @@ export function resolveFormat(format?: string): OutputFormat {
 
 export function createHandlers(scanFetcher: ScanFetcher = fetchScan) {
 	return {
-		async handleScan(args: ScanArgs): Promise<ToolTextResult> {
+		async handleScan(this: void, args: ScanArgs): Promise<ToolTextResult> {
 			const report = await scanFetcher({
 				url: args.url,
 				unlockSessionId: args.unlock_session_id,
@@ -87,7 +87,7 @@ export function createHandlers(scanFetcher: ScanFetcher = fetchScan) {
 			};
 		},
 
-		async handleGate(args: GateArgs): Promise<ToolTextResult> {
+		async handleGate(this: void, args: GateArgs): Promise<ToolTextResult> {
 			const report = await scanFetcher({
 				url: args.url,
 				unlockSessionId: args.unlock_session_id,

@@ -25,7 +25,7 @@ export async function handleCheckoutPost(
 			body && typeof body === 'object' ? (body as { plan?: unknown }).plan : undefined
 		);
 	} catch (err) {
-		rejectValidation(err);
+		return rejectValidation(err);
 	}
 
 	const secretKey = requireStripeSecretKey(env);
@@ -49,6 +49,6 @@ export async function handleCheckoutPost(
 			stripeMode: isStripeLiveMode(secretKey) ? 'live' : 'test',
 			message: checkoutErrorMessage(err)
 		});
-		error(502, 'Checkout failed — try again in a moment');
+		return error(502, 'Checkout failed - try again in a moment');
 	}
 }

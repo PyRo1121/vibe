@@ -56,48 +56,56 @@ describe('assertScanRateLimit', () => {
 	});
 
 	it('allows scans under the limit', async () => {
+		const get = vi.fn<(key: string) => Promise<string | null>>(async () => '2');
+		const put = vi.fn<(key: string, value: string) => Promise<void>>(async () => {});
 		const kv = {
-			get: vi.fn<(key: string) => Promise<string | null>>(async () => '2'),
-			put: vi.fn<(key: string, value: string) => Promise<void>>(async () => {})
+			get,
+			put
 		} as unknown as KVNamespace;
 
 		await assertScanRateLimit(kv, '203.0.113.1');
-		expect(kv.put).toHaveBeenCalled();
+		expect(put).toHaveBeenCalled();
 	});
 
 	it('blocks scans at the KV fallback limit', async () => {
+		const get = vi.fn<(key: string) => Promise<string | null>>(async () => '15');
+		const put = vi.fn<(key: string, value: string) => Promise<void>>(async () => {});
 		const kv = {
-			get: vi.fn<(key: string) => Promise<string | null>>(async () => '15'),
-			put: vi.fn<(key: string, value: string) => Promise<void>>(async () => {})
+			get,
+			put
 		} as unknown as KVNamespace;
 
 		await expect(assertScanRateLimit(kv, '203.0.113.1')).rejects.toMatchObject({ status: 429 });
-		expect(kv.put).not.toHaveBeenCalled();
+		expect(put).not.toHaveBeenCalled();
 	});
 
 	it('normalizes malformed KV counts before incrementing', async () => {
+		const get = vi.fn<(key: string) => Promise<string | null>>(async () => 'not-a-number');
+		const put = vi.fn<(key: string, value: string) => Promise<void>>(async () => {});
 		const kv = {
-			get: vi.fn<(key: string) => Promise<string | null>>(async () => 'not-a-number'),
-			put: vi.fn<(key: string, value: string) => Promise<void>>(async () => {})
+			get,
+			put
 		} as unknown as KVNamespace;
 
 		await assertScanRateLimit(kv, '203.0.113.1');
 
-		expect(kv.put).toHaveBeenCalledWith(expect.any(String), '1', {
+		expect(put).toHaveBeenCalledWith(expect.any(String), '1', {
 			expirationTtl: expect.any(Number)
 		});
 	});
 
 	it('skips KV fallback for unknown IPs', async () => {
+		const get = vi.fn<(key: string) => Promise<string | null>>(async () => '0');
+		const put = vi.fn<(key: string, value: string) => Promise<void>>(async () => {});
 		const kv = {
-			get: vi.fn<(key: string) => Promise<string | null>>(async () => '0'),
-			put: vi.fn<(key: string, value: string) => Promise<void>>(async () => {})
+			get,
+			put
 		} as unknown as KVNamespace;
 
 		await assertScanRateLimit(kv, 'unknown');
 
-		expect(kv.get).not.toHaveBeenCalled();
-		expect(kv.put).not.toHaveBeenCalled();
+		expect(get).not.toHaveBeenCalled();
+		expect(put).not.toHaveBeenCalled();
 	});
 
 	it('fails open for scan limits when the Durable Object is unavailable', async () => {

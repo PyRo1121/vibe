@@ -630,7 +630,7 @@ describe('scanUrl', () => {
 				'/': { html: GOOD_HTML },
 				'/privacy': { html: LEGAL_PAGE_HTML },
 				'/terms': {
-					html: `${LEGAL_PAGE_HTML.replace('</body>', '<p>Lorem ipsum dolor</p></body>')}`
+					html: LEGAL_PAGE_HTML.replace('</body>', '<p>Lorem ipsum dolor</p></body>')
 				}
 			}),
 			...mockDeps

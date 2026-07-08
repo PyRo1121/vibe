@@ -226,7 +226,8 @@ async function upsertPrComment(ctx, markdown) {
 			created.ok ? 'Posted Deploylint PR comment.' : `PR comment failed (HTTP ${created.status}).`
 		);
 	} catch (err) {
-		console.log(`PR comment failed: ${err instanceof Error ? err.message : err}`);
+		const message = err instanceof Error ? err.message : String(err);
+		console.log(`PR comment failed: ${message}`);
 	}
 }
 

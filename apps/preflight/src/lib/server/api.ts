@@ -37,6 +37,6 @@ export async function parseScanJsonBody(request: Request): Promise<{
 	try {
 		return parseScanRequestBody(body);
 	} catch (err) {
-		rejectValidation(err);
+		return rejectValidation(err);
 	}
 }

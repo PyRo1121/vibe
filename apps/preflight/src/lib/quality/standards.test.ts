@@ -28,9 +28,9 @@ describe('quality standards guard', () => {
 		}
 		expect(report.checked).toEqual(
 			expect.arrayContaining([
-				'preflight scripts run oxfmt and oxlint with zero-warning lint',
-				'preflight verify runs standards, typecheck, lint, coverage, and build',
-				'preflight-mcp verify runs typecheck, lint, coverage, and build',
+				'preflight scripts run oxfmt, oxlint, and type-aware oxlint with zero-warning lint',
+				'preflight verify runs standards, typecheck, lint, type-aware lint, coverage, and build',
+				'preflight-mcp verify runs typecheck, lint, type-aware lint, coverage, and build',
 				'deploylint-shared verify runs lint and syntax checks',
 				'root dependency audit fails on any known vulnerability',
 				'root deploylint CI verify runs audit, shared, preflight, mcp, Playwright install, and e2e',
@@ -99,11 +99,13 @@ describe('quality standards guard', () => {
 					},
 					options: {
 						reportUnusedDisableDirectives: 'warn',
+						denyWarnings: false,
 						maxWarnings: 10
 					},
 					plugins: ['typescript'],
 					rules: {
 						'no-debugger': 'warn',
+						'typescript/no-explicit-any': 'off',
 						'typescript/no-floating-promises': 'warn',
 						'vitest/no-focused-tests': 'off',
 						'vitest/expect-expect': 'off'
@@ -165,9 +167,9 @@ describe('quality standards guard', () => {
 			expect(report.checked).toContain('expected quality config files exist');
 			expect(report.failures).toEqual(
 				expect.arrayContaining([
-					'preflight scripts run oxfmt and oxlint with zero-warning lint',
-					'preflight verify runs standards, typecheck, lint, coverage, and build',
-					'preflight-mcp verify runs typecheck, lint, coverage, and build',
+					'preflight scripts run oxfmt, oxlint, and type-aware oxlint with zero-warning lint',
+					'preflight verify runs standards, typecheck, lint, type-aware lint, coverage, and build',
+					'preflight-mcp verify runs typecheck, lint, type-aware lint, coverage, and build',
 					'deploylint-shared verify runs lint and syntax checks',
 					'root dependency audit fails on any known vulnerability',
 					'root deploylint CI verify runs audit, shared, preflight, mcp, Playwright install, and e2e',

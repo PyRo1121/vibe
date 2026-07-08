@@ -24,8 +24,8 @@ export interface QualityStandardsReport {
 const appRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const repoRoot = resolve(appRoot, '../..');
 
-function readJson<T>(path: string): T {
-	return JSON.parse(readFileSync(path, 'utf8')) as T;
+function readJson(path: string): unknown {
+	return JSON.parse(readFileSync(path, 'utf8'));
 }
 
 function hasScriptCommand(
@@ -161,31 +161,31 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		};
 	}
 
-	const rootPackage = readJson<{
+	const rootPackage = readJson(rootPackagePath) as {
 		scripts: Record<string, string>;
 		devDependencies: Record<string, string>;
-	}>(rootPackagePath);
-	const preflightPackage = readJson<{
+	};
+	const preflightPackage = readJson(preflightPackagePath) as {
 		scripts: Record<string, string>;
 		devDependencies: Record<string, string>;
-	}>(preflightPackagePath);
-	const preflightMcpPackage = readJson<{
+	};
+	const preflightMcpPackage = readJson(preflightMcpPackagePath) as {
 		scripts: Record<string, string>;
 		devDependencies: Record<string, string>;
-	}>(preflightMcpPackagePath);
-	const deploylintSharedPackage = readJson<{
+	};
+	const deploylintSharedPackage = readJson(deploylintSharedPackagePath) as {
 		scripts: Record<string, string>;
-	}>(deploylintSharedPackagePath);
-	const oxlint = readJson<{
+	};
+	const oxlint = readJson(oxlintPath) as {
 		categories: Record<string, string>;
 		options: Record<string, string | number | boolean>;
 		plugins: string[];
 		rules: Record<string, string>;
-	}>(oxlintPath);
-	const oxfmt = readJson<Record<string, unknown>>(oxfmtPath);
-	const knip = readJson<{
+	};
+	const oxfmt = readJson(oxfmtPath) as Record<string, unknown>;
+	const knip = readJson(knipPath) as {
 		workspaces: Record<string, unknown>;
-	}>(knipPath);
+	};
 	const configuredCoverageThresholds = readCoverageThresholds(viteConfigPath);
 	const configuredMcpCoverageThresholds = readCoverageThresholds(mcpViteConfigPath);
 	const preflightGateWorkflow = readFileSync(preflightGateWorkflowPath, 'utf8');
@@ -194,8 +194,13 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
-		'preflight scripts run oxfmt and oxlint with zero-warning lint',
+		'preflight scripts run oxfmt, oxlint, and type-aware oxlint with zero-warning lint',
 		hasScriptCommand(preflightPackage.scripts, 'lint', ['oxfmt --check .', 'oxlint']) &&
+			hasScriptCommand(preflightPackage.scripts, 'lint:type-aware', [
+				'oxlint',
+				'--type-aware',
+				'typescript/no-unsafe-type-assertion'
+			]) &&
 			(preflightPackage.scripts.lint.includes('--max-warnings=0') ||
 				oxlint.options.maxWarnings === 0 ||
 				oxlint.options.denyWarnings === true)
@@ -203,12 +208,13 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
-		'preflight verify runs standards, typecheck, lint, coverage, and build',
+		'preflight verify runs standards, typecheck, lint, type-aware lint, coverage, and build',
 		hasScriptCommand(preflightPackage.scripts, 'verify', [
 			'quality:standards',
 			'sync:gate-remote:check',
 			'check',
 			'lint',
+			'lint:type-aware',
 			'test:coverage',
 			'build'
 		])
@@ -216,13 +222,19 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
-		'preflight-mcp verify runs typecheck, lint, coverage, and build',
+		'preflight-mcp verify runs typecheck, lint, type-aware lint, coverage, and build',
 		hasScriptCommand(preflightMcpPackage.scripts, 'verify', [
 			'check',
 			'lint',
+			'lint:type-aware',
 			'test:coverage',
 			'build'
-		])
+		]) &&
+			hasScriptCommand(preflightMcpPackage.scripts, 'lint:type-aware', [
+				'oxlint',
+				'--type-aware',
+				'typescript/no-unsafe-type-assertion'
+			])
 	);
 	pushCheck(
 		checked,
@@ -279,6 +291,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			'--max-issues=0'
 		]) &&
 			rootPackage.devDependencies.knip !== undefined &&
+			rootPackage.devDependencies['oxlint-tsgolint'] !== undefined &&
 			rootPackage.scripts['verify:deploylint:ci']?.includes('npm run deadcode:deploylint') &&
 			['apps/deploylint-shared', 'apps/preflight', 'apps/preflight-mcp'].every((workspace) =>
 				Object.hasOwn(knip.workspaces, workspace)
@@ -299,11 +312,14 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		'oxlint config enables correctness, suspicious, TypeScript, Vitest, Promise, and Unicorn guards',
 		oxlint.categories.correctness === 'error' &&
 			oxlint.categories.suspicious === 'error' &&
+			oxlint.options.denyWarnings === true &&
+			oxlint.options.maxWarnings === 0 &&
 			oxlint.options.reportUnusedDisableDirectives === 'error' &&
 			['typescript', 'vitest', 'promise', 'unicorn', 'import'].every((plugin) =>
 				oxlint.plugins.includes(plugin)
 			) &&
 			oxlint.rules['no-debugger'] === 'error' &&
+			oxlint.rules['typescript/no-explicit-any'] === 'error' &&
 			oxlint.rules['typescript/no-floating-promises'] === 'error' &&
 			oxlint.rules['vitest/no-focused-tests'] === 'error' &&
 			oxlint.rules['vitest/expect-expect'] === 'error'
@@ -341,7 +357,11 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		failures,
 		'GitHub workflows enforce canonical deploylint CI and MCP dogfood gates',
 		preflightGateWorkflow.includes('npm run verify:deploylint:ci') &&
+			preflightGateWorkflow.includes('push:') &&
+			preflightGateWorkflow.includes('branches: [main]') &&
 			preflightGateWorkflow.includes('node-version-file: .nvmrc') &&
+			preflightGateWorkflow.includes('actions/upload-artifact@v6') &&
+			preflightGateWorkflow.includes('apps/preflight/playwright-report/**') &&
 			!preflightGateWorkflow.includes("node-version: '24'") &&
 			preflightGateWorkflow.includes('apps/preflight-mcp/**') &&
 			[
@@ -352,8 +372,13 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 				'.oxfmtrc.jsonc',
 				'.nvmrc'
 			].every((path) => preflightGateWorkflow.includes(path)) &&
+			dogfoodWorkflow.includes('push:') &&
+			dogfoodWorkflow.includes('branches: [main]') &&
 			dogfoodWorkflow.includes('npm run verify -w preflight-mcp') &&
 			dogfoodWorkflow.includes('node-version-file: .nvmrc') &&
+			(dogfoodWorkflow.includes('min_score: "80"') ||
+				dogfoodWorkflow.includes("min_score: '80'")) &&
+			dogfoodWorkflow.includes('mode: gate') &&
 			[
 				'apps/deploylint-shared/**',
 				'package-lock.json',

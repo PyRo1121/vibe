@@ -19,7 +19,7 @@ export async function handleBillingPortalPost(
 		scanUrl = parsed.url;
 		sessionId = parsed.unlockSessionId;
 	} catch (err) {
-		rejectValidation(err);
+		return rejectValidation(err);
 	}
 
 	const secretKey = requireStripeSecretKey(env);
@@ -34,6 +34,6 @@ export async function handleBillingPortalPost(
 		});
 		return json(portal);
 	} catch {
-		error(502, 'Billing portal failed - try again in a moment');
+		return error(502, 'Billing portal failed - try again in a moment');
 	}
 }

@@ -33,7 +33,7 @@ async function hasWebhookEvent(kv: KVNamespace, eventId: string): Promise<boolea
 	try {
 		return Boolean(await kv.get(key));
 	} catch {
-		error(503, 'Webhook processing temporarily unavailable');
+		return error(503, 'Webhook processing temporarily unavailable');
 	}
 }
 
@@ -42,7 +42,7 @@ async function markWebhookEventProcessed(kv: KVNamespace, eventId: string): Prom
 	try {
 		await kv.put(key, '1', { expirationTtl: WEBHOOK_DEDUP_TTL_SECONDS });
 	} catch {
-		error(503, 'Webhook processing temporarily unavailable');
+		return error(503, 'Webhook processing temporarily unavailable');
 	}
 }
 

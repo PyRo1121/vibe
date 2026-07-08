@@ -1,6 +1,22 @@
 name: Deploylint gate
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/preflight/**'
+      - 'apps/preflight-mcp/**'
+      - 'apps/deploylint-shared/**'
+      - '.github/actions/deploylint-gate/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'turbo.json'
+      - 'knip.deploylint.jsonc'
+      - '.oxlintrc.jsonc'
+      - '.oxfmtrc.jsonc'
+      - '.nvmrc'
+      - '.github/workflows/preflight-gate.yml'
+      - '.github/workflows/deploylint-dogfood.yml'
   pull_request:
     paths:
       - 'apps/preflight/**'
@@ -47,6 +63,19 @@ jobs:
 
       - name: Verify Deploylint CI suite
         run: npm run verify:deploylint:ci
+
+      - name: Upload Deploylint failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: deploylint-failure-artifacts
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            apps/preflight/coverage/**
+            apps/preflight/playwright-report/**
+            apps/preflight/test-results/**
+            apps/preflight-mcp/coverage/**
 
       - name: Scan production URL (optional)
         env:

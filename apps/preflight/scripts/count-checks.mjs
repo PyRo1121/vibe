@@ -33,6 +33,6 @@ for (const file of walk(scanDir)) {
 	}
 }
 
-const sorted = [...ids].toSorted();
+const sorted = [...ids].toSorted((a, b) => a.localeCompare(b));
 console.log(`Unique check/finding IDs: ${sorted.length}`);
 console.log(sorted.join('\n'));
