@@ -908,6 +908,15 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
+		'GitHub pull request CI runs dependency review for supply-chain diffs',
+		preflightGateWorkflow.includes('dependency-review:') &&
+			preflightGateWorkflow.includes("if: github.event_name == 'pull_request'") &&
+			preflightGateWorkflow.includes('actions/dependency-review-action@v5') &&
+			preflightGateWorkflow.includes('fail-on-severity: moderate')
+	);
+	pushCheck(
+		checked,
+		failures,
 		'GitHub workflows use lockfile installs and npm dependency caching',
 		[preflightGateWorkflow, dogfoodWorkflow].every(
 			(workflow) =>
