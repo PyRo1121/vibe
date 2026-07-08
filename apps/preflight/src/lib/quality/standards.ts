@@ -422,6 +422,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const deploylintGateActionPath = join(rootDir, '.github/actions/deploylint-gate/action.yml');
 	const preflightGateWorkflowPath = join(rootDir, '.github/workflows/preflight-gate.yml');
 	const dogfoodWorkflowPath = join(rootDir, '.github/workflows/deploylint-dogfood.yml');
+	const tcgVaultWorkflowPath = join(rootDir, '.github/workflows/tcg-vault-gate.yml');
 	const checked: string[] = [];
 	const failures: string[] = [];
 	const coverageThresholds = {
@@ -453,7 +454,8 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		playwrightConfigPath,
 		deploylintGateActionPath,
 		preflightGateWorkflowPath,
-		dogfoodWorkflowPath
+		dogfoodWorkflowPath,
+		tcgVaultWorkflowPath
 	];
 
 	pushCheck(
@@ -656,6 +658,18 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		failures,
 		'root dependency audit fails on any known vulnerability',
 		hasScriptCommand(rootPackage.scripts, 'audit:security', ['npm audit', '--audit-level=low'])
+	);
+	pushCheck(
+		checked,
+		failures,
+		'root workflow semantic lint runs pinned actionlint across GitHub Actions workflows',
+		rootPackage.devDependencies['github-actionlint'] === '1.7.12' &&
+			hasScriptCommand(rootPackage.scripts, 'lint:workflows', ['github-actionlint']) &&
+			hasScriptCommand(rootPackage.scripts, 'verify:deploylint:ci', ['npm run lint:workflows']) &&
+			hasScriptCommand(rootPackage.scripts, 'verify:deploylint:local', [
+				'npm run lint:workflows'
+			]) &&
+			hasScriptCommand(rootPackage.scripts, 'verify:tcg-vault:ci', ['npm run lint:workflows'])
 	);
 	pushCheck(
 		checked,

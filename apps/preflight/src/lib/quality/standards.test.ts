@@ -39,6 +39,7 @@ describe('quality standards guard', () => {
 				'root runtime pins Node and npm for deterministic installs',
 				'Deploylint TypeScript configs keep strict compiler settings',
 				'root dependency audit fails on any known vulnerability',
+				'root workflow semantic lint runs pinned actionlint across GitHub Actions workflows',
 				'Dependabot updates npm and GitHub Actions supply-chain dependencies',
 				'Deploylint gate scripts bound network calls with timeout and retry controls',
 				'Deploylint GitHub Action exposes gate timeout and retry controls',
@@ -293,6 +294,7 @@ updates:
 			);
 			writeFixtureFile(join(root, '.github/workflows/preflight-gate.yml'), 'npm test');
 			writeFixtureFile(join(root, '.github/workflows/deploylint-dogfood.yml'), 'npm test');
+			writeFixtureFile(join(root, '.github/workflows/tcg-vault-gate.yml'), 'npm test');
 			writeFixtureFile(
 				join(root, 'apps/preflight/e2e/focused.spec.ts'),
 				`import { test } from '@playwright/test';
@@ -315,6 +317,7 @@ updates:
 					'root runtime pins Node and npm for deterministic installs',
 					'Deploylint TypeScript configs keep strict compiler settings',
 					'root dependency audit fails on any known vulnerability',
+					'root workflow semantic lint runs pinned actionlint across GitHub Actions workflows',
 					'Dependabot updates npm and GitHub Actions supply-chain dependencies',
 					'Deploylint gate scripts bound network calls with timeout and retry controls',
 					'Deploylint GitHub Action exposes gate timeout and retry controls',
