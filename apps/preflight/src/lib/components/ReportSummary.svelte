@@ -76,7 +76,7 @@
 	}
 
 	function blockerLabel(count: number): string {
-		return `${count} revenue blocker${count === 1 ? '' : 's'}`;
+		return `${count} access blocker${count === 1 ? '' : 's'}`;
 	}
 </script>
 
@@ -164,7 +164,9 @@
 
 			{#if paymentReadiness && paymentReadiness.status !== 'not-detected'}
 				<div class="mt-4 rounded-xl border p-3 {paymentTone(paymentReadiness.status)}">
-					<p class="text-[10px] font-semibold tracking-wider uppercase">Revenue readiness</p>
+					<p class="text-[10px] font-semibold tracking-wider uppercase">
+						Customer access readiness
+					</p>
 					<p class="mt-1 text-sm font-medium">{paymentReadiness.headline}</p>
 					<div class="mt-2 flex flex-wrap gap-2 text-xs">
 						<span>{blockerLabel(paymentReadiness.fail)}</span>

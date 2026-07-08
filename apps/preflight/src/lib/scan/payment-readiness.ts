@@ -33,7 +33,7 @@ export function buildPaymentReadinessSummary(checks: ScanCheck[]): PaymentReadin
 	if (fail > 0) {
 		return {
 			status: 'blocked',
-			headline: `Payment readiness blocked by ${plural(fail, 'revenue blocker')}.`,
+			headline: `Customer access readiness blocked by ${plural(fail, 'access blocker')}.`,
 			pass,
 			warn,
 			fail,
@@ -46,7 +46,7 @@ export function buildPaymentReadinessSummary(checks: ScanCheck[]): PaymentReadin
 	if (warn > 0) {
 		return {
 			status: 'needs-attention',
-			headline: `Payment readiness needs attention: ${plural(warn, 'warning')}.`,
+			headline: `Customer access readiness needs attention: ${plural(warn, 'warning')}.`,
 			pass,
 			warn,
 			fail,
@@ -58,7 +58,7 @@ export function buildPaymentReadinessSummary(checks: ScanCheck[]): PaymentReadin
 
 	return {
 		status: 'ready',
-		headline: `Payment readiness looks clear across ${plural(pass, 'check')}.`,
+		headline: `Customer access readiness looks clear across ${plural(pass, 'check')}.`,
 		pass,
 		warn,
 		fail,

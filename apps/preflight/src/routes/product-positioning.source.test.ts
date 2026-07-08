@@ -146,6 +146,7 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(reportPage).toContain('Readiness brief');
 		expect(reportSummary).toContain('Copy readiness brief');
 		expect(reportSummary).toContain('Project evidence reviewed');
+		expect(reportSummary).toContain('Customer access readiness');
 		expect(preflightSession).toContain('Add Deploylint to CI');
 		expect(unlockComparePanel).toContain('Snapshot brief');
 		expect(unlockComparePanel).toContain('Monitored CI gate');
@@ -171,6 +172,7 @@ describe('Deploylint CI workspace positioning', () => {
 			expect(fileSource).not.toContain('One-off report (you have this)');
 			expect(fileSource).not.toContain('Attach readiness evidence');
 			expect(fileSource).not.toContain('deploy URL or github.com/you/repo');
+			expect(fileSource).not.toContain('Revenue readiness');
 		}
 	});
 

@@ -13,7 +13,7 @@ describe('scoreChecks', () => {
 });
 
 describe('buildReport payment readiness', () => {
-	it('summarizes revenue blockers from payment checks', () => {
+	it('summarizes customer access blockers from payment checks', () => {
 		const report = buildReport('https://app.test', new URL('https://app.test/'), [
 			makeCheck(
 				'checkout-server-owned',
@@ -36,6 +36,7 @@ describe('buildReport payment readiness', () => {
 
 		expect(report.paymentReadiness).toMatchObject({
 			status: 'blocked',
+			headline: 'Customer access readiness blocked by 1 access blocker.',
 			fail: 1,
 			warn: 1,
 			pass: 0,

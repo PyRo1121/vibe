@@ -55,7 +55,7 @@ export const mockScanReport: ScanReport = {
 	summary: { pass: 2, warn: 2, fail: 1 },
 	paymentReadiness: {
 		status: 'blocked',
-		headline: 'Payment readiness blocked by 1 payment blocker.',
+		headline: 'Customer access readiness blocked by 1 access blocker.',
 		pass: 0,
 		warn: 1,
 		fail: 1,
@@ -162,7 +162,7 @@ export const mockRepoScanReport: ScanReport = {
 	summary: { pass: 4, warn: 2, fail: 0 },
 	paymentReadiness: {
 		status: 'needs-attention',
-		headline: 'Revenue readiness needs attention before paid rollout.',
+		headline: 'Customer access readiness needs attention before paid rollout.',
 		pass: 2,
 		warn: 1,
 		fail: 0,
