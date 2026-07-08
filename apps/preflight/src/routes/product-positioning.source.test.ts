@@ -134,6 +134,13 @@ describe('Deploylint CI workspace positioning', () => {
 		const ogSvg = appSource('static', 'og.svg');
 		const loginPage = source('routes', 'login', '+page.svelte');
 		const homePage = source('routes', '+page.svelte');
+		const toolsPage = source('routes', 'tools', '+page.svelte');
+		const workflowToolPage = source(
+			'routes',
+			'tools',
+			'github-actions-security-checker',
+			'+page.svelte'
+		);
 		const reportPage = source('routes', 'r', '[id]', '+page.svelte');
 		const reportSummary = source('lib', 'components', 'ReportSummary.svelte');
 		const preflightSession = source('lib', 'client', 'preflight-session.ts');
@@ -150,6 +157,15 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(homePage).toContain('Workspace loop');
 		expect(homePage).toContain('What the workspace keeps enforcing');
 		expect(homePage).toContain('Monitored projects');
+		expect(homePage).toContain('Generate advisory workflow');
+		expect(homePage).toContain('Preview deploy-target evidence');
+		expect(homePage).toContain('Preparing deploy-target evidence');
+		expect(homePage).toContain('What the advisory loop checks');
+		expect(toolsPage).toContain("href: '/app#project'");
+		expect(toolsPage).toContain("href: '/developers'");
+		expect(toolsPage).toContain('Create monitored project');
+		expect(toolsPage).toContain('Add repo checks to CI');
+		expect(workflowToolPage).toContain("href={resolve('/app#project')}");
 		expect(reportPage).toContain('Readiness brief');
 		expect(reportSummary).toContain('Copy readiness brief');
 		expect(reportSummary).toContain('Project evidence reviewed');
@@ -181,6 +197,14 @@ describe('Deploylint CI workspace positioning', () => {
 			expect(fileSource).not.toContain('deploy URL or github.com/you/repo');
 			expect(fileSource).not.toContain('Revenue readiness');
 		}
+		expect(homePage).not.toContain('Preview readiness brief');
+		expect(homePage).not.toContain('Fetching homepage');
+		expect(homePage).not.toContain('Crawling privacy, terms & pricing pages');
+		expect(homePage).not.toContain('Readiness evidence lanes');
+		expect(toolsPage).not.toContain("href: '/'");
+		expect(toolsPage).not.toContain('Build readiness report');
+		expect(toolsPage).not.toContain('Check repo');
+		expect(workflowToolPage).not.toContain("href={resolve('/')}");
 	});
 
 	it('makes generated advisory workflows skip cleanly when fork PR secrets are unavailable', () => {

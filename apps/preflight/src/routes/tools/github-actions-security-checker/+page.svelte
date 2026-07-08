@@ -251,7 +251,7 @@ jobs:
 			</p>
 		</a>
 		<a
-			href={resolve('/')}
+			href={resolve('/app#project')}
 			class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 hover:border-sky-500/70"
 		>
 			<p class="font-semibold text-white">Audit a deploy target</p>

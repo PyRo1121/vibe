@@ -38,21 +38,21 @@
 		},
 		{
 			name: 'Project Readiness Audit',
-			href: '/',
+			href: '/app#project',
 			status: 'Live',
 			kicker: 'Readiness evidence',
 			description:
-				'Add a live URL or public GitHub repo to collect crawler, trust, payment, preview, and repo evidence after CI is under control.',
-			action: 'Build readiness report'
+				'Attach a deploy target and public GitHub repo to a monitored project so readiness evidence belongs to CI history.',
+			action: 'Create monitored project'
 		},
 		{
 			name: 'Repo Hygiene Checker',
-			href: '/',
+			href: '/developers',
 			status: 'Repo scan',
 			kicker: 'Repo hygiene',
 			description:
-				'Check env files, lockfiles, package scripts, Node pinning, dependency signals, and licenses.',
-			action: 'Check repo'
+				'Fold env files, lockfiles, package scripts, runtime pins, dependency signals, and license checks into the advisory workflow.',
+			action: 'Add repo checks to CI'
 		}
 	] as const;
 

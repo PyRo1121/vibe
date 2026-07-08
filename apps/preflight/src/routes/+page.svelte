@@ -69,13 +69,13 @@
 	let lockedPromptTrackedFor: string | null = null;
 
 	const PROGRESS_STEPS = [
-		'Fetching homepage…',
-		'Crawling privacy, terms & pricing pages…',
-		'Checking links, robots.txt & sitemap…',
-		'Verifying social preview image…',
-		'Scanning JS bundles for secrets & licenses…',
-		'Probing 404 handling & DNS records…',
-		'Scoring deploy-readiness evidence…'
+		'Preparing deploy-target evidence…',
+		'Checking public access and HTTPS…',
+		'Reviewing trust, legal, and payment signals…',
+		'Inspecting preview and crawler metadata…',
+		'Scanning bundles for exposed secrets and licenses…',
+		'Checking repo and workflow readiness signals…',
+		'Scoring advisory-gate evidence…'
 	];
 	let progressIdx = $state(0);
 
@@ -646,6 +646,13 @@ jobs:
 			</p>
 			<div class="flex shrink-0 flex-col gap-2 sm:flex-row">
 				<button
+					type="submit"
+					disabled={!projectReadinessTarget}
+					class="rounded-xl bg-sky-600 px-6 py-3 text-sm font-semibold text-white hover:bg-sky-500 disabled:bg-sky-900 disabled:text-sky-100"
+				>
+					Generate advisory workflow
+				</button>
+				<button
 					type="button"
 					disabled={loading || !projectReadinessTarget}
 					class="rounded-xl border border-zinc-700 px-5 py-3 text-sm font-semibold text-white hover:border-sky-500 hover:text-sky-200 disabled:border-zinc-800 disabled:text-zinc-600"
@@ -655,14 +662,7 @@ jobs:
 						runScan(false, target);
 					}}
 				>
-					{loading ? 'Checking...' : 'Preview readiness brief'}
-				</button>
-				<button
-					type="submit"
-					disabled={!projectReadinessTarget}
-					class="rounded-xl bg-sky-600 px-6 py-3 text-sm font-semibold text-white hover:bg-sky-500 disabled:bg-sky-900 disabled:text-sky-100"
-				>
-					Generate advisory workflow
+					{loading ? 'Checking...' : 'Preview deploy-target evidence'}
 				</button>
 			</div>
 		</div>
@@ -790,7 +790,7 @@ jobs:
 	{:else if !loading}
 		<section class="mb-8 text-center">
 			<p class="text-xs font-semibold tracking-widest text-zinc-400 uppercase">
-				Readiness evidence lanes
+				What the advisory loop checks
 			</p>
 		</section>
 		<section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
