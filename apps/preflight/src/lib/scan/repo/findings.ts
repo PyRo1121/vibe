@@ -69,6 +69,7 @@ const BLOCKER_RULE_IDS = new Set([
 const FIX_SOON_RULE_IDS = new Set([
 	'billing-portal',
 	'ci-runs-quality-gates',
+	'codeql-code-scanning',
 	'dependency-review-action',
 	'dependabot-config',
 	'deploylint-ci-wiring',
@@ -77,6 +78,7 @@ const FIX_SOON_RULE_IDS = new Set([
 	'health-endpoint',
 	'security-policy',
 	'webhook-signature-missing',
+	'workflow-immutable-action-pins',
 	'workflow-permissions'
 ]);
 

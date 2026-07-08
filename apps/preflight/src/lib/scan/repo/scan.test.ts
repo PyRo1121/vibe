@@ -936,6 +936,8 @@ export async function POST({ request }) {
 			'workflow-permissions': 'warn',
 			'workflow-pull-request-target': 'fail',
 			'workflow-action-pinning': 'warn',
+			'workflow-immutable-action-pins': 'warn',
+			'codeql-code-scanning': 'warn',
 			'dependency-review-action': 'warn',
 			'dependabot-config': 'warn',
 			'webhook-signature-missing': 'fail',

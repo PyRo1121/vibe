@@ -779,6 +779,13 @@ const ADDITIONAL_CHECK_CATALOG = {
 		falsePositive:
 			'Teams may manage updates through another bot or private process; document that process if no standard config is present.'
 	},
+	'codeql-code-scanning': {
+		id: 'codeql-code-scanning',
+		why: 'CodeQL code scanning catches source and workflow security issues during review before they become production or supply-chain incidents.',
+		detectedBy: 'Scans GitHub Actions workflow uses references for github/codeql-action steps.',
+		falsePositive:
+			'GitHub default setup can enable CodeQL without a committed workflow file; document that dashboard setting if it is the intended control.'
+	},
 	'dependency-review-action': {
 		id: 'dependency-review-action',
 		why: 'Dependency review catches vulnerable or risky dependency changes during pull-request review instead of after deployment.',
@@ -1064,6 +1071,14 @@ const ADDITIONAL_CHECK_CATALOG = {
 			'Parses workflow uses references and warns on third-party actions pinned to main, master, latest, or other floating refs.',
 		falsePositive:
 			'First-party actions and carefully monitored tags may be acceptable, but high-security repositories often require SHA pinning.'
+	},
+	'workflow-immutable-action-pins': {
+		id: 'workflow-immutable-action-pins',
+		why: 'Full commit-SHA action pins make workflow dependencies immutable, reducing the chance that an upstream tag or release update silently changes CI behavior.',
+		detectedBy:
+			'Parses external GitHub Actions workflow uses references and verifies they are pinned to 40-character commit SHAs.',
+		falsePositive:
+			'Some teams intentionally accept trusted release tags for maintainability; hardened CI policies should document that exception and monitor updates.'
 	},
 	'webhook-event-coverage': {
 		id: 'webhook-event-coverage',

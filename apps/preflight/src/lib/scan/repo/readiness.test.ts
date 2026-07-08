@@ -29,6 +29,8 @@ const rootManifest: PackageManifestEvidence = {
 	}
 };
 
+const FULL_ACTION_SHA = '0123456789abcdef0123456789abcdef01234567';
+
 describe('repo readiness analyzer', () => {
 	it('returns normalized findings for package script readiness', () => {
 		const findings: RepoReadinessFinding[] = analyzePackageScripts([rootManifest]);
@@ -502,6 +504,133 @@ updates:
 		});
 		expect(findings.find((finding) => finding.id === 'dependabot-config')).toMatchObject({
 			status: 'pass'
+		});
+	});
+
+	it('passes immutable action pinning when external actions use full commit SHAs', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/security.yml',
+				text: `
+name: Security
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@${FULL_ACTION_SHA}
+      - uses: github/codeql-action/init@${FULL_ACTION_SHA}
+      - uses: github/codeql-action/analyze@${FULL_ACTION_SHA}
+      - uses: actions/dependency-review-action@${FULL_ACTION_SHA}
+      - run: npm run lint
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'workflow-action-pinning')).toMatchObject({
+			status: 'pass'
+		});
+		expect(
+			findings.find((finding) => finding.id === 'workflow-immutable-action-pins')
+		).toMatchObject({
+			status: 'pass'
+		});
+		expect(findings.find((finding) => finding.id === 'codeql-code-scanning')).toMatchObject({
+			status: 'pass'
+		});
+	});
+
+	it('warns on version-tagged actions without treating them as floating branch refs', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/security.yml',
+				text: `
+name: Security
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v4
+      - uses: github/codeql-action/analyze@v4
+      - uses: actions/dependency-review-action@v4
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'workflow-action-pinning')).toMatchObject({
+			status: 'pass'
+		});
+		expect(
+			findings.find((finding) => finding.id === 'workflow-immutable-action-pins')
+		).toMatchObject({
+			status: 'warn',
+			message: 'GitHub Action actions/checkout@v4 is not pinned to a full commit SHA.',
+			evidence: { path: '.github/workflows/security.yml' }
+		});
+		expect(findings.find((finding) => finding.id === 'codeql-code-scanning')).toMatchObject({
+			status: 'pass'
+		});
+	});
+
+	it('ignores local reusable workflows and docker references for immutable action pins', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/ci.yml',
+				text: `
+name: CI
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    uses: ./.github/workflows/reusable.yml
+  container-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: docker://alpine@sha256:0123456789abcdef
+      - run: npm test
+`
+			}
+		]);
+
+		expect(
+			findings.find((finding) => finding.id === 'workflow-immutable-action-pins')
+		).toMatchObject({
+			status: 'pass'
+		});
+	});
+
+	it('warns when CodeQL code scanning is not visible in workflows', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/ci.yml',
+				text: `
+name: CI
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@${FULL_ACTION_SHA}
+      - run: npm test
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'codeql-code-scanning')).toMatchObject({
+			status: 'warn',
+			message: expect.stringContaining('No CodeQL code scanning workflow found')
 		});
 	});
 

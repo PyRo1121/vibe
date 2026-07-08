@@ -126,6 +126,8 @@ describe('fixPrompt coverage for new check ids', () => {
 			'workflow-permissions',
 			'workflow-pull-request-target',
 			'workflow-action-pinning',
+			'workflow-immutable-action-pins',
+			'codeql-code-scanning',
 			'svelte-check',
 			'deploy-config',
 			'wrangler-compat-date',

@@ -447,6 +447,30 @@ function workflowUsesRefs(text: string): Array<{ action: string; ref: string }> 
 	return refs;
 }
 
+const FULL_GITHUB_SHA = /^[a-f0-9]{40}$/i;
+
+function isExternalWorkflowUse(action: string): boolean {
+	return (
+		!action.startsWith('./') &&
+		!action.startsWith('../') &&
+		!action.startsWith('/') &&
+		!action.startsWith('docker://')
+	);
+}
+
+function firstNonImmutableActionRef(
+	workflows: RepoFileEvidence[]
+): { path: string; action: string; ref: string } | undefined {
+	for (const workflow of workflows) {
+		for (const { action, ref } of workflowUsesRefs(workflow.text ?? '')) {
+			if (isExternalWorkflowUse(action) && !FULL_GITHUB_SHA.test(ref)) {
+				return { path: workflow.path, action, ref };
+			}
+		}
+	}
+	return undefined;
+}
+
 function hasWorkflowEvent(text: string, eventName: string): boolean {
 	return meaningfulWorkflowLines(text).some((line) =>
 		new RegExp(`(^|[\\s\\[,])${eventName}(:|\\b)`).test(line)
@@ -547,6 +571,10 @@ function hasDependencyReviewAction(text: string): boolean {
 	return workflowUsesRefs(text).some(({ action }) => action === 'actions/dependency-review-action');
 }
 
+function hasCodeqlAction(text: string): boolean {
+	return workflowUsesRefs(text).some(({ action }) => action.startsWith('github/codeql-action/'));
+}
+
 function deploylintWorkflow(workflows: RepoFileEvidence[]): RepoFileEvidence | undefined {
 	return workflows.find((workflow) => {
 		const activeText = meaningfulWorkflowLines(workflow.text ?? '').join('\n');
@@ -583,7 +611,9 @@ export function analyzeCiWorkflows(files: RepoFileEvidence[]): RepoReadinessFind
 	const missing = ['lint', 'typecheck', 'test', 'build'].filter((gate) => !gates.includes(gate));
 	const riskyTarget = hasRiskyPullRequestTarget(text) || hasUnsafePullRequestTargetCheckout(text);
 	const floatingAction = hasFloatingThirdPartyAction(text);
+	const nonImmutableAction = firstNonImmutableActionRef(workflows);
 	const dependencyReview = hasDependencyReviewAction(text);
+	const codeqlScanning = hasCodeqlAction(text);
 	const deploylintCi = deploylintWorkflow(workflows);
 	const updateConfig = dependencyUpdateConfig(files);
 	const evidencePath = workflows[0]?.path;
@@ -627,6 +657,26 @@ export function analyzeCiWorkflows(files: RepoFileEvidence[]): RepoReadinessFind
 			floatingAction
 				? 'Third-party GitHub Action uses a floating ref such as main, master, or latest.'
 				: 'No floating third-party GitHub Action refs detected.',
+			{ path: evidencePath },
+			'security'
+		),
+		finding(
+			'workflow-immutable-action-pins',
+			'Immutable action pins',
+			nonImmutableAction ? 'warn' : 'pass',
+			nonImmutableAction
+				? `GitHub Action ${nonImmutableAction.action}@${nonImmutableAction.ref} is not pinned to a full commit SHA.`
+				: 'Every external GitHub Action use is pinned to a full commit SHA.',
+			{ path: nonImmutableAction?.path ?? evidencePath },
+			'security'
+		),
+		finding(
+			'codeql-code-scanning',
+			'CodeQL code scanning',
+			codeqlScanning ? 'pass' : 'warn',
+			codeqlScanning
+				? 'GitHub Actions configures CodeQL code scanning.'
+				: 'No CodeQL code scanning workflow found; source and workflow security issues may reach review without static analysis.',
 			{ path: evidencePath },
 			'security'
 		),
