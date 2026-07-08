@@ -1,24 +1,46 @@
 name: TCG Vault gate
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/tcg-vault/**"
+      - "package.json"
+      - "package-lock.json"
+      - "turbo.json"
+      - ".oxlintrc.jsonc"
+      - ".oxfmtrc.jsonc"
+      - ".nvmrc"
+      - ".github/workflows/tcg-vault-gate.yml"
   pull_request:
     paths:
       - "apps/tcg-vault/**"
       - "package.json"
       - "package-lock.json"
       - "turbo.json"
+      - ".oxlintrc.jsonc"
+      - ".oxfmtrc.jsonc"
+      - ".nvmrc"
       - ".github/workflows/tcg-vault-gate.yml"
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tcg-vault-gate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   gate:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v6
         with:
-          node-version: "24"
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Install dependencies
@@ -32,3 +54,15 @@ jobs:
 
       - name: E2E smoke (TCG Vault)
         run: npm run test:e2e -w tcg-vault
+
+      - name: Upload TCG Vault failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: tcg-vault-failure-artifacts
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            apps/tcg-vault/coverage/**
+            apps/tcg-vault/playwright-report/**
+            apps/tcg-vault/test-results/**

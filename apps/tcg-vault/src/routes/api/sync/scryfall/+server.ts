@@ -19,7 +19,7 @@ export const POST: RequestHandler = async ({ platform, url, request }) => {
 		return json({ ok: true, ...result });
 	} catch (err) {
 		const message = err instanceof Error ? err.message : 'Sync failed';
-		error(502, message);
+		return error(502, message);
 	}
 };
 
@@ -41,6 +41,6 @@ export const GET: RequestHandler = async ({ platform, request }) => {
 		});
 	} catch (err) {
 		const message = err instanceof Error ? err.message : 'Failed to list sets';
-		error(502, message);
+		return error(502, message);
 	}
 };

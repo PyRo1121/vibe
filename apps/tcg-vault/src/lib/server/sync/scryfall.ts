@@ -62,9 +62,9 @@ export async function importScryfallSet(db: Db, setCode: string): Promise<Scryfa
 		await db.batch(chunk);
 	};
 
-	const queue = (statement: D1PreparedStatement) => {
+	const queue = async (statement: D1PreparedStatement) => {
 		batch.push(statement);
-		if (batch.length >= BATCH_SIZE) return flush();
+		if (batch.length >= BATCH_SIZE) await flush();
 	};
 
 	while (url) {
