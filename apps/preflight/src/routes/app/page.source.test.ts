@@ -49,6 +49,9 @@ describe('/app workspace source', () => {
 		expect(pageSource).toContain('required status check');
 		expect(pageSource).toContain('workspaceGateHardeningSteps');
 		expect(pageSource).toContain('Billing status');
+		expect(pageSource).toContain('Checkout complete');
+		expect(pageSource).toContain('Checkout canceled');
+		expect(pageSource).toContain('checkoutNoticeCopy');
 		expect(pageSource).toContain('billingStatusLabel');
 		expect(pageSource).toContain('workspace.metrics.activeProjects');
 		expect(pageSource).toContain('workspace.metrics.gatesEnabled');

@@ -166,6 +166,25 @@ describe('/app server load', () => {
 		expect(pageData.advisoryWorkflow).toContain("DEPLOYLINT_MIN_SCORE: '92'");
 	});
 
+	it('normalizes checkout return status query params for dashboard notices', async () => {
+		const success = (await loadApp({
+			locals: { session: null, user },
+			url: new URL('https://deploylint.com/app?checkout=success')
+		})) as Exclude<Awaited<ReturnType<typeof load>>, void>;
+		const cancel = (await loadApp({
+			locals: { session: null, user },
+			url: new URL('https://deploylint.com/app?checkout=cancel')
+		})) as Exclude<Awaited<ReturnType<typeof load>>, void>;
+		const ignored = (await loadApp({
+			locals: { session: null, user },
+			url: new URL('https://deploylint.com/app?checkout=unexpected')
+		})) as Exclude<Awaited<ReturnType<typeof load>>, void>;
+
+		expect(success.checkoutStatus).toBe('success');
+		expect(cancel.checkoutStatus).toBe('cancel');
+		expect(ignored.checkoutStatus).toBeNull();
+	});
+
 	it('hydrates real D1 workspace report history for authenticated users', async () => {
 		const db = new FakeD1();
 		db.firstRows = [

@@ -62,6 +62,7 @@
 		`${activation.progress.completed}/${activation.progress.total} complete`
 	);
 	const hasAdvisoryWorkflow = $derived(data.advisoryWorkflow.trim().length > 0);
+	const checkoutNotice = $derived(checkoutNoticeCopy(data.checkoutStatus));
 	const title = buildSeoTitle('Project workspace');
 	const description =
 		'Deploylint project workspace for GitHub Actions advisory reports, deploy gates, report history, and subscription state.';
@@ -104,6 +105,24 @@
 		if (mode === 'alpha') return 'Included during alpha';
 		if (mode === 'paid') return 'Billing active';
 		return 'Billing setup pending';
+	}
+
+	function checkoutNoticeCopy(status: PageData['checkoutStatus']) {
+		if (status === 'success') {
+			return {
+				title: 'Checkout complete',
+				body: 'Billing will switch to active as soon as the signed Stripe webhook updates this workspace.',
+				className: 'border-emerald-500/30 bg-emerald-950/20 text-emerald-100'
+			};
+		}
+		if (status === 'cancel') {
+			return {
+				title: 'Checkout canceled',
+				body: 'No plan change was made. Workspace billing can be started again from the billing status panel.',
+				className: 'border-amber-500/30 bg-amber-950/20 text-amber-100'
+			};
+		}
+		return null;
 	}
 
 	function gateModeLabel(): string {
@@ -197,6 +216,13 @@
 				Signed in as <span class="text-zinc-300">{data.user.email}</span>
 			</p>
 		</div>
+
+		{#if checkoutNotice}
+			<div class={`mb-5 rounded-lg border p-4 ${checkoutNotice.className}`}>
+				<p class="text-sm font-semibold">{checkoutNotice.title}</p>
+				<p class="mt-1 text-sm opacity-80">{checkoutNotice.body}</p>
+			</div>
+		{/if}
 
 		<div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
 			<div class="rounded-xl border border-sky-500/30 bg-sky-950/20 p-5">

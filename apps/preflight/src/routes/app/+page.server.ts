@@ -11,6 +11,13 @@ import { fail, redirect } from '@sveltejs/kit';
 
 import type { Actions, PageServerLoad } from './$types';
 
+type CheckoutReturnStatus = 'cancel' | 'success';
+
+function checkoutReturnStatus(value: string | null): CheckoutReturnStatus | null {
+	if (value === 'success' || value === 'cancel') return value;
+	return null;
+}
+
 export const load: PageServerLoad = async ({ locals, platform, url }) => {
 	if (!locals.user) {
 		redirect(303, buildLoginRedirect(url));
@@ -41,6 +48,7 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
 		},
 		workspace,
 		activation,
+		checkoutStatus: checkoutReturnStatus(url.searchParams.get('checkout')),
 		projectDraftApplied,
 		gatePolicy: project ? buildWorkspaceGatePolicy(project) : null,
 		advisoryWorkflow: project
