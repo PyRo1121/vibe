@@ -170,8 +170,8 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 					Generate the workspace-backed project gate first
 				</h2>
 				<p class="mt-3 text-sm leading-6 text-zinc-400">
-					The temporary advisory workflow below is only an escape hatch before workspace setup. A
-					workspace-backed project gate is the product path: it adds <code
+					The advisory bootstrap workflow below is a non-blocking CI evidence path before workspace
+					setup. A workspace-backed project gate is the product path: it adds <code
 						class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">DEPLOYLINT_PROJECT_ID</code
 					>, a project write secret, report history, billing context, and gate status inside your
 					Deploylint workspace.
@@ -200,21 +200,21 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 				GitHub secret so reports write back to project history instead of becoming one-off CI output.
 			</p>
 			<p class="mt-3 text-zinc-500">
-				Do not copy sample project IDs from documentation. Open the workspace and copy the
-				project-bound workflow from there.
+				Do not copy documentation placeholder IDs. Open the workspace and copy the project-bound
+				workflow from there.
 			</p>
 		</div>
 	</section>
 
 	<section class="mb-10 rounded-2xl border border-sky-900/50 bg-sky-950/20 p-6">
 		<h2 class="mb-2 text-xl font-semibold text-white">
-			Temporary advisory run before workspace setup
+			Advisory bootstrap workflow before workspace setup
 		</h2>
 		<p class="mb-4 text-sm leading-6 text-zinc-400">
 			Set a GitHub secret named
 			<code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">DEPLOYLINT_URL</code>
-			to your staging or production URL. Use this only when you need deploy evidence before a workspace
-			exists; it writes an Actions job summary and always exits successfully.
+			to your staging or production URL. Use this for non-blocking CI evidence before a workspace exists;
+			it writes an Actions job summary and always exits successfully.
 		</p>
 		<pre
 			class="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-xs leading-relaxed text-zinc-300"><code

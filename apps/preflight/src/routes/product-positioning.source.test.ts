@@ -56,17 +56,20 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(developersPage).toContain('workspace-backed project gate');
 		expect(developersPage).toContain('Recommended path');
 		expect(developersPage).toContain(
-			'Use this only when you need deploy evidence before a workspace'
+			'Use this for non-blocking CI evidence before a workspace exists'
 		);
 		expect(developersPage).toContain("resolve('/app#install')");
 		expect(developersPage).toContain('DEPLOYLINT_PROJECT_ID');
-		expect(developersPage).toContain('Do not copy sample project IDs from documentation');
+		expect(developersPage).toContain('Do not copy documentation placeholder IDs');
 		expect(developersPage).toContain('Agent workflows can call');
 		expect(developersPage).toContain(
 			'Use <code class="text-sky-300">deploylint_gate</code> for CI installs'
 		);
 		expect(developersPage).toContain('Open workspace setup');
 		expect(developersPage).not.toContain('proj_demo_123');
+		expect(developersPage).not.toContain('temporary advisory workflow');
+		expect(developersPage).not.toContain('Temporary advisory run before workspace setup');
+		expect(developersPage).not.toContain('sample project IDs');
 		expect(developersPage).not.toContain('Build readiness evidence');
 	});
 

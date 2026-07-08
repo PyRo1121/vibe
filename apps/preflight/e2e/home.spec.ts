@@ -21,7 +21,7 @@ test.describe('home', () => {
 			'#project-setup'
 		);
 		await expect(page.getByRole('link', { name: /Check workflow YAML/i }).first()).toBeVisible();
-		await expect(page.getByText('Advisory PR report preview')).toBeVisible();
+		await expect(page.getByText('Advisory PR report', { exact: true })).toBeVisible();
 		await expect(page.getByText('Workspace loop')).toBeVisible();
 		await expect(page.getByText('What the workspace keeps enforcing')).toBeVisible();
 		await expect(page.getByText('Monitored projects')).toBeVisible();

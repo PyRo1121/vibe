@@ -43,13 +43,11 @@
 
 <section
 	class="rounded-xl border border-sky-500/30 bg-sky-950/10 p-5"
-	aria-label="Example workspace PR report"
+	aria-label="Workspace PR report"
 >
 	<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 		<div>
-			<p class="text-xs font-semibold tracking-widest text-sky-300 uppercase">
-				Advisory PR report preview
-			</p>
+			<p class="text-xs font-semibold tracking-widest text-sky-300 uppercase">Advisory PR report</p>
 			<h2 class="mt-2 text-xl font-semibold text-white">Deploy risk before merge</h2>
 			<p class="mt-2 text-sm leading-6 text-zinc-400">
 				The first run is advisory: it tells the builder what would block deploy without failing the

@@ -9,16 +9,18 @@ test.describe('developers', () => {
 		await expect(page.getByText('DEPLOYLINT_URL').first()).toBeVisible();
 		await expect(
 			page.getByRole('heading', {
-				name: /Temporary advisory run before workspace setup/i
+				name: /Advisory bootstrap workflow before workspace setup/i
 			})
 		).toBeVisible();
 		await expect(page.getByRole('link', { name: /Generate workspace workflow/i })).toHaveAttribute(
 			'href',
 			'./app#install'
 		);
-		await expect(page.getByText('Do not copy sample project IDs from documentation')).toBeVisible();
+		await expect(page.getByText('Do not copy documentation placeholder IDs')).toBeVisible();
 		await expect(page.getByText('proj_demo_123')).toHaveCount(0);
-		await expect(page.getByText('Advisory PR report preview')).toBeVisible();
+		await expect(page.getByText('Advisory PR report')).toBeVisible();
+		await expect(page.getByText('temporary advisory workflow')).toHaveCount(0);
+		await expect(page.getByText('sample project IDs')).toHaveCount(0);
 		await expect(page.getByRole('heading', { name: 'Switch to blocking mode' })).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Composite GitHub Action' })).toBeVisible();
 		await expect(page.getByRole('link', { name: 'Open workspace setup' })).toBeVisible();
