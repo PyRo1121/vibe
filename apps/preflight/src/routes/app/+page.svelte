@@ -8,7 +8,6 @@
 		type ActivationStepStatus,
 		type ProjectInstallState,
 		type ProjectReportHistoryEntry,
-		type ProjectReportSummary,
 		type WorkspaceBillingState
 	} from '$lib/product/workspace';
 	import { buildPageJsonLd, buildSeoTitle, defaultSeoImage } from '$lib/site/seo-metadata';
@@ -30,15 +29,7 @@
 	const storageUnavailable = $derived(workspace.storageStatus === 'unavailable');
 	const activation = $derived(data.activation);
 	const gatePolicy = $derived(data.gatePolicy);
-	const pendingReport: ProjectReportSummary = {
-		id: 'report_pending',
-		score: 86,
-		verdict: 'conditional',
-		scannedAt: 'After first CI run',
-		fixedCount: 5,
-		regressedCount: 1
-	};
-	const latestReport = $derived(project?.latestReport ?? pendingReport);
+	const latestReport = $derived(project?.latestReport ?? null);
 	const reportHistory = $derived(project?.reportHistory ?? []);
 	const latestHistoryEntry = $derived(reportHistory[0] ?? null);
 	const previousHistoryEntry = $derived(reportHistory[1] ?? null);
@@ -94,6 +85,34 @@
 			label: 'Ready to gate',
 			value: String(workspaceCommandStats.projectsReadyForGate),
 			detail: 'Advisory projects clean enough'
+		}
+	]);
+	const reportSummaryStats = $derived([
+		{
+			id: 'score',
+			label: 'Score',
+			value: latestReport ? String(latestReport.score) : '--',
+			valueClass: 'text-2xl text-white'
+		},
+		{
+			id: 'verdict',
+			label: 'Verdict',
+			value: latestReport?.verdict ?? 'Pending',
+			valueClass: latestReport
+				? 'mt-2 text-sm text-amber-200 uppercase'
+				: 'mt-2 text-sm text-zinc-400'
+		},
+		{
+			id: 'fixed',
+			label: 'Fixed',
+			value: latestReport ? String(latestReport.fixedCount) : '--',
+			valueClass: 'text-2xl text-emerald-300'
+		},
+		{
+			id: 'regressed',
+			label: 'Regressed',
+			value: latestReport ? String(latestReport.regressedCount) : '--',
+			valueClass: 'text-2xl text-rose-300'
 		}
 	]);
 	const title = buildSeoTitle('Project workspace');
@@ -366,7 +385,7 @@
 							Last score
 						</p>
 						<p class="mt-1 text-lg font-semibold text-white">
-							{awaitingFirstReport ? '--' : latestReport.score}
+							{latestReport ? latestReport.score : '--'}
 						</p>
 					</div>
 					<div class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
@@ -669,27 +688,19 @@
 				<span
 					class="w-fit rounded-full border border-sky-500/40 bg-sky-950/30 px-3 py-1 text-xs font-semibold text-sky-200"
 				>
-					{awaitingFirstReport ? 'Awaiting first run' : formatReportDate(latestReport.scannedAt)}
+					{latestReport ? formatReportDate(latestReport.scannedAt) : 'Awaiting first run'}
 				</span>
 			</div>
 
 			<div class="mt-5 grid gap-3 sm:grid-cols-4">
-				<div class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
-					<p class="text-[10px] font-semibold tracking-widest text-zinc-500 uppercase">Score</p>
-					<p class="mt-1 text-2xl font-semibold text-white">{latestReport.score}</p>
-				</div>
-				<div class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
-					<p class="text-[10px] font-semibold tracking-widest text-zinc-500 uppercase">Verdict</p>
-					<p class="mt-2 text-sm font-semibold text-amber-200 uppercase">{latestReport.verdict}</p>
-				</div>
-				<div class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
-					<p class="text-[10px] font-semibold tracking-widest text-zinc-500 uppercase">Fixed</p>
-					<p class="mt-1 text-2xl font-semibold text-emerald-300">{latestReport.fixedCount}</p>
-				</div>
-				<div class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
-					<p class="text-[10px] font-semibold tracking-widest text-zinc-500 uppercase">Regressed</p>
-					<p class="mt-1 text-2xl font-semibold text-rose-300">{latestReport.regressedCount}</p>
-				</div>
+				{#each reportSummaryStats as stat (stat.id)}
+					<div class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+						<p class="text-[10px] font-semibold tracking-widest text-zinc-500 uppercase">
+							{stat.label}
+						</p>
+						<p class={['mt-1 font-semibold', stat.valueClass]}>{stat.value}</p>
+					</div>
+				{/each}
 			</div>
 
 			{#if awaitingFirstReport}

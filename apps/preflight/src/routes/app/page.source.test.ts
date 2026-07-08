@@ -96,4 +96,13 @@ describe('/app workspace source', () => {
 		expect(pageSource).not.toContain('Tighten checkout verification');
 		expect(pageSource).toContain('This workspace includes');
 	});
+
+	it('does not seed the empty report state with fake metrics', () => {
+		const pageSource = source(pagePath);
+
+		expect(pageSource).not.toContain('pendingReport');
+		expect(pageSource).not.toContain('score: 86');
+		expect(pageSource).not.toContain('fixedCount: 5');
+		expect(pageSource).not.toContain('regressedCount: 1');
+	});
 });
