@@ -1,5 +1,5 @@
 import { betterAuth } from 'better-auth';
-import type { BetterAuthOptions, Session, User } from 'better-auth';
+import type { BetterAuthOptions } from 'better-auth';
 
 import {
 	AUTH_ROUTE_PREFIX,
@@ -8,16 +8,6 @@ import {
 	resolveAuthSecret
 } from './auth-config';
 import { sendAuthEmail } from './auth-email';
-
-interface DeploylintAuth {
-	handler: (request: Request) => Response | Promise<Response>;
-	options: BetterAuthOptions;
-	api: {
-		getSession(input: { headers: Headers }): Promise<{ session: Session; user: User } | null>;
-	};
-}
-
-const authCache = new WeakMap<D1Database, DeploylintAuth>();
 
 export function authSchemaFieldMappings(): Pick<
 	BetterAuthOptions,
@@ -65,34 +55,14 @@ export function authSchemaFieldMappings(): Pick<
 	};
 }
 
-function configuredGitHubProvider(env: Partial<Env> | undefined) {
-	const clientId = env?.GITHUB_CLIENT_ID?.trim();
-	const clientSecret = env?.GITHUB_CLIENT_SECRET?.trim();
-	if (!clientId || !clientSecret) return {};
-
-	return {
-		github: {
-			clientId,
-			clientSecret
-		}
-	};
-}
-
-export function getDeploylintAuth(
-	env: Partial<Env> | undefined,
-	requestOrigin: string
-): DeploylintAuth | null {
-	if (!env?.AUTH_DB) return null;
-
-	const cached = authCache.get(env.AUTH_DB);
-	if (cached) return cached;
-
-	const baseURL = resolveAuthBaseUrl(env, requestOrigin).replace(/\/$/, '');
-	const secret = resolveAuthSecret(env, baseURL);
-	if (!secret) return null;
-
-	const features = resolveAuthFeatureFlags(env);
-	const auth = betterAuth({
+function createDeploylintAuth(
+	env: Partial<Env>,
+	baseURL: string,
+	requestOrigin: string,
+	secret: string,
+	features: ReturnType<typeof resolveAuthFeatureFlags>
+) {
+	return betterAuth({
 		appName: 'Deploylint',
 		baseURL,
 		basePath: AUTH_ROUTE_PREFIX,
@@ -125,7 +95,41 @@ export function getDeploylintAuth(
 			}
 		},
 		socialProviders: configuredGitHubProvider(env)
-	}) as unknown as DeploylintAuth;
+	});
+}
+
+type DeploylintAuth = ReturnType<typeof createDeploylintAuth>;
+
+const authCache = new WeakMap<D1Database, DeploylintAuth>();
+
+function configuredGitHubProvider(env: Partial<Env> | undefined) {
+	const clientId = env?.GITHUB_CLIENT_ID?.trim();
+	const clientSecret = env?.GITHUB_CLIENT_SECRET?.trim();
+	if (!clientId || !clientSecret) return {};
+
+	return {
+		github: {
+			clientId,
+			clientSecret
+		}
+	};
+}
+
+export function getDeploylintAuth(
+	env: Partial<Env> | undefined,
+	requestOrigin: string
+): DeploylintAuth | null {
+	if (!env?.AUTH_DB) return null;
+
+	const cached = authCache.get(env.AUTH_DB);
+	if (cached) return cached;
+
+	const baseURL = resolveAuthBaseUrl(env, requestOrigin).replace(/\/$/, '');
+	const secret = resolveAuthSecret(env, baseURL);
+	if (!secret) return null;
+
+	const features = resolveAuthFeatureFlags(env);
+	const auth = createDeploylintAuth(env, baseURL, requestOrigin, secret, features);
 
 	authCache.set(env.AUTH_DB, auth);
 	return auth;

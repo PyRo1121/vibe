@@ -1121,7 +1121,7 @@ export const CHECK_CATALOG = {
 } satisfies Record<string, CheckCatalogEntry>;
 
 export function getCheckCatalogEntry(id: string): CheckCatalogEntry | null {
-	return CHECK_CATALOG[id as keyof typeof CHECK_CATALOG] ?? null;
+	return Object.values(CHECK_CATALOG).find((entry) => entry.id === id) ?? null;
 }
 
 export function catalogEntries(): CheckCatalogEntry[] {

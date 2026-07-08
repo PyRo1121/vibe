@@ -196,18 +196,22 @@ export function extractSourceMapUrl(jsText: string, scriptUrl: string): string |
 	}
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 /** Pull original source text from a JSON source map for secret scanning. */
 export function searchableSourceMapText(mapJson: string): string {
 	try {
-		const parsed = JSON.parse(mapJson) as {
-			sources?: string[];
-			sourcesContent?: (string | null)[];
-		};
+		const parsed: unknown = JSON.parse(mapJson);
+		if (!isRecord(parsed)) return '';
 		const parts: string[] = [];
-		for (const source of parsed.sourcesContent ?? []) {
-			if (source) parts.push(source);
+		const sourcesContent = Array.isArray(parsed.sourcesContent) ? parsed.sourcesContent : [];
+		for (const source of sourcesContent) {
+			if (typeof source === 'string' && source) parts.push(source);
 		}
-		if (parsed.sources?.length) parts.push(...parsed.sources);
+		const sources = Array.isArray(parsed.sources) ? parsed.sources : [];
+		parts.push(...sources.filter((source): source is string => typeof source === 'string'));
 		return parts.join('\n');
 	} catch {
 		return '';

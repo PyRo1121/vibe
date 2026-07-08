@@ -7,6 +7,10 @@ function isAbortNoise(err: unknown): boolean {
 	return err instanceof Error && /\baborted\b/i.test(err.message);
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 export async function handleEventsPost(request: Request) {
 	let body: unknown;
 	try {
@@ -16,17 +20,16 @@ export async function handleEventsPost(request: Request) {
 		throw err;
 	}
 
-	if (!body || typeof body !== 'object' || Array.isArray(body)) {
+	if (!isRecord(body)) {
 		throw new UrlValidationError('Invalid event body');
 	}
 
-	const raw = body as Record<string, unknown>;
-	const event = raw.event;
+	const event = body.event;
 	if (typeof event !== 'string' || !isFunnelEventName(event)) {
 		throw new UrlValidationError('Unknown event');
 	}
 
-	const payload = sanitizeFunnelPayload(raw);
+	const payload = sanitizeFunnelPayload(body);
 	logFunnelEvent(event, payload);
 	return json({ ok: true });
 }

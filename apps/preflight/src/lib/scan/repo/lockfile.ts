@@ -14,16 +14,34 @@ export interface LockPackage {
 /** Keeps the OSV batch payload and Worker memory bounded on giant monorepos. */
 export const MAX_LOCK_PACKAGES = 800;
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function readLockDependencyMap(
+	value: unknown
+): Record<string, { dependencies?: unknown; version?: string }> {
+	if (!isRecord(value)) return {};
+	return Object.fromEntries(
+		Object.entries(value)
+			.filter((entry): entry is [string, Record<string, unknown>] => isRecord(entry[1]))
+			.map(([name, info]) => [
+				name,
+				{
+					dependencies: info.dependencies,
+					version: typeof info.version === 'string' ? info.version : undefined
+				}
+			])
+	);
+}
+
 /**
  * Parse npm package-lock.json (v1 nested `dependencies`, or v2/v3 flat
  * `packages` keyed by node_modules path). Returns unique name@version pairs.
  */
 export function parsePackageLock(text: string | null): LockPackage[] {
 	if (!text) return [];
-	let parsed: {
-		packages?: Record<string, { version?: string }>;
-		dependencies?: Record<string, { version?: string; dependencies?: unknown }>;
-	};
+	let parsed: unknown;
 	try {
 		parsed = JSON.parse(text);
 	} catch {
@@ -37,8 +55,10 @@ export function parsePackageLock(text: string | null): LockPackage[] {
 		if (!seen.has(key)) seen.set(key, { name, version });
 	};
 
-	if (parsed.packages) {
-		for (const [path, info] of Object.entries(parsed.packages)) {
+	const root = isRecord(parsed) ? parsed : {};
+	const packages = readLockDependencyMap(root.packages);
+	if (Object.keys(packages).length > 0) {
+		for (const [path, info] of Object.entries(packages)) {
 			if (path === '') continue; // the root project itself
 			// "node_modules/foo" or "node_modules/@scope/foo" or nested "…/node_modules/bar"
 			const idx = path.lastIndexOf('node_modules/');
@@ -48,15 +68,13 @@ export function parsePackageLock(text: string | null): LockPackage[] {
 		return [...seen.values()];
 	}
 
-	const walk = (deps: Record<string, { version?: string; dependencies?: unknown }>) => {
+	const walk = (deps: ReturnType<typeof readLockDependencyMap>) => {
 		for (const [name, info] of Object.entries(deps)) {
 			add(name, info.version);
-			if (info.dependencies && typeof info.dependencies === 'object') {
-				walk(info.dependencies as Record<string, { version?: string; dependencies?: unknown }>);
-			}
+			walk(readLockDependencyMap(info.dependencies));
 		}
 	};
-	if (parsed.dependencies) walk(parsed.dependencies);
+	walk(readLockDependencyMap(root.dependencies));
 	return [...seen.values()];
 }
 

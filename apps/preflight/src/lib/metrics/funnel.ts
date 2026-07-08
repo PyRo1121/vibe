@@ -22,7 +22,7 @@ export interface FunnelPayload {
 	mode?: 'alpha' | 'paid';
 }
 
-const ALLOWED_EVENTS = new Set<FunnelEventName>([
+const ALLOWED_EVENTS = new Set<string>([
 	'scan_completed',
 	'rescan_completed',
 	'checkout_started',
@@ -36,7 +36,7 @@ const ALLOWED_EVENTS = new Set<FunnelEventName>([
 ]);
 
 export function isFunnelEventName(value: string): value is FunnelEventName {
-	return ALLOWED_EVENTS.has(value as FunnelEventName);
+	return ALLOWED_EVENTS.has(value);
 }
 
 export function sanitizeFunnelPayload(raw: Record<string, unknown>): FunnelPayload {

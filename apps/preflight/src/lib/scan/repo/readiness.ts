@@ -310,9 +310,9 @@ export function analyzePackageManager(
 	const pinnedManager = managerFromPackageJson(root);
 	const managers = lockfileManagers(files);
 	const mismatched =
-		Boolean(pinnedManager) &&
+		pinnedManager !== null &&
 		managers.length > 0 &&
-		(managers.length > 1 || !managers.includes(pinnedManager as string));
+		(managers.length > 1 || !managers.includes(pinnedManager));
 
 	return [
 		finding(

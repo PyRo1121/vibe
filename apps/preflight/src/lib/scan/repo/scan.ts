@@ -298,10 +298,10 @@ export async function scanRepo(
 		packageJsonPath == null
 			? null
 			: (packageJsonTexts[packageJsonPaths.indexOf(packageJsonPath)] ?? null);
-	const dependencies = Object.assign(
+	const dependencies: Record<string, string> = Object.assign(
 		{},
 		...parsedManifests.map((parsed) => parsed.dependencies)
-	) as Record<string, string>;
+	);
 	const hasPackageJson = parsedManifests.some((parsed) => parsed.valid);
 	const lockPackages = uniqueLockPackages(lockfileTexts.flatMap((text) => parsePackageLock(text)));
 	const [depAudit, vulnAudit] = await Promise.all([

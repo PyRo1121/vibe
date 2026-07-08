@@ -42,6 +42,16 @@ function buildPrompt(input: CopyReviewInput): string {
 		.join('\n');
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function readModelResponse(result: unknown): string | null {
+	if (typeof result === 'string') return result;
+	if (isRecord(result) && typeof result.response === 'string') return result.response;
+	return null;
+}
+
 /** Pure and unit-testable: extracts a CopyReview from raw model output. */
 export function parseCopyReview(raw: string): CopyReview | null {
 	const start = raw.indexOf('{');
@@ -54,17 +64,16 @@ export function parseCopyReview(raw: string): CopyReview | null {
 	} catch {
 		return null;
 	}
-	if (typeof parsed !== 'object' || parsed === null) return null;
+	if (!isRecord(parsed)) return null;
 
-	const obj = parsed as Record<string, unknown>;
-	const bullets = Array.isArray(obj.bullets)
-		? obj.bullets
+	const bullets = Array.isArray(parsed.bullets)
+		? parsed.bullets
 				.filter((b): b is string => typeof b === 'string' && b.trim().length > 0)
 				.map((b) => b.trim().slice(0, 300))
 				.slice(0, MAX_BULLETS)
 		: [];
-	const headline = typeof obj.headline === 'string' ? obj.headline.trim().slice(0, 120) : '';
-	const subhead = typeof obj.subhead === 'string' ? obj.subhead.trim().slice(0, 250) : '';
+	const headline = typeof parsed.headline === 'string' ? parsed.headline.trim().slice(0, 120) : '';
+	const subhead = typeof parsed.subhead === 'string' ? parsed.subhead.trim().slice(0, 250) : '';
 
 	if (bullets.length === 0 || !headline) return null;
 	return { bullets, headline, subhead };
@@ -85,12 +94,7 @@ export async function buildCopyReview(
 			)
 		]);
 
-		const text =
-			typeof result === 'string'
-				? result
-				: typeof (result as { response?: unknown })?.response === 'string'
-					? (result as { response: string }).response
-					: null;
+		const text = readModelResponse(result);
 		return text ? parseCopyReview(text) : null;
 	} catch {
 		return null;

@@ -77,10 +77,58 @@ export interface ParsedPackageJson {
 	};
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function readStringRecord(value: unknown): Record<string, string> {
+	if (!isRecord(value)) return {};
+	return Object.fromEntries(
+		Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === 'string')
+	);
+}
+
+function readPackageJsonRaw(value: unknown): ParsedPackageJson['raw'] | undefined {
+	if (!isRecord(value)) return undefined;
+	const devEngines = isRecord(value.devEngines) ? value.devEngines : undefined;
+	const packageManager = isRecord(devEngines?.packageManager)
+		? {
+				name:
+					typeof devEngines.packageManager.name === 'string'
+						? devEngines.packageManager.name
+						: undefined,
+				version:
+					typeof devEngines.packageManager.version === 'string'
+						? devEngines.packageManager.version
+						: undefined,
+				onFail:
+					typeof devEngines.packageManager.onFail === 'string'
+						? devEngines.packageManager.onFail
+						: undefined
+			}
+		: typeof devEngines?.packageManager === 'string'
+			? devEngines.packageManager
+			: undefined;
+
+	return {
+		scripts: readStringRecord(value.scripts),
+		dependencies: readStringRecord(value.dependencies),
+		devDependencies: readStringRecord(value.devDependencies),
+		optionalDependencies: readStringRecord(value.optionalDependencies),
+		peerDependencies: readStringRecord(value.peerDependencies),
+		engines: isRecord(value.engines)
+			? { node: typeof value.engines.node === 'string' ? value.engines.node : undefined }
+			: undefined,
+		packageManager: typeof value.packageManager === 'string' ? value.packageManager : undefined,
+		devEngines: packageManager === undefined ? undefined : { packageManager }
+	};
+}
+
 export function parsePackageJson(text: string | null): ParsedPackageJson {
 	if (!text) return { dependencies: {}, valid: false };
 	try {
-		const parsed = JSON.parse(text) as ParsedPackageJson['raw'];
+		const parsed = readPackageJsonRaw(JSON.parse(text));
+		if (!parsed) return { dependencies: {}, valid: false };
 		return {
 			dependencies: Object.assign(
 				{},
@@ -133,9 +181,13 @@ export function npmRegistryLicenseFetcher(): NpmLicenseFetcher {
 				signal: AbortSignal.timeout(8000)
 			});
 			if (!res.ok) return null;
-			const body = (await res.json()) as { license?: string | { type?: string } };
+			const body: unknown = await res.json();
+			if (!isRecord(body)) return null;
 			if (typeof body.license === 'string') return body.license;
-			return body.license?.type ?? null;
+			if (isRecord(body.license) && typeof body.license.type === 'string') {
+				return body.license.type;
+			}
+			return null;
 		} catch {
 			return null;
 		}

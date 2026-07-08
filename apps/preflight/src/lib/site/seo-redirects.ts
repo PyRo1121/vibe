@@ -5,5 +5,12 @@ export const SEO_LEGACY_REDIRECTS = {
 } as const;
 
 export function getSeoLegacyRedirect(slug: string): string | null {
-	return SEO_LEGACY_REDIRECTS[slug as keyof typeof SEO_LEGACY_REDIRECTS] ?? null;
+	switch (slug) {
+		case 'launch-readiness-checker':
+		case 'ai-app-launch-checker':
+		case 'vibe-code-launch-checklist':
+			return SEO_LEGACY_REDIRECTS[slug];
+		default:
+			return null;
+	}
 }

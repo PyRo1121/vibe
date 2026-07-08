@@ -33,19 +33,21 @@ interface BatchResponse {
 	results?: Array<{ vulns?: Array<{ id?: string }> } | null>;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 function readBatchResults(body: unknown): NonNullable<BatchResponse['results']> {
-	if (!body || typeof body !== 'object' || Array.isArray(body)) return [];
-	const results = (body as { results?: unknown }).results;
+	if (!isRecord(body)) return [];
+	const results = body.results;
 	if (!Array.isArray(results)) return [];
 	return results.map((result) => {
-		if (!result || typeof result !== 'object' || Array.isArray(result)) return null;
-		const vulns = (result as { vulns?: unknown }).vulns;
+		if (!isRecord(result)) return null;
+		const vulns = result.vulns;
 		if (!Array.isArray(vulns)) return {};
 		return {
 			vulns: vulns
-				.filter((vuln): vuln is Record<string, unknown> => {
-					return !!vuln && typeof vuln === 'object' && !Array.isArray(vuln);
-				})
+				.filter(isRecord)
 				.map((vuln) => ({ id: typeof vuln.id === 'string' ? vuln.id : undefined }))
 		};
 	});
@@ -107,27 +109,43 @@ function severityFromCvss3(vector: string): OsvSeverity | null {
 	const c = cvssImpactMetric(metrics.C);
 	const i = cvssImpactMetric(metrics.I);
 	const a = cvssImpactMetric(metrics.A);
-	if ([av, ac, pr, ui, c, i, a].some((v) => v == null)) return null;
-	const [avScore, acScore, prScore, uiScore, cScore, iScore, aScore] = [
-		av,
-		ac,
-		pr,
-		ui,
-		c,
-		i,
-		a
-	] as number[];
+	if (
+		av === undefined ||
+		ac === undefined ||
+		pr === undefined ||
+		ui === undefined ||
+		c === undefined ||
+		i === undefined ||
+		a === undefined
+	) {
+		return null;
+	}
 
-	const impact = 1 - (1 - cScore) * (1 - iScore) * (1 - aScore);
+	const impact = 1 - (1 - c) * (1 - i) * (1 - a);
 	if (impact <= 0) return null;
 	const impactScore = scopeChanged
 		? 7.52 * (impact - 0.029) - 3.25 * Math.pow(impact - 0.02, 15)
 		: 6.42 * impact;
-	const exploitability = 8.22 * avScore * acScore * prScore * uiScore;
+	const exploitability = 8.22 * av * ac * pr * ui;
 	const base = scopeChanged
 		? Math.min(1.08 * (impactScore + exploitability), 10)
 		: Math.min(impactScore + exploitability, 10);
 	return severityFromScore(Math.ceil(base * 10) / 10);
+}
+
+function readDetailSeverities(body: unknown): OsvSeverity[] {
+	if (!isRecord(body)) return [];
+	const databaseSpecific = isRecord(body.database_specific) ? body.database_specific : null;
+	const osvSeverities = Array.isArray(body.severity) ? body.severity.filter(isRecord) : [];
+
+	return [
+		normalizeSeverity(
+			typeof databaseSpecific?.severity === 'string' ? databaseSpecific.severity : undefined
+		),
+		...osvSeverities.map((severity) =>
+			normalizeSeverity(typeof severity.score === 'string' ? severity.score : undefined)
+		)
+	].filter((severity): severity is OsvSeverity => Boolean(severity));
 }
 
 /** Returns null when OSV is unreachable — the check is skipped, never faked. */
@@ -159,15 +177,7 @@ export async function auditVulnerabilities(
 					signal: AbortSignal.timeout(TIMEOUT_MS)
 				});
 				if (!detail.ok) continue;
-				const body = (await detail.json()) as {
-					database_specific?: { severity?: string };
-					severity?: Array<{ type?: string; score?: string }>;
-				};
-				const severities = [
-					normalizeSeverity(body.database_specific?.severity),
-					...(body.severity ?? []).map((s) => normalizeSeverity(s.score))
-				].filter((s): s is OsvSeverity => Boolean(s));
-				for (const severity of severities) {
+				for (const severity of readDetailSeverities(await detail.json())) {
 					if (!worst || SEVERITY_RANK[severity] > SEVERITY_RANK[worst]) {
 						worst = severity;
 					}

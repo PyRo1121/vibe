@@ -43,6 +43,18 @@ interface BuildScanDepsOptions {
 	maxScriptBytes?: number;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function readDnsAnswers(body: unknown): Array<{ type: number; data: string }> {
+	if (!isRecord(body) || !Array.isArray(body.Answer)) return [];
+	return body.Answer.filter(isRecord).flatMap((answer) => {
+		if (typeof answer.type !== 'number' || typeof answer.data !== 'string') return [];
+		return [{ type: answer.type, data: answer.data }];
+	});
+}
+
 /** Hostname of PUBLIC_APP_URL — used to route same-zone fetches through the SELF binding. */
 export function appHostname(appUrl: string | undefined): string | null {
 	if (!appUrl?.trim()) return null;
@@ -315,9 +327,9 @@ async function resolvePublicAddresses(name: string): Promise<string[]> {
 			{ headers: { Accept: 'application/dns-json' }, signal: AbortSignal.timeout(6000) }
 		);
 		if (!res.ok) return [];
-		const body = (await res.json()) as { Answer?: Array<{ type: number; data: string }> };
+		const body: unknown = await res.json();
 		const expectedType = type === 'A' ? 1 : 28;
-		return (body.Answer ?? [])
+		return readDnsAnswers(body)
 			.filter((answer) => answer.type === expectedType)
 			.map((answer) => answer.data);
 	};
@@ -338,8 +350,8 @@ async function resolveTxt(name: string): Promise<string[]> {
 			{ headers: { Accept: 'application/dns-json' }, signal: AbortSignal.timeout(6000) }
 		);
 		if (!res.ok) return [];
-		const body = (await res.json()) as { Answer?: Array<{ type: number; data: string }> };
-		return (body.Answer ?? [])
+		const body: unknown = await res.json();
+		return readDnsAnswers(body)
 			.filter((a) => a.type === 16)
 			.map((a) => a.data.replaceAll(/^"|"$/g, '').replaceAll(/"\s*"/g, ''));
 	} catch {

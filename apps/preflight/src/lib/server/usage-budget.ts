@@ -32,6 +32,10 @@ function hourBucket(now = Date.now()): string {
 	return `${y}-${m}-${day}T${h}`;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 async function reserveDurableBudget(
 	limiter: DurableObjectNamespace | undefined,
 	namespace: string,
@@ -49,8 +53,8 @@ async function reserveDurableBudget(
 		})
 	);
 	if (!res.ok) throw new Error(`Limiter failed (${res.status})`);
-	const body = (await res.json()) as { allowed?: boolean };
-	return body.allowed === true;
+	const body: unknown = await res.json();
+	return isRecord(body) && body.allowed === true;
 }
 
 /**

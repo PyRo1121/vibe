@@ -55,6 +55,17 @@ export interface TestSuiteDepthAudit {
 	sampledPaths: string[];
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function readStringRecord(value: unknown): Record<string, string> {
+	if (!isRecord(value)) return {};
+	return Object.fromEntries(
+		Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === 'string')
+	);
+}
+
 function isIgnoredPath(path: string): boolean {
 	return /(^|\/)(node_modules|dist|build|out|vendor|\.next|\.svelte-kit|coverage)\//.test(path);
 }
@@ -78,8 +89,8 @@ function testPathScore(path: string): number {
 function parseScripts(packageJsonText: string | null): Record<string, string> {
 	if (!packageJsonText) return {};
 	try {
-		const parsed = JSON.parse(packageJsonText) as { scripts?: Record<string, string> };
-		return parsed.scripts ?? {};
+		const parsed: unknown = JSON.parse(packageJsonText);
+		return isRecord(parsed) ? readStringRecord(parsed.scripts) : {};
 	} catch {
 		return {};
 	}
@@ -253,8 +264,9 @@ export function nodeVersionPinned(
 	if (hasNvmrc) return true;
 	if (!packageJsonText) return false;
 	try {
-		const parsed = JSON.parse(packageJsonText) as { engines?: { node?: string } };
-		const node = parsed.engines?.node?.trim();
+		const parsed: unknown = JSON.parse(packageJsonText);
+		const engines = isRecord(parsed) && isRecord(parsed.engines) ? parsed.engines : null;
+		const node = typeof engines?.node === 'string' ? engines.node.trim() : '';
 		return Boolean(node);
 	} catch {
 		return false;
@@ -267,8 +279,10 @@ export function parseTsconfigStrict(text: string | null): {
 } {
 	if (!text) return { valid: false, strict: null };
 	try {
-		const parsed = JSON.parse(text) as { compilerOptions?: { strict?: boolean } };
-		const strict = parsed.compilerOptions?.strict;
+		const parsed: unknown = JSON.parse(text);
+		const compilerOptions =
+			isRecord(parsed) && isRecord(parsed.compilerOptions) ? parsed.compilerOptions : null;
+		const strict = compilerOptions?.strict;
 		return { valid: true, strict: strict === true };
 	} catch {
 		return { valid: false, strict: null };

@@ -13,8 +13,11 @@ export const ENTERPRISE_COVERAGE_MINIMUMS = {
 	branches: 90
 } as const;
 
-type CoverageThresholds = Record<keyof typeof ENTERPRISE_COVERAGE_MINIMUMS, number>;
+type CoverageMetric = keyof typeof ENTERPRISE_COVERAGE_MINIMUMS;
+type CoverageThresholds = Record<CoverageMetric, number>;
 type ScopedCoverageThresholds = Record<string, CoverageThresholds>;
+
+const COVERAGE_METRICS: CoverageMetric[] = ['statements', 'lines', 'functions', 'branches'];
 
 const DISABLED_TEST_MODIFIERS = new Set(['only', 'skip', 'fixme']);
 
@@ -92,6 +95,96 @@ function readJson(path: string): unknown {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isCoverageMetric(value: string): value is CoverageMetric {
+	return COVERAGE_METRICS.some((metric) => metric === value);
+}
+
+function readJsonRecord(path: string): Record<string, unknown> {
+	const value = readJson(path);
+	return isRecord(value) ? value : {};
+}
+
+function readStringRecord(value: unknown): Record<string, string> {
+	if (!isRecord(value)) return {};
+	return Object.fromEntries(
+		Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === 'string')
+	);
+}
+
+function readPrimitiveRecord(value: unknown): Record<string, string | number | boolean> {
+	if (!isRecord(value)) return {};
+	return Object.fromEntries(
+		Object.entries(value).filter(
+			(entry): entry is [string, string | number | boolean] =>
+				typeof entry[1] === 'string' ||
+				typeof entry[1] === 'number' ||
+				typeof entry[1] === 'boolean'
+		)
+	);
+}
+
+function readStringArray(value: unknown): string[] {
+	return Array.isArray(value)
+		? value.filter((item): item is string => typeof item === 'string')
+		: [];
+}
+
+function readPackageConfig(path: string): {
+	devDependencies: Record<string, string>;
+	engines?: { node?: string };
+	packageManager?: string;
+	scripts: Record<string, string>;
+} {
+	const json = readJsonRecord(path);
+	const engines = isRecord(json.engines) ? json.engines : null;
+	return {
+		devDependencies: readStringRecord(json.devDependencies),
+		engines: engines && typeof engines.node === 'string' ? { node: engines.node } : undefined,
+		packageManager: typeof json.packageManager === 'string' ? json.packageManager : undefined,
+		scripts: readStringRecord(json.scripts)
+	};
+}
+
+function readTsconfig(path: string): { compilerOptions?: Record<string, unknown> } {
+	const json = readJsonRecord(path);
+	return {
+		compilerOptions: isRecord(json.compilerOptions) ? json.compilerOptions : undefined
+	};
+}
+
+function readOxlintConfig(path: string): {
+	categories: Record<string, string>;
+	options: Record<string, string | number | boolean>;
+	plugins: string[];
+	rules: Record<string, string>;
+} {
+	const json = readJsonRecord(path);
+	return {
+		categories: readStringRecord(json.categories),
+		options: readPrimitiveRecord(json.options),
+		plugins: readStringArray(json.plugins),
+		rules: readStringRecord(json.rules)
+	};
+}
+
+function readKnipConfig(path: string): {
+	sveltekit?: unknown;
+	workspaces: Record<string, unknown>;
+} {
+	const json = readJsonRecord(path);
+	return {
+		sveltekit: json.sveltekit,
+		workspaces: isRecord(json.workspaces) ? json.workspaces : {}
+	};
+}
+
+function coverageThresholdsMeet(
+	actual: CoverageThresholds,
+	minimums: Record<CoverageMetric, number>
+): boolean {
+	return COVERAGE_METRICS.every((metric) => actual[metric] >= minimums[metric]);
 }
 
 function listSourceFiles(root: string): string[] {
@@ -224,8 +317,8 @@ function readCoverageThresholds(viteConfigPath: string): CoverageThresholds {
 	for (const prop of thresholds?.properties ?? []) {
 		if (!ts.isPropertyAssignment(prop) || !ts.isNumericLiteral(prop.initializer)) continue;
 		const name = propertyNameText(prop.name);
-		if (!name || !(name in ENTERPRISE_COVERAGE_MINIMUMS)) continue;
-		values[name as keyof CoverageThresholds] = Number(prop.initializer.text);
+		if (!name || !isCoverageMetric(name)) continue;
+		values[name] = Number(prop.initializer.text);
 	}
 
 	return {
@@ -262,8 +355,8 @@ function readScopedCoverageThresholds(viteConfigPath: string): ScopedCoverageThr
 				continue;
 			}
 			const thresholdName = propertyNameText(thresholdProp.name);
-			if (!thresholdName || !(thresholdName in ENTERPRISE_COVERAGE_MINIMUMS)) continue;
-			values[thresholdName as keyof CoverageThresholds] = Number(thresholdProp.initializer.text);
+			if (!thresholdName || !isCoverageMetric(thresholdName)) continue;
+			values[thresholdName] = Number(thresholdProp.initializer.text);
 		}
 
 		scoped[name] = {
@@ -313,9 +406,7 @@ function includesScopedThresholds(
 		const configured = actual[pattern];
 		return (
 			configured !== undefined &&
-			Object.entries(thresholds).every(
-				([metric, minimum]) => configured[metric as keyof CoverageThresholds] >= minimum
-			)
+			COVERAGE_METRICS.every((metric) => configured[metric] >= thresholds[metric])
 		);
 	});
 }
@@ -473,49 +564,17 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		};
 	}
 
-	const rootPackage = readJson(rootPackagePath) as {
-		scripts: Record<string, string>;
-		devDependencies: Record<string, string>;
-		engines?: {
-			node?: string;
-		};
-		packageManager?: string;
-	};
-	const rootLock = readJson(rootLockPath) as {
-		lockfileVersion?: number;
-	};
-	const preflightPackage = readJson(preflightPackagePath) as {
-		scripts: Record<string, string>;
-		devDependencies: Record<string, string>;
-	};
-	const preflightTsconfig = readJson(preflightTsconfigPath) as {
-		compilerOptions?: Record<string, unknown>;
-	};
-	const preflightMcpPackage = readJson(preflightMcpPackagePath) as {
-		scripts: Record<string, string>;
-		devDependencies: Record<string, string>;
-	};
-	const preflightMcpTsconfig = readJson(preflightMcpTsconfigPath) as {
-		compilerOptions?: Record<string, unknown>;
-	};
-	const deploylintSharedPackage = readJson(deploylintSharedPackagePath) as {
-		scripts: Record<string, string>;
-		devDependencies: Record<string, string>;
-	};
-	const deploylintSharedTsconfig = readJson(deploylintSharedTsconfigPath) as {
-		compilerOptions?: Record<string, unknown>;
-	};
-	const oxlint = readJson(oxlintPath) as {
-		categories: Record<string, string>;
-		options: Record<string, string | number | boolean>;
-		plugins: string[];
-		rules: Record<string, string>;
-	};
-	const oxfmt = readJson(oxfmtPath) as Record<string, unknown>;
-	const knip = readJson(knipPath) as {
-		sveltekit?: unknown;
-		workspaces: Record<string, unknown>;
-	};
+	const rootPackage = readPackageConfig(rootPackagePath);
+	const rootLock = readJsonRecord(rootLockPath);
+	const preflightPackage = readPackageConfig(preflightPackagePath);
+	const preflightTsconfig = readTsconfig(preflightTsconfigPath);
+	const preflightMcpPackage = readPackageConfig(preflightMcpPackagePath);
+	const preflightMcpTsconfig = readTsconfig(preflightMcpTsconfigPath);
+	const deploylintSharedPackage = readPackageConfig(deploylintSharedPackagePath);
+	const deploylintSharedTsconfig = readTsconfig(deploylintSharedTsconfigPath);
+	const oxlint = readOxlintConfig(oxlintPath);
+	const oxfmt = readJsonRecord(oxfmtPath);
+	const knip = readKnipConfig(knipPath);
 	const configuredCoverageThresholds = readCoverageThresholds(viteConfigPath);
 	const configuredScopedCoverageThresholds = readScopedCoverageThresholds(viteConfigPath);
 	const configuredMcpCoverageThresholds = readCoverageThresholds(mcpViteConfigPath);
@@ -571,9 +630,24 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			'check',
 			'lint',
 			'lint:type-aware',
+			'lint:type-aware:prod',
 			'test:coverage',
 			'build'
 		])
+	);
+	pushCheck(
+		checked,
+		failures,
+		'preflight production type-aware Oxlint rejects unsafe type assertions',
+		hasScriptCommand(preflightPackage.scripts, 'lint:type-aware:prod', [
+			'oxlint',
+			'--type-aware',
+			'--deny typescript/no-unsafe-type-assertion',
+			'--ignore-pattern "**/*.test.ts"',
+			'--ignore-pattern "**/*.spec.ts"',
+			'--ignore-pattern "e2e/**"',
+			'--ignore-pattern "scripts/**"'
+		]) && !hasRuleLevelOxlintAllowance(preflightPackage.scripts['lint:type-aware:prod'] ?? '')
 	);
 	pushCheck(
 		checked,
@@ -818,10 +892,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		checked,
 		failures,
 		'vitest coverage thresholds meet enterprise minimums',
-		Object.entries(ENTERPRISE_COVERAGE_MINIMUMS).every(
-			([metric, minimum]) =>
-				configuredCoverageThresholds[metric as keyof CoverageThresholds] >= minimum
-		)
+		coverageThresholdsMeet(configuredCoverageThresholds, ENTERPRISE_COVERAGE_MINIMUMS)
 	);
 	pushCheck(
 		checked,
@@ -866,19 +937,13 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		checked,
 		failures,
 		'preflight-mcp coverage thresholds meet enterprise minimums',
-		Object.entries(ENTERPRISE_COVERAGE_MINIMUMS).every(
-			([metric, minimum]) =>
-				configuredMcpCoverageThresholds[metric as keyof CoverageThresholds] >= minimum
-		)
+		coverageThresholdsMeet(configuredMcpCoverageThresholds, ENTERPRISE_COVERAGE_MINIMUMS)
 	);
 	pushCheck(
 		checked,
 		failures,
 		'deploylint-shared coverage thresholds meet enterprise minimums',
-		Object.entries(ENTERPRISE_COVERAGE_MINIMUMS).every(
-			([metric, minimum]) =>
-				configuredSharedCoverageThresholds[metric as keyof CoverageThresholds] >= minimum
-		)
+		coverageThresholdsMeet(configuredSharedCoverageThresholds, ENTERPRISE_COVERAGE_MINIMUMS)
 	);
 	pushCheck(
 		checked,

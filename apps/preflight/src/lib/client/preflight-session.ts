@@ -1,6 +1,6 @@
 import { buildMasterPrompt } from '$lib/scan/prompts';
 import { scoreChecks } from '$lib/scan/score';
-import type { ScanCheck, ScanReport } from '$lib/scan/types';
+import type { CheckStatus, ScanCheck, ScanReport } from '$lib/scan/types';
 import type { CheckPriority } from '$lib/scan/verdict';
 import { checkPriority, resolvePriority, sortChecksByPriority } from '$lib/scan/verdict';
 
@@ -13,7 +13,7 @@ export const STORAGE = {
 
 export type CheckSnapshot = {
 	id: string;
-	status: ScanCheck['status'];
+	status: CheckStatus;
 	priority?: CheckPriority;
 };
 
@@ -54,12 +54,42 @@ export function saveBaselineChecks(snapshots: CheckSnapshot[]): void {
 	sessionStorage.setItem(STORAGE.baselineChecks, JSON.stringify(snapshots));
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isCheckStatus(value: unknown): value is CheckStatus {
+	return value === 'pass' || value === 'warn' || value === 'fail';
+}
+
+function isCheckPriority(value: unknown): value is CheckPriority {
+	return value === 'p0' || value === 'p1' || value === 'p2';
+}
+
+function readCheckSnapshot(value: unknown): CheckSnapshot | null {
+	if (!isRecord(value) || typeof value.id !== 'string' || !isCheckStatus(value.status)) {
+		return null;
+	}
+
+	return {
+		id: value.id,
+		status: value.status,
+		...(isCheckPriority(value.priority) ? { priority: value.priority } : {})
+	};
+}
+
+function isPresent<T>(value: T | null): value is T {
+	return value !== null;
+}
+
 export function loadBaselineChecks(): CheckSnapshot[] | null {
 	if (typeof sessionStorage === 'undefined') return null;
 	const raw = sessionStorage.getItem(STORAGE.baselineChecks);
 	if (!raw) return null;
 	try {
-		return JSON.parse(raw) as CheckSnapshot[];
+		const parsed: unknown = JSON.parse(raw);
+		if (!Array.isArray(parsed)) return null;
+		return parsed.map(readCheckSnapshot).filter(isPresent);
 	} catch {
 		return null;
 	}

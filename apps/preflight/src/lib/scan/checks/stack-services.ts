@@ -6,19 +6,41 @@ import { makeCheck } from '$lib/scan/score';
 import type { ScanCheck } from '$lib/scan/types';
 
 type StackSignals = ReturnType<typeof mentionsStack>;
+type StackSignalKey = keyof StackSignals;
 
-const AUTH_PROVIDERS: Array<[keyof StackSignals, string]> = [
+const STACK_SIGNAL_KEYS: StackSignalKey[] = [
+	'stripe',
+	'paddle',
+	'lemonSqueezy',
+	'supabase',
+	'firebase',
+	'sentry',
+	'logRocket',
+	'posthog',
+	'plausible',
+	'ga4',
+	'gtm',
+	'clerk',
+	'auth0',
+	'workos',
+	'openai',
+	'anthropic',
+	'replicate',
+	'huggingFace'
+];
+
+const AUTH_PROVIDERS: Array<[StackSignalKey, string]> = [
 	['clerk', 'Clerk'],
 	['auth0', 'Auth0'],
 	['workos', 'WorkOS']
 ];
 
-const ERROR_MONITORING: Array<[keyof StackSignals, string]> = [
+const ERROR_MONITORING: Array<[StackSignalKey, string]> = [
 	['sentry', 'Sentry'],
 	['logRocket', 'LogRocket']
 ];
 
-const AI_PROVIDERS: Array<[keyof StackSignals, string]> = [
+const AI_PROVIDERS: Array<[StackSignalKey, string]> = [
 	['openai', 'OpenAI'],
 	['anthropic', 'Anthropic'],
 	['replicate', 'Replicate'],
@@ -153,11 +175,11 @@ export function pushStackChecks(
 }
 
 function mergeStackSignals(target: StackSignals, source: StackSignals): void {
-	for (const key of Object.keys(source) as Array<keyof StackSignals>) {
+	for (const key of STACK_SIGNAL_KEYS) {
 		target[key] ||= source[key];
 	}
 }
 
-function labelsFor(stack: StackSignals, providers: Array<[keyof StackSignals, string]>): string[] {
+function labelsFor(stack: StackSignals, providers: Array<[StackSignalKey, string]>): string[] {
 	return providers.filter(([key]) => stack[key]).map(([, label]) => label);
 }
