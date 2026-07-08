@@ -24,10 +24,17 @@ function repoSource(...segments: string[]) {
 describe('Deploylint CI workspace positioning', () => {
 	it('points shared reports toward workspace-backed advisory workflows', () => {
 		const reportPage = source('routes', 'r', '[id]', '+page.svelte');
+		const proofKit = source('lib', 'components', 'ProofKitPanel.svelte');
 		const reportSummary = source('lib', 'components', 'ReportSummary.svelte');
 
 		expect(reportPage).toContain('Create workspace from this brief');
 		expect(reportPage).toContain('Install advisory workflow');
+		expect(reportPage).toContain('ProofKitPanel');
+		expect(proofKit).toContain('Proof kit');
+		expect(proofKit).toContain('Artifacts for reviewers');
+		expect(proofKit).toContain('Stakeholder brief');
+		expect(proofKit).toContain('README badge');
+		expect(proofKit).toContain('Advisory workflow');
 		expect(reportPage).not.toContain('Scan your own site free');
 		expect(reportPage).not.toContain('Want fix prompts for these issues?');
 		expect(reportSummary).toContain('Gate readiness evidence');

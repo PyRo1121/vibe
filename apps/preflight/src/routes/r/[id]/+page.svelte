@@ -5,6 +5,7 @@
 	import DeepDivesSection from '$lib/components/DeepDivesSection.svelte';
 	import LaunchBriefPanel from '$lib/components/LaunchBriefPanel.svelte';
 	import PagesScannedStrip from '$lib/components/PagesScannedStrip.svelte';
+	import ProofKitPanel from '$lib/components/ProofKitPanel.svelte';
 	import ReportSummary from '$lib/components/ReportSummary.svelte';
 	import RepoSummaryPanel from '$lib/components/RepoSummaryPanel.svelte';
 	import ScanIncompleteBanner from '$lib/components/ScanIncompleteBanner.svelte';
@@ -18,7 +19,8 @@
 	let { data }: { data: PageData } = $props();
 
 	const report = $derived(data.report);
-	const permalink = $derived(`${data.appUrl.replace(/\/$/, '')}/r/${page.params.id}`);
+	const reportId = $derived(page.params.id ?? '');
+	const permalink = $derived(`${data.appUrl.replace(/\/$/, '')}/r/${reportId}`);
 	const briefView = $derived(page.url.searchParams.get('view') === 'brief');
 	const failing = $derived(report.checks.filter((c) => c.status === 'fail'));
 	const gateBlockers = $derived(failing.filter((c) => resolvePriority(c) === 'p0'));
@@ -144,7 +146,7 @@
 
 		<p class="mb-10 text-center text-sm text-zinc-500">
 			This is the summary view for stakeholders.
-			<a class="text-sky-400 hover:underline" href={resolve(`/r/${page.params.id}`)}
+			<a class="text-sky-400 hover:underline" href={resolve(`/r/${reportId}`)}
 				>See the full technical brief →</a
 			>
 		</p>
@@ -171,6 +173,7 @@
 				onRescan={() => {}}
 				{permalink}
 			/>
+			<ProofKitPanel {report} {permalink} {reportId} />
 		{/if}
 		<LaunchBriefPanel {report} />
 		<Checklist {report} {copiedId} onCopyPrompt={copyPrompt} />
