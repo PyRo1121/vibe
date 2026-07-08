@@ -57,7 +57,7 @@
 		'Verifying social preview image…',
 		'Scanning JS bundles for secrets & licenses…',
 		'Probing 404 handling & DNS records…',
-		'Scoring 90+ launch signals…'
+		'Scoring deploy-readiness evidence…'
 	];
 	let progressIdx = $state(0);
 
@@ -480,7 +480,7 @@ jobs:
 				disabled={loading || !url.trim()}
 				class="rounded-xl bg-sky-600 px-6 py-3 font-semibold text-white hover:bg-sky-500 disabled:bg-sky-900 disabled:text-sky-100"
 			>
-				{loading ? 'Building report...' : 'Add evidence'}
+				{loading ? 'Building report...' : 'Build readiness report'}
 			</button>
 		</div>
 		{#if loading}
@@ -611,7 +611,7 @@ jobs:
 			<div class="rounded-xl border border-zinc-800 p-5">
 				<p class="font-medium text-white">Fix evidence</p>
 				<p class="mt-1 text-sm text-zinc-400">
-					Cursor-ready fixes, then before/after proof when the deploy path is clean
+					Guided repair plans, then before/after proof when the deploy path is clean
 				</p>
 			</div>
 			<div class="rounded-xl border border-zinc-800 p-5">

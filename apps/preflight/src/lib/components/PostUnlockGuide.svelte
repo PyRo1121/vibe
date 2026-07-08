@@ -74,7 +74,7 @@
 					>1</span
 				>
 				<span
-					>Copy the <strong class="text-white">master repair prompt</strong> below into Cursor or Claude.</span
+					>Copy the <strong class="text-white">repair plan</strong> below into your editor or agent.</span
 				>
 			</li>
 			<li class="flex gap-3">

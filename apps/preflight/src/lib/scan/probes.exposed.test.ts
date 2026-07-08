@@ -1,6 +1,14 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-import { probeExposedPaths, probeHealthEndpoints } from './probes';
+import {
+	checkDkimDns,
+	checkEmailAuth,
+	checkHostConsistency,
+	checkLinks,
+	collectSitemapLocs,
+	probeExposedPaths,
+	probeHealthEndpoints
+} from './probes';
 
 type HeadOk = (url: string) => Promise<boolean>;
 type FetchText = (url: string) => Promise<string | null>;
@@ -91,5 +99,151 @@ describe('probeHealthEndpoints', () => {
 		const r = await probeHealthEndpoints(new URL('https://api.example.com/'), headOk);
 		expect(r.found).toBe(true);
 		expect(r.path).toBe('/api/health');
+	});
+});
+
+describe('checkLinks', () => {
+	it('dedupes same-origin sitemap directives and falls back to /security.txt', async () => {
+		const finalUrl = new URL('https://app.example.com/');
+		const headOk = vi.fn<HeadOk>(async (url) => {
+			if (url.endsWith('/missing')) return false;
+			return [
+				'/a',
+				'/robots.txt',
+				'/sitemap.xml',
+				'/sitemap-extra.xml',
+				'/about',
+				'/security.txt'
+			].some((path) => url.endsWith(path));
+		});
+		const fetchText = vi.fn<FetchText>(async (url) => {
+			if (url.endsWith('/robots.txt')) {
+				return [
+					'User-agent: *',
+					'Sitemap: https://app.example.com/sitemap-extra.xml',
+					'Sitemap: https://app.example.com/sitemap-extra.xml',
+					'Sitemap: https://other.example.com/sitemap.xml'
+				].join('\n');
+			}
+			if (url.endsWith('/sitemap.xml')) {
+				return '<urlset><url><loc>https://app.example.com/about</loc></url></urlset>';
+			}
+			if (url.endsWith('/sitemap-extra.xml')) {
+				return '<urlset><url><loc>https://app.example.com/about</loc></url><url><loc>https://app.example.com/docs</loc></url></urlset>';
+			}
+			if (url.endsWith('/llms.txt')) {
+				return '# Deploylint\nThis file explains how agents should inspect the app.';
+			}
+			if (url.endsWith('/security.txt')) return 'Contact: mailto:security@app.example.com';
+			return null;
+		});
+
+		const result = await checkLinks(
+			[
+				'https://app.example.com/a',
+				'https://app.example.com/missing',
+				'https://external.example.com/ignored'
+			],
+			finalUrl,
+			headOk,
+			fetchText
+		);
+
+		expect(result.checkedCount).toBe(2);
+		expect(result.brokenCount).toBe(1);
+		expect(result.robotsOk).toBe(true);
+		expect(result.llmsTxtOk).toBe(true);
+		expect(result.securityTxtOk).toBe(true);
+		expect(result.sitemapOk).toBe(true);
+		expect(result.sitemapLocs).toEqual([
+			'https://app.example.com/about',
+			'https://app.example.com/docs'
+		]);
+	});
+});
+
+describe('collectSitemapLocs', () => {
+	it('follows same-origin sitemap indexes and skips invalid child entries', async () => {
+		const finalUrl = new URL('https://app.example.com/');
+		const indexXml = [
+			'<sitemapindex>',
+			'<sitemap><loc>https://app.example.com/sitemap-pages.xml</loc></sitemap>',
+			'<sitemap><loc>https://other.example.com/sitemap.xml</loc></sitemap>',
+			'<sitemap><loc>not a url</loc></sitemap>',
+			'</sitemapindex>'
+		].join('');
+		const childXml = [
+			'<urlset>',
+			'<url><loc>https://app.example.com/about</loc></url>',
+			'<url><loc>https://other.example.com/ignored</loc></url>',
+			'<url><loc>https://app.example.com/pricing?a=1&amp;b=2</loc></url>',
+			'</urlset>'
+		].join('');
+
+		const locs = await collectSitemapLocs(indexXml, finalUrl, async (url) =>
+			url.endsWith('/sitemap-pages.xml') ? childXml : null
+		);
+
+		expect(locs).toEqual([
+			'https://app.example.com/about',
+			'https://app.example.com/pricing?a=1&b=2'
+		]);
+	});
+});
+
+describe('email DNS probes', () => {
+	it('falls back from deep subdomains to the apex for SPF and DMARC', async () => {
+		const result = await checkEmailAuth('app.staging.example.com', async (name) => {
+			if (name === 'example.com') return ['v=spf1 include:_spf.example.com ~all'];
+			if (name === '_dmarc.example.com') return ['v=DMARC1; p=none'];
+			return [];
+		});
+
+		expect(result).toEqual({ spf: true, dmarc: true, domain: 'example.com' });
+	});
+
+	it('returns null instead of failing the scan when TXT resolution throws', async () => {
+		await expect(
+			checkEmailAuth('app.example.com', async () => {
+				throw new Error('dns down');
+			})
+		).resolves.toBeNull();
+	});
+
+	it('finds DKIM selectors on the apex when a subdomain has no selector', async () => {
+		const result = await checkDkimDns('mail.example.com', async (name) =>
+			name === 'google._domainkey.example.com' ? ['k=rsa; p=MIIB'] : []
+		);
+
+		expect(result).toEqual({ dkim: true, selector: 'google', domain: 'example.com' });
+	});
+
+	it('returns a false DKIM result on the first candidate when no selector is found', async () => {
+		await expect(checkDkimDns('www.example.com', async () => [])).resolves.toEqual({
+			dkim: false,
+			selector: null,
+			domain: 'example.com'
+		});
+	});
+});
+
+describe('checkHostConsistency', () => {
+	it('skips deep subdomains that have no obvious apex/www sibling', async () => {
+		await expect(
+			checkHostConsistency(new URL('https://api.staging.example.com/'), async (url) => ({
+				html: '',
+				finalUrl: url,
+				status: 200,
+				headers: {
+					hsts: null,
+					csp: null,
+					xFrameOptions: null,
+					xContentTypeOptions: null,
+					referrerPolicy: null,
+					permissionsPolicy: null
+				},
+				redirectHops: 0
+			}))
+		).resolves.toBeNull();
 	});
 });

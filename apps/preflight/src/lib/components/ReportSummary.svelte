@@ -76,7 +76,7 @@
 	}
 
 	function blockerLabel(count: number): string {
-		return `${count} revenue blocker${count === 1 ? '' : 's'}`;
+		return `${count} payment blocker${count === 1 ? '' : 's'}`;
 	}
 </script>
 

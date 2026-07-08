@@ -109,6 +109,40 @@ describe('repo readiness analyzer', () => {
 		);
 	});
 
+	it('uses the first package manifest when a root manifest is unavailable', () => {
+		const findings = analyzePackageScripts([
+			{
+				path: 'apps/web/package.json',
+				json: {
+					scripts: {
+						lint: 'eslint .',
+						test: 'vitest run',
+						build: 'vite build',
+						check: 'tsc --noEmit'
+					}
+				}
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'package-scripts')).toMatchObject({
+			status: 'pass',
+			evidence: { path: 'apps/web/package.json' }
+		});
+		expect(findings.find((finding) => finding.id === 'typecheck-script')).toMatchObject({
+			status: 'pass'
+		});
+	});
+
+	it('warns when no package manifest evidence is available', () => {
+		const findings = analyzePackageScripts([]);
+
+		expect(findings.find((finding) => finding.id === 'package-scripts')).toMatchObject({
+			status: 'warn',
+			message: 'Root package.json is missing lint, test, build scripts.'
+		});
+		expect(findings.find((finding) => finding.id === 'package-scripts')?.evidence).toBeUndefined();
+	});
+
 	it('passes modern ESLint flat config and warns when Prettier has no format script', () => {
 		const files: RepoFileEvidence[] = [
 			{ path: 'eslint.config.js', text: 'export default [];' },
@@ -122,6 +156,19 @@ describe('repo readiness analyzer', () => {
 		expect(findings.find((finding) => finding.id === 'format-script')).toMatchObject({
 			status: 'warn',
 			message: 'Prettier config exists, but root package.json has no format script.'
+		});
+	});
+
+	it('warns when lint config exists but root scripts do not invoke it', () => {
+		const findings = analyzeLintSetup(
+			[{ path: 'package.json', json: { scripts: { test: 'vitest run' } } }],
+			[{ path: '.eslintrc.json', text: '{}' }]
+		);
+
+		expect(findings.find((finding) => finding.id === 'lint-script')).toMatchObject({
+			status: 'warn',
+			message: 'Lint config exists, but root package.json does not run it from lint or check.',
+			evidence: { path: '.eslintrc.json' }
 		});
 	});
 
@@ -169,6 +216,33 @@ describe('repo readiness analyzer', () => {
 		});
 	});
 
+	it('warns when SvelteKit installs svelte-check but scripts do not run it', () => {
+		const findings = analyzeTypescriptSetup(
+			[
+				{
+					path: 'package.json',
+					json: {
+						scripts: { check: 'tsc --noEmit' },
+						devDependencies: {
+							'@sveltejs/kit': '^2.0.0',
+							'svelte-check': '^4.0.0',
+							typescript: '^5.0.0'
+						}
+					}
+				}
+			],
+			[{ path: 'tsconfig.json', text: JSON.stringify({ compilerOptions: { strict: true } }) }]
+		);
+
+		expect(findings.find((finding) => finding.id === 'typecheck-script')).toMatchObject({
+			status: 'pass'
+		});
+		expect(findings.find((finding) => finding.id === 'svelte-check')).toMatchObject({
+			status: 'warn',
+			message: 'svelte-check is installed, but no check/typecheck script invokes it.'
+		});
+	});
+
 	it('passes pinned package manager with matching lockfile', () => {
 		const findings = analyzePackageManager(
 			[
@@ -186,6 +260,34 @@ describe('repo readiness analyzer', () => {
 		expect(findings.find((finding) => finding.id === 'mixed-lockfiles')).toMatchObject({
 			status: 'pass'
 		});
+	});
+
+	it('accepts devEngines package manager pins with matching lockfiles', () => {
+		const stringPinFindings = analyzePackageManager(
+			[
+				{
+					path: 'package.json',
+					json: { devEngines: { packageManager: 'pnpm@10.0.0' } }
+				}
+			],
+			[{ path: 'pnpm-lock.yaml', text: 'lockfileVersion: 9.0' }]
+		);
+		const objectPinFindings = analyzePackageManager(
+			[
+				{
+					path: 'package.json',
+					json: { devEngines: { packageManager: { name: 'yarn', version: '4.9.0' } } }
+				}
+			],
+			[{ path: 'yarn.lock', text: '# yarn lockfile' }]
+		);
+
+		expect(
+			stringPinFindings.find((finding) => finding.id === 'package-manager-pinned')
+		).toMatchObject({ status: 'pass' });
+		expect(
+			objectPinFindings.find((finding) => finding.id === 'package-manager-pinned')
+		).toMatchObject({ status: 'pass' });
 	});
 
 	it('warns on mixed lockfiles and package manager mismatch', () => {
@@ -464,6 +566,38 @@ jobs:
 		});
 	});
 
+	it('warns on pull_request_target workflows even when they avoid obvious unsafe checkout', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/label.yml',
+				text: `
+name: Label
+on:
+  pull_request_target:
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm run lint
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'workflow-pull-request-target')).toMatchObject(
+			{
+				status: 'warn',
+				message: 'pull_request_target workflow found; review token and checkout behavior carefully.'
+			}
+		);
+	});
+
 	it('fails pull_request_target workflows that opt into unsafe fork checkout', () => {
 		const findings = analyzeCiWorkflows([
 			{
@@ -492,6 +626,44 @@ jobs:
 				launchImpact: 'blocker'
 			}
 		);
+	});
+
+	it('parses quoted run commands, empty run values, and malformed action refs', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/ci.yml',
+				text: `
+name: CI
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    steps:
+      - uses: actions/checkout@v4
+      - uses: "acme/deploy@latest"
+      - uses: 'acme/no-ref'
+      - uses: acme/empty@
+      - run: ""
+      - run: ''
+      - run: >
+          npm run lint
+          npm run check
+
+          npm test
+          npm run build
+      - name: Done
+        run: echo ok
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'ci-runs-quality-gates')).toMatchObject({
+			status: 'pass'
+		});
+		expect(findings.find((finding) => finding.id === 'workflow-action-pinning')).toMatchObject({
+			status: 'warn'
+		});
 	});
 
 	it('ignores commented-out quality gates and floating action refs', () => {
@@ -573,6 +745,33 @@ jobs:
 		});
 		expect(findings.find((finding) => finding.id === 'wrangler-compat-date')).toMatchObject({
 			status: 'warn'
+		});
+	});
+
+	it('passes deploy config with invalid Wrangler compatibility date and safe Dockerfile', () => {
+		const findings = analyzeDeployConfig(
+			[rootManifest],
+			[
+				{
+					path: 'wrangler.toml',
+					text: 'name = "app"\ncompatibility_date = "2026-99-99"\n'
+				},
+				{ path: 'Dockerfile', text: 'FROM node:22\nRUN npm ci\nCOPY . .\n' }
+			],
+			new Date('2026-07-05T00:00:00Z')
+		);
+
+		expect(findings.find((finding) => finding.id === 'deploy-config')).toMatchObject({
+			status: 'pass',
+			evidence: { path: 'wrangler.toml' }
+		});
+		expect(findings.find((finding) => finding.id === 'wrangler-compat-date')).toMatchObject({
+			status: 'pass',
+			message: 'Wrangler config exists but no compatibility_date was detected.'
+		});
+		expect(findings.find((finding) => finding.id === 'docker-env-copy')).toMatchObject({
+			status: 'pass',
+			message: 'Dockerfile does not directly copy .env into the image.'
 		});
 	});
 

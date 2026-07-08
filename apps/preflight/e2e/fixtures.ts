@@ -55,7 +55,7 @@ export const mockScanReport: ScanReport = {
 	summary: { pass: 2, warn: 2, fail: 1 },
 	paymentReadiness: {
 		status: 'blocked',
-		headline: 'Payment readiness blocked by 1 revenue blocker.',
+		headline: 'Payment readiness blocked by 1 payment blocker.',
 		pass: 0,
 		warn: 1,
 		fail: 1,

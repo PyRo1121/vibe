@@ -34,6 +34,24 @@ function fakeLimiter() {
 	} as unknown as DurableObjectNamespace;
 }
 
+function failingLimiter(status = 500) {
+	return {
+		idFromName: (name: string) => name,
+		get: () => ({
+			fetch: async () => new Response('down', { status })
+		})
+	} as unknown as DurableObjectNamespace;
+}
+
+function throwingKv() {
+	return {
+		get: vi.fn<() => Promise<string | null>>(async () => {
+			throw new Error('kv down');
+		}),
+		put: vi.fn<(key: string, value: string) => Promise<void>>(async () => {})
+	} as unknown as KVNamespace;
+}
+
 describe('assertDailyScanBudget', () => {
 	it('skips without KV', async () => {
 		await expect(assertDailyScanBudget()).resolves.toBeUndefined();
@@ -58,6 +76,24 @@ describe('assertDailyScanBudget', () => {
 	it('blocks at the daily scan cap', async () => {
 		const kv = fakeKv({ [`budget:scans:${new Date().toISOString().slice(0, 10)}`]: '175' });
 		await expect(assertDailyScanBudget(kv)).rejects.toMatchObject({ status: 503 });
+	});
+
+	it('falls back to KV when the durable scan limiter is unavailable', async () => {
+		const kv = fakeKv();
+		const day = new Date().toISOString().slice(0, 10);
+
+		await assertDailyScanBudget(kv, failingLimiter());
+
+		expect(kv.store.get(`budget:scans:${day}`)).toBe('1');
+	});
+
+	it('normalizes malformed scan budget counts before incrementing', async () => {
+		const day = new Date().toISOString().slice(0, 10);
+		const kv = fakeKv({ [`budget:scans:${day}`]: 'not-a-number' });
+
+		await assertDailyScanBudget(kv);
+
+		expect(kv.store.get(`budget:scans:${day}`)).toBe('1');
 	});
 });
 
@@ -85,6 +121,20 @@ describe('reserveAiCopyReview', () => {
 		const day = new Date().toISOString().slice(0, 10);
 		expect(kv.store.get(`budget:ai:${day}`)).toBe('1');
 	});
+
+	it('fails open when AI limiter or KV budget storage is unavailable', async () => {
+		await expect(reserveAiCopyReview(undefined, failingLimiter())).resolves.toBe(true);
+		await expect(reserveAiCopyReview(throwingKv())).resolves.toBe(true);
+	});
+
+	it('normalizes malformed AI budget counts before incrementing', async () => {
+		const day = new Date().toISOString().slice(0, 10);
+		const kv = fakeKv({ [`budget:ai:${day}`]: 'NaN' });
+
+		await expect(reserveAiCopyReview(kv)).resolves.toBe(true);
+
+		expect(kv.store.get(`budget:ai:${day}`)).toBe('1');
+	});
 });
 
 describe('assertPlausibleEventBudget', () => {
@@ -95,6 +145,41 @@ describe('assertPlausibleEventBudget', () => {
 		await expect(assertPlausibleEventBudget(kv, '203.0.113.1')).rejects.toMatchObject({
 			status: 429
 		});
+	});
+
+	it('uses the limiter binding for Plausible event budgets', async () => {
+		const limiter = fakeLimiter();
+		const attempts = await Promise.allSettled(
+			Array.from({ length: FREE_TIER_LIMITS.plausibleEventsPerIpPerHour + 1 }, () =>
+				assertPlausibleEventBudget(undefined, '203.0.113.1', limiter)
+			)
+		);
+
+		expect(attempts.filter((r) => r.status === 'fulfilled')).toHaveLength(
+			FREE_TIER_LIMITS.plausibleEventsPerIpPerHour
+		);
+		expect(
+			attempts.filter((r) => r.status === 'rejected' && 'reason' in r && r.reason.status === 429)
+		).toHaveLength(1);
+	});
+
+	it('skips KV writes for unknown Plausible event IPs', async () => {
+		const kv = fakeKv();
+
+		await assertPlausibleEventBudget(kv, 'unknown');
+
+		expect(kv.get).not.toHaveBeenCalled();
+		expect(kv.put).not.toHaveBeenCalled();
+	});
+
+	it('normalizes malformed Plausible event counts before incrementing', async () => {
+		const d = new Date();
+		const bucket = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}T${String(d.getUTCHours()).padStart(2, '0')}`;
+		const kv = fakeKv({ [`budget:plausible:203.0.113.1:${bucket}`]: 'bad-count' });
+
+		await assertPlausibleEventBudget(kv, '203.0.113.1');
+
+		expect(kv.store.get(`budget:plausible:203.0.113.1:${bucket}`)).toBe('1');
 	});
 });
 

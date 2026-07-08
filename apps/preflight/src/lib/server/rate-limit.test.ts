@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { assertScanRateLimit, clientIp } from './rate-limit';
+import { assertIpRateLimit, assertScanRateLimit, clientIp } from './rate-limit';
 
 function fakeLimiter() {
 	const counts = new Map<string, number>();
@@ -24,6 +24,17 @@ describe('clientIp', () => {
 			headers: { 'cf-connecting-ip': '203.0.113.1', 'x-forwarded-for': '10.0.0.1' }
 		});
 		expect(clientIp(req)).toBe('203.0.113.1');
+	});
+
+	it('falls back to the first forwarded IP and then unknown', () => {
+		expect(
+			clientIp(
+				new Request('https://app.test', {
+					headers: { 'x-forwarded-for': ' 203.0.113.2, 10.0.0.1 ' }
+				})
+			)
+		).toBe('203.0.113.2');
+		expect(clientIp(new Request('https://app.test'))).toBe('unknown');
 	});
 });
 
@@ -54,6 +65,52 @@ describe('assertScanRateLimit', () => {
 		expect(kv.put).toHaveBeenCalled();
 	});
 
+	it('blocks scans at the KV fallback limit', async () => {
+		const kv = {
+			get: vi.fn<(key: string) => Promise<string | null>>(async () => '15'),
+			put: vi.fn<(key: string, value: string) => Promise<void>>(async () => {})
+		} as unknown as KVNamespace;
+
+		await expect(assertScanRateLimit(kv, '203.0.113.1')).rejects.toMatchObject({ status: 429 });
+		expect(kv.put).not.toHaveBeenCalled();
+	});
+
+	it('normalizes malformed KV counts before incrementing', async () => {
+		const kv = {
+			get: vi.fn<(key: string) => Promise<string | null>>(async () => 'not-a-number'),
+			put: vi.fn<(key: string, value: string) => Promise<void>>(async () => {})
+		} as unknown as KVNamespace;
+
+		await assertScanRateLimit(kv, '203.0.113.1');
+
+		expect(kv.put).toHaveBeenCalledWith(expect.any(String), '1', {
+			expirationTtl: expect.any(Number)
+		});
+	});
+
+	it('skips KV fallback for unknown IPs', async () => {
+		const kv = {
+			get: vi.fn<(key: string) => Promise<string | null>>(async () => '0'),
+			put: vi.fn<(key: string, value: string) => Promise<void>>(async () => {})
+		} as unknown as KVNamespace;
+
+		await assertScanRateLimit(kv, 'unknown');
+
+		expect(kv.get).not.toHaveBeenCalled();
+		expect(kv.put).not.toHaveBeenCalled();
+	});
+
+	it('fails open for scan limits when the Durable Object is unavailable', async () => {
+		const limiter = {
+			idFromName: (name: string) => name,
+			get: () => ({
+				fetch: async () => new Response('down', { status: 500 })
+			})
+		} as unknown as DurableObjectNamespace;
+
+		await expect(assertScanRateLimit(undefined, '203.0.113.1', limiter)).resolves.toBeUndefined();
+	});
+
 	it('fails closed on KV errors when configured', async () => {
 		const kv = {
 			get: vi.fn<() => Promise<string | null>>(async () => {
@@ -62,7 +119,6 @@ describe('assertScanRateLimit', () => {
 			put: vi.fn<(key: string, value: string) => Promise<void>>()
 		} as unknown as KVNamespace;
 
-		const { assertIpRateLimit } = await import('./rate-limit');
 		await expect(
 			assertIpRateLimit(
 				{

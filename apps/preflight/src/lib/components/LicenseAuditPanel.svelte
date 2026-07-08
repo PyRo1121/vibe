@@ -27,7 +27,9 @@
 				<p class="text-xs font-semibold tracking-widest text-sky-400 uppercase">
 					License &amp; sell rights
 				</p>
-				<h2 class="mt-2 text-2xl font-bold text-white">Can you charge money for this?</h2>
+				<h2 class="mt-2 text-2xl font-bold text-white">
+					Can this project be sold or handed off safely?
+				</h2>
 				<p class="mt-2 text-sm text-zinc-400">{audit.summary}</p>
 			</div>
 			<span class="rounded-full px-3 py-1 text-xs font-semibold {OVERALL[audit.sellable].classes}">
@@ -61,11 +63,11 @@
 				{#if report.repo}
 					Audited from package.json production dependencies via the npm registry. Transitive
 					dependencies are not resolved — run <code>npx license-checker</code> locally before a commercial
-					launch.
+					handoff or launch.
 				{:else}
 					Detected from public page assets (CDN scripts, fonts, recognizable filenames). Server-side
 					and bundled dependencies are not visible to this scan — run a full dependency audit before
-					a commercial launch.
+					a commercial handoff or launch.
 				{/if}
 			</p>
 		{/if}

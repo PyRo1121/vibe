@@ -80,15 +80,15 @@ export function wrapSameZoneFetch(
 			const path = url.pathname + url.search;
 			const internalUrl = `${internalOrigin}${path}`;
 			if (input instanceof Request) {
-				return self.fetch(
-					new Request(internalUrl, {
-						method: input.method,
-						headers: input.headers,
-						body: input.method === 'GET' || input.method === 'HEAD' ? undefined : input.body,
-						redirect: init?.redirect ?? input.redirect,
-						signal: init?.signal ?? input.signal
-					})
-				);
+				const requestInit: RequestInit & { duplex?: 'half' } = {
+					method: input.method,
+					headers: input.headers,
+					body: input.method === 'GET' || input.method === 'HEAD' ? undefined : input.body,
+					redirect: init?.redirect ?? input.redirect,
+					signal: init?.signal ?? input.signal
+				};
+				if (requestInit.body) requestInit.duplex = 'half';
+				return self.fetch(new Request(internalUrl, requestInit));
 			}
 			return self.fetch(internalUrl, init);
 		}

@@ -2,7 +2,7 @@ import { expect, type Page } from '@playwright/test';
 
 import type { ScanReport } from '../src/lib/scan/types';
 
-export const DEPLOY_TARGET_BUTTON = 'Add evidence';
+export const DEPLOY_TARGET_BUTTON = 'Build readiness report';
 export const DEPLOY_TARGET_INPUT = 'deploy URL or github.com/you/repo';
 
 export async function mockScanApi(page: Page, report: ScanReport | 'error', status = 200) {

@@ -13,7 +13,7 @@ test.describe('scan flow', () => {
 		await expect(page.getByText('Deploy risk score')).toBeVisible();
 		await expect(page.getByText('72', { exact: true }).first()).toBeVisible();
 		await expect(page.getByText('Payment readiness', { exact: true }).first()).toBeVisible();
-		await expect(page.getByText('1 revenue blocker', { exact: true })).toBeVisible();
+		await expect(page.getByText('1 payment blocker', { exact: true })).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Findings' })).toBeVisible();
 		await expect(page.getByText('Privacy policy', { exact: true }).first()).toBeVisible();
 		await expect(page.getByRole('button', { name: 'Copy sample' })).toBeVisible();

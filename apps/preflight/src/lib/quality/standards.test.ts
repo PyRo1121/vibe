@@ -20,6 +20,7 @@ describe('quality standards guard', () => {
 		const report = inspectQualityStandards();
 
 		expect(report.failures).toEqual([]);
+		expect(assertQualityStandards().failures).toEqual([]);
 		for (const [metric, minimum] of Object.entries(ENTERPRISE_COVERAGE_MINIMUMS)) {
 			expect(
 				report.coverageThresholds[metric as keyof typeof ENTERPRISE_COVERAGE_MINIMUMS]
@@ -108,11 +109,12 @@ describe('quality standards guard', () => {
 			);
 			writeFixtureFile(
 				join(root, 'apps/preflight/vite.config.ts'),
-				`export default {
+				`const coverageMetric = 'statements';
+				export default {
 					test: {
 						coverage: {
 							thresholds: {
-								statements: 70,
+								[coverageMetric]: 70,
 								lines: 70,
 								functions: 70,
 								branches: 70

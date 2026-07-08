@@ -22,7 +22,7 @@ test.describe('deep dives', () => {
 		const deepDives = page.locator('section').filter({
 			has: page.getByRole('heading', { name: 'Deep dives' })
 		});
-		await expect(deepDives.getByText('Payment readiness', { exact: true })).toBeVisible();
+		await expect(deepDives.getByText('Payment readiness', { exact: true }).first()).toBeVisible();
 		await expect(
 			deepDives.getByText('Server-owned checkout: Checkout is browser-owned.', { exact: true })
 		).toBeVisible();

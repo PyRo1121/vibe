@@ -56,7 +56,7 @@
 		{#if report.licenseAudit}
 			<DeepDive
 				title="License & sell rights"
-				hint="Can you charge money for this?"
+				hint="Can this project be sold or handed off safely?"
 				badge={licenseFlagged > 0
 					? { label: `${licenseFlagged} flagged`, tone: 'warn' }
 					: { label: 'clear', tone: 'ok' }}

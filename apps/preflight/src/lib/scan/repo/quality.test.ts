@@ -87,6 +87,10 @@ describe('hasTests', () => {
 	it('returns false with no tests and no script', () => {
 		expect(hasTests([blob('src/index.ts')], JSON.stringify({ scripts: {} }))).toBe(false);
 	});
+
+	it('treats malformed package.json as no test script', () => {
+		expect(hasTests([blob('src/index.ts')], '{broken')).toBe(false);
+	});
 });
 
 describe('assessTestSuiteDepth', () => {
@@ -115,7 +119,8 @@ describe('assessTestSuiteDepth', () => {
 			blob('package.json'),
 			blob('src/lib/billing.test.ts'),
 			blob('src/routes/api/webhook.integration.test.ts'),
-			blob('e2e/checkout.spec.ts')
+			blob('e2e/checkout.spec.ts'),
+			blob('src/security.spec.ts')
 		];
 		const pkg = JSON.stringify({
 			scripts: {
@@ -168,6 +173,27 @@ test("paid checkout reaches the hosted provider", async ({ page }) => {
 		expect(audit.message).toContain('coverage signal');
 		expect(audit.message).toContain('unit/integration/e2e');
 	});
+
+	it('warns when a test file has assertions but lacks runner and coverage breadth', () => {
+		const entries = [blob('src/lib/billing.test.ts')];
+		const audit = assessTestSuiteDepth(entries, null, [
+			{
+				path: 'src/lib/billing.test.ts',
+				text: `
+import { expect, it } from "vitest";
+import { canAccessBilling } from "./billing";
+it("keeps inactive accounts out of billing settings", () => {
+  const result = canAccessBilling({ status: "canceled", role: "member", seats: 1 });
+  expect(result).toEqual({ allowed: false, reason: "inactive subscription" });
+});
+`
+			}
+		]);
+
+		expect(audit.status).toBe('warn');
+		expect(audit.message).toContain('no coverage command or threshold');
+		expect(audit.message).toContain('no runnable root test command');
+	});
 });
 
 describe('findLockfile', () => {
@@ -196,6 +222,10 @@ describe('nodeVersionPinned', () => {
 
 	it('returns false when nothing pins Node', () => {
 		expect(nodeVersionPinned([blob('src/index.ts')], JSON.stringify({ name: 'app' }))).toBe(false);
+	});
+
+	it('returns false when package.json is malformed', () => {
+		expect(nodeVersionPinned([blob('src/index.ts')], '{broken')).toBe(false);
 	});
 });
 

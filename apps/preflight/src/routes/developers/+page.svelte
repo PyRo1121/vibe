@@ -304,7 +304,7 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 			>
 			from a reviewed release tag or commit SHA of the
 			<a class="text-sky-400 hover:underline" href="https://github.com/PyRo1121/vibe"
-				>vibe monorepo</a
+				>Deploylint source repo</a
 			>
 			and set the
 			<code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">DEPLOYLINT_URL</code>

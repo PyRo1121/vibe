@@ -20,7 +20,7 @@
 	<div
 		class="fixed inset-x-0 bottom-0 z-50 border-t border-sky-500/30 bg-zinc-950/95 px-4 py-3 backdrop-blur md:hidden print:hidden"
 		role="region"
-		aria-label="Unlock fix prompts"
+		aria-label="Unlock repair plan and gate proof"
 	>
 		<div class="mx-auto flex max-w-5xl items-center justify-between gap-3">
 			<div class="min-w-0">

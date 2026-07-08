@@ -282,6 +282,46 @@ test("pricing CTA reaches checkout", async ({ page }) => {
 		expect(license?.message).toContain('AGPL');
 	});
 
+	it('warns on unidentified, conditional, and unknown repo licenses', async () => {
+		const unidentified = await scanRepo(REF, {
+			fetchers: fakeFetchers({
+				meta: { licenseSpdx: 'NOASSERTION' },
+				entries: CLEAN_ENTRIES,
+				files: CLEAN_FILES
+			}),
+			npmLicense: async () => 'MIT'
+		});
+		const conditional = await scanRepo(REF, {
+			fetchers: fakeFetchers({
+				meta: { licenseSpdx: 'LGPL-3.0' },
+				entries: CLEAN_ENTRIES,
+				files: CLEAN_FILES
+			}),
+			npmLicense: async () => 'MIT'
+		});
+		const unknown = await scanRepo(REF, {
+			fetchers: fakeFetchers({
+				meta: { licenseSpdx: 'LicenseRef-Proprietary' },
+				entries: CLEAN_ENTRIES,
+				files: CLEAN_FILES
+			}),
+			npmLicense: async () => 'MIT'
+		});
+
+		expect(unidentified.checks.find((c) => c.id === 'repo-license')).toMatchObject({
+			status: 'warn',
+			message: expect.stringContaining('GitHub cannot identify it')
+		});
+		expect(conditional.checks.find((c) => c.id === 'repo-license')).toMatchObject({
+			status: 'warn',
+			message: expect.stringContaining('sellable with conditions')
+		});
+		expect(unknown.checks.find((c) => c.id === 'repo-license')).toMatchObject({
+			status: 'warn',
+			message: expect.stringContaining('not in our license database')
+		});
+	});
+
 	it('warns when .gitignore does not cover .env and README is a stub', async () => {
 		const report = await scanRepo(REF, {
 			fetchers: fakeFetchers({
@@ -299,6 +339,30 @@ test("pricing CTA reaches checkout", async ({ page }) => {
 		expect(byId['gitignore-env'].status).toBe('warn');
 		expect(byId.readme.status).toBe('warn');
 		expect(byId.readme.message).toContain('stub');
+	});
+
+	it('warns when README is missing entirely', async () => {
+		const report = await scanRepo(REF, {
+			fetchers: fakeFetchers({
+				entries: [
+					{ path: 'package.json', type: 'blob' },
+					{ path: '.gitignore', type: 'blob' },
+					{ path: 'src/index.ts', type: 'blob' }
+				],
+				files: {
+					'package.json': CLEAN_FILES['package.json'],
+					'.gitignore': CLEAN_FILES['.gitignore'],
+					'src/index.ts': CLEAN_FILES['src/index.ts']
+				}
+			}),
+			npmLicense: async () => 'MIT'
+		});
+
+		const readme = report.checks.find((c) => c.id === 'readme');
+		expect(readme).toMatchObject({
+			status: 'warn',
+			message: expect.stringContaining('No README found')
+		});
 	});
 
 	it('skips dependency audit when there is no package.json', async () => {

@@ -180,6 +180,19 @@ describe('cta-availability', () => {
 		expect(check?.message).toContain('CTA cannot be activated');
 	});
 
+	it('treats aria-disabled CTAs and javascript links as unavailable', () => {
+		const html = page(
+			'<nav><a href="/features">Features</a><a href="/pricing">Pricing</a></nav>' +
+				'<p>Pricing from $19/mo. Sign up or log in when ready.</p>' +
+				'<button aria-disabled="true">Get started</button><a href="javascript:void(0)">Sign up</a>'
+		);
+
+		const check = get(run(html), 'cta-availability');
+
+		expect(check?.status).toBe('warn');
+		expect(check?.message).toContain('CTA cannot be activated');
+	});
+
 	it('passes when at least one CTA is actionable', () => {
 		const html = saasLanding(
 			'<button disabled>Get started</button><a href="/signup">Get started</a>'
@@ -236,6 +249,22 @@ describe('signup-friction', () => {
 		const check = get(run(html), 'signup-friction');
 		expect(check?.status).toBe('pass');
 		expect(check?.message).toContain('low (1 field)');
+	});
+
+	it('counts aria-required signup fields and pluralizes the low-friction message', () => {
+		const html = saasLanding(
+			'<form><input type="email" aria-required="true"><input type="text" aria-required="true"></form>'
+		);
+		const check = get(run(html), 'signup-friction');
+		expect(check?.status).toBe('pass');
+		expect(check?.message).toContain('low (2 fields)');
+	});
+
+	it('ignores hidden, submit, and checkbox required inputs for signup friction', () => {
+		const html = saasLanding(
+			'<form><input type="email"><input type="hidden" required><input type="submit" required><input type="checkbox" required></form>'
+		);
+		expect(get(run(html), 'signup-friction')).toBeUndefined();
 	});
 
 	it('skips when no email form exists', () => {

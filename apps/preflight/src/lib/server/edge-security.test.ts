@@ -13,6 +13,8 @@ describe('isBlockedProbePath', () => {
 		expect(isBlockedProbePath('/wp-login.php')).toBe(true);
 		expect(isBlockedProbePath('/.env')).toBe(true);
 		expect(isBlockedProbePath('/app/.git/config')).toBe(true);
+		expect(isBlockedProbePath('/assets/..%2F.env')).toBe(true);
+		expect(isBlockedProbePath('/%2e%2e/.env')).toBe(true);
 	});
 
 	it('allows normal app routes', () => {
@@ -42,12 +44,46 @@ describe('postBodyTooLarge', () => {
 		});
 		expect(postBodyTooLarge(req)).toBe(true);
 	});
+
+	it('ignores oversized bodies for read-only methods and missing lengths', () => {
+		expect(
+			postBodyTooLarge(
+				new Request('https://app.test/api/scan', {
+					method: 'GET',
+					headers: { 'content-length': '300000' }
+				})
+			)
+		).toBe(false);
+		expect(postBodyTooLarge(new Request('https://app.test/api/scan', { method: 'POST' }))).toBe(
+			false
+		);
+	});
 });
 
 describe('probeBlockResponse', () => {
 	it('returns 404 for probe paths', () => {
 		const res = probeBlockResponse(new Request('https://app.test/.env'));
 		expect(res?.status).toBe(404);
+	});
+
+	it('returns method and body rejections before route handlers run', () => {
+		const methodRes = probeBlockResponse({
+			method: 'TRACE',
+			url: 'https://app.test/api/scan'
+		} as Request);
+		const bodyRes = probeBlockResponse(
+			new Request('https://app.test/api/scan', {
+				method: 'POST',
+				headers: { 'content-length': '300000' }
+			})
+		);
+
+		expect(methodRes?.status).toBe(405);
+		expect(bodyRes?.status).toBe(413);
+	});
+
+	it('allows normal requests through to route handlers', () => {
+		expect(probeBlockResponse(new Request('https://app.test/api/scan'))).toBeNull();
 	});
 });
 
@@ -72,6 +108,12 @@ describe('applySecurityHeaders', () => {
 			new Response('ok', { status: 200 }),
 			'https://deploylint.com/'
 		);
+
+		expect(res.headers.get('X-Robots-Tag')).toBeNull();
+	});
+
+	it('does not mark malformed request URLs as non-indexable', () => {
+		const res = applySecurityHeaders(new Response('ok', { status: 200 }), 'not a url');
 
 		expect(res.headers.get('X-Robots-Tag')).toBeNull();
 	});

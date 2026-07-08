@@ -43,7 +43,7 @@
 			kicker: 'Readiness evidence',
 			description:
 				'Add a live URL or public GitHub repo to collect crawler, trust, payment, preview, and repo evidence after CI is under control.',
-			action: 'Add evidence'
+			action: 'Build readiness report'
 		},
 		{
 			name: 'Repo Hygiene Checker',
@@ -83,15 +83,14 @@
 	<section class="mb-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-end">
 		<div>
 			<p class="mb-3 text-sm font-medium tracking-widest text-sky-400 uppercase">
-				Marketable package
+				CI hardening loop
 			</p>
 			<h1 class="max-w-3xl text-3xl font-bold tracking-tight text-white sm:text-5xl">
 				One adoption loop for safer agent-built deploys.
 			</h1>
 			<p class="mt-4 max-w-3xl text-lg leading-8 text-zinc-400">
-				Deploylint is not a random toolbox. It is a CI hardening loop: review workflow risk, add an
-				advisory PR report, fix the highest-risk findings, then turn clean signal into a deploy
-				gate.
+				Deploylint packages the CI hardening loop: review workflow risk, add an advisory PR report,
+				fix the highest-risk findings, then turn clean signal into a deploy gate.
 			</p>
 			<div class="mt-6 flex flex-col gap-3 sm:flex-row">
 				<a

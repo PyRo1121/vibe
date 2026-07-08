@@ -29,6 +29,18 @@ describe('parseBatchResults', () => {
 		]);
 	});
 
+	it('filters malformed vulnerability ids and ignores extra result rows', () => {
+		const findings = parseBatchResults(PACKAGES, {
+			results: [
+				{ vulns: [{ id: '' }, { id: undefined }, { id: 'GHSA-valid' }] },
+				{ vulns: [] },
+				{ vulns: [{ id: 'GHSA-extra' }] }
+			]
+		});
+
+		expect(findings).toEqual([{ package: 'lodash', version: '4.17.20', vulnIds: ['GHSA-valid'] }]);
+	});
+
 	it('handles null results and missing arrays', () => {
 		expect(parseBatchResults(PACKAGES, { results: [null, null] })).toEqual([]);
 		expect(parseBatchResults(PACKAGES, {})).toEqual([]);
@@ -47,6 +59,16 @@ describe('normalizeSeverity', () => {
 		expect(normalizeSeverity('CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H')).toBe('critical');
 		expect(normalizeSeverity('CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:N')).toBe('high');
 		expect(normalizeSeverity('CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:U/C:L/I:L/A:N')).toBe('moderate');
+		expect(normalizeSeverity('CVSS:3.1/AV:P/AC:H/PR:H/UI:R/S:U/C:L/I:N/A:N')).toBe('low');
+	});
+
+	it('returns null for malformed or no-impact CVSS vectors', () => {
+		expect(normalizeSeverity('CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N')).toBeNull();
+		expect(normalizeSeverity('CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H')).toBeNull();
+	});
+
+	it('handles changed-scope CVSS vectors', () => {
+		expect(normalizeSeverity('CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H')).toBe('critical');
 	});
 });
 
@@ -77,6 +99,26 @@ describe('auditVulnerabilities', () => {
 		};
 		const audit = await auditVulnerabilities(PACKAGES, fetchImpl);
 		expect(audit?.worstSeverity).toBe('high');
+	});
+
+	it('keeps the highest severity across sampled detail lookups and skips non-OK details', async () => {
+		const fetchImpl: FetchLike = async (url) => {
+			if (url.includes('querybatch')) {
+				return jsonResponse({
+					results: [
+						{ vulns: [{ id: 'GHSA-low' }, { id: 'GHSA-broken' }, { id: 'GHSA-critical' }] },
+						{}
+					]
+				});
+			}
+			if (url.endsWith('GHSA-low')) return jsonResponse({ database_specific: { severity: 'LOW' } });
+			if (url.endsWith('GHSA-broken')) return jsonResponse({}, false);
+			return jsonResponse({ database_specific: { severity: 'CRITICAL' } });
+		};
+
+		const audit = await auditVulnerabilities(PACKAGES, fetchImpl);
+
+		expect(audit?.worstSeverity).toBe('critical');
 	});
 
 	it('returns null when OSV is unreachable — check is skipped, not faked', async () => {

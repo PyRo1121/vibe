@@ -24,6 +24,16 @@ describe('detectLibraries', () => {
 		});
 	});
 
+	it('parses jsdelivr GitHub URLs and ignores unknown jsdelivr paths', () => {
+		const html = `
+			<script src="https://fastly.jsdelivr.net/gh/org/alpinejs@3.14.0/dist/cdn.min.js"></script>
+			<script src="https://cdn.jsdelivr.net/combine/npm/react@18/umd/react.production.min.js"></script>`;
+		const libs = detectLibraries(html, base);
+
+		expect(libs).toHaveLength(1);
+		expect(libs[0]).toMatchObject({ name: 'alpinejs', version: '3.14.0' });
+	});
+
 	it('parses cdnjs and canonicalizes aliases', () => {
 		const html = `<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.min.js"></script>`;
 		const libs = detectLibraries(html, base);
@@ -111,6 +121,19 @@ describe('auditScriptText', () => {
 		expect(finding?.sellable).toBe('risk');
 	});
 
+	it('flags conditional @license banners without SPDX metadata', () => {
+		const finding = auditScriptText(
+			'/* @license MPL-2.0 */ function widget() {}',
+			'https://app.test/assets/widget.js'
+		);
+
+		expect(finding).toMatchObject({
+			source: 'widget.js',
+			spdx: null,
+			sellable: 'conditions'
+		});
+	});
+
 	it('stays silent for permissive banners', () => {
 		expect(auditScriptText('/* SPDX-License-Identifier: MIT */', 'a.js')).toBeNull();
 		expect(auditScriptText('var noLicenseHere = true;', 'b.js')).toBeNull();
@@ -139,6 +162,30 @@ describe('buildLicenseAudit', () => {
 		const audit = buildLicenseAudit(gpl ? [gpl] : []);
 		expect(audit.sellable).toBe('risk');
 		expect(licenseCheckStatus(audit)).toBe('fail');
+	});
+
+	it('summarizes unknown licenses and all-clear permissive libraries distinctly', () => {
+		const unknownAudit = buildLicenseAudit([
+			{
+				name: 'mystery',
+				version: null,
+				source: 'package.json',
+				license: 'LicenseRef-Mystery',
+				spdx: 'LicenseRef-Mystery',
+				category: 'unknown',
+				sellable: 'unknown',
+				note: 'No license metadata found.'
+			}
+		]);
+		const permissiveAudit = buildLicenseAudit(
+			detectLibraries('<script src="/jquery.js"></script>', base)
+		);
+
+		expect(unknownAudit.sellable).toBe('unknown');
+		expect(unknownAudit.summary).toContain('unverified licenses');
+		expect(licenseCheckStatus(unknownAudit)).toBe('warn');
+		expect(permissiveAudit.sellable).toBe('yes');
+		expect(permissiveAudit.summary).toContain('permit commercial use');
 	});
 });
 

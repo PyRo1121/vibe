@@ -1,10 +1,14 @@
 import type { ScanCheck, ScanReport } from '$lib/scan/types';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
 	buildShareText,
 	buildUnlockOffer,
+	clearCheckoutQuery,
 	computeFixProgress,
+	loadBaselineChecks,
+	saveBaselineChecks,
+	STORAGE,
 	toCheckSnapshots
 } from './preflight-session';
 
@@ -29,6 +33,28 @@ const baseReport: ScanReport = {
 	checks: [],
 	summary: { pass: 10, warn: 1, fail: 0 }
 };
+
+function stubSessionStorage(initial: Record<string, string> = {}) {
+	const store = new Map(Object.entries(initial));
+	const sessionStorage = {
+		getItem: vi.fn<(key: string) => string | null>((key) => store.get(key) ?? null),
+		setItem: vi.fn<(key: string, value: string) => void>((key, value) => {
+			store.set(key, value);
+		}),
+		removeItem: vi.fn<(key: string) => void>((key) => {
+			store.delete(key);
+		}),
+		clear: vi.fn<() => void>(() => {
+			store.clear();
+		})
+	};
+	vi.stubGlobal('sessionStorage', sessionStorage);
+	return { sessionStorage, store };
+}
+
+afterEach(() => {
+	vi.unstubAllGlobals();
+});
 
 describe('buildShareText', () => {
 	it('uses configured app URL and score', () => {
@@ -133,6 +159,76 @@ describe('buildUnlockOffer', () => {
 		expect(offer?.masterPreviewLines.join('\n')).toContain('Do NOT fix SEO');
 	});
 
+	it('does not count a blocked scan issue when no reachable/fetch check exists', () => {
+		const offer = buildUnlockOffer({
+			...baseReport,
+			scanCoverage: 'blocked',
+			verdict: 'no-go',
+			checks: []
+		});
+
+		expect(offer?.issueCount).toBe(0);
+		expect(offer?.valuePitch).toContain('after a successful check');
+	});
+
+	it('offers verification proof when a no-go report has no locked fixes', () => {
+		const offer = buildUnlockOffer({
+			...baseReport,
+			verdict: 'no-go',
+			score: 100,
+			summary: { pass: 10, warn: 0, fail: 0 },
+			checks: []
+		});
+
+		expect(offer?.headline).toContain('guided repair plan');
+		expect(offer?.ctaLabel).toBe('Start Solo for verification proof');
+		expect(offer?.valuePitch).toContain('verification proof');
+	});
+
+	it('sells GO reports with remaining polish as optional guided repair work', () => {
+		const offer = buildUnlockOffer({
+			...baseReport,
+			verdict: 'go',
+			score: 92,
+			summary: { pass: 10, warn: 2, fail: 0 },
+			checks: [check('open-graph', 'warn'), check('twitter-card', 'warn')]
+		});
+
+		expect(offer?.headline).toContain('polish guidance');
+		expect(offer?.valuePitch).toContain('2 polish items');
+		expect(offer?.projectedScore).toBe(100);
+	});
+
+	it('sells all-clear reports as recurring verification history', () => {
+		const offer = buildUnlockOffer({
+			...baseReport,
+			verdict: 'go',
+			score: 100,
+			summary: { pass: 10, warn: 0, fail: 0 },
+			checks: []
+		});
+
+		expect(offer?.headline).toContain('re-scan proof');
+		expect(offer?.valuePitch).toBe('Verification history with score delta on this project');
+	});
+
+	it('previews overflow repair work after the first four issues', () => {
+		const offer = buildUnlockOffer({
+			...baseReport,
+			verdict: 'conditional',
+			summary: { pass: 1, warn: 5, fail: 0 },
+			checks: [
+				check('title', 'warn'),
+				check('description', 'warn'),
+				check('open-graph', 'warn'),
+				check('twitter-card', 'warn'),
+				check('sitemap', 'warn')
+			]
+		});
+
+		expect(offer?.masterPreviewLines.at(-1)).toContain('+1 more issue');
+	});
+
 	it('includes guided repair plan line count', () => {
 		const offer = buildUnlockOffer({
 			...baseReport,
@@ -161,5 +257,61 @@ describe('computeFixProgress', () => {
 		expect(progress.fixedBlockerCount).toBe(1);
 		expect(progress.fixed).toEqual(['Privacy policy']);
 		expect(progress.regressed).toEqual(['Meta description']);
+	});
+
+	it('counts P0 warnings as fixed blockers when the catalog marks them critical', () => {
+		const baseline = toCheckSnapshots([{ ...check('privacy', 'warn'), title: 'Privacy policy' }]);
+		const current: ScanCheck[] = [{ ...check('privacy', 'pass'), title: 'Privacy policy' }];
+
+		const progress = computeFixProgress(baseline, current);
+
+		expect(progress.fixedBlockerCount).toBe(1);
+	});
+});
+
+describe('baseline check session storage', () => {
+	it('round-trips baseline snapshots through sessionStorage', () => {
+		const { sessionStorage } = stubSessionStorage();
+		const snapshots = toCheckSnapshots([
+			{ ...check('privacy', 'fail'), priority: 'p0' },
+			{ ...check('title', 'warn'), priority: 'p2' }
+		]);
+
+		saveBaselineChecks(snapshots);
+
+		expect(sessionStorage.setItem).toHaveBeenCalledWith(
+			STORAGE.baselineChecks,
+			JSON.stringify(snapshots)
+		);
+		expect(loadBaselineChecks()).toEqual(snapshots);
+	});
+
+	it('returns null for missing, invalid, or unavailable sessionStorage', () => {
+		stubSessionStorage();
+		expect(loadBaselineChecks()).toBeNull();
+
+		stubSessionStorage({ [STORAGE.baselineChecks]: '{not-json' });
+		expect(loadBaselineChecks()).toBeNull();
+
+		vi.unstubAllGlobals();
+		expect(loadBaselineChecks()).toBeNull();
+		expect(() => saveBaselineChecks([])).not.toThrow();
+	});
+});
+
+describe('clearCheckoutQuery', () => {
+	it('removes checkout query parameters without changing the route path', () => {
+		const replaceState =
+			vi.fn<(data: unknown, unused: string, url?: string | URL | null) => void>();
+		vi.stubGlobal('window', {
+			history: { replaceState },
+			location: {
+				pathname: '/app'
+			}
+		});
+
+		clearCheckoutQuery();
+
+		expect(replaceState).toHaveBeenCalledWith({}, '', '/app');
 	});
 });
