@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 
+import { DEPLOY_TARGET_BUTTON } from './helpers';
+
 test.describe('a11y smoke', () => {
 	test('home page has landmarks, labels, and keyboard focusable scan form', async ({ page }) => {
 		await page.goto('/');
@@ -11,8 +13,8 @@ test.describe('a11y smoke', () => {
 		const input = page.getByPlaceholder('your-app.com or github.com/you/repo');
 		await expect(input).toHaveAttribute('required', '');
 		await input.fill('https://example.test');
-		await expect(page.getByRole('button', { name: 'Audit target' })).toBeEnabled();
-		await page.getByRole('button', { name: 'Audit target' }).focus();
-		await expect(page.getByRole('button', { name: 'Audit target' })).toBeFocused();
+		await expect(page.getByRole('button', { name: DEPLOY_TARGET_BUTTON })).toBeEnabled();
+		await page.getByRole('button', { name: DEPLOY_TARGET_BUTTON }).focus();
+		await expect(page.getByRole('button', { name: DEPLOY_TARGET_BUTTON })).toBeFocused();
 	});
 });

@@ -192,6 +192,20 @@ describe('gate output', () => {
 		expect(md).toContain('Score 72 below minimum 80');
 	});
 
+	it('renders advisory gate failures as non-blocking markdown', () => {
+		const md = formatGateMarkdown(
+			report(),
+			{ pass: false, reasons: ['P0: Privacy policy - No privacy link'] },
+			80,
+			true
+		);
+
+		expect(md).toContain('ADVISORY');
+		expect(md).toContain('Gate failures');
+		expect(md).toContain('P0: Privacy policy - No privacy link');
+		expect(md).toContain('Advisory mode');
+	});
+
 	it('renders pass and clear advisory headers', () => {
 		expect(formatGateMarkdown(report(), { pass: true, reasons: [] }, 80, false)).toContain('PASS');
 		expect(formatGateMarkdown(report(), { pass: true, reasons: [] }, 80, true)).toContain(

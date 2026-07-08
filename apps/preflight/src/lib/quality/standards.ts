@@ -112,11 +112,14 @@ function hasLeastPrivilegeWorkflowPermissions(workflow: string): boolean {
 
 export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsReport {
 	const preflightRoot = join(rootDir, 'apps/preflight');
+	const preflightMcpRoot = join(rootDir, 'apps/preflight-mcp');
 	const rootPackagePath = join(rootDir, 'package.json');
 	const preflightPackagePath = join(preflightRoot, 'package.json');
+	const preflightMcpPackagePath = join(preflightMcpRoot, 'package.json');
 	const oxlintPath = join(rootDir, '.oxlintrc.jsonc');
 	const oxfmtPath = join(rootDir, '.oxfmtrc.jsonc');
 	const viteConfigPath = join(preflightRoot, 'vite.config.ts');
+	const mcpViteConfigPath = join(preflightMcpRoot, 'vite.config.ts');
 	const preflightGateWorkflowPath = join(rootDir, '.github/workflows/preflight-gate.yml');
 	const dogfoodWorkflowPath = join(rootDir, '.github/workflows/deploylint-dogfood.yml');
 	const checked: string[] = [];
@@ -130,9 +133,11 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const expectedFiles = [
 		rootPackagePath,
 		preflightPackagePath,
+		preflightMcpPackagePath,
 		oxlintPath,
 		oxfmtPath,
 		viteConfigPath,
+		mcpViteConfigPath,
 		preflightGateWorkflowPath,
 		dogfoodWorkflowPath
 	];
@@ -160,6 +165,10 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		scripts: Record<string, string>;
 		devDependencies: Record<string, string>;
 	}>(preflightPackagePath);
+	const preflightMcpPackage = readJson<{
+		scripts: Record<string, string>;
+		devDependencies: Record<string, string>;
+	}>(preflightMcpPackagePath);
 	const oxlint = readJson<{
 		categories: Record<string, string>;
 		options: Record<string, string | number | boolean>;
@@ -168,6 +177,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	}>(oxlintPath);
 	const oxfmt = readJson<Record<string, unknown>>(oxfmtPath);
 	const configuredCoverageThresholds = readCoverageThresholds(viteConfigPath);
+	const configuredMcpCoverageThresholds = readCoverageThresholds(mcpViteConfigPath);
 	const preflightGateWorkflow = readFileSync(preflightGateWorkflowPath, 'utf8');
 	const dogfoodWorkflow = readFileSync(dogfoodWorkflowPath, 'utf8');
 
@@ -187,6 +197,17 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		hasScriptCommand(preflightPackage.scripts, 'verify', [
 			'quality:standards',
 			'sync:gate-remote:check',
+			'check',
+			'lint',
+			'test:coverage',
+			'build'
+		])
+	);
+	pushCheck(
+		checked,
+		failures,
+		'preflight-mcp verify runs typecheck, lint, coverage, and build',
+		hasScriptCommand(preflightMcpPackage.scripts, 'verify', [
 			'check',
 			'lint',
 			'test:coverage',
@@ -236,6 +257,15 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		Object.entries(ENTERPRISE_COVERAGE_MINIMUMS).every(
 			([metric, minimum]) =>
 				configuredCoverageThresholds[metric as keyof CoverageThresholds] >= minimum
+		)
+	);
+	pushCheck(
+		checked,
+		failures,
+		'preflight-mcp coverage thresholds meet enterprise minimums',
+		Object.entries(ENTERPRISE_COVERAGE_MINIMUMS).every(
+			([metric, minimum]) =>
+				configuredMcpCoverageThresholds[metric as keyof CoverageThresholds] >= minimum
 		)
 	);
 	pushCheck(

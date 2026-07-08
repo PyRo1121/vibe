@@ -29,10 +29,12 @@ describe('quality standards guard', () => {
 			expect.arrayContaining([
 				'preflight scripts run oxfmt and oxlint with zero-warning lint',
 				'preflight verify runs standards, typecheck, lint, coverage, and build',
+				'preflight-mcp verify runs typecheck, lint, coverage, and build',
 				'root deploylint verify runs preflight, mcp, e2e, and smoke',
 				'oxlint config enables correctness, suspicious, TypeScript, Vitest, Promise, and Unicorn guards',
 				'oxfmt config enforces deterministic imports, Tailwind sorting, Svelte formatting, and LF endings',
 				'vitest coverage thresholds meet enterprise minimums',
+				'preflight-mcp coverage thresholds meet enterprise minimums',
 				'GitHub workflows enforce verify and e2e gates',
 				'GitHub workflows declare least-privilege token permissions'
 			])
@@ -54,6 +56,15 @@ describe('quality standards guard', () => {
 			);
 			writeFixtureFile(
 				join(root, 'apps/preflight/package.json'),
+				JSON.stringify({
+					scripts: {
+						verify: 'npm run check'
+					},
+					devDependencies: {}
+				})
+			);
+			writeFixtureFile(
+				join(root, 'apps/preflight-mcp/package.json'),
 				JSON.stringify({
 					scripts: {
 						verify: 'npm run check'
@@ -106,6 +117,21 @@ describe('quality standards guard', () => {
 					}
 				};`
 			);
+			writeFixtureFile(
+				join(root, 'apps/preflight-mcp/vite.config.ts'),
+				`export default {
+					test: {
+						coverage: {
+							thresholds: {
+								statements: 90,
+								lines: 90,
+								functions: 90,
+								branches: 80
+							}
+						}
+					}
+				};`
+			);
 			writeFixtureFile(join(root, '.github/workflows/preflight-gate.yml'), 'npm test');
 			writeFixtureFile(join(root, '.github/workflows/deploylint-dogfood.yml'), 'npm test');
 
@@ -116,10 +142,12 @@ describe('quality standards guard', () => {
 				expect.arrayContaining([
 					'preflight scripts run oxfmt and oxlint with zero-warning lint',
 					'preflight verify runs standards, typecheck, lint, coverage, and build',
+					'preflight-mcp verify runs typecheck, lint, coverage, and build',
 					'root deploylint verify runs preflight, mcp, e2e, and smoke',
 					'oxlint config enables correctness, suspicious, TypeScript, Vitest, Promise, and Unicorn guards',
 					'oxfmt config enforces deterministic imports, Tailwind sorting, Svelte formatting, and LF endings',
 					'vitest coverage thresholds meet enterprise minimums',
+					'preflight-mcp coverage thresholds meet enterprise minimums',
 					'GitHub workflows enforce verify and e2e gates',
 					'GitHub workflows declare least-privilege token permissions',
 					'quality standards script is runnable from npm'
