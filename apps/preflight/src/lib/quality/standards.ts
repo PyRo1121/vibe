@@ -1121,15 +1121,17 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
-		'root deploylint local verify skips network-heavy CI-only gates',
+		'root deploylint local verify runs offline format, dead-code, unit, build, and E2E gates',
 		hasScriptCommand(rootPackage.scripts, 'verify:deploylint:local', [
+			'npm run lint:workflows',
+			'npm run format:deploylint:check',
+			'npm run deadcode:deploylint',
 			'npm run verify -w apps/deploylint-shared',
 			'npm run verify -w preflight',
 			'npm run verify -w preflight-mcp',
 			'npm run test:e2e -w preflight'
 		]) &&
 			!rootPackage.scripts['verify:deploylint:local']?.includes('npm audit') &&
-			!rootPackage.scripts['verify:deploylint:local']?.includes('deadcode:deploylint') &&
 			!rootPackage.scripts['verify:deploylint:local']?.includes('test:e2e:install')
 	);
 	pushCheck(
