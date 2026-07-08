@@ -236,6 +236,36 @@ jobs:
 		});
 	});
 
+	it('ignores step input write values outside actual permission blocks', () => {
+		const findings = analyzeCiWorkflows([
+			{
+				path: '.github/workflows/ci.yml',
+				text: `
+name: CI
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: acme/configure@v1
+        with:
+          mode: write
+      - run: npm run lint
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
+`
+			}
+		]);
+
+		expect(findings.find((finding) => finding.id === 'workflow-permissions')).toMatchObject({
+			status: 'pass'
+		});
+	});
+
 	it('passes dependency review and update automation when configured', () => {
 		const findings = analyzeCiWorkflows([
 			{

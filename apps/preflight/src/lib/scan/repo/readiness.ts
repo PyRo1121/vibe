@@ -1,3 +1,4 @@
+import { analyzeWorkflowPermissions } from '$lib/ci/workflow-permissions';
 import { normalizeRepoFinding, type RepoFinding } from '$lib/scan/repo/findings';
 import type { ScanCheck } from '$lib/scan/types';
 
@@ -453,49 +454,14 @@ function hasWorkflowEvent(text: string, eventName: string): boolean {
 }
 
 function hasWorkflowPermissions(text: string): boolean {
-	return meaningfulWorkflowLines(text).some((line) => /^\s*permissions\s*:/.test(line));
-}
-
-function hasWriteAllPermissions(text: string): boolean {
-	return meaningfulWorkflowLines(text).some((line) =>
-		/^\s*permissions\s*:\s*write-all\b/i.test(line)
-	);
-}
-
-function inlinePermissionWriteScopes(line: string): string[] {
-	const match = line.match(/^\s*permissions\s*:\s*\{(?<body>.*)\}\s*$/i);
-	const body = match?.groups?.body;
-	if (!body) return [];
-
-	const scopes: string[] = [];
-	for (const entry of body.split(',')) {
-		const pair = entry.match(/^\s*['"]?([a-z-]+)['"]?\s*:\s*(.+?)\s*$/i);
-		if (!pair) continue;
-
-		const scope = pair[1]?.toLowerCase();
-		const value = unquoteYamlScalar(pair[2] ?? '').toLowerCase();
-		if (scope && value === 'write') scopes.push(scope);
-	}
-	return scopes;
-}
-
-function workflowWritePermissionScopes(text: string): string[] {
-	const scopes = new Set<string>();
-	for (const line of meaningfulWorkflowLines(text)) {
-		const blockScope = line.match(/^\s*([a-z-]+)\s*:\s*write\b/i)?.[1];
-		if (blockScope) scopes.add(blockScope.toLowerCase());
-
-		for (const inlineScope of inlinePermissionWriteScopes(line)) {
-			scopes.add(inlineScope);
-		}
-	}
-	return [...scopes];
+	return analyzeWorkflowPermissions(text).declaresPermissions;
 }
 
 function workflowPermissionFinding(workflows: RepoFileEvidence[]): RepoReadinessFinding {
 	for (const workflow of workflows) {
 		const text = workflow.text ?? '';
-		if (hasWriteAllPermissions(text)) {
+		const permissions = analyzeWorkflowPermissions(text);
+		if (permissions.writeAll) {
 			return finding(
 				'workflow-permissions',
 				'Workflow permissions',
@@ -506,7 +472,7 @@ function workflowPermissionFinding(workflows: RepoFileEvidence[]): RepoReadiness
 			);
 		}
 
-		const writeScopes = workflowWritePermissionScopes(text);
+		const writeScopes = permissions.writeScopes;
 		if (writeScopes.length > 0) {
 			return finding(
 				'workflow-permissions',

@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url';
 
 import ts from 'typescript';
 
+import { analyzeWorkflowPermissions } from '../ci/workflow-permissions';
+
 export const ENTERPRISE_COVERAGE_MINIMUMS = {
 	statements: 90,
 	lines: 90,
@@ -99,15 +101,8 @@ function pushCheck(checked: string[], failures: string[], label: string, pass: b
 }
 
 function hasLeastPrivilegeWorkflowPermissions(workflow: string): boolean {
-	const declaresContentsRead =
-		/^\s*permissions\s*:\s*\r?\n\s+contents\s*:\s*read\b/im.test(workflow) ||
-		/^\s*permissions\s*:\s*\{\s*contents\s*:\s*read\s*(?:,|\})/im.test(workflow);
-	const declaresWriteScope =
-		/^\s*permissions\s*:\s*write-all\b/im.test(workflow) ||
-		/^\s*[a-z-]+\s*:\s*write\b/im.test(workflow) ||
-		/^\s*permissions\s*:\s*\{[^}]*:\s*write\b/im.test(workflow);
-
-	return declaresContentsRead && !declaresWriteScope;
+	const permissions = analyzeWorkflowPermissions(workflow);
+	return permissions.contentsRead && !permissions.writeAll && permissions.writeScopes.length === 0;
 }
 
 export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsReport {
