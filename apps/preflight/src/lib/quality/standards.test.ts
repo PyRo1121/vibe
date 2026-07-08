@@ -77,7 +77,7 @@ describe('quality standards guard', () => {
 				'GitHub workflows declare least-privilege token permissions',
 				'Playwright CI captures screenshots, videos, traces, junit, and html failure reports',
 				'Playwright config forbids focused CI tests and isolates CI server state',
-				'Playwright E2E specs cannot contain focused or disabled tests',
+				'Deploylint unit and E2E specs cannot contain focused or disabled tests',
 				'Vitest CI captures junit test-result artifacts for preflight, MCP, and shared packages'
 			])
 		);
@@ -338,6 +338,12 @@ jobs:
 
 				test.only('hides the rest of the e2e suite', async () => {});`
 			);
+			writeFixtureFile(
+				join(root, 'apps/preflight-mcp/src/skipped.test.ts'),
+				`import { it } from 'vitest';
+
+				it.skip('silently hides MCP coverage', () => {});`
+			);
 
 			const report = inspectQualityStandards(root);
 
@@ -391,7 +397,7 @@ jobs:
 					'GitHub workflows declare least-privilege token permissions',
 					'Playwright CI captures screenshots, videos, traces, junit, and html failure reports',
 					'Playwright config forbids focused CI tests and isolates CI server state',
-					'Playwright E2E specs cannot contain focused or disabled tests',
+					'Deploylint unit and E2E specs cannot contain focused or disabled tests',
 					'Vitest CI captures junit test-result artifacts for preflight, MCP, and shared packages',
 					'quality standards script is runnable from npm'
 				])

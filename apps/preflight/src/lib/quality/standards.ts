@@ -42,6 +42,13 @@ const DEPLOYLINT_WORKFLOW_PATH_FILTERS = [
 	'.github/workflows/deploylint-dogfood.yml'
 ];
 
+const DEPLOYLINT_TEST_SOURCE_ROOTS = [
+	'apps/deploylint-shared',
+	'apps/preflight/e2e',
+	'apps/preflight/src',
+	'apps/preflight-mcp/src'
+];
+
 const GITHUB_ACTION_SHA = /^[a-f0-9]{40}$/i;
 
 const PINNED_WORKFLOW_ACTIONS = {
@@ -298,7 +305,10 @@ function isDisabledTestCall(expression: ts.Expression): boolean {
 }
 
 function findDisabledTestModifiers(rootDir: string): string[] {
-	return listSourceFiles(join(rootDir, 'apps/preflight/e2e')).flatMap((path) => {
+	const testFiles = DEPLOYLINT_TEST_SOURCE_ROOTS.flatMap((sourceRoot) =>
+		listSourceFiles(join(rootDir, sourceRoot))
+	);
+	return testFiles.flatMap((path) => {
 		const source = ts.createSourceFile(
 			path,
 			readFileSync(path, 'utf8'),
@@ -854,7 +864,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const dogfoodWorkflow = readFileSync(dogfoodWorkflowPath, 'utf8');
 	const preflightGateWorkflowConfig = readYamlRecord(preflightGateWorkflowPath);
 	const dogfoodWorkflowConfig = readYamlRecord(dogfoodWorkflowPath);
-	const disabledE2eTests = findDisabledTestModifiers(rootDir);
+	const disabledTests = findDisabledTestModifiers(rootDir);
 	const nvmrcMajor = Number.parseInt(readFileSync(nvmrcPath, 'utf8').trim(), 10);
 	const preflightTypeAwareLint = preflightPackage.scripts['lint:type-aware'] ?? '';
 	const mcpTypeAwareLint = preflightMcpPackage.scripts['lint:type-aware'] ?? '';
@@ -1430,8 +1440,8 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
-		'Playwright E2E specs cannot contain focused or disabled tests',
-		disabledE2eTests.length === 0
+		'Deploylint unit and E2E specs cannot contain focused or disabled tests',
+		disabledTests.length === 0
 	);
 	pushCheck(
 		checked,
