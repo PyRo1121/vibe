@@ -17,6 +17,7 @@ export default defineConfig({
 	test: {
 		include: ['src/**/*.{test,spec}.{js,ts}'],
 		environment: 'node',
+		allowOnly: false,
 		passWithNoTests: false,
 		reporters: testReporters,
 		outputFile: {

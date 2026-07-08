@@ -598,6 +598,14 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
+		'Vitest configs reject focused tests in every environment',
+		[viteConfigPath, mcpViteConfigPath, deploylintSharedViteConfigPath].every(
+			(configPath) => readBooleanConfigProperty(configPath, 'allowOnly') === false
+		)
+	);
+	pushCheck(
+		checked,
+		failures,
 		'preflight-mcp coverage thresholds meet enterprise minimums',
 		Object.entries(ENTERPRISE_COVERAGE_MINIMUMS).every(
 			([metric, minimum]) =>

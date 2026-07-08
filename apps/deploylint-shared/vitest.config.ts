@@ -10,6 +10,7 @@ export default defineConfig({
 		environment: 'node',
 		include: ['*.test.js'],
 		exclude: ['coverage/**', 'node_modules/**'],
+		allowOnly: false,
 		passWithNoTests: false,
 		reporters: testReporters,
 		outputFile: {
