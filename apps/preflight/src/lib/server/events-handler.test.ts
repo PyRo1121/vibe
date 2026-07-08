@@ -28,6 +28,34 @@ describe('handleEventsPost', () => {
 		).rejects.toThrow('Unknown event');
 	});
 
+	it('rejects empty, array, and non-object event bodies', async () => {
+		for (const body of ['', 'null', '[]', '"unlock_click"']) {
+			await expect(
+				handleEventsPost(
+					new Request('http://localhost/api/events', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body
+					})
+				)
+			).rejects.toThrow('Invalid event body');
+		}
+	});
+
+	it('rejects missing or non-string event names', async () => {
+		for (const payload of [{ score: 42 }, { event: 42 }]) {
+			await expect(
+				handleEventsPost(
+					new Request('http://localhost/api/events', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify(payload)
+					})
+				)
+			).rejects.toThrow('Unknown event');
+		}
+	});
+
 	it('treats client-aborted analytics events as no-content noise', async () => {
 		const request = {
 			headers: new Headers({ 'Content-Type': 'application/json' }),
@@ -39,5 +67,16 @@ describe('handleEventsPost', () => {
 		const res = await handleEventsPost(request);
 
 		expect(res.status).toBe(204);
+	});
+
+	it('does not swallow non-abort body read failures', async () => {
+		const request = {
+			headers: new Headers({ 'Content-Type': 'application/json' }),
+			text: async () => {
+				throw new Error('disk unavailable');
+			}
+		} as unknown as Request;
+
+		await expect(handleEventsPost(request)).rejects.toThrow('disk unavailable');
 	});
 });

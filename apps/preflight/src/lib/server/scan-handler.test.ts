@@ -4,8 +4,10 @@ import { handleScanPost } from './scan-handler';
 
 type ResolveUnlock = typeof import('$lib/server/resolve-unlock').resolveUnlock;
 type SanitizeReport = typeof import('$lib/billing/report').sanitizeReport;
+type ScanRepo = typeof import('$lib/scan/repo/scan').scanRepo;
 type ScanUrl = typeof import('$lib/scan/engine').scanUrl;
 type VerifyCheckoutSession = typeof import('$lib/billing/stripe').verifyCheckoutSession;
+type AiRun = import('$lib/server/copy-review').AiRunner['run'];
 
 const alphaEnv = { DEPLOYLINT_ALPHA_FREE_UNLOCK: 'true' } as Env;
 
@@ -30,11 +32,25 @@ vi.mock('$lib/server/resolve-unlock', () => ({
 	resolveUnlock: vi.fn<ResolveUnlock>(async () => true)
 }));
 
+vi.mock('$lib/scan/repo/scan', () => ({
+	scanRepo: vi.fn<ScanRepo>(async () => ({
+		url: 'https://github.com/acme/shop',
+		finalUrl: 'https://github.com/acme/shop',
+		scannedAt: new Date().toISOString(),
+		score: 72,
+		verdict: 'conditional',
+		verdictMessage: 'repo needs work',
+		checks: [],
+		summary: { pass: 1, warn: 0, fail: 0 }
+	}))
+}));
+
 vi.mock('$lib/billing/report', () => ({
 	sanitizeReport: vi.fn<SanitizeReport>((report, unlocked) => ({ ...report, unlocked }))
 }));
 
 import { scanUrl } from '$lib/scan/engine';
+import { scanRepo } from '$lib/scan/repo/scan';
 import { resolveUnlock } from '$lib/server/resolve-unlock';
 
 afterEach(() => {
@@ -138,6 +154,38 @@ describe('handleScanPost', () => {
 		});
 	});
 
+	it('fails paid unlock requests explicitly when no verifier is configured', async () => {
+		const request = new Request('http://localhost/api/scan', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ url: 'https://app.test', unlockSessionId: 'cs_test_abc123' })
+		});
+
+		await expect(handleScanPost(request)).rejects.toMatchObject({
+			status: 503,
+			body: { message: 'Unlock verification is not configured yet' }
+		});
+		expect(resolveUnlock).not.toHaveBeenCalled();
+	});
+
+	it('routes GitHub repository URLs through the repo scanner', async () => {
+		const request = new Request('http://localhost/api/scan', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ url: 'https://github.com/acme/shop/tree/main' })
+		});
+
+		const res = await handleScanPost(request, { GITHUB_TOKEN: 'gh_test_token' } as Env);
+		const body = (await res.json()) as { finalUrl?: string };
+
+		expect(body.finalUrl).toBe('https://github.com/acme/shop');
+		expect(scanRepo).toHaveBeenCalledWith(
+			{ owner: 'acme', repo: 'shop' },
+			{ token: 'gh_test_token' }
+		);
+		expect(scanUrl).not.toHaveBeenCalled();
+	});
+
 	it('stores the report and returns a permalink id when KV is bound', async () => {
 		const store = new Map<string, string>();
 		const kv = {
@@ -235,6 +283,102 @@ describe('handleScanPost', () => {
 			aiCopyReview?: { headline: string };
 		};
 		expect(unlocked.aiCopyReview?.headline).toBe('Better headline');
+	});
+
+	it('passes social copy and the top non-passing checks into paid AI review', async () => {
+		vi.mocked(scanUrl).mockResolvedValueOnce({
+			url: 'https://app.test',
+			finalUrl: 'https://app.test/',
+			scannedAt: new Date().toISOString(),
+			score: 68,
+			verdict: 'conditional',
+			verdictMessage: 'fix trust gaps',
+			socialPreview: {
+				title: 'Launch title',
+				description: 'Launch description',
+				image: null,
+				imageUrl: null,
+				twitterCard: null,
+				ready: false,
+				issues: []
+			},
+			checks: [
+				{
+					id: 'privacy',
+					category: 'legal',
+					title: 'Privacy policy',
+					status: 'fail',
+					message: 'Missing legal trust',
+					priority: 'p0',
+					fixPrompt: 'Add a privacy policy'
+				},
+				{
+					id: 'checkout',
+					category: 'payments',
+					title: 'Checkout',
+					status: 'warn',
+					message: 'No server verification',
+					priority: 'p1',
+					fixPrompt: 'Verify checkout server-side'
+				},
+				{
+					id: 'favicon',
+					category: 'seo',
+					title: 'Favicon',
+					status: 'pass',
+					message: 'Present',
+					priority: 'p2',
+					fixPrompt: ''
+				}
+			],
+			summary: { pass: 1, warn: 1, fail: 1 }
+		});
+		const run = vi.fn<AiRun>(async () => ({
+			response:
+				'{"bullets":["Trust gap is concrete"],"headline":"Ship with trust","subhead":"Fix the proof points before launch."}'
+		}));
+
+		const res = await handleScanPost(makeScanRequest(), {
+			...alphaEnv,
+			AI: { run }
+		} as unknown as Env);
+		const body = (await res.json()) as { aiCopyReview?: { headline: string } };
+		const options = run.mock.calls[0]?.[1] as { messages?: Array<{ content: string }> };
+		const prompt = options.messages?.[0]?.content ?? '';
+
+		expect(body.aiCopyReview?.headline).toBe('Ship with trust');
+		expect(prompt).toContain('Current title tag: Launch title');
+		expect(prompt).toContain('Current meta description: Launch description');
+		expect(prompt).toContain('Privacy policy: Missing legal trust');
+		expect(prompt).toContain('Checkout: No server verification');
+		expect(prompt).not.toContain('Favicon: Present');
+	});
+
+	it('skips paid AI review for blocked scans', async () => {
+		vi.mocked(scanUrl).mockResolvedValueOnce({
+			url: 'https://app.test',
+			finalUrl: 'https://app.test/',
+			scannedAt: new Date().toISOString(),
+			score: 0,
+			verdict: 'no-go',
+			verdictMessage: 'blocked',
+			scanCoverage: 'blocked',
+			checks: [],
+			summary: { pass: 0, warn: 0, fail: 1 }
+		});
+		const run = vi.fn<AiRun>(async () => ({
+			response:
+				'{"bullets":["Should not run"],"headline":"Blocked","subhead":"Blocked scans skip copy review."}'
+		}));
+
+		const res = await handleScanPost(makeScanRequest(), {
+			...alphaEnv,
+			AI: { run }
+		} as unknown as Env);
+		const body = (await res.json()) as { aiCopyReview?: unknown };
+
+		expect(body.aiCopyReview).toBeUndefined();
+		expect(run).not.toHaveBeenCalled();
 	});
 
 	it('uses alpha access for re-scan score deltas without checkout verification', async () => {
