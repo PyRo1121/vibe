@@ -20,7 +20,7 @@ test.describe('home', () => {
 		await expect(page.getByText('Block bad deploys in CI')).toBeVisible();
 		await expect(page.getByText('Find deploy-path drift')).toBeVisible();
 		await expect(page.getByRole('button', { name: DEPLOY_TARGET_BUTTON })).toBeVisible();
-		await expect(page.getByText('Deploy target audit')).toBeVisible();
+		await expect(page.getByText('Project readiness audit')).toBeVisible();
 		await expect(page.getByRole('link', { name: /See how we compare/i })).toBeVisible();
 	});
 });

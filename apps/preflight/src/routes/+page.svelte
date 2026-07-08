@@ -464,7 +464,7 @@ jobs:
 			</p>
 		</div>
 		<div class="flex flex-col gap-3 sm:flex-row">
-			<label for="scan-url" class="sr-only">URL to scan</label>
+			<label for="scan-url" class="sr-only">Project or deploy target</label>
 			<input
 				id="scan-url"
 				type="text"
@@ -472,7 +472,7 @@ jobs:
 				autocomplete="url"
 				bind:value={url}
 				required
-				placeholder="your-app.com or github.com/you/repo"
+				placeholder="deploy URL or github.com/you/repo"
 				class="flex-1 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-white placeholder:text-zinc-600 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
 			/>
 			<button
@@ -480,7 +480,7 @@ jobs:
 				disabled={loading || !url.trim()}
 				class="rounded-xl bg-sky-600 px-6 py-3 font-semibold text-white hover:bg-sky-500 disabled:bg-sky-900 disabled:text-sky-100"
 			>
-				{loading ? 'Auditing...' : 'Add target'}
+				{loading ? 'Building report...' : 'Add evidence'}
 			</button>
 		</div>
 		{#if loading}
@@ -603,7 +603,7 @@ jobs:
 				</p>
 			</div>
 			<div class="rounded-xl border border-zinc-800 p-5">
-				<p class="font-medium text-white">Deploy target audit</p>
+				<p class="font-medium text-white">Project readiness audit</p>
 				<p class="mt-1 text-sm text-zinc-400">
 					Crawler, trust, payment, preview, and repo checks after workflow risk is under control
 				</p>

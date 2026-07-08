@@ -2,7 +2,8 @@ import { expect, type Page } from '@playwright/test';
 
 import type { ScanReport } from '../src/lib/scan/types';
 
-export const DEPLOY_TARGET_BUTTON = 'Add target';
+export const DEPLOY_TARGET_BUTTON = 'Add evidence';
+export const DEPLOY_TARGET_INPUT = 'deploy URL or github.com/you/repo';
 
 export async function mockScanApi(page: Page, report: ScanReport | 'error', status = 200) {
 	await page.route('**/api/scan', async (route) => {
@@ -29,7 +30,7 @@ export async function mockScanApi(page: Page, report: ScanReport | 'error', stat
 }
 
 export async function runMockScan(page: Page, url = 'https://demo-app.test') {
-	await page.getByPlaceholder('your-app.com or github.com/you/repo').fill(url);
+	await page.getByPlaceholder(DEPLOY_TARGET_INPUT).fill(url);
 	await page.getByRole('button', { name: DEPLOY_TARGET_BUTTON }).click();
 	await expect(page.getByText('Deploy verdict')).toBeVisible({ timeout: 15_000 });
 }

@@ -37,13 +37,13 @@
 			action: 'Wire CI advisory'
 		},
 		{
-			name: 'Deploy Target Audit',
+			name: 'Project Readiness Audit',
 			href: '/',
 			status: 'Live',
-			kicker: 'Secondary utility',
+			kicker: 'Readiness evidence',
 			description:
-				'Audit a live URL or public GitHub repo for crawler, trust, payment, preview, and repo signals after CI is under control.',
-			action: 'Audit target'
+				'Add a live URL or public GitHub repo to collect crawler, trust, payment, preview, and repo evidence after CI is under control.',
+			action: 'Add evidence'
 		},
 		{
 			name: 'Repo Hygiene Checker',
