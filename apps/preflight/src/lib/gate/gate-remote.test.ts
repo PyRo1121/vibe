@@ -84,6 +84,37 @@ async function withScanApi<T>(report: unknown, fn: (apiBase: string) => Promise<
 	}
 }
 
+async function withSlowScanApi<T>(fn: (apiBase: string) => Promise<T>): Promise<T> {
+	const server = createServer((req, res) => {
+		if (req.method !== 'POST' || req.url !== '/api/scan') {
+			res.writeHead(404);
+			res.end('not found');
+			return;
+		}
+
+		setTimeout(() => {
+			if (res.destroyed) return;
+			res.writeHead(200, { 'Content-Type': 'application/json' });
+			res.end(JSON.stringify(failingReport));
+		}, 500);
+	});
+
+	await new Promise<void>((resolve) => server.listen({ port: 0, host: '127.0.0.1' }, resolve));
+	const address = server.address();
+	if (!address || typeof address === 'string') throw new Error('local server did not bind');
+
+	try {
+		return await fn(`http://127.0.0.1:${address.port}`);
+	} finally {
+		await new Promise<void>((resolve, reject) => {
+			server.close((err) => {
+				if (err) reject(err);
+				else resolve();
+			});
+		});
+	}
+}
+
 function runGate(apiBase: string, { args = [], env = {} }: GateRunOptions = {}) {
 	return new Promise<GateRunResult>((resolve, reject) => {
 		const child = spawn(process.execPath, [scriptPath, 'https://target.test', ...args], {
@@ -158,6 +189,21 @@ describe('gate-remote advisory output', () => {
 			expect(payload.gatePass).toBe(false);
 			expect(payload.advisory).toBe(true);
 			expect(payload.reasons).toContain('Score 40 is below minimum 80');
+		});
+	});
+
+	it('fails quickly with a useful timeout message when the scan API hangs', async () => {
+		await withSlowScanApi(async (apiBase) => {
+			const result = await runGate(apiBase, {
+				env: {
+					DEPLOYLINT_FETCH_TIMEOUT_MS: '25',
+					DEPLOYLINT_FETCH_RETRIES: '0'
+				}
+			});
+
+			expect(result.code).toBe(2);
+			expect(result.stderr).toContain('Timed out after 25ms while POST');
+			expect(result.stderr).toContain('/api/scan');
 		});
 	});
 });

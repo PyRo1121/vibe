@@ -11,6 +11,9 @@
  *   DEPLOYLINT_API       API base (default https://deploylint.com)
  *   DEPLOYLINT_MIN_SCORE Minimum score (default 80)
  *   DEPLOYLINT_MODE      "gate" (default, exits 1 on blockers) or "advisory" (report only, always exits 0)
+ *   DEPLOYLINT_FETCH_TIMEOUT_MS  Per-request timeout (default 30000)
+ *   DEPLOYLINT_FETCH_RETRIES     Retry count for transient network failures (default 2)
+ *   DEPLOYLINT_FETCH_RETRY_DELAY_MS  Initial retry delay (default 500)
  *
  * Backward-compatible aliases:
  *   DEPLOYLINT_GATE_URL, PREFLIGHT_URL, PREFLIGHT_GATE_URL, PREFLIGHT_API, PREFLIGHT_MIN_SCORE, PREFLIGHT_MODE
@@ -64,6 +67,9 @@ const minScore = Number(
 );
 const mode = (process.env.DEPLOYLINT_MODE ?? process.env.PREFLIGHT_MODE ?? 'gate').toLowerCase();
 const advisory = mode === 'advisory';
+const fetchTimeoutMs = envInt('DEPLOYLINT_FETCH_TIMEOUT_MS', 30_000, 1);
+const fetchRetries = envInt('DEPLOYLINT_FETCH_RETRIES', 2);
+const fetchRetryDelayMs = envInt('DEPLOYLINT_FETCH_RETRY_DELAY_MS', 500);
 
 function printHelp() {
 	console.error('Usage: node gate-remote.mjs <url>');
@@ -78,6 +84,9 @@ function printHelp() {
 	console.error('  DEPLOYLINT_API        API base (default https://deploylint.com)');
 	console.error('  DEPLOYLINT_MIN_SCORE  Minimum score, 0-100 (default 80)');
 	console.error('  DEPLOYLINT_MODE       gate or advisory (default gate)');
+	console.error('  DEPLOYLINT_FETCH_TIMEOUT_MS  Per-request timeout in milliseconds');
+	console.error('  DEPLOYLINT_FETCH_RETRIES     Retry count for transient network failures');
+	console.error('  DEPLOYLINT_FETCH_RETRY_DELAY_MS  Initial retry delay in milliseconds');
 	console.error('');
 	console.error('Compatibility aliases: DEPLOYLINT_GATE_URL, PREFLIGHT_URL, PREFLIGHT_GATE_URL');
 }
@@ -100,6 +109,64 @@ if (!Number.isFinite(minScore) || minScore < 0 || minScore > 100) {
 if (!['gate', 'advisory'].includes(mode)) {
 	console.error('DEPLOYLINT_MODE must be "gate" or "advisory".');
 	process.exit(2);
+}
+
+function envInt(name, fallback, min = 0) {
+	const rawValue = process.env[name];
+	if (rawValue === undefined || rawValue.trim() === '') return fallback;
+	const value = Number(rawValue);
+	return Number.isFinite(value) && value >= min ? value : fallback;
+}
+
+function sleep(ms) {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function retryDelayMs(attempt) {
+	return fetchRetryDelayMs * 2 ** attempt;
+}
+
+function describeFetchError(err) {
+	return err instanceof Error ? err.message : String(err);
+}
+
+function isRetryableFetchError(err) {
+	if (!(err instanceof Error)) return false;
+	return /fetch failed|network|socket|timed out|timeout|aborted|ECONNRESET|ETIMEDOUT|ENOTFOUND|EAI_AGAIN/i.test(
+		err.message
+	);
+}
+
+async function fetchWithTimeout(url, init, label) {
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), fetchTimeoutMs);
+	let timedOut = false;
+
+	try {
+		return await fetch(url, { ...init, signal: controller.signal });
+	} catch (err) {
+		timedOut = controller.signal.aborted;
+		if (timedOut)
+			throw new Error(`Timed out after ${fetchTimeoutMs}ms while ${label}`, { cause: err });
+		throw err;
+	} finally {
+		clearTimeout(timeout);
+	}
+}
+
+async function fetchWithRetry(url, init, label) {
+	for (let attempt = 0; ; attempt += 1) {
+		try {
+			return await fetchWithTimeout(url, init, label);
+		} catch (err) {
+			if (attempt >= fetchRetries || !isRetryableFetchError(err)) throw err;
+			const delayMs = retryDelayMs(attempt);
+			console.warn(
+				`[gate] fetch retry ${attempt + 1}/${fetchRetries} in ${delayMs}ms after ${describeFetchError(err)}`
+			);
+			await sleep(delayMs);
+		}
+	}
 }
 
 function evaluateGate(report) {
@@ -198,7 +265,11 @@ async function upsertPrComment(ctx, markdown) {
 	};
 	const base = `https://api.github.com/repos/${ctx.repo}/issues/${ctx.prNumber}/comments`;
 	try {
-		const list = await fetch(`${base}?per_page=100`, { headers });
+		const list = await fetchWithRetry(
+			`${base}?per_page=100`,
+			{ headers },
+			'list GitHub PR comments'
+		);
 		if (list.ok) {
 			const comments = await list.json();
 			const existing = comments.find(
@@ -208,20 +279,28 @@ async function upsertPrComment(ctx, markdown) {
 					c.body.includes(COMMENT_MARKER)
 			);
 			if (existing) {
-				await fetch(`https://api.github.com/repos/${ctx.repo}/issues/comments/${existing.id}`, {
-					method: 'PATCH',
-					headers,
-					body: JSON.stringify({ body: markdown })
-				});
+				await fetchWithRetry(
+					`https://api.github.com/repos/${ctx.repo}/issues/comments/${existing.id}`,
+					{
+						method: 'PATCH',
+						headers,
+						body: JSON.stringify({ body: markdown })
+					},
+					'update GitHub PR comment'
+				);
 				console.log('Updated Deploylint PR comment.');
 				return;
 			}
 		}
-		const created = await fetch(base, {
-			method: 'POST',
-			headers,
-			body: JSON.stringify({ body: markdown })
-		});
+		const created = await fetchWithRetry(
+			base,
+			{
+				method: 'POST',
+				headers,
+				body: JSON.stringify({ body: markdown })
+			},
+			'create GitHub PR comment'
+		);
 		console.log(
 			created.ok ? 'Posted Deploylint PR comment.' : `PR comment failed (HTTP ${created.status}).`
 		);
@@ -233,11 +312,15 @@ async function upsertPrComment(ctx, markdown) {
 
 async function main() {
 	console.log(`Scanning ${targetUrl} via ${apiBase} …`);
-	const res = await fetch(`${apiBase}/api/scan`, {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ url: targetUrl })
-	});
+	const res = await fetchWithRetry(
+		`${apiBase}/api/scan`,
+		{
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ url: targetUrl })
+		},
+		`POST ${apiBase}/api/scan`
+	);
 
 	const body = await res.json().catch(() => null);
 	if (!res.ok) {

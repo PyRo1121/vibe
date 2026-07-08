@@ -368,6 +368,16 @@ function hasWeeklyDependabotUpdate(source: string, ecosystem: string): boolean {
 	);
 }
 
+function hasBoundedGateFetch(source: string): boolean {
+	return [
+		'DEPLOYLINT_FETCH_TIMEOUT_MS',
+		'DEPLOYLINT_FETCH_RETRIES',
+		'AbortController',
+		'fetchWithRetry',
+		'Timed out after'
+	].every((fragment) => source.includes(fragment));
+}
+
 export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsReport {
 	const preflightRoot = join(rootDir, 'apps/preflight');
 	const preflightMcpRoot = join(rootDir, 'apps/preflight-mcp');
@@ -381,6 +391,8 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const deploylintSharedPackagePath = join(deploylintSharedRoot, 'package.json');
 	const deploylintSharedTsconfigPath = join(deploylintSharedRoot, 'tsconfig.json');
 	const deploylintSharedViteConfigPath = join(deploylintSharedRoot, 'vitest.config.ts');
+	const localGateScriptPath = join(preflightRoot, 'scripts/gate.ts');
+	const remoteGateScriptPath = join(preflightRoot, 'scripts/gate-remote.mjs');
 	const oxlintPath = join(rootDir, '.oxlintrc.jsonc');
 	const oxfmtPath = join(rootDir, '.oxfmtrc.jsonc');
 	const rootSvelteConfigPath = join(rootDir, 'svelte.config.js');
@@ -410,6 +422,8 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		deploylintSharedPackagePath,
 		deploylintSharedTsconfigPath,
 		deploylintSharedViteConfigPath,
+		localGateScriptPath,
+		remoteGateScriptPath,
 		oxlintPath,
 		oxfmtPath,
 		rootSvelteConfigPath,
@@ -488,6 +502,8 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const viteConfigSource = readFileSync(viteConfigPath, 'utf8');
 	const mcpViteConfigSource = readFileSync(mcpViteConfigPath, 'utf8');
 	const deploylintSharedViteConfigSource = readFileSync(deploylintSharedViteConfigPath, 'utf8');
+	const localGateScriptSource = readFileSync(localGateScriptPath, 'utf8');
+	const remoteGateScriptSource = readFileSync(remoteGateScriptPath, 'utf8');
 	const rootSvelteConfigSource = readFileSync(rootSvelteConfigPath, 'utf8');
 	const dependabotSource = readFileSync(dependabotPath, 'utf8');
 	const playwrightConfig = readFileSync(playwrightConfigPath, 'utf8');
@@ -629,6 +645,12 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			hasWeeklyDependabotUpdate(dependabotSource, 'github-actions') &&
 			dependabotSource.includes('labels:') &&
 			dependabotSource.includes('ci-hardening')
+	);
+	pushCheck(
+		checked,
+		failures,
+		'Deploylint gate scripts bound network calls with timeout and retry controls',
+		hasBoundedGateFetch(localGateScriptSource) && hasBoundedGateFetch(remoteGateScriptSource)
 	);
 	pushCheck(
 		checked,
