@@ -53,6 +53,8 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
 	const project = workspace.projects[0];
 	const activation = buildWorkspaceActivation(workspace);
 	const projectDraftApplied = projectReflectsDraft(project, projectDraft);
+	const recurringReportsEnabled =
+		workspace.billing.mode === 'paid' || workspace.billing.mode === 'alpha';
 
 	return {
 		appUrl: appUrl.replace(/\/$/, ''),
@@ -66,6 +68,7 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
 		activation,
 		checkoutStatus: checkoutReturnStatus(url.searchParams.get('checkout')),
 		projectDraftApplied,
+		recurringReportsEnabled,
 		gatePolicy: project ? buildWorkspaceGatePolicy(project) : null,
 		advisoryWorkflow: project
 			? buildAdvisoryWorkflow({
@@ -74,7 +77,8 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
 					deployUrl: project.deployUrl,
 					repoLabel: project.repoLabel,
 					mode: project.gateMode,
-					minScore: project.minScore
+					minScore: project.minScore,
+					recurring: recurringReportsEnabled
 				})
 			: ''
 	};

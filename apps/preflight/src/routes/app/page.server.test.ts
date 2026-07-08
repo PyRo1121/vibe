@@ -218,6 +218,7 @@ describe('/app server load', () => {
 		expect(pageData.advisoryWorkflow).toContain(
 			'DEPLOYLINT_INGEST_TOKEN: ${{ secrets.DEPLOYLINT_INGEST_TOKEN }}'
 		);
+		expect(pageData.advisoryWorkflow).not.toContain('schedule:');
 		expect(pageData.advisoryWorkflow).not.toContain('proj_demo_123');
 		expect(pageData.advisoryWorkflow).not.toContain(pageData.workspace.projects[0].ingestToken);
 	});
@@ -483,6 +484,8 @@ describe('/app server load', () => {
 		});
 		expect(pageData.workspace.metrics.reportsThisMonth).toBe(6);
 		expect(pageData.advisoryWorkflow).toContain('DEPLOYLINT_PROJECT_ID: proj_live-123');
+		expect(pageData.advisoryWorkflow).toContain('schedule:');
+		expect(pageData.advisoryWorkflow).toContain("cron: '17 9 * * 1'");
 	});
 
 	it('enables blocking gate mode for a ready owned project', async () => {

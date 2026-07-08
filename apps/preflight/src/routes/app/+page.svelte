@@ -60,6 +60,7 @@
 		`${activation.progress.completed}/${activation.progress.total} complete`
 	);
 	const hasAdvisoryWorkflow = $derived(data.advisoryWorkflow.trim().length > 0);
+	const recurringReportsEnabled = $derived(data.recurringReportsEnabled);
 	const checkoutNotice = $derived(checkoutNoticeCopy(data.checkoutStatus));
 	const workspaceCommandStats = $derived(buildWorkspaceCommandCenterStats(workspace));
 	const commandCenterSummary = $derived(
@@ -609,8 +610,16 @@
 				<p class="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
 					{gateEnabled
 						? 'This workflow now fails risky deploy changes when the score, verdict, or blocker policy does not pass.'
-						: 'Advisory mode reports deploy risk without failing builds. Once the first report is clean, this same project can become a blocking gate.'}
+						: recurringReportsEnabled
+							? 'Advisory mode reports deploy risk on pull requests and a weekly scheduled run without failing builds. Once the signal is clean, this same project can become a blocking gate.'
+							: 'Advisory mode reports deploy risk without failing builds. Once the first report is clean, this same project can become a blocking gate.'}
 				</p>
+				{#if recurringReportsEnabled}
+					<p class="mt-2 max-w-2xl text-sm leading-6 text-sky-200">
+						Weekly workspace report runs every Monday from the default branch to keep report history
+						moving between pull requests.
+					</p>
+				{/if}
 				<p class="mt-2 max-w-2xl text-sm leading-6 text-zinc-500">
 					This project-scoped workflow writes CI reports back to this workspace through
 					<code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">DEPLOYLINT_PROJECT_ID</code>

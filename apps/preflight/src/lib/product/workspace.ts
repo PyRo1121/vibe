@@ -357,16 +357,19 @@ export function buildAdvisoryWorkflow(opts: {
 	repoLabel?: string;
 	mode?: ProjectGateMode;
 	minScore: number;
+	recurring?: boolean;
 }): string {
 	const appUrl = normalizeAppUrl(opts.appUrl);
 	const mode = opts.mode ?? 'advisory';
 	const repoEnvLine = opts.repoLabel ? `          DEPLOYLINT_REPO_URL: ${opts.repoLabel}\n` : '';
+	const scheduleTrigger = opts.recurring ? `  schedule:\n    - cron: '17 9 * * 1'\n` : '';
 
 	return `name: Deploylint readiness report
 
 on:
   pull_request:
   workflow_dispatch:
+${scheduleTrigger}
 
 permissions:
   contents: read

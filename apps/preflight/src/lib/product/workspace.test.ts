@@ -64,6 +64,25 @@ describe('Deploylint workspace model', () => {
 		expect(workflow).toContain('DEPLOYLINT_INGEST_TOKEN is unavailable');
 		expect(workflow).toContain('Continuing without Deploylint workspace history');
 		expect(workflow).toContain('node gate-remote.mjs "$DEPLOYLINT_URL"');
+		expect(workflow).not.toContain('schedule:');
+		expect(workflow).not.toContain('cron:');
+	});
+
+	it('generates weekly scheduled workspace reports for recurring monitoring plans', () => {
+		const workflow = buildAdvisoryWorkflow({
+			appUrl: 'https://deploylint.com/',
+			projectId: 'proj_live_123',
+			deployUrl: 'https://app.example.com',
+			repoLabel: 'github.com/acme/app',
+			minScore: 80,
+			recurring: true
+		});
+
+		expect(workflow).toContain('pull_request:');
+		expect(workflow).toContain('workflow_dispatch:');
+		expect(workflow).toContain('schedule:');
+		expect(workflow).toContain("cron: '17 9 * * 1'");
+		expect(workflow).toContain('DEPLOYLINT_PROJECT_ID: proj_live_123');
 	});
 
 	it('generates gate-mode workflow config after workspace promotion', () => {

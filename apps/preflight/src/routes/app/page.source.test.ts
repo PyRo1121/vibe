@@ -49,6 +49,8 @@ describe('/app workspace source', () => {
 		expect(pageSource).toContain('Ready for blocking gate');
 		expect(pageSource).toContain('Blocking gate');
 		expect(pageSource).toContain('Install in GitHub Actions');
+		expect(pageSource).toContain('Weekly workspace report');
+		expect(pageSource).toContain('recurringReportsEnabled');
 		expect(pageSource).toContain('Report history');
 		expect(pageSource).toContain('Awaiting first CI report');
 		expect(pageSource).toContain('Awaiting first run');
