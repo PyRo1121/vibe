@@ -8,7 +8,7 @@ const pages = [
 		path: '/',
 		title: 'Project readiness before deploy - Deploylint',
 		description:
-			'Review CI risk, repo hygiene, license and sell-rights evidence, payment readiness, and public deploy blockers before production.',
+			'Turn CI evidence into workspace-backed deploy gates with repo/license readiness and production-blocker checks before deploy.',
 		canonical: `${baseUrl}/`,
 		heading: /Prove the project is ready before deploy/i,
 		jsonLdTypes: ['WebApplication', 'Organization'],

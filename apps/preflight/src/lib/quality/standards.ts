@@ -100,6 +100,45 @@ export const CRITICAL_COVERAGE_THRESHOLDS = {
 	}
 } as const satisfies ScopedCoverageThresholds;
 
+export const CRITICAL_PER_FILE_COVERAGE_FLOORS = {
+	'src/lib/billing/**.ts': {
+		statements: 93,
+		lines: 94,
+		functions: 100,
+		branches: 88
+	},
+	'src/lib/ci/**.ts': {
+		statements: 98,
+		lines: 100,
+		functions: 100,
+		branches: 95
+	},
+	'src/lib/monitoring/**.ts': {
+		statements: 93,
+		lines: 96,
+		functions: 100,
+		branches: 84
+	},
+	'src/lib/scan/repo/**.ts': {
+		statements: 90,
+		lines: 94,
+		functions: 95,
+		branches: 75
+	},
+	'src/lib/server/**.ts': {
+		statements: 88,
+		lines: 92,
+		functions: 83,
+		branches: 86
+	},
+	'src/routes/api/**/+server.ts': {
+		statements: 96,
+		lines: 100,
+		functions: 100,
+		branches: 91
+	}
+} as const satisfies ScopedCoverageThresholds;
+
 export interface QualityStandardsReport {
 	checked: string[];
 	failures: string[];
@@ -451,6 +490,27 @@ function hasVitestJUnitArtifacts(configSource: string): boolean {
 
 function hasCoverageSummaryReporter(configSource: string): boolean {
 	return configSource.includes("'json-summary'");
+}
+
+function escapeRegExp(value: string): string {
+	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function coverageAssertScriptMatchesPerFileFloors(
+	source: string,
+	expected: ScopedCoverageThresholds
+): boolean {
+	return Object.entries(expected).every(([label, thresholds]) => {
+		const block = new RegExp(
+			`label:\\s*['"]${escapeRegExp(label)}['"][\\s\\S]*?minimums:\\s*\\{([\\s\\S]*?)\\}`,
+			'm'
+		).exec(source)?.[1];
+		if (!block) return false;
+
+		return COVERAGE_METRICS.every((metric) =>
+			new RegExp(`\\b${metric}:\\s*${thresholds[metric]}\\b`).test(block)
+		);
+	});
 }
 
 function pushCheck(checked: string[], failures: string[], label: string, pass: boolean) {
@@ -1248,6 +1308,15 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		].every((fragment) => coverageAssertScriptSource.includes(fragment)) &&
 			rootPackage.scripts['verify:deploylint:ci']?.includes('npm run assert:deploylint:coverage') &&
 			rootPackage.scripts['verify:deploylint:local']?.includes('npm run assert:deploylint:coverage')
+	);
+	pushCheck(
+		checked,
+		failures,
+		'root deploylint coverage assertion matches declared critical per-file floors',
+		coverageAssertScriptMatchesPerFileFloors(
+			coverageAssertScriptSource,
+			CRITICAL_PER_FILE_COVERAGE_FLOORS
+		)
 	);
 	pushCheck(
 		checked,

@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	assertQualityStandards,
 	CRITICAL_COVERAGE_THRESHOLDS,
+	CRITICAL_PER_FILE_COVERAGE_FLOORS,
 	ENTERPRISE_COVERAGE_MINIMUMS,
 	inspectQualityStandards
 } from './standards';
@@ -55,6 +56,7 @@ describe('quality standards guard', () => {
 				'root deploylint format gate checks root dependency configs and workflows',
 				'root deploylint coverage assertion reads package coverage summaries after unit gates',
 				'root deploylint coverage assertion enforces critical per-file coverage floors',
+				'root deploylint coverage assertion matches declared critical per-file floors',
 				'root dead-code gate runs knip against Deploylint workspaces',
 				'Deploylint dead-code gate uses workspace-scoped SvelteKit config',
 				'root SvelteKit tooling shim is dependency-free for Knip',
@@ -411,6 +413,7 @@ jobs:
 					'root deploylint format gate checks root dependency configs and workflows',
 					'root deploylint coverage assertion reads package coverage summaries after unit gates',
 					'root deploylint coverage assertion enforces critical per-file coverage floors',
+					'root deploylint coverage assertion matches declared critical per-file floors',
 					'root dead-code gate runs knip against Deploylint workspaces',
 					'Deploylint dead-code gate uses workspace-scoped SvelteKit config',
 					'root SvelteKit tooling shim is dependency-free for Knip',
@@ -485,6 +488,47 @@ jobs:
 				lines: 95,
 				functions: 100,
 				branches: 90
+			}
+		});
+	});
+
+	it('documents the critical per-file coverage assertion floors', () => {
+		expect(CRITICAL_PER_FILE_COVERAGE_FLOORS).toEqual({
+			'src/lib/billing/**.ts': {
+				statements: 93,
+				lines: 94,
+				functions: 100,
+				branches: 88
+			},
+			'src/lib/ci/**.ts': {
+				statements: 98,
+				lines: 100,
+				functions: 100,
+				branches: 95
+			},
+			'src/lib/monitoring/**.ts': {
+				statements: 93,
+				lines: 96,
+				functions: 100,
+				branches: 84
+			},
+			'src/lib/scan/repo/**.ts': {
+				statements: 90,
+				lines: 94,
+				functions: 95,
+				branches: 75
+			},
+			'src/lib/server/**.ts': {
+				statements: 88,
+				lines: 92,
+				functions: 83,
+				branches: 86
+			},
+			'src/routes/api/**/+server.ts': {
+				statements: 96,
+				lines: 100,
+				functions: 100,
+				branches: 91
 			}
 		});
 	});
