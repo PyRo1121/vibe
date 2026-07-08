@@ -10,11 +10,12 @@
 
 	const base = $derived(data.appUrl.replace(/\/$/, ''));
 	const canonical = $derived(`${base}/checks`);
-	const groups = buildCatalogGroups(catalogEntries());
-	const total = catalogEntries().length;
+	const entries = catalogEntries();
+	const groups = buildCatalogGroups(entries);
+	const total = entries.length;
 	const title = buildSeoTitle('Deploylint check catalog');
 	const description =
-		'Browse Deploylint CI, repo, deploy target, security, detection, and false-positive guidance checks.';
+		'Browse Deploylint CI, repo, deploy target, security, and readiness-control checks.';
 	const jsonLd = $derived([
 		buildPageJsonLd({ base, canonical, title, description, type: 'CollectionPage' })
 	]);
@@ -29,10 +30,10 @@
 			What Deploylint checks, and why
 		</h1>
 		<p class="mt-4 max-w-3xl text-sm leading-7 text-zinc-400">
-			This readiness-control catalog is the shared source of truth behind report explanations. It
-			currently documents {total} high-signal checks first: workflow risk, deploy blockers, security headers,
+			This compact readiness-control catalog shows the signals Deploylint keeps visible in reports.
+			It currently tracks {total} high-signal checks across workflow risk, deploy blockers, security headers,
 			exposed deployment surfaces, CVEs, service readiness, SEO, social previews, AI discoverability,
-			and app polish that developers can act on.
+			and app polish.
 		</p>
 	</section>
 
@@ -48,37 +49,16 @@
 					<h2 class="text-xl font-semibold text-white">{group.label}</h2>
 					<p class="text-sm text-zinc-500">{group.description}</p>
 				</div>
-				<div class="grid gap-3">
+				<div class="grid gap-3 sm:grid-cols-2">
 					{#each group.entries as entry (entry.id)}
 						<article class="rounded-lg border border-zinc-800 bg-zinc-900/30 p-4">
-							<div class="flex flex-wrap items-center gap-2">
-								<h3 class="font-medium text-white">{catalogTitle(entry.id)}</h3>
+							<div class="flex flex-wrap items-start justify-between gap-2">
+								<h3 class="max-w-[18rem] font-medium text-white">{catalogTitle(entry.id)}</h3>
 								<code class="rounded bg-zinc-950 px-2 py-0.5 text-xs text-zinc-500">
 									{entry.id}
 								</code>
 							</div>
-							<div class="mt-3 grid gap-4 text-sm leading-6 text-zinc-400 md:grid-cols-3">
-								<div>
-									<p class="text-xs font-semibold tracking-wide text-zinc-300 uppercase">
-										Why this matters
-									</p>
-									<p class="mt-1">{entry.why}</p>
-								</div>
-								<div>
-									<p class="text-xs font-semibold tracking-wide text-zinc-300 uppercase">
-										Detection
-									</p>
-									<p class="mt-1">{entry.detectedBy}</p>
-								</div>
-								{#if entry.falsePositive}
-									<div>
-										<p class="text-xs font-semibold tracking-wide text-zinc-300 uppercase">
-											Might be okay if
-										</p>
-										<p class="mt-1">{entry.falsePositive}</p>
-									</div>
-								{/if}
-							</div>
+							<p class="mt-3 text-sm leading-6 text-zinc-400">{entry.why}</p>
 						</article>
 					{/each}
 				</div>

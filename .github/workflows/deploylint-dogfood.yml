@@ -35,7 +35,7 @@ concurrency:
 jobs:
   gate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
 
@@ -60,6 +60,12 @@ jobs:
           min_score: '80'
           mode: gate
 
+      - name: Smoke deploylint.com
+        run: npm run smoke:preflight
+
+      - name: Benchmark deploylint.com
+        run: npm run bench:site:ci
+
       - name: Upload dogfood failure artifacts
         if: failure()
         uses: actions/upload-artifact@v6
@@ -70,3 +76,4 @@ jobs:
           path: |
             apps/preflight-mcp/coverage/**
             apps/preflight-mcp/test-results/**
+            tmp/unlighthouse/**

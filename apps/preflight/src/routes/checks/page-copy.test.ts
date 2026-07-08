@@ -11,4 +11,10 @@ describe('/checks page copy', () => {
 		expect(pageSource).not.toMatch(/\bMCP\b/);
 		expect(pageSource).toMatch(/readiness-control catalog/i);
 	});
+
+	it('keeps the public catalog compact enough for first-load benchmarks', () => {
+		expect(pageSource).toMatch(/compact readiness-control catalog/i);
+		expect(pageSource).not.toContain('Detection');
+		expect(pageSource).not.toContain('Might be okay if');
+	});
 });

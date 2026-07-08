@@ -635,7 +635,7 @@ function hasDogfoodWorkflowContract(workflow: Record<string, unknown>): boolean 
 
 	return (
 		workflowHasConcurrency(workflow, 'deploylint-dogfood-') &&
-		workflowJobHasTimeout(gate, 20) &&
+		workflowJobHasTimeout(gate, 45) &&
 		workflowUsesStep(steps, 'actions/checkout@v7') &&
 		hasSetupNodeStep(steps) &&
 		workflowRunStepIncludes(steps, 'Install dependencies', ['npm ci']) &&
@@ -647,9 +647,12 @@ function hasDogfoodWorkflowContract(workflow: Record<string, unknown>): boolean 
 		dogfoodWith.url === 'https://deploylint.com' &&
 		String(dogfoodWith.min_score) === '80' &&
 		dogfoodWith.mode === 'gate' &&
+		workflowRunStepIncludes(steps, 'Smoke deploylint.com', ['npm run smoke:preflight']) &&
+		workflowRunStepIncludes(steps, 'Benchmark deploylint.com', ['npm run bench:site:ci']) &&
 		hasArtifactUploadStep(steps, 'Upload dogfood failure artifacts', [
 			'apps/preflight-mcp/coverage/**',
-			'apps/preflight-mcp/test-results/**'
+			'apps/preflight-mcp/test-results/**',
+			'tmp/unlighthouse/**'
 		])
 	);
 }
@@ -694,6 +697,16 @@ function hasActionBoundedFetchInputs(source: string): boolean {
 		'DEPLOYLINT_FETCH_RETRIES: ${{ inputs.fetch_retries }}',
 		'DEPLOYLINT_FETCH_RETRY_DELAY_MS: ${{ inputs.fetch_retry_delay_ms }}'
 	].every((fragment) => source.includes(fragment));
+}
+
+function hasPinnedUnlighthouseCommand(command: string, binary: 'unlighthouse' | 'unlighthouse-ci') {
+	return (
+		command.includes('npm exec --yes') &&
+		command.includes('--package unlighthouse@0.18.0') &&
+		command.includes('--package puppeteer@25.3.0') &&
+		command.includes(`-- ${binary}`) &&
+		!command.includes('@latest')
+	);
 }
 
 export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsReport {
@@ -1128,6 +1141,24 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
+		'root Deploylint benchmark scripts pin Unlighthouse CI tooling',
+		hasPinnedUnlighthouseCommand(rootPackage.scripts['bench:site'] ?? '', 'unlighthouse') &&
+			hasPinnedUnlighthouseCommand(rootPackage.scripts['bench:site:ci'] ?? '', 'unlighthouse-ci') &&
+			hasScriptCommand(rootPackage.scripts, 'bench:site', ['--exclude-urls /app,/login.*']) &&
+			hasScriptCommand(rootPackage.scripts, 'bench:site:ci', [
+				'--site https://deploylint.com',
+				'--desktop',
+				'--samples 1',
+				'--budget 80',
+				'--exclude-urls /app,/login.*',
+				'--build-static',
+				'--output-path tmp/unlighthouse',
+				'node scripts/assert-unlighthouse.mjs'
+			])
+	);
+	pushCheck(
+		checked,
+		failures,
 		'oxlint config enables correctness, suspicious, TypeScript, Vitest, Promise, and Unicorn guards',
 		oxlint.categories.correctness === 'error' &&
 			oxlint.categories.suspicious === 'error' &&
@@ -1223,6 +1254,26 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		'GitHub workflows enforce canonical deploylint CI and MCP dogfood gates',
 		hasPreflightGateWorkflowContract(preflightGateWorkflowConfig) &&
 			hasDogfoodWorkflowContract(dogfoodWorkflowConfig)
+	);
+	pushCheck(
+		checked,
+		failures,
+		'GitHub dogfood runs production smoke and benchmark gates',
+		workflowRunStepIncludes(
+			workflowJobSteps(workflowJob(dogfoodWorkflowConfig, 'gate')),
+			'Smoke deploylint.com',
+			['npm run smoke:preflight']
+		) &&
+			workflowRunStepIncludes(
+				workflowJobSteps(workflowJob(dogfoodWorkflowConfig, 'gate')),
+				'Benchmark deploylint.com',
+				['npm run bench:site:ci']
+			) &&
+			hasArtifactUploadStep(
+				workflowJobSteps(workflowJob(dogfoodWorkflowConfig, 'gate')),
+				'Upload dogfood failure artifacts',
+				['tmp/unlighthouse/**']
+			)
 	);
 	pushCheck(
 		checked,

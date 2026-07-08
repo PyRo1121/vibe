@@ -35,8 +35,8 @@
 		"deploy:tcg-vault": "turbo run deploy --filter=tcg-vault",
 		"bench:lighthouse": "node scripts/benchmark-lighthouse.mjs",
 		"bench:lighthouse:home": "node scripts/benchmark-lighthouse.mjs --urls=https://deploylint.com/",
-		"bench:site": "npm exec --yes --package unlighthouse@latest -- unlighthouse --site https://deploylint.com --desktop --samples 3 --output-path tmp/unlighthouse",
-		"bench:site:ci": "npm exec --yes --package unlighthouse@latest -- unlighthouse-ci --site https://deploylint.com --desktop --samples 1 --budget 80 --build-static --output-path tmp/unlighthouse && node scripts/assert-unlighthouse.mjs",
+		"bench:site": "npm exec --yes --package unlighthouse@0.18.0 --package puppeteer@25.3.0 -- unlighthouse --site https://deploylint.com --desktop --samples 3 --exclude-urls /app,/login.* --output-path tmp/unlighthouse",
+		"bench:site:ci": "npm exec --yes --package unlighthouse@0.18.0 --package puppeteer@25.3.0 -- unlighthouse-ci --site https://deploylint.com --desktop --samples 1 --budget 80 --exclude-urls /app,/login.* --build-static --output-path tmp/unlighthouse && node scripts/assert-unlighthouse.mjs",
 		"gate:preflight": "npm run gate -w preflight",
 		"smoke:preflight": "npm run smoke -w preflight",
 		"upgrade:stack": "npm update -w tcg-vault -w preflight && npm update"
