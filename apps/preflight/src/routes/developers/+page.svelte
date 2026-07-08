@@ -173,7 +173,8 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 					The temporary advisory workflow below is only an escape hatch before workspace setup. A
 					workspace-backed project gate is the product path: it adds <code
 						class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">DEPLOYLINT_PROJECT_ID</code
-					>, report history, billing context, and gate status inside your Deploylint workspace.
+					>, a project write secret, report history, billing context, and gate status inside your
+					Deploylint workspace.
 				</p>
 			</div>
 			<div class="flex flex-col justify-center gap-3">
@@ -194,8 +195,9 @@ DEPLOYLINT_URL=https://your-app.com DEPLOYLINT_MIN_SCORE=80 npm run gate -w pref
 			<p>
 				The workspace generates the exact YAML for your project. It includes the real
 				<code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">DEPLOYLINT_PROJECT_ID</code>,
-				deploy URL, score threshold, and advisory mode so reports write back to project history
-				instead of becoming one-off CI output.
+				deploy URL, score threshold, advisory mode, and the
+				<code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">DEPLOYLINT_INGEST_TOKEN</code>
+				GitHub secret so reports write back to project history instead of becoming one-off CI output.
 			</p>
 			<p class="mt-3 text-zinc-500">
 				Do not copy sample project IDs from documentation. Open the workspace and copy the

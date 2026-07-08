@@ -41,6 +41,11 @@ class FakeStatement {
 	async first(): Promise<unknown> {
 		this.db.calls.push({ sql: this.sql, values: this.values, method: 'first' });
 		if (this.db.failReads) throw new Error('D1 read failed');
+		if (this.sql.includes('ingest_token')) {
+			return this.values[0] === this.db.ingestProjectId && this.values[1] === this.db.ingestToken
+				? { id: this.db.ingestProjectId }
+				: null;
+		}
 		return this.db.latestRow;
 	}
 }
@@ -50,6 +55,8 @@ class FakeD1 {
 	failReads = false;
 	failWrites = false;
 	historyRows: unknown[] = [];
+	ingestProjectId = 'proj_live-123';
+	ingestToken = 'dlint_ingest_token';
 	latestRow: unknown = null;
 
 	prepare(sql: string): FakeStatement {
@@ -82,6 +89,7 @@ describe('project report storage', () => {
 				db as unknown as D1Database,
 				{
 					projectId: 'proj_live-123',
+					ingestToken: 'dlint_ingest_token',
 					commitSha: 'abc1234',
 					branch: 'main',
 					pullRequest: '42'
@@ -90,9 +98,13 @@ describe('project report storage', () => {
 			)
 		).resolves.toBe(true);
 
-		expect(db.calls).toHaveLength(2);
-		expect(db.calls[0].sql).toContain('INSERT INTO project_report');
-		expect(db.calls[0].values).toEqual([
+		expect(db.calls).toHaveLength(3);
+		expect(db.calls[0]).toMatchObject({
+			method: 'first',
+			values: ['proj_live-123', 'dlint_ingest_token']
+		});
+		expect(db.calls[1].sql).toContain('INSERT INTO project_report');
+		expect(db.calls[1].values).toEqual([
 			expect.stringMatching(/^prpt_[a-z0-9]{16}$/),
 			'proj_live-123',
 			'abc123def456',
@@ -107,8 +119,8 @@ describe('project report storage', () => {
 			'42',
 			expect.any(Number)
 		]);
-		expect(db.calls[1].sql).toContain('UPDATE project');
-		expect(db.calls[1].values).toEqual([expect.any(Number), 'proj_live-123']);
+		expect(db.calls[2].sql).toContain('UPDATE project');
+		expect(db.calls[2].values).toEqual([expect.any(Number), 'proj_live-123']);
 	});
 
 	it('records minimal reports without optional diff, report id, or CI context', async () => {
@@ -129,6 +141,7 @@ describe('project report storage', () => {
 				db as unknown as D1Database,
 				{
 					projectId: 'proj_live-123',
+					ingestToken: 'dlint_ingest_token',
 					commitSha: '   ',
 					branch: undefined,
 					pullRequest: undefined
@@ -137,7 +150,7 @@ describe('project report storage', () => {
 			)
 		).resolves.toBe(true);
 
-		expect(db.calls[0].values).toEqual([
+		expect(db.calls[1].values).toEqual([
 			expect.stringMatching(/^prpt_[a-z0-9]{16}$/),
 			'proj_live-123',
 			null,
@@ -159,18 +172,60 @@ describe('project report storage', () => {
 		db.failWrites = true;
 
 		await expect(
-			recordProjectReport(db as unknown as D1Database, { projectId: 'proj_live-123' }, report)
+			recordProjectReport(
+				db as unknown as D1Database,
+				{ projectId: 'proj_live-123', ingestToken: 'dlint_ingest_token' },
+				report
+			)
 		).resolves.toBe(false);
 	});
 
-	it('ignores missing or unsafe project ids', async () => {
+	it('ignores missing, unsafe, or unauthorized project credentials', async () => {
 		const db = new FakeD1();
 
 		await expect(
-			recordProjectReport(db as unknown as D1Database, { projectId: '../bad' }, report)
+			recordProjectReport(
+				db as unknown as D1Database,
+				{ projectId: '../bad', ingestToken: 'dlint_ingest_token' },
+				report
+			)
+		).resolves.toBe(false);
+		await expect(
+			recordProjectReport(db as unknown as D1Database, { projectId: 'proj_live-123' }, report)
 		).resolves.toBe(false);
 		await expect(recordProjectReport(db as unknown as D1Database, {}, report)).resolves.toBe(false);
-		expect(db.calls).toEqual([]);
+		await expect(
+			recordProjectReport(
+				db as unknown as D1Database,
+				{ projectId: 'proj_live-123', ingestToken: 'wrong-token' },
+				report
+			)
+		).resolves.toBe(false);
+		expect(db.calls).toEqual([
+			expect.objectContaining({
+				method: 'first',
+				values: ['proj_live-123', 'wrong-token']
+			})
+		]);
+	});
+
+	it('does not write project history when a token is presented for another project', async () => {
+		const db = new FakeD1();
+
+		await expect(
+			recordProjectReport(
+				db as unknown as D1Database,
+				{ projectId: 'proj_live-999', ingestToken: 'dlint_ingest_token' },
+				report
+			)
+		).resolves.toBe(false);
+		expect(db.calls).toEqual([
+			expect.objectContaining({
+				method: 'first',
+				values: ['proj_live-999', 'dlint_ingest_token']
+			})
+		]);
+		expect(db.calls.some((call) => call.method === 'run')).toBe(false);
 	});
 
 	it('loads the latest report summary for a project', async () => {
@@ -269,6 +324,19 @@ describe('project report storage', () => {
 		expect(db.calls[0]).toMatchObject({
 			method: 'all',
 			values: ['proj_live-123', 25]
+		});
+	});
+
+	it('falls back to the default history limit for non-finite limits', async () => {
+		const db = new FakeD1();
+		db.historyRows = [];
+
+		await expect(
+			loadProjectReportHistory(db as unknown as D1Database, 'proj_live-123', Number.NaN)
+		).resolves.toEqual([]);
+		expect(db.calls[0]).toMatchObject({
+			method: 'all',
+			values: ['proj_live-123', 10]
 		});
 	});
 

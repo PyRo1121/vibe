@@ -23,8 +23,15 @@ describe('parseScanRequestBody', () => {
 
 	it('passes through safe project ids for workspace-backed CI reports', () => {
 		expect(
-			parseScanRequestBody({ url: 'https://app.test', projectId: '  proj_live-123  ' }).projectId
-		).toBe('proj_live-123');
+			parseScanRequestBody({
+				url: 'https://app.test',
+				projectId: '  proj_live-123  ',
+				ingestToken: '  dlint_ingest_token  '
+			})
+		).toMatchObject({
+			projectId: 'proj_live-123',
+			ingestToken: 'dlint_ingest_token'
+		});
 	});
 
 	it('drops unsafe project ids instead of treating them as workspace context', () => {

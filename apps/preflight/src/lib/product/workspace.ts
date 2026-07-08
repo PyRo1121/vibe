@@ -28,6 +28,7 @@ export interface ProjectReportHistoryEntry extends ProjectReportSummary {
 
 export interface DeploylintProject {
 	id: string;
+	ingestToken: string;
 	name: string;
 	deployUrl: string;
 	repoLabel: string;
@@ -145,6 +146,7 @@ export const workspaceGateHardeningSteps = [
 
 const REQUIRED_GATE_ENV_VARS = [
 	'DEPLOYLINT_PROJECT_ID',
+	'DEPLOYLINT_INGEST_TOKEN',
 	'DEPLOYLINT_MODE',
 	'DEPLOYLINT_MIN_SCORE'
 ] as const;
@@ -337,6 +339,7 @@ jobs:
       - name: Run Deploylint readiness report
         env:
           DEPLOYLINT_PROJECT_ID: ${opts.projectId}
+          DEPLOYLINT_INGEST_TOKEN: \${{ secrets.DEPLOYLINT_INGEST_TOKEN }}
           DEPLOYLINT_URL: ${opts.deployUrl}
           DEPLOYLINT_API: ${appUrl}
           DEPLOYLINT_MODE: ${mode}
@@ -345,6 +348,10 @@ jobs:
         run: |
           if [ -z "$DEPLOYLINT_URL" ]; then
             echo "Skipping Deploylint readiness report because DEPLOYLINT_URL is unavailable (forked pull request secrets are not exposed)."
+            exit 0
+          fi
+          if [ -z "$DEPLOYLINT_INGEST_TOKEN" ]; then
+            echo "Skipping Deploylint workspace history because DEPLOYLINT_INGEST_TOKEN is unavailable (add it as a GitHub Actions secret)."
             exit 0
           fi
           curl -fsSL ${appUrl}/gate-remote.mjs -o gate-remote.mjs
@@ -360,6 +367,7 @@ export function buildWorkspaceSetupState(opts: {
 	const draft = opts.projectDraft ?? {};
 	const project: DeploylintProject = {
 		id: 'proj_demo_123',
+		ingestToken: 'dlint_demo_ingest_token',
 		name: draft.name ?? 'First deploy target',
 		deployUrl: draft.deployUrl ?? 'https://your-app.com',
 		repoLabel: draft.repoLabel ?? 'github.com/your-org/your-app',

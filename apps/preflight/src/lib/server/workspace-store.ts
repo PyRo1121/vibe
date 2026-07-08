@@ -22,6 +22,7 @@ interface WorkspaceRow {
 
 interface ProjectRow {
 	id: string;
+	ingest_token?: string | null;
 	name: string;
 	deploy_url: string;
 	repo_label: string;
@@ -82,6 +83,11 @@ function newId(prefix: 'proj' | 'wks'): string {
 	return `${prefix}_${[...bytes].map((byte) => ID_ALPHABET[byte % ID_ALPHABET.length]).join('')}`;
 }
 
+function newIngestToken(): string {
+	const bytes = crypto.getRandomValues(new Uint8Array(24));
+	return `dlint_${[...bytes].map((byte) => ID_ALPHABET[byte % ID_ALPHABET.length]).join('')}`;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -100,7 +106,10 @@ function isProjectRow(value: unknown): value is ProjectRow {
 		typeof value.workflow_path === 'string' &&
 		typeof value.install_state === 'string' &&
 		typeof value.gate_mode === 'string' &&
-		typeof value.min_score === 'number'
+		typeof value.min_score === 'number' &&
+		(!('ingest_token' in value) ||
+			value.ingest_token === null ||
+			typeof value.ingest_token === 'string')
 	);
 }
 
@@ -194,7 +203,7 @@ async function createWorkspaceRow(
 async function loadProjectRows(db: D1Database, workspaceId: string): Promise<ProjectRow[]> {
 	const { results } = await db
 		.prepare(
-			`SELECT id, name, deploy_url, repo_label, workflow_path, install_state, gate_mode, min_score
+			`SELECT id, ingest_token, name, deploy_url, repo_label, workflow_path, install_state, gate_mode, min_score
 			FROM project
 			WHERE workspace_id = ?
 			ORDER BY created_at ASC`
@@ -211,7 +220,7 @@ async function loadOwnedProjectRow(
 ): Promise<ProjectRow | null> {
 	const row = await db
 		.prepare(
-			`SELECT project.id, project.name, project.deploy_url, project.repo_label, project.workflow_path,
+			`SELECT project.id, project.ingest_token, project.name, project.deploy_url, project.repo_label, project.workflow_path,
 				project.install_state, project.gate_mode, project.min_score
 			FROM project
 			INNER JOIN workspace ON workspace.id = project.workspace_id
@@ -233,6 +242,7 @@ async function createProjectRow(
 	const project = defaultProjectDraft(opts);
 	const row = {
 		id: newId('proj'),
+		ingest_token: newIngestToken(),
 		name: project.name,
 		deploy_url: project.deployUrl,
 		repo_label: project.repoLabel,
@@ -245,6 +255,7 @@ async function createProjectRow(
 		.prepare(
 			`INSERT INTO project (
 				id,
+				ingest_token,
 				workspace_id,
 				name,
 				deploy_url,
@@ -255,10 +266,11 @@ async function createProjectRow(
 				min_score,
 				created_at,
 				updated_at
-			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 		)
 		.bind(
 			row.id,
+			row.ingest_token,
 			workspaceId,
 			row.name,
 			row.deploy_url,
@@ -322,6 +334,23 @@ async function applyProjectDraftToSetupProject(
 	return nextRow;
 }
 
+async function ensureProjectIngestToken(db: D1Database, row: ProjectRow): Promise<ProjectRow> {
+	const existing = row.ingest_token?.trim();
+	if (existing) return row;
+
+	const ingestToken = newIngestToken();
+	await db
+		.prepare(
+			`UPDATE project
+			SET ingest_token = ?,
+				updated_at = ?
+			WHERE id = ?`
+		)
+		.bind(ingestToken, Date.now(), row.id)
+		.run();
+	return { ...row, ingest_token: ingestToken };
+}
+
 async function resolveProjectRows(
 	db: D1Database,
 	workspaceId: string,
@@ -330,9 +359,14 @@ async function resolveProjectRows(
 	const loadedProjects = await loadProjectRows(db, workspaceId);
 	if (loadedProjects.length === 0) return [await createProjectRow(db, workspaceId, opts)];
 	if (loadedProjects.length === 1) {
-		return [await applyProjectDraftToSetupProject(db, loadedProjects[0], opts)];
+		return [
+			await ensureProjectIngestToken(
+				db,
+				await applyProjectDraftToSetupProject(db, loadedProjects[0], opts)
+			)
+		];
 	}
-	return loadedProjects;
+	return Promise.all(loadedProjects.map((row) => ensureProjectIngestToken(db, row)));
 }
 
 async function loadSubscriptionRow(
@@ -392,6 +426,7 @@ async function projectFromRow(db: D1Database, row: ProjectRow): Promise<Deployli
 	const latestHistoryReport = reportHistory[0];
 	return {
 		id: row.id,
+		ingestToken: row.ingest_token?.trim() ?? '',
 		name: row.name,
 		deployUrl: row.deploy_url,
 		repoLabel: row.repo_label,

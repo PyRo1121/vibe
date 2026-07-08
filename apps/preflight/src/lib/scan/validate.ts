@@ -6,6 +6,7 @@ export interface ScanRequestBody {
 	unlockSessionId?: string;
 	previousScore?: number;
 	projectId?: string;
+	ingestToken?: string;
 	commitSha?: string;
 	branch?: string;
 	pullRequest?: string;
@@ -16,6 +17,7 @@ export function parseScanRequestBody(body: unknown): {
 	unlockSessionId?: string;
 	previousScore?: number;
 	projectId?: string;
+	ingestToken?: string;
 	commitSha?: string;
 	branch?: string;
 	pullRequest?: string;
@@ -36,12 +38,14 @@ export function parseScanRequestBody(body: unknown): {
 			? Math.round(record.previousScore)
 			: undefined;
 	const projectId = normalizeProjectId(record.projectId);
+	const ingestToken = cleanCiContext(record.ingestToken, 128);
 
 	return {
 		url,
 		unlockSessionId: unlockSessionId || undefined,
 		previousScore,
 		projectId,
+		ingestToken,
 		commitSha: cleanCiContext(record.commitSha, 80),
 		branch: cleanCiContext(record.branch, 120),
 		pullRequest: cleanCiContext(record.pullRequest, 40)

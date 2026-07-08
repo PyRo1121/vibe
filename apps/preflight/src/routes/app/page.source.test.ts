@@ -64,6 +64,8 @@ describe('/app workspace source', () => {
 		expect(pageSource).toContain('DEPLOYLINT_MODE');
 		expect(pageSource).toContain('This project-scoped workflow writes CI reports back');
 		expect(pageSource).toContain('DEPLOYLINT_PROJECT_ID');
+		expect(pageSource).toContain('DEPLOYLINT_INGEST_TOKEN');
+		expect(pageSource).toContain('copyIngestToken');
 		expect(pageSource).toContain('navigator.clipboard.writeText');
 		expect(pageSource).toContain('Blocking gate workflow');
 		expect(pageSource).toContain('data.activation');

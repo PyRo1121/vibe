@@ -78,6 +78,7 @@ export async function handleScanPost(request: Request, env?: Env) {
 		env?.AUTH_DB,
 		{
 			projectId: parsed.projectId,
+			ingestToken: parsed.ingestToken,
 			commitSha: parsed.commitSha,
 			branch: parsed.branch,
 			pullRequest: parsed.pullRequest

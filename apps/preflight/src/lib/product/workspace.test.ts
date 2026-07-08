@@ -48,6 +48,7 @@ describe('Deploylint workspace model', () => {
 		expect(workflow).toContain('contents: read');
 		expect(workflow).toContain('pull-requests: write');
 		expect(workflow).toContain('DEPLOYLINT_PROJECT_ID: proj_demo_123');
+		expect(workflow).toContain('DEPLOYLINT_INGEST_TOKEN: ${{ secrets.DEPLOYLINT_INGEST_TOKEN }}');
 		expect(workflow).toContain('DEPLOYLINT_URL: https://app.example.com');
 		expect(workflow).toContain('DEPLOYLINT_MODE: advisory');
 		expect(workflow).toContain('DEPLOYLINT_API: https://deploylint.com');
@@ -56,6 +57,8 @@ describe('Deploylint workspace model', () => {
 		expect(workflow).toContain(
 			'Skipping Deploylint readiness report because DEPLOYLINT_URL is unavailable'
 		);
+		expect(workflow).toContain('if [ -z "$DEPLOYLINT_INGEST_TOKEN" ]; then');
+		expect(workflow).toContain('DEPLOYLINT_INGEST_TOKEN is unavailable');
 		expect(workflow).toContain('node gate-remote.mjs "$DEPLOYLINT_URL"');
 	});
 
@@ -190,6 +193,7 @@ describe('Deploylint workspace model', () => {
 		});
 		expect(policy.requiredEnvVars).toEqual([
 			'DEPLOYLINT_PROJECT_ID',
+			'DEPLOYLINT_INGEST_TOKEN',
 			'DEPLOYLINT_MODE',
 			'DEPLOYLINT_MIN_SCORE'
 		]);

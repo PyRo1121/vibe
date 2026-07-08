@@ -263,6 +263,7 @@ describe('gate-remote advisory output', () => {
 			const result = await runGate(apiBase, {
 				env: {
 					DEPLOYLINT_PROJECT_ID: 'proj_live-123',
+					DEPLOYLINT_INGEST_TOKEN: 'dlint_ingest_token',
 					GITHUB_SHA: 'mergeabc123',
 					GITHUB_HEAD_REF: 'feature/gate-hardening',
 					GITHUB_REF_NAME: '42/merge',
@@ -276,6 +277,7 @@ describe('gate-remote advisory output', () => {
 			expect(JSON.parse(requests[0] ?? '{}')).toMatchObject({
 				url: 'https://target.test',
 				projectId: 'proj_live-123',
+				ingestToken: 'dlint_ingest_token',
 				commitSha: 'headabc123',
 				branch: 'feature/gate-hardening',
 				pullRequest: '42'

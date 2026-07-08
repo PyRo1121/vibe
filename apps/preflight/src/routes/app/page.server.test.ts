@@ -68,6 +68,7 @@ const user = {
 
 const setupProjectRow = {
 	id: 'proj_setup-123',
+	ingest_token: 'dlint_setup_token',
 	name: 'First deploy target',
 	deploy_url: 'https://your-app.com',
 	repo_label: 'github.com/your-org/your-app',
@@ -162,7 +163,11 @@ describe('/app server load', () => {
 			enforcementLabel: 'Advisory only'
 		});
 		expect(pageData.advisoryWorkflow).toContain('DEPLOYLINT_PROJECT_ID:');
+		expect(pageData.advisoryWorkflow).toContain(
+			'DEPLOYLINT_INGEST_TOKEN: ${{ secrets.DEPLOYLINT_INGEST_TOKEN }}'
+		);
 		expect(pageData.advisoryWorkflow).not.toContain('proj_demo_123');
+		expect(pageData.advisoryWorkflow).not.toContain(pageData.workspace.projects[0].ingestToken);
 	});
 
 	it('does not generate a fake project workflow when workspace storage is missing', async () => {
@@ -343,6 +348,7 @@ describe('/app server load', () => {
 			[
 				{
 					id: 'proj_live-123',
+					ingest_token: 'dlint_live_token',
 					name: 'Acme deploy gate',
 					deploy_url: 'https://app.acme.com',
 					repo_label: 'github.com/acme/app',

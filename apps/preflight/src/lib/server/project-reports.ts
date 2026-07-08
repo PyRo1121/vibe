@@ -4,6 +4,7 @@ import type { ScanReport } from '$lib/scan/types';
 
 export interface ProjectReportContext {
 	projectId?: string;
+	ingestToken?: string;
 	commitSha?: string;
 	branch?: string;
 	pullRequest?: string;
@@ -79,19 +80,45 @@ function historyLimit(limit: number): number {
 	return Math.min(25, Math.max(1, Math.trunc(limit)));
 }
 
+function cleanIngestToken(value: string | undefined): string | null {
+	const clean = value?.trim();
+	return clean ? clean.slice(0, 128) : null;
+}
+
+async function hasProjectIngestAccess(
+	db: D1Database,
+	projectId: string,
+	ingestToken: string
+): Promise<boolean> {
+	const row = await db
+		.prepare(
+			`SELECT id
+			FROM project
+			WHERE id = ?
+				AND ingest_token = ?
+			LIMIT 1`
+		)
+		.bind(projectId, ingestToken)
+		.first<{ id?: unknown }>();
+	return row?.id === projectId;
+}
+
 export async function recordProjectReport(
 	db: D1Database | undefined,
 	context: ProjectReportContext,
 	report: ScanReport
 ): Promise<boolean> {
 	const projectId = normalizeProjectId(context.projectId);
-	if (!db || !projectId) return false;
+	const ingestToken = cleanIngestToken(context.ingestToken);
+	if (!db || !projectId || !ingestToken) return false;
 
 	const now = Date.now();
 	const fixedCount = report.scanDiff?.fixed.length ?? 0;
 	const regressedCount = report.scanDiff?.regressed.length ?? 0;
 
 	try {
+		if (!(await hasProjectIngestAccess(db, projectId, ingestToken))) return false;
+
 		await db
 			.prepare(
 				`INSERT INTO project_report (

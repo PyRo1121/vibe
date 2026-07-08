@@ -9,6 +9,7 @@
  * Env:
  *   DEPLOYLINT_URL       Target URL (or first CLI arg)
  *   DEPLOYLINT_PROJECT_ID Workspace project id for persistent CI report history
+ *   DEPLOYLINT_INGEST_TOKEN Workspace project write token for persistent CI report history
  *   DEPLOYLINT_API       API base (default https://deploylint.com)
  *   DEPLOYLINT_MIN_SCORE Minimum score (default 80)
  *   DEPLOYLINT_MODE      "gate" (default, exits 1 on blockers) or "advisory" (report only, always exits 0)
@@ -65,6 +66,7 @@ const targetUrl =
 	process.env.PREFLIGHT_URL?.trim() ||
 	process.env.PREFLIGHT_GATE_URL?.trim();
 const projectId = process.env.DEPLOYLINT_PROJECT_ID?.trim();
+const ingestToken = process.env.DEPLOYLINT_INGEST_TOKEN?.trim();
 const minScore = Number(
 	process.env.DEPLOYLINT_MIN_SCORE ?? process.env.PREFLIGHT_MIN_SCORE ?? '80'
 );
@@ -89,6 +91,7 @@ function printHelp() {
 	console.error('Env:');
 	console.error('  DEPLOYLINT_URL        Target URL or public GitHub repo');
 	console.error('  DEPLOYLINT_PROJECT_ID Workspace project id for persistent report history');
+	console.error('  DEPLOYLINT_INGEST_TOKEN Workspace write token for persistent report history');
 	console.error('  DEPLOYLINT_API        API base (default https://deploylint.com)');
 	console.error('  DEPLOYLINT_MIN_SCORE  Minimum score, 0-100 (default 80)');
 	console.error('  DEPLOYLINT_MODE       gate or advisory (default gate)');
@@ -363,6 +366,7 @@ async function main() {
 	const scanPayload = {
 		url: targetUrl,
 		...(projectId ? { projectId } : {}),
+		...(ingestToken ? { ingestToken } : {}),
 		...githubCiContext()
 	};
 	const res = await fetchWithRetry(

@@ -33,6 +33,7 @@ export async function parseScanJsonBody(request: Request): Promise<{
 	unlockSessionId?: string;
 	previousScore?: number;
 	projectId?: string;
+	ingestToken?: string;
 	commitSha?: string;
 	branch?: string;
 	pullRequest?: string;

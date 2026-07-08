@@ -61,6 +61,7 @@ class FailingD1 {
 
 const projectRow = {
 	id: 'proj_live-123',
+	ingest_token: 'dlint_existing_token',
 	name: 'Acme deploy gate',
 	deploy_url: 'https://app.acme.com',
 	repo_label: 'github.com/acme/app',
@@ -72,6 +73,7 @@ const projectRow = {
 
 const setupProjectRow = {
 	id: 'proj_setup-123',
+	ingest_token: 'dlint_setup_token',
 	name: 'First deploy target',
 	deploy_url: 'https://your-app.com',
 	repo_label: 'github.com/your-org/your-app',
@@ -136,6 +138,7 @@ describe('workspace D1 store', () => {
 		});
 		expect(workspace.projects[0]).toMatchObject({
 			id: 'proj_live-123',
+			ingestToken: 'dlint_existing_token',
 			name: 'Acme deploy gate',
 			deployUrl: 'https://app.acme.com',
 			latestReport: {
@@ -185,6 +188,7 @@ describe('workspace D1 store', () => {
 		expect(workspace.id).not.toBe('workspace_demo');
 		expect(workspace.projects[0]).toMatchObject({
 			id: expect.stringMatching(/^proj_[a-z0-9]{16}$/),
+			ingestToken: expect.stringMatching(/^dlint_[a-z0-9]{24}$/),
 			name: 'Acme launch',
 			deployUrl: 'https://app.acme.com',
 			repoLabel: 'github.com/acme/app',
@@ -218,6 +222,7 @@ describe('workspace D1 store', () => {
 
 		expect(workspace.projects[0]).toMatchObject({
 			id: 'proj_setup-123',
+			ingestToken: 'dlint_setup_token',
 			name: 'Acme launch',
 			deployUrl: 'https://app.acme.com',
 			repoLabel: 'github.com/acme/app',
@@ -242,6 +247,91 @@ describe('workspace D1 store', () => {
 		expect(
 			db.calls.some((call) => call.method === 'run' && call.sql.includes('INSERT INTO project'))
 		).toBe(false);
+	});
+
+	it('leaves a setup project unchanged when the draft matches existing values', async () => {
+		const db = new FakeD1();
+		db.firstRows = [{ id: 'wks_live', name: 'Acme workspace' }, null, { count: 0 }];
+		db.allRows = [[setupProjectRow], []];
+
+		const workspace = await loadOrCreateWorkspaceState(db as unknown as D1Database, {
+			alphaFreeUnlock: false,
+			ownerLabel: "Olen's workspace",
+			ownerUserId: 'user_123',
+			projectDraft: {
+				name: setupProjectRow.name,
+				deployUrl: setupProjectRow.deploy_url,
+				repoLabel: setupProjectRow.repo_label,
+				minScore: setupProjectRow.min_score
+			}
+		});
+
+		expect(workspace.projects[0]).toMatchObject({
+			id: 'proj_setup-123',
+			ingestToken: 'dlint_setup_token',
+			name: 'First deploy target'
+		});
+		expect(db.calls.some((call) => call.method === 'run')).toBe(false);
+	});
+
+	it('backfills missing project ingest tokens for existing workspace projects', async () => {
+		const db = new FakeD1();
+		db.firstRows = [{ id: 'wks_live', name: 'Acme workspace' }, null, { count: 0 }];
+		db.allRows = [[{ ...projectRow, ingest_token: null }], []];
+
+		const workspace = await loadOrCreateWorkspaceState(db as unknown as D1Database, {
+			alphaFreeUnlock: false,
+			ownerLabel: "Olen's workspace",
+			ownerUserId: 'user_123'
+		});
+
+		expect(workspace.projects[0].ingestToken).toMatch(/^dlint_[a-z0-9]{24}$/);
+		expect(db.calls).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					method: 'run',
+					sql: expect.stringContaining('SET ingest_token = ?'),
+					values: [workspace.projects[0].ingestToken, expect.any(Number), 'proj_live-123']
+				})
+			])
+		);
+	});
+
+	it('hydrates multiple projects and backfills only missing ingest tokens', async () => {
+		const db = new FakeD1();
+		db.firstRows = [{ id: 'wks_live', name: 'Acme workspace' }, null, { count: 0 }];
+		db.allRows = [
+			[
+				projectRow,
+				{
+					...projectRow,
+					id: 'proj_second-123',
+					ingest_token: null,
+					name: 'Second deploy gate'
+				}
+			],
+			[],
+			[]
+		];
+
+		const workspace = await loadOrCreateWorkspaceState(db as unknown as D1Database, {
+			alphaFreeUnlock: false,
+			ownerLabel: "Olen's workspace",
+			ownerUserId: 'user_123'
+		});
+
+		expect(workspace.projects).toHaveLength(2);
+		expect(workspace.projects[0].ingestToken).toBe('dlint_existing_token');
+		expect(workspace.projects[1].ingestToken).toMatch(/^dlint_[a-z0-9]{24}$/);
+		expect(db.calls).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					method: 'run',
+					sql: expect.stringContaining('SET ingest_token = ?'),
+					values: [workspace.projects[1].ingestToken, expect.any(Number), 'proj_second-123']
+				})
+			])
+		);
 	});
 
 	it('only counts installed blocking gates as enabled', async () => {

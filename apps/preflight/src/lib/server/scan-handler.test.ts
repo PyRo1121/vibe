@@ -254,6 +254,7 @@ describe('handleScanPost', () => {
 			body: JSON.stringify({
 				url: 'https://app.test',
 				projectId: 'proj_live-123',
+				ingestToken: 'dlint_ingest_token',
 				commitSha: 'headabc123',
 				branch: 'feature/gate-hardening',
 				pullRequest: '42'
@@ -267,6 +268,7 @@ describe('handleScanPost', () => {
 			authDb,
 			{
 				projectId: 'proj_live-123',
+				ingestToken: 'dlint_ingest_token',
 				commitSha: 'headabc123',
 				branch: 'feature/gate-hardening',
 				pullRequest: '42'

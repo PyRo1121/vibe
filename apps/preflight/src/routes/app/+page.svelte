@@ -17,8 +17,11 @@
 	let { data, form = null }: { data: PageData; form?: ActionData } = $props();
 
 	let workflowCopied = $state(false);
+	let ingestTokenCopied = $state(false);
 	let workflowCopyError = $state<string | null>(null);
+	let ingestTokenCopyError = $state<string | null>(null);
 	let copyTimer: ReturnType<typeof setTimeout> | null = null;
+	let tokenCopyTimer: ReturnType<typeof setTimeout> | null = null;
 
 	const workspace = $derived(data.workspace);
 	const project = $derived(data.workspace.projects[0]);
@@ -75,6 +78,7 @@
 	$effect(() => {
 		return () => {
 			if (copyTimer) clearTimeout(copyTimer);
+			if (tokenCopyTimer) clearTimeout(tokenCopyTimer);
 		};
 	});
 
@@ -192,6 +196,23 @@
 			copyTimer = setTimeout(() => (workflowCopied = false), 2000);
 		} catch {
 			workflowCopyError = 'Copy failed. Select the workflow text manually.';
+		}
+	}
+
+	async function copyIngestToken() {
+		ingestTokenCopyError = null;
+		if (!project?.ingestToken) {
+			ingestTokenCopyError = 'Create a project before copying the workspace token.';
+			return;
+		}
+
+		try {
+			await navigator.clipboard.writeText(project.ingestToken);
+			ingestTokenCopied = true;
+			if (tokenCopyTimer) clearTimeout(tokenCopyTimer);
+			tokenCopyTimer = setTimeout(() => (ingestTokenCopied = false), 2000);
+		} catch {
+			ingestTokenCopyError = 'Copy failed. Select the token manually.';
 		}
 	}
 </script>
@@ -437,7 +458,11 @@
 				</p>
 				<p class="mt-2 max-w-2xl text-sm leading-6 text-zinc-500">
 					This project-scoped workflow writes CI reports back to this workspace through
-					<code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">DEPLOYLINT_PROJECT_ID</code>.
+					<code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">DEPLOYLINT_PROJECT_ID</code>
+					and the
+					<code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">DEPLOYLINT_INGEST_TOKEN</code
+					>
+					GitHub secret.
 				</p>
 			</div>
 			<button
@@ -451,6 +476,37 @@
 		</div>
 		{#if workflowCopyError}
 			<p class="mt-3 text-sm text-amber-300" role="alert">{workflowCopyError}</p>
+		{/if}
+		{#if project?.ingestToken}
+			<div class="mt-5 rounded-xl border border-zinc-800 bg-zinc-950/70 p-4">
+				<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+					<div>
+						<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
+							GitHub secret
+						</p>
+						<p class="mt-2 text-sm leading-6 text-zinc-400">
+							Add this value as
+							<code class="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300"
+								>DEPLOYLINT_INGEST_TOKEN</code
+							>
+							before enabling workspace-backed report history.
+						</p>
+					</div>
+					<button
+						type="button"
+						class="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-100 hover:border-sky-400 hover:text-sky-200 focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:outline-none"
+						onclick={copyIngestToken}
+					>
+						{ingestTokenCopied ? 'Copied' : 'Copy token'}
+					</button>
+				</div>
+				<code class="mt-4 block overflow-x-auto rounded-lg bg-zinc-900 p-3 text-xs text-zinc-300">
+					{project.ingestToken}
+				</code>
+			</div>
+		{/if}
+		{#if ingestTokenCopyError}
+			<p class="mt-3 text-sm text-amber-300" role="alert">{ingestTokenCopyError}</p>
 		{/if}
 		{#if hasAdvisoryWorkflow}
 			<pre
