@@ -167,6 +167,28 @@ describe('workspace D1 store', () => {
 		});
 	});
 
+	it('keeps past-due subscriptions in billing recovery mode', async () => {
+		const db = new FakeD1();
+		db.firstRows = [
+			{ id: 'wks_live', name: 'Acme workspace' },
+			{ plan: 'builder', status: 'past_due' },
+			{ count: 1 }
+		];
+		db.allRows = [[projectRow], []];
+
+		const workspace = await loadOrCreateWorkspaceState(db as unknown as D1Database, {
+			alphaFreeUnlock: false,
+			ownerLabel: "Olen's workspace",
+			ownerUserId: 'user_123'
+		});
+
+		expect(workspace.billing).toEqual({
+			mode: 'past_due',
+			planLabel: 'Builder',
+			projectLimit: 5
+		});
+	});
+
 	it('creates real workspace and project rows for a first authenticated visit', async () => {
 		const db = new FakeD1();
 		db.firstRows = [null, null, null, { count: 0 }];

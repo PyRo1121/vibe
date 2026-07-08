@@ -138,6 +138,7 @@
 	function billingStatusLabel(mode: WorkspaceBillingState['mode']): string {
 		if (mode === 'alpha') return 'Included during alpha';
 		if (mode === 'paid') return 'Billing active';
+		if (mode === 'past_due') return 'Payment update needed';
 		return 'Billing setup pending';
 	}
 
@@ -412,13 +413,15 @@
 								Start workspace billing
 							</button>
 						</form>
-					{:else if workspace.billing.mode === 'paid'}
+					{:else if workspace.billing.mode === 'paid' || workspace.billing.mode === 'past_due'}
 						<form method="POST" action={resolve('/api/workspace/billing/portal')} class="mt-4">
 							<button
 								type="submit"
 								class="w-full rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-100 hover:border-sky-400 hover:text-sky-200 focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:outline-none"
 							>
-								Manage billing
+								{workspace.billing.mode === 'past_due'
+									? 'Update payment details'
+									: 'Manage billing'}
 							</button>
 						</form>
 					{/if}

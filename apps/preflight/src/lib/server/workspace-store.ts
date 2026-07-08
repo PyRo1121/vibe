@@ -415,7 +415,7 @@ function billingState(
 	const plan = resolveDeploylintPlan(subscription?.plan);
 	const paid = subscription?.status === 'active' || subscription?.status === 'trialing';
 	return {
-		mode: paid ? 'paid' : 'setup',
+		mode: paid ? 'paid' : subscription?.status === 'past_due' ? 'past_due' : 'setup',
 		planLabel: plan.name,
 		projectLimit: PLAN_LIMITS[plan.id]
 	};

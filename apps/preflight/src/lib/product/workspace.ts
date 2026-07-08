@@ -4,7 +4,7 @@ export type ProjectInstallState = 'not_installed' | 'advisory_installed' | 'gate
 export type ProjectGateMode = 'advisory' | 'gate';
 
 export interface WorkspaceBillingState {
-	mode: 'alpha' | 'paid' | 'setup';
+	mode: 'alpha' | 'paid' | 'past_due' | 'setup';
 	planLabel: string;
 	projectLimit: number;
 }
