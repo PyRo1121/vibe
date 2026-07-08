@@ -300,6 +300,30 @@ function hasLeastPrivilegeWorkflowPermissions(workflow: string): boolean {
 	return permissions.contentsRead && !permissions.writeAll && permissions.writeScopes.length === 0;
 }
 
+function hasDeploylintWorkflowTriggers(workflow: string): boolean {
+	return (
+		workflow.includes('push:') &&
+		workflow.includes('branches: [main]') &&
+		workflow.includes('pull_request:') &&
+		workflow.includes('workflow_dispatch:') &&
+		[
+			'apps/preflight/**',
+			'apps/preflight-mcp/**',
+			'apps/deploylint-shared/**',
+			'.github/actions/deploylint-gate/**',
+			'package.json',
+			'package-lock.json',
+			'turbo.json',
+			'knip.deploylint.jsonc',
+			'.oxlintrc.jsonc',
+			'.oxfmtrc.jsonc',
+			'.nvmrc',
+			'.github/workflows/preflight-gate.yml',
+			'.github/workflows/deploylint-dogfood.yml'
+		].every((path) => workflow.includes(path))
+	);
+}
+
 export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsReport {
 	const preflightRoot = join(rootDir, 'apps/preflight');
 	const preflightMcpRoot = join(rootDir, 'apps/preflight-mcp');
@@ -670,6 +694,13 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			([metric, minimum]) =>
 				configuredSharedCoverageThresholds[metric as keyof CoverageThresholds] >= minimum
 		)
+	);
+	pushCheck(
+		checked,
+		failures,
+		'GitHub workflows run on push, pull request, and manual dispatch with Deploylint path filters',
+		hasDeploylintWorkflowTriggers(preflightGateWorkflow) &&
+			hasDeploylintWorkflowTriggers(dogfoodWorkflow)
 	);
 	pushCheck(
 		checked,
