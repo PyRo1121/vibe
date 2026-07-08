@@ -19,23 +19,35 @@ describe('/app workspace source', () => {
 	it('presents a project workspace instead of another scanner page', () => {
 		const pageSource = source(pagePath);
 
-		expect(pageSource).toContain('Setup checklist');
+		expect(pageSource).toContain('CI command center');
+		expect(pageSource).toContain('Operate deploy readiness from CI evidence');
+		expect(pageSource).toContain(
+			'Track monitored projects, advisory reports, regressions, billing, and gate enforcement'
+		);
 		expect(pageSource).toContain('Next action');
 		expect(pageSource).toContain('CI hardening command center');
 		expect(pageSource).toContain('Workspace readiness at a glance');
 		expect(pageSource).toContain('commandCenterSummary');
 		expect(pageSource).toContain('Install the advisory workflow to start report history');
+		expect(pageSource).toContain(
+			'fixes verified, ${workspaceCommandStats.latestRegressionCount} regressions need attention'
+		);
 		expect(pageSource).toContain('commandCenterStats');
 		expect(pageSource).toContain('Monitored projects');
 		expect(pageSource).toContain('Blocking gates');
 		expect(pageSource).toContain('CI reports this month');
-		expect(pageSource).toContain('Ready to gate');
+		expect(pageSource).toContain('Gate-ready projects');
 		expect(pageSource).toContain('latestFixedCount');
 		expect(pageSource).toContain('latestRegressionCount');
-		expect(pageSource).toContain('Monitored project inventory');
-		expect(pageSource).toContain('Every deploy target gets its own gate path');
+		expect(pageSource).toContain('Deploy target fleet');
+		expect(pageSource).toContain('Each deploy target owns a gate path');
 		expect(pageSource).toContain('workspaceProjects as workspaceProject');
 		expect(pageSource).toContain('slots used');
+		expect(pageSource).toContain('Gate mode');
+		expect(pageSource).toContain('Latest CI report');
+		expect(pageSource).toContain('Advisory only');
+		expect(pageSource).toContain('Ready for blocking gate');
+		expect(pageSource).toContain('Blocking gate');
 		expect(pageSource).toContain('Install in GitHub Actions');
 		expect(pageSource).toContain('Report history');
 		expect(pageSource).toContain('Awaiting first CI report');
@@ -54,6 +66,8 @@ describe('/app workspace source', () => {
 		expect(pageSource).toContain('gateModeLabel');
 		expect(pageSource).toContain('gatePromotionReady');
 		expect(pageSource).toContain('gatePromotionHint');
+		expect(pageSource).toContain('Gate rollout');
+		expect(pageSource).toContain('Deploy target');
 		expect(pageSource).toContain('Enable blocking gate');
 		expect(pageSource).toContain('action="?/enableGate"');
 		expect(pageSource).toContain('form?.enableGateError');
@@ -63,7 +77,10 @@ describe('/app workspace source', () => {
 		expect(pageSource).toContain('Branch protection handoff');
 		expect(pageSource).toContain('required status check');
 		expect(pageSource).toContain('workspaceGateHardeningSteps');
-		expect(pageSource).toContain('Billing status');
+		expect(pageSource).toContain('Plan and capacity');
+		expect(pageSource).toContain('Monitoring plan');
+		expect(pageSource).toContain('Start monitoring plan');
+		expect(pageSource).toContain('Open billing portal');
 		expect(pageSource).toContain('Payment update needed');
 		expect(pageSource).toContain('Checkout complete');
 		expect(pageSource).toContain('Checkout canceled');
@@ -72,7 +89,6 @@ describe('/app workspace source', () => {
 		expect(pageSource).toContain('generation and billing checkout are paused');
 		expect(pageSource).toContain('storageUnavailable');
 		expect(pageSource).toContain('/api/workspace/billing/portal');
-		expect(pageSource).toContain('Manage billing');
 		expect(pageSource).toContain('Update payment details');
 		expect(pageSource).toContain('billingStatusLabel');
 		expect(pageSource).toContain('workspace.metrics.activeProjects');
@@ -80,6 +96,8 @@ describe('/app workspace source', () => {
 		expect(pageSource).toContain('workspace.metrics.reportsThisMonth');
 		expect(pageSource).toContain('DEPLOYLINT_MODE');
 		expect(pageSource).toContain('This project-scoped workflow writes CI reports back');
+		expect(pageSource).toContain('Fixed {report.fixedCount}');
+		expect(pageSource).toContain('Regressed {report.regressedCount}');
 		expect(pageSource).toContain('DEPLOYLINT_PROJECT_ID');
 		expect(pageSource).toContain('DEPLOYLINT_INGEST_TOKEN');
 		expect(pageSource).toContain('copyIngestToken');
@@ -95,6 +113,18 @@ describe('/app workspace source', () => {
 		expect(pageSource).toContain('data.projectDraftApplied');
 		expect(pageSource).toContain('Project draft applied');
 		expect(pageSource).not.toContain('URL to scan');
+		expect(pageSource).not.toContain('Setup checklist');
+		expect(pageSource).not.toContain('Turn a workflow check into a deploy gate');
+		expect(pageSource).not.toContain('Monitored project inventory');
+		expect(pageSource).not.toContain('Install state');
+		expect(pageSource).not.toContain('Latest evidence');
+		expect(pageSource).not.toContain('Project setup');
+		expect(pageSource).not.toContain('Activation progress');
+		expect(pageSource).not.toContain('Billing status');
+		expect(pageSource).not.toContain('Start workspace billing');
+		expect(pageSource).not.toContain('billing status panel');
+		expect(pageSource).not.toContain('+{report.fixedCount}');
+		expect(pageSource).not.toContain('-{report.regressedCount}');
 		expect(pageSource).not.toContain('xl:grid-cols-4');
 		expect(pageSource).not.toContain('Solo includes');
 		expect(pageSource).not.toContain('Workspace setup preview');

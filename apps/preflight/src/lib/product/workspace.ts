@@ -113,7 +113,7 @@ export interface WorkspaceCommandCenterStats {
 export const workspaceActivationSteps = [
 	{
 		id: 'project',
-		label: 'Create a project',
+		label: 'Define deploy target',
 		description: 'Name the deploy target and keep billing, reports, and install state together.'
 	},
 	{
@@ -123,7 +123,7 @@ export const workspaceActivationSteps = [
 	},
 	{
 		id: 'first-report',
-		label: 'Read the first advisory report',
+		label: 'Capture first CI report',
 		description:
 			'Use the first CI report to start workspace history, gate policy, and regression tracking.'
 	},
@@ -167,7 +167,7 @@ const ACTIVATION_CTA: Record<
 > = {
 	project: { ctaLabel: 'Review project', href: '#project' },
 	workflow: { ctaLabel: 'Copy workflow', href: '#install' },
-	'first-report': { ctaLabel: 'Wait for CI report', href: '#reports' },
+	'first-report': { ctaLabel: 'Review report stream', href: '#reports' },
 	gate: { ctaLabel: 'Review reports', href: '#gate' }
 };
 

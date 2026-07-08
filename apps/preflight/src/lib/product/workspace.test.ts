@@ -163,14 +163,15 @@ describe('Deploylint workspace model', () => {
 		expect(workflow).toContain("DEPLOYLINT_MIN_SCORE: '92'");
 	});
 
-	it('keeps the activation checklist centered on first CI report, not another scan', () => {
+	it('keeps the rollout checklist centered on deploy target gates and first CI report', () => {
 		expect(workspaceActivationSteps.map((step) => step.id)).toEqual([
 			'project',
 			'workflow',
 			'first-report',
 			'gate'
 		]);
-		expect(workspaceActivationSteps[2].label).toContain('first advisory report');
+		expect(workspaceActivationSteps[0].label).toContain('deploy target');
+		expect(workspaceActivationSteps[2].label).toContain('Capture first CI report');
 	});
 
 	it('documents the handoff from advisory report to required deploy gate', () => {
@@ -334,8 +335,8 @@ describe('Deploylint workspace model', () => {
 		expect(activation.progress).toEqual({ completed: 2, total: 4, percentage: 50 });
 		expect(activation.nextAction).toMatchObject({
 			id: 'first-report',
-			label: 'Read the first advisory report',
-			ctaLabel: 'Wait for CI report'
+			label: 'Capture first CI report',
+			ctaLabel: 'Review report stream'
 		});
 		expect(activation.steps.map((step) => [step.id, step.status])).toEqual([
 			['project', 'complete'],

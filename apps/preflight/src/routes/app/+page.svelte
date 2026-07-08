@@ -64,7 +64,7 @@
 	const workspaceCommandStats = $derived(buildWorkspaceCommandCenterStats(workspace));
 	const commandCenterSummary = $derived(
 		workspaceCommandStats.reportsThisMonth > 0
-			? `Latest reports fixed ${workspaceCommandStats.latestFixedCount} checks and found ${workspaceCommandStats.latestRegressionCount} regressions.`
+			? `${workspaceCommandStats.latestFixedCount} fixes verified, ${workspaceCommandStats.latestRegressionCount} regressions need attention across latest reports.`
 			: 'Install the advisory workflow to start report history.'
 	);
 	const commandCenterStats = $derived([
@@ -88,7 +88,7 @@
 		},
 		{
 			id: 'ready',
-			label: 'Ready to gate',
+			label: 'Gate-ready projects',
 			value: String(workspaceCommandStats.projectsReadyForGate),
 			detail: 'Advisory projects clean enough'
 		}
@@ -178,7 +178,7 @@
 		if (status === 'cancel') {
 			return {
 				title: 'Checkout canceled',
-				body: 'No plan change was made. Workspace billing can be started again from the billing status panel.',
+				body: 'No plan change was made. Start the monitoring plan again from plan and capacity.',
 				className: 'border-amber-500/30 bg-amber-950/20 text-amber-100'
 			};
 		}
@@ -284,14 +284,14 @@
 		<div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
 			<div>
 				<p class="mb-3 text-sm font-medium tracking-widest text-sky-400 uppercase">
-					{data.projectDraftApplied ? 'Project draft applied' : 'Setup checklist'}
+					{data.projectDraftApplied ? 'Project draft applied' : 'CI command center'}
 				</p>
 				<h1 class="max-w-4xl text-3xl font-bold tracking-tight text-white sm:text-5xl">
-					Turn a workflow check into a deploy gate.
+					Operate deploy readiness from CI evidence.
 				</h1>
 				<p class="mt-3 max-w-3xl text-base leading-7 text-zinc-400">
-					Deploylint is organized around monitored projects, CI reports, and gate enforcement. Start
-					advisory, prove the signal, then switch on blocking.
+					Track monitored projects, advisory reports, regressions, billing, and gate enforcement
+					from one workspace.
 				</p>
 			</div>
 			<p class="text-sm text-zinc-500">
@@ -359,7 +359,7 @@
 				</div>
 				<div class="mt-5">
 					<div class="mb-2 flex items-center justify-between text-xs text-zinc-400">
-						<span>Activation progress</span>
+						<span>Gate rollout progress</span>
 						<span>{progressLabel}</span>
 					</div>
 					<div class="h-2 overflow-hidden rounded-full bg-zinc-800">
@@ -408,7 +408,7 @@
 				</p>
 				<div class="mt-4 rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
 					<p class="text-[10px] font-semibold tracking-widest text-zinc-500 uppercase">
-						Billing status
+						Plan and capacity
 					</p>
 					<p class="mt-1 text-sm font-semibold text-zinc-200">
 						{billingStatusLabel(workspace.billing.mode)}
@@ -422,7 +422,7 @@
 						<form method="POST" action={resolve('/api/workspace/checkout')} class="mt-4 space-y-3">
 							<label class="block">
 								<span class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
-									Plan
+									Monitoring plan
 								</span>
 								<select
 									name="plan"
@@ -437,7 +437,7 @@
 								type="submit"
 								class="w-full rounded-lg bg-sky-400 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-sky-300 focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:outline-none"
 							>
-								Start workspace billing
+								Start monitoring plan
 							</button>
 						</form>
 					{:else if workspace.billing.mode === 'paid' || workspace.billing.mode === 'past_due'}
@@ -448,7 +448,7 @@
 							>
 								{workspace.billing.mode === 'past_due'
 									? 'Update payment details'
-									: 'Manage billing'}
+									: 'Open billing portal'}
 							</button>
 						</form>
 					{/if}
@@ -461,14 +461,12 @@
 		<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 			<div>
 				<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
-					Monitored project inventory
+					Deploy target fleet
 				</p>
-				<h2 class="mt-2 text-xl font-semibold text-white">
-					Every deploy target gets its own gate path
-				</h2>
+				<h2 class="mt-2 text-xl font-semibold text-white">Each deploy target owns a gate path</h2>
 				<p class="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-					Track install state, latest report quality, and gate readiness per project before
-					expanding the workspace.
+					Track gate mode, latest CI report quality, and gate readiness per project before expanding
+					the workspace.
 				</p>
 			</div>
 			<span class="w-fit rounded-full border border-zinc-700 px-3 py-1 text-xs text-zinc-400">
@@ -487,13 +485,13 @@
 						</p>
 					</div>
 					<div>
-						<p class="text-xs text-zinc-500">Install state</p>
+						<p class="text-xs text-zinc-500">Gate mode</p>
 						<p class="mt-1 text-sm font-medium text-zinc-200">
 							{installStateLabel(workspaceProject.installState)}
 						</p>
 					</div>
 					<div>
-						<p class="text-xs text-zinc-500">Latest evidence</p>
+						<p class="text-xs text-zinc-500">Latest CI report</p>
 						<p class="mt-1 text-sm font-medium text-zinc-200">
 							{workspaceProject.latestReport
 								? `${workspaceProject.latestReport.score} / ${workspaceProject.latestReport.verdict}`
@@ -513,11 +511,11 @@
 							]}
 						>
 							{workspaceProject.installState === 'gate_enabled'
-								? 'Gate enforcing'
+								? 'Blocking gate'
 								: workspaceProject.latestReport?.verdict === 'go' &&
 									  workspaceProject.latestReport.score >= workspaceProject.minScore
-									? 'Ready to gate'
-									: 'Advisory'}
+									? 'Ready for blocking gate'
+									: 'Advisory only'}
 						</span>
 					</div>
 				</div>
@@ -533,7 +531,7 @@
 		<div id="project" class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">
 			<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 				<div>
-					<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Project setup</p>
+					<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Deploy target</p>
 					<h2 class="mt-2 text-2xl font-semibold text-white">
 						{project?.name ?? 'Create your first monitored project'}
 					</h2>
@@ -576,7 +574,7 @@
 		</div>
 
 		<aside class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">
-			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Activation</p>
+			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Gate rollout</p>
 			<ol class="mt-4 space-y-4">
 				{#each activation.steps as step, index (step.id)}
 					<li class="flex gap-3">
@@ -774,12 +772,12 @@
 									<span
 										class="rounded-md border border-emerald-500/30 px-2 py-1 text-xs text-emerald-300"
 									>
-										+{report.fixedCount}
+										Fixed {report.fixedCount}
 									</span>
 									<span
 										class="rounded-md border border-rose-500/30 px-2 py-1 text-xs text-rose-300"
 									>
-										-{report.regressedCount}
+										Regressed {report.regressedCount}
 									</span>
 									{#if report.reportId}
 										<a
