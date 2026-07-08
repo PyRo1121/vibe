@@ -34,7 +34,7 @@ async function reserve(
 			body: JSON.stringify(body)
 		})
 	);
-	const json = (await response.json().catch(() => null)) as unknown;
+	const json = await response.json().catch(() => null);
 	return { response, json };
 }
 

@@ -1,9 +1,4 @@
-import {
-	isFunnelEventName,
-	logFunnelEvent,
-	sanitizeFunnelPayload,
-	type FunnelEventName
-} from '$lib/metrics/funnel';
+import { isFunnelEventName, logFunnelEvent, sanitizeFunnelPayload } from '$lib/metrics/funnel';
 import { UrlValidationError } from '$lib/scan/url-guard';
 import { readJsonBody } from '$lib/server/api';
 import { json } from '@sveltejs/kit';
@@ -32,6 +27,6 @@ export async function handleEventsPost(request: Request) {
 	}
 
 	const payload = sanitizeFunnelPayload(raw);
-	logFunnelEvent(event as FunnelEventName, payload);
+	logFunnelEvent(event, payload);
 	return json({ ok: true });
 }

@@ -289,7 +289,7 @@ function pushDefaultFaviconTitleCheck(
 
 	if (!titleHit && !faviconHit) return;
 
-	const label = titleHit ? title!.trim() : 'template favicon';
+	const label = titleHit ? title.trim() : 'template favicon';
 	checks.push(
 		makeCheck(
 			'default-favicon-title',

@@ -9,12 +9,13 @@ interface ReserveRequest {
 	windowMs?: number;
 }
 
+const DurableObjectFallback: new (state: DurableObjectState, env: Env) => object = Object;
 const DurableObjectBase =
 	(
 		globalThis as typeof globalThis & {
 			DurableObject?: new (state: DurableObjectState, env: Env) => object;
 		}
-	).DurableObject ?? (Object as unknown as new (state: DurableObjectState, env: Env) => object);
+	).DurableObject ?? DurableObjectFallback;
 
 export class CounterLimiter extends DurableObjectBase {
 	private readonly state: DurableObjectState;

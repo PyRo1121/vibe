@@ -495,6 +495,13 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
+		'preflight type-aware Oxlint rejects unnecessary type assertions',
+		hasScriptCommand(preflightPackage.scripts, 'lint:type-aware', ['oxlint', '--type-aware']) &&
+			!preflightTypeAwareLint.includes('typescript/no-unnecessary-type-assertion')
+	);
+	pushCheck(
+		checked,
+		failures,
 		'preflight verify runs standards, typecheck, lint, type-aware lint, coverage, and build',
 		hasScriptCommand(preflightPackage.scripts, 'verify', [
 			'quality:standards',

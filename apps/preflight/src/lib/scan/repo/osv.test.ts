@@ -45,6 +45,16 @@ describe('parseBatchResults', () => {
 		expect(parseBatchResults(PACKAGES, { results: [null, null] })).toEqual([]);
 		expect(parseBatchResults(PACKAGES, {})).toEqual([]);
 	});
+
+	it('treats malformed API JSON as no findings instead of throwing', () => {
+		expect(parseBatchResults(PACKAGES, null)).toEqual([]);
+		expect(parseBatchResults(PACKAGES, { results: 'not-array' })).toEqual([]);
+		expect(
+			parseBatchResults(PACKAGES, {
+				results: [{ vulns: 'not-array' }, 'not-object', { vulns: [{ id: 42 }] }]
+			})
+		).toEqual([]);
+	});
 });
 
 describe('normalizeSeverity', () => {

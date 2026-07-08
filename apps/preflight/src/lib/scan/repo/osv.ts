@@ -33,9 +33,27 @@ interface BatchResponse {
 	results?: Array<{ vulns?: Array<{ id?: string }> } | null>;
 }
 
-export function parseBatchResults(packages: LockPackage[], body: BatchResponse): OsvFinding[] {
+function readBatchResults(body: unknown): NonNullable<BatchResponse['results']> {
+	if (!body || typeof body !== 'object' || Array.isArray(body)) return [];
+	const results = (body as { results?: unknown }).results;
+	if (!Array.isArray(results)) return [];
+	return results.map((result) => {
+		if (!result || typeof result !== 'object' || Array.isArray(result)) return null;
+		const vulns = (result as { vulns?: unknown }).vulns;
+		if (!Array.isArray(vulns)) return {};
+		return {
+			vulns: vulns
+				.filter((vuln): vuln is Record<string, unknown> => {
+					return !!vuln && typeof vuln === 'object' && !Array.isArray(vuln);
+				})
+				.map((vuln) => ({ id: typeof vuln.id === 'string' ? vuln.id : undefined }))
+		};
+	});
+}
+
+export function parseBatchResults(packages: LockPackage[], body: unknown): OsvFinding[] {
 	const findings: OsvFinding[] = [];
-	(body.results ?? []).forEach((result, i) => {
+	readBatchResults(body).forEach((result, i) => {
 		const pkg = packages[i];
 		const ids = (result?.vulns ?? []).map((v) => v.id).filter((id): id is string => !!id);
 		if (pkg && ids.length > 0) {
@@ -131,7 +149,7 @@ export async function auditVulnerabilities(
 			signal: AbortSignal.timeout(TIMEOUT_MS)
 		});
 		if (!res.ok) return null;
-		const findings = parseBatchResults(packages, (await res.json()) as BatchResponse);
+		const findings = parseBatchResults(packages, await res.json());
 
 		let worst: OsvSeverity | null = null;
 		const detailIds = [...new Set(findings.flatMap((f) => f.vulnIds))].slice(0, MAX_DETAIL_LOOKUPS);

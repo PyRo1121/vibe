@@ -9,7 +9,11 @@ type ScanUrl = typeof import('$lib/scan/engine').scanUrl;
 type VerifyCheckoutSession = typeof import('$lib/billing/stripe').verifyCheckoutSession;
 type AiRun = import('$lib/server/copy-review').AiRunner['run'];
 
-const alphaEnv = { DEPLOYLINT_ALPHA_FREE_UNLOCK: 'true' } as Env;
+function testEnv(overrides: Partial<Env> = {}): Env {
+	return overrides as Env;
+}
+
+const alphaEnv = testEnv({ DEPLOYLINT_ALPHA_FREE_UNLOCK: 'true' });
 
 vi.mock('$lib/scan/engine', () => ({
 	scanUrl: vi.fn<ScanUrl>(async () => ({
@@ -130,7 +134,7 @@ describe('handleScanPost', () => {
 		const res = await handleScanPost(request, {
 			...alphaEnv,
 			STRIPE_SECRET_KEY: 'sk_test_x'
-		} as Env);
+		});
 		const body = (await res.json()) as { unlocked?: boolean };
 		expect(body.unlocked).toBe(true);
 		expect(resolveUnlock).not.toHaveBeenCalled();
@@ -264,7 +268,7 @@ describe('handleScanPost', () => {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ url: 'https://app.test' })
 			}),
-			{ ...alphaEnv, AI: ai } as unknown as Env
+			testEnv({ ...alphaEnv, AI: ai })
 		);
 		const alpha = (await alphaRes.json()) as {
 			aiCopyReview?: { headline: string };
@@ -341,7 +345,7 @@ describe('handleScanPost', () => {
 		const res = await handleScanPost(makeScanRequest(), {
 			...alphaEnv,
 			AI: { run }
-		} as unknown as Env);
+		});
 		const body = (await res.json()) as { aiCopyReview?: { headline: string } };
 		const options = run.mock.calls[0]?.[1] as { messages?: Array<{ content: string }> };
 		const prompt = options.messages?.[0]?.content ?? '';
@@ -374,7 +378,7 @@ describe('handleScanPost', () => {
 		const res = await handleScanPost(makeScanRequest(), {
 			...alphaEnv,
 			AI: { run }
-		} as unknown as Env);
+		});
 		const body = (await res.json()) as { aiCopyReview?: unknown };
 
 		expect(body.aiCopyReview).toBeUndefined();
@@ -395,7 +399,7 @@ describe('handleScanPost', () => {
 		const res = await handleScanPost(request, {
 			...alphaEnv,
 			STRIPE_SECRET_KEY: 'sk_test_x'
-		} as Env);
+		});
 		expect(res.status).toBe(200);
 		expect(resolveUnlock).not.toHaveBeenCalled();
 	});

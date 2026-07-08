@@ -31,6 +31,7 @@ describe('quality standards guard', () => {
 			expect.arrayContaining([
 				'preflight scripts run oxfmt, oxlint, and type-aware oxlint with zero-warning lint',
 				'preflight type-aware Oxlint keeps deprecated API checks enabled',
+				'preflight type-aware Oxlint rejects unnecessary type assertions',
 				'preflight verify runs standards, typecheck, lint, type-aware lint, coverage, and build',
 				'preflight-mcp verify runs typecheck, lint, type-aware lint, clean build, and coverage',
 				'deploylint-shared verify runs typecheck, lint, type-aware lint, coverage, and syntax checks',
@@ -267,6 +268,7 @@ describe('quality standards guard', () => {
 				expect.arrayContaining([
 					'preflight scripts run oxfmt, oxlint, and type-aware oxlint with zero-warning lint',
 					'preflight type-aware Oxlint keeps deprecated API checks enabled',
+					'preflight type-aware Oxlint rejects unnecessary type assertions',
 					'preflight verify runs standards, typecheck, lint, type-aware lint, coverage, and build',
 					'preflight-mcp verify runs typecheck, lint, type-aware lint, clean build, and coverage',
 					'deploylint-shared verify runs typecheck, lint, type-aware lint, coverage, and syntax checks',
