@@ -37,7 +37,7 @@ export interface UnlockOffer {
 	ctaLabel: string;
 	projectedScore: number | null;
 	masterPreviewLines: string[];
-	/** Full master prompt line count — shown pre-unlock as social proof */
+	/** Full guided repair plan line count — shown pre-unlock as social proof */
 	masterPromptLineCount: number;
 }
 
@@ -146,7 +146,7 @@ function buildMasterPromptPreview(report: ScanReport): string[] {
 		report.checks.filter((c) => c.status !== 'pass').length - lines.length
 	);
 	if (remaining > 0)
-		lines.push(`… +${remaining} more issue${remaining === 1 ? '' : 's'} with copy-paste prompts`);
+		lines.push(`… +${remaining} more issue${remaining === 1 ? '' : 's'} with guided fixes`);
 	return [header, '', intro, ...lines];
 }
 
@@ -160,10 +160,11 @@ export function buildUnlockOffer(report: ScanReport): UnlockOffer | null {
 			lockedPromptCount: 0,
 			blockerCount: 1,
 			hasSample: Boolean(report.samplePromptId),
-			headline: 'Scan blocked — fix access before buying fix prompts',
+			headline: 'Access blocked — fix reachability before upgrading',
 			subhead:
-				'We only saw an error page. Unlock gives reachability guidance, not SEO fixes. Re-scan after your homepage returns HTTP 200 to us.',
-			valuePitch: 'Full audit unlock after a successful scan — not for bot-blocked error pages',
+				'Deploylint only saw an error page. Upgrade after your homepage returns HTTP 200 so the report can judge real deploy readiness.',
+			valuePitch:
+				'Full readiness workflow after a successful check — not for bot-blocked error pages',
 			ctaLabel: 'Start Solo - $9/mo',
 			projectedScore: null,
 			masterPreviewLines: buildMasterPromptPreview(report),
@@ -187,37 +188,37 @@ export function buildUnlockOffer(report: ScanReport): UnlockOffer | null {
 
 	const promptPart =
 		lockedPromptCount > 0
-			? `${lockedPromptCount} Cursor prompt${lockedPromptCount === 1 ? '' : 's'}`
-			: 're-scan proof';
+			? `${lockedPromptCount} guided fix${lockedPromptCount === 1 ? '' : 'es'}`
+			: 'verification proof';
 	const deltaPart =
-		projectedScore == null ? '' : ` · re-scan could show ${report.score} → ${projectedScore}`;
+		projectedScore == null ? '' : ` · verification could show ${report.score} → ${projectedScore}`;
 
 	if (report.verdict === 'no-go') {
 		headline =
 			blockerCount > 0
 				? `Gate not ready - ${blockerCount} deploy blocker${blockerCount === 1 ? '' : 's'} need fixes`
-				: 'Gate not ready - unlock Cursor-ready fixes before production';
+				: 'Gate not ready - use the guided repair plan before production';
 		subhead =
-			'Free report told you what is wrong. Solo is the fix loop: paste prompts into Cursor, deploy, and re-scan before this reaches production.';
-		valuePitch = `Unlock ${promptPart} + 1 master paste${deltaPart}`;
-		ctaLabel = lockedPromptCount > 0 ? 'Start Solo - $9/mo' : 'Start Solo for re-scan proof';
+			'Solo turns the report into a repair loop: apply the plan, deploy, and verify again before this reaches production.';
+		valuePitch = `Unlock ${promptPart} + guided repair plan${deltaPart}`;
+		ctaLabel = lockedPromptCount > 0 ? 'Start Solo - $9/mo' : 'Start Solo for verification proof';
 	} else if (report.verdict === 'conditional') {
 		headline = 'Almost gate-ready - fix the remaining deploy risks';
 		subhead =
-			'One free sample prompt is not enough for a production gate. Start Solo, paste once, and re-scan until verdict is GO.';
-		valuePitch = `Unlock ${promptPart} + master paste${deltaPart}`;
+			'One free sample is not enough for a production gate. Start Solo, apply the guided plan, and verify until verdict is GO.';
+		valuePitch = `Unlock ${promptPart} + guided repair plan${deltaPart}`;
 		ctaLabel = 'Start Solo - $9/mo';
 	} else if (lockedPromptCount > 0) {
-		headline = 'Verdict is GO — unlock polish prompts + proof';
+		headline = 'Verdict is GO — unlock polish guidance + proof';
 		subhead =
-			'Optional warnings remain. Start Solo if you want every fix prompt and a before/after score on re-scan.';
-		valuePitch = `${lockedPromptCount} polish prompts + master paste${deltaPart}`;
+			'Optional warnings remain. Start Solo if you want every guided fix and a before/after score on verification.';
+		valuePitch = `${lockedPromptCount} polish item${lockedPromptCount === 1 ? '' : 's'} + guided repair plan${deltaPart}`;
 		ctaLabel = 'Start Solo - $9/mo';
 	} else {
 		headline = 'Unlock re-scan proof for this deploy target';
 		subhead =
-			'Everything passed. Start Solo for recurring monitoring and re-scans after last-minute edits.';
-		valuePitch = 'Re-scans with score delta on this URL';
+			'Everything passed. Start Solo for recurring monitoring and verification after last-minute edits.';
+		valuePitch = 'Verification history with score delta on this project';
 		ctaLabel = 'Start Solo - $9/mo';
 	}
 

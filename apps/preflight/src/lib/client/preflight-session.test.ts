@@ -86,7 +86,7 @@ describe('buildUnlockOffer', () => {
 		expect(buildUnlockOffer({ ...baseReport, unlocked: true })).toBeNull();
 	});
 
-	it('counts locked prompts excluding free sample', () => {
+	it('counts locked guided fixes excluding free sample', () => {
 		const offer = buildUnlockOffer({
 			...baseReport,
 			verdict: 'conditional',
@@ -106,7 +106,7 @@ describe('buildUnlockOffer', () => {
 		expect(offer?.headline).toContain('Gate not ready');
 	});
 
-	it('includes concrete value pitch and projected score', () => {
+	it('includes concrete workflow value pitch and projected score', () => {
 		const offer = buildUnlockOffer({
 			...baseReport,
 			score: 62,
@@ -115,7 +115,7 @@ describe('buildUnlockOffer', () => {
 			checks: [check('privacy', 'fail'), check('open-graph', 'fail'), check('title', 'warn')],
 			samplePromptId: 'privacy'
 		});
-		expect(offer?.valuePitch).toContain('Cursor prompt');
+		expect(offer?.valuePitch).toContain('guided fix');
 		expect(offer?.masterPreviewLines.length).toBeGreaterThan(2);
 		expect(offer?.projectedScore).toBeGreaterThan(62);
 	});
@@ -133,7 +133,7 @@ describe('buildUnlockOffer', () => {
 		expect(offer?.masterPreviewLines.join('\n')).toContain('Do NOT fix SEO');
 	});
 
-	it('includes master prompt line count', () => {
+	it('includes guided repair plan line count', () => {
 		const offer = buildUnlockOffer({
 			...baseReport,
 			verdict: 'no-go',

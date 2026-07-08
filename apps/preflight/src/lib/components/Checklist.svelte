@@ -52,7 +52,7 @@
 		</div>
 		{#if !report.unlocked && offer && offer.lockedPromptCount > 0}
 			<p class="text-sm font-medium text-sky-400">
-				{offer.lockedPromptCount} fix prompts locked · 1 free below
+				{offer.lockedPromptCount} guided fixes locked · 1 free below
 			</p>
 		{/if}
 	</div>
@@ -136,13 +136,13 @@
 											class="rounded-lg bg-zinc-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-700"
 											onclick={() => onCopyPrompt(item.id, item.fixPrompt)}
 										>
-											{copiedId === item.id ? 'Copied!' : 'Copy prompt'}
+											{copiedId === item.id ? 'Copied!' : 'Copy fix brief'}
 										</button>
 									</div>
 								{:else if !report.unlocked && item.id === report.samplePromptId && item.fixPrompt}
 									<div class="mt-3 rounded-lg border border-sky-500/30 bg-sky-500/5 p-3">
 										<p class="mb-2 text-[10px] font-semibold tracking-wider text-sky-400 uppercase">
-											Sample fix prompt (free)
+											Sample fix brief (free)
 										</p>
 										<p class="mb-2 text-xs whitespace-pre-wrap text-zinc-300">{item.fixPrompt}</p>
 										<button
@@ -158,12 +158,12 @@
 										class="relative mt-3 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950 p-3"
 									>
 										<p class="text-xs text-zinc-500 blur-sm select-none">
-											Cursor-ready fix prompt for {item.title.toLowerCase()}…
+											Guided fix brief for {item.title.toLowerCase()}…
 										</p>
 										<div
 											class="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-zinc-950/85 px-3 text-center"
 										>
-											<p class="text-xs font-medium text-sky-300">Unlock to copy this fix</p>
+											<p class="text-xs font-medium text-sky-300">Unlock guided fix</p>
 											<p class="text-[10px] text-zinc-500">Included in Solo from $9/mo</p>
 										</div>
 									</div>

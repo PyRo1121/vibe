@@ -43,7 +43,7 @@
 					</span>
 				{/if}
 				<span class="rounded-full bg-zinc-800 px-3 py-1 text-zinc-300">
-					{offer.issueCount} issue{offer.issueCount === 1 ? '' : 's'} with fix prompts
+					{offer.issueCount} issue{offer.issueCount === 1 ? '' : 's'} with guided fixes
 				</span>
 				{#if offer.lockedPromptCount > 0}
 					<span class="rounded-full bg-sky-500/20 px-3 py-1 font-medium text-sky-300">
@@ -61,14 +61,14 @@
 			</li>
 			<li class="flex gap-2 text-sm text-zinc-300">
 				<span class="text-sky-400">✓</span>
-				Advisory reports, saved history, and repair prompts
+				Advisory reports, saved history, and guided repair plans
 				{#if offer.masterPromptLineCount > 0}
 					<span class="text-zinc-500">({offer.masterPromptLineCount} lines)</span>
 				{/if}
 			</li>
 			<li class="flex gap-2 text-sm text-zinc-300">
 				<span class="text-sky-400">✓</span>
-				Re-scan proof - show the score moved before gate mode
+				Verification proof - show the score moved before gate mode
 			</li>
 			<li class="flex gap-2 text-sm text-zinc-300">
 				<span class="text-sky-400">✓</span>
@@ -109,7 +109,7 @@
 			{/each}
 		</div>
 		<p class="mt-4 text-xs text-zinc-600">
-			Subscriptions use Stripe Checkout. Free scans stay available; paid plans attach reports,
+			Subscriptions use Stripe Checkout. Free checks stay available; paid plans attach reports,
 			gates, MCP workflow access, and recurring monitoring to the selected project limit.
 		</p>
 	</section>

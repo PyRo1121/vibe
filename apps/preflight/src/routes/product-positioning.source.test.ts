@@ -43,13 +43,23 @@ describe('Deploylint CI workspace positioning', () => {
 	});
 
 	it('sells subscriptions as monitored projects and deploy enforcement', () => {
+		const checklist = source('lib', 'components', 'Checklist.svelte');
+		const preflightSession = source('lib', 'client', 'preflight-session.ts');
 		const unlockPanel = source('lib', 'components', 'UnlockPanel.svelte');
 		const unlockComparePanel = source('lib', 'components', 'UnlockComparePanel.svelte');
 
 		expect(unlockPanel).toContain('workspace-backed deploy gate');
+		expect(unlockPanel).toContain('guided repair plans');
+		expect(preflightSession).toContain('guided repair plan');
 		expect(unlockComparePanel).toContain('Workspace-backed gate, history, and monitoring');
-		expect(unlockPanel).not.toContain('Every fix prompt - copy into Cursor or Claude');
-		expect(unlockComparePanel).not.toContain('Fix everything in one Cursor paste');
+		for (const fileSource of [checklist, preflightSession, unlockPanel, unlockComparePanel]) {
+			expect(fileSource).not.toContain('Cursor prompt');
+			expect(fileSource).not.toContain('Cursor-ready');
+			expect(fileSource).not.toContain('master paste');
+			expect(fileSource).not.toContain('copy-paste prompts');
+			expect(fileSource).not.toContain('fix prompts locked');
+			expect(fileSource).not.toContain('with fix prompts');
+		}
 		expect(unlockComparePanel).not.toContain('Embarrassment brief');
 		expect(unlockComparePanel).toContain('Deploy surface brief');
 	});
