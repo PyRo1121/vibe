@@ -4,6 +4,7 @@ import {
 	canonicalScanUrl,
 	createBillingPortalSession,
 	createCheckoutSession,
+	createCustomerBillingPortalSession,
 	createWorkspaceCheckoutSession,
 	isStripeLiveMode,
 	verifyCheckoutSession
@@ -497,6 +498,56 @@ describe('createBillingPortalSession', () => {
 				secretKey: 'sk_test_x'
 			})
 		).rejects.toThrow('Malformed Stripe billing portal session response');
+	});
+});
+
+describe('createCustomerBillingPortalSession', () => {
+	it('creates a customer portal session for a workspace customer', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async (url: string, init?: RequestInit) => {
+				expect(url).toBe('https://api.stripe.com/v1/billing_portal/sessions');
+				const body = init?.body as URLSearchParams;
+				expect(body.get('customer')).toBe('cus_workspace');
+				expect(body.get('return_url')).toBe('https://deploylint.com/app?billing=return');
+				return {
+					ok: true,
+					json: async () => ({
+						id: 'bps_workspace',
+						url: 'https://billing.stripe.com/p/workspace'
+					})
+				};
+			})
+		);
+
+		await expect(
+			createCustomerBillingPortalSession({
+				appUrl: 'https://deploylint.com/',
+				customerId: 'cus_workspace',
+				secretKey: 'sk_test_x'
+			})
+		).resolves.toEqual({
+			id: 'bps_workspace',
+			url: 'https://billing.stripe.com/p/workspace'
+		});
+	});
+
+	it('surfaces workspace portal creation failures', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async () => ({
+				ok: false,
+				text: async () => 'portal disabled'
+			}))
+		);
+
+		await expect(
+			createCustomerBillingPortalSession({
+				appUrl: 'https://deploylint.com',
+				customerId: 'cus_workspace',
+				secretKey: 'sk_test_x'
+			})
+		).rejects.toThrow('Stripe billing portal failed: portal disabled');
 	});
 });
 

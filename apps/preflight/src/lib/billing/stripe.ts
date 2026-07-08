@@ -293,3 +293,35 @@ export async function createBillingPortalSession(opts: {
 	);
 	return { id: data.id, url: data.url };
 }
+
+export async function createCustomerBillingPortalSession(opts: {
+	appUrl: string;
+	customerId: string;
+	secretKey: string;
+}): Promise<BillingPortalSession> {
+	const { appUrl, customerId, secretKey } = opts;
+	const body = new URLSearchParams({
+		customer: customerId,
+		return_url: `${appUrl.replace(/\/$/, '')}/app?billing=return`
+	});
+
+	const res = await fetch(`${STRIPE_API}/billing_portal/sessions`, {
+		method: 'POST',
+		headers: {
+			Authorization: `Bearer ${secretKey}`,
+			'Content-Type': 'application/x-www-form-urlencoded'
+		},
+		body
+	});
+
+	if (!res.ok) {
+		const text = await res.text();
+		throw new Error(`Stripe billing portal failed: ${text.slice(0, 200)}`);
+	}
+
+	const data = parseSessionRedirectResponse(
+		await res.json(),
+		'Malformed Stripe billing portal session response'
+	);
+	return { id: data.id, url: data.url };
+}

@@ -64,6 +64,11 @@ export interface WorkspaceSubscriptionCheckout {
 
 export type WorkspaceSubscriptionStatus = 'active' | 'canceled' | 'past_due';
 
+export interface WorkspaceBillingCustomer {
+	customerId: string;
+	workspaceId: string;
+}
+
 const PLAN_LIMITS: Record<DeploylintPlanId, number> = {
 	solo: 1,
 	builder: 5,
@@ -434,6 +439,32 @@ export async function upsertWorkspaceSubscription(
 		.run();
 
 	return true;
+}
+
+export async function loadWorkspaceBillingCustomer(
+	db: D1Database | undefined,
+	ownerUserId: string
+): Promise<WorkspaceBillingCustomer | null> {
+	if (!db) return null;
+
+	const row = await db
+		.prepare(
+			`SELECT subscription.stripe_customer_id, workspace.id AS workspace_id
+			FROM subscription
+			INNER JOIN workspace ON workspace.id = subscription.workspace_id
+			WHERE workspace.owner_user_id = ?
+				AND subscription.status IN ('active', 'past_due')
+				AND subscription.stripe_customer_id IS NOT NULL
+			ORDER BY subscription.updated_at DESC
+			LIMIT 1`
+		)
+		.bind(ownerUserId)
+		.first<{ stripe_customer_id?: unknown; workspace_id?: unknown }>();
+	const customerId =
+		typeof row?.stripe_customer_id === 'string' ? row.stripe_customer_id.trim() : '';
+	const workspaceId = typeof row?.workspace_id === 'string' ? row.workspace_id.trim() : '';
+
+	return customerId && workspaceId ? { customerId, workspaceId } : null;
 }
 
 export async function updateWorkspaceSubscriptionStatus(

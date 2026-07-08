@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+	loadWorkspaceBillingCustomer,
 	loadOrCreateWorkspaceState,
 	promoteProjectToGate,
 	updateWorkspaceSubscriptionStatus,
@@ -389,5 +390,34 @@ describe('workspace D1 store', () => {
 				values: ['past_due', expect.any(Number), 'sub_123']
 			})
 		]);
+	});
+
+	it('loads the latest billable Stripe customer for a workspace owner', async () => {
+		const db = new FakeD1();
+		db.firstRows = [{ stripe_customer_id: ' cus_workspace ', workspace_id: 'wks_live' }];
+
+		await expect(
+			loadWorkspaceBillingCustomer(db as unknown as D1Database, 'user_123')
+		).resolves.toEqual({
+			customerId: 'cus_workspace',
+			workspaceId: 'wks_live'
+		});
+		expect(db.calls).toEqual([
+			expect.objectContaining({
+				method: 'first',
+				sql: expect.stringContaining("subscription.status IN ('active', 'past_due')"),
+				values: ['user_123']
+			})
+		]);
+	});
+
+	it('returns null when workspace billing customer storage is unavailable or empty', async () => {
+		const db = new FakeD1();
+		db.firstRows = [{ stripe_customer_id: '', workspace_id: 'wks_live' }];
+
+		await expect(loadWorkspaceBillingCustomer(undefined, 'user_123')).resolves.toBeNull();
+		await expect(
+			loadWorkspaceBillingCustomer(db as unknown as D1Database, 'user_123')
+		).resolves.toBeNull();
 	});
 });
