@@ -70,6 +70,10 @@ function readJson(path: string): unknown {
 	return JSON.parse(readFileSync(path, 'utf8'));
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 function listSourceFiles(root: string): string[] {
 	if (!existsSync(root)) return [];
 
@@ -92,6 +96,21 @@ function hasScriptCommand(
 
 function hasRuleLevelOxlintAllowance(command: string): boolean {
 	return /(?:^|\s)(?:-A|--allow)(?:\s|=)/.test(command);
+}
+
+function hasWorkspaceScopedSvelteKitConfig(
+	config: { sveltekit?: unknown; workspaces: Record<string, unknown> },
+	workspace: string,
+	expectedConfigPath: string
+): boolean {
+	if (config.sveltekit !== false) return false;
+	const workspaceConfig = config.workspaces[workspace];
+	if (!isRecord(workspaceConfig)) return false;
+
+	const sveltekit = workspaceConfig.sveltekit;
+	if (!isRecord(sveltekit) || !Array.isArray(sveltekit.config)) return false;
+
+	return sveltekit.config.includes(expectedConfigPath);
 }
 
 function propertyNameText(name: ts.PropertyName): string | null {
@@ -343,6 +362,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const deploylintSharedViteConfigPath = join(deploylintSharedRoot, 'vitest.config.ts');
 	const oxlintPath = join(rootDir, '.oxlintrc.jsonc');
 	const oxfmtPath = join(rootDir, '.oxfmtrc.jsonc');
+	const rootSvelteConfigPath = join(rootDir, 'svelte.config.js');
 	const nvmrcPath = join(rootDir, '.nvmrc');
 	const knipPath = join(rootDir, 'knip.deploylint.jsonc');
 	const viteConfigPath = join(preflightRoot, 'vite.config.ts');
@@ -370,6 +390,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		deploylintSharedViteConfigPath,
 		oxlintPath,
 		oxfmtPath,
+		rootSvelteConfigPath,
 		nvmrcPath,
 		knipPath,
 		viteConfigPath,
@@ -434,6 +455,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	};
 	const oxfmt = readJson(oxfmtPath) as Record<string, unknown>;
 	const knip = readJson(knipPath) as {
+		sveltekit?: unknown;
 		workspaces: Record<string, unknown>;
 	};
 	const configuredCoverageThresholds = readCoverageThresholds(viteConfigPath);
@@ -443,6 +465,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const viteConfigSource = readFileSync(viteConfigPath, 'utf8');
 	const mcpViteConfigSource = readFileSync(mcpViteConfigPath, 'utf8');
 	const deploylintSharedViteConfigSource = readFileSync(deploylintSharedViteConfigPath, 'utf8');
+	const rootSvelteConfigSource = readFileSync(rootSvelteConfigPath, 'utf8');
 	const playwrightConfig = readFileSync(playwrightConfigPath, 'utf8');
 	const preflightGateWorkflow = readFileSync(preflightGateWorkflowPath, 'utf8');
 	const dogfoodWorkflow = readFileSync(dogfoodWorkflowPath, 'utf8');
@@ -573,6 +596,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		'root deploylint CI verify runs audit, shared, preflight, mcp, Playwright install, and e2e',
 		hasScriptCommand(rootPackage.scripts, 'verify:deploylint:ci', [
 			'npm run audit:security',
+			'npm run format:deploylint:check',
 			'npm run verify -w apps/deploylint-shared',
 			'npm run verify -w preflight',
 			'npm run verify -w preflight-mcp',
@@ -597,6 +621,23 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
+		'root deploylint format gate checks root configs and workflows',
+		hasScriptCommand(rootPackage.scripts, 'format:deploylint:check', [
+			'oxfmt --check',
+			'package.json',
+			'package-lock.json',
+			'turbo.json',
+			'knip.deploylint.jsonc',
+			'.oxlintrc.jsonc',
+			'.oxfmtrc.jsonc',
+			'svelte.config.js',
+			'.github/workflows/preflight-gate.yml',
+			'.github/workflows/deploylint-dogfood.yml'
+		]) && rootPackage.scripts['verify:deploylint:ci']?.includes('npm run format:deploylint:check')
+	);
+	pushCheck(
+		checked,
+		failures,
 		'root dead-code gate runs knip against Deploylint workspaces',
 		hasScriptCommand(rootPackage.scripts, 'deadcode:deploylint', [
 			'knip',
@@ -614,6 +655,20 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			['apps/deploylint-shared', 'apps/preflight', 'apps/preflight-mcp'].every((workspace) =>
 				Object.hasOwn(knip.workspaces, workspace)
 			)
+	);
+	pushCheck(
+		checked,
+		failures,
+		'Deploylint dead-code gate uses workspace-scoped SvelteKit config',
+		hasWorkspaceScopedSvelteKitConfig(knip, 'apps/preflight', 'svelte.config.js')
+	);
+	pushCheck(
+		checked,
+		failures,
+		'root SvelteKit tooling shim is dependency-free for Knip',
+		rootSvelteConfigSource.includes('module.exports') &&
+			rootSvelteConfigSource.includes('kit: {}') &&
+			!rootSvelteConfigSource.includes('@sveltejs/adapter')
 	);
 	pushCheck(
 		checked,

@@ -40,7 +40,10 @@ describe('quality standards guard', () => {
 				'root dependency audit fails on any known vulnerability',
 				'root deploylint CI verify runs audit, shared, preflight, mcp, Playwright install, and e2e',
 				'root deploylint local verify skips network-heavy CI-only gates',
+				'root deploylint format gate checks root configs and workflows',
 				'root dead-code gate runs knip against Deploylint workspaces',
+				'Deploylint dead-code gate uses workspace-scoped SvelteKit config',
+				'root SvelteKit tooling shim is dependency-free for Knip',
 				'root deploylint ship verify adds production smoke',
 				'oxlint config enables correctness, suspicious, TypeScript, Vitest, Promise, and Unicorn guards',
 				'oxfmt config enforces deterministic imports, Tailwind sorting, Svelte formatting, and LF endings',
@@ -192,6 +195,11 @@ describe('quality standards guard', () => {
 				})
 			);
 			writeFixtureFile(
+				join(root, 'svelte.config.js'),
+				`import adapter from '@sveltejs/adapter-cloudflare';
+				export default { kit: { adapter: adapter() } };`
+			);
+			writeFixtureFile(
 				join(root, 'apps/preflight/vite.config.ts'),
 				`const coverageMetric = 'statements';
 				export default {
@@ -268,7 +276,10 @@ describe('quality standards guard', () => {
 					'root dependency audit fails on any known vulnerability',
 					'root deploylint CI verify runs audit, shared, preflight, mcp, Playwright install, and e2e',
 					'root deploylint local verify skips network-heavy CI-only gates',
+					'root deploylint format gate checks root configs and workflows',
 					'root dead-code gate runs knip against Deploylint workspaces',
+					'Deploylint dead-code gate uses workspace-scoped SvelteKit config',
+					'root SvelteKit tooling shim is dependency-free for Knip',
 					'root deploylint ship verify adds production smoke',
 					'oxlint config enables correctness, suspicious, TypeScript, Vitest, Promise, and Unicorn guards',
 					'oxfmt config enforces deterministic imports, Tailwind sorting, Svelte formatting, and LF endings',

@@ -1,9 +1,7 @@
 {
 	"$schema": "https://unpkg.com/knip@latest/schema.json",
 	"svelte": false,
-	"sveltekit": {
-		"config": ["apps/preflight/svelte.config.js"]
-	},
+	"sveltekit": false,
 	"ignoreExportsUsedInFile": {
 		"interface": true,
 		"type": true,
@@ -13,7 +11,9 @@
 		"apps/deploylint-shared": {},
 		"apps/preflight": {
 			"svelte": true,
-			"sveltekit": true,
+			"sveltekit": {
+				"config": ["svelte.config.js"]
+			},
 			"entry": [
 				"src/app.html",
 				"src/routes/**/*.{svelte,ts,js}",
