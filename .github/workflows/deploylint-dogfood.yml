@@ -18,6 +18,7 @@ on:
       - 'svelte.config.js'
       - '.github/dependabot.yml'
       - '.nvmrc'
+      - 'scripts/assert-deploylint-coverage.mjs'
       - 'scripts/assert-unlighthouse.mjs'
       - 'scripts/benchmark-lighthouse.mjs'
       - '.github/workflows/preflight-gate.yml'

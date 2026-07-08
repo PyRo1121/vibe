@@ -60,6 +60,18 @@ jobs:
 		return 'text-amber-300';
 	}
 
+	function planStateClass(state: string): string {
+		if (state === 'ready') return 'border-emerald-500/20 bg-emerald-500/5 text-emerald-300';
+		if (state === 'blocked') return 'border-red-500/20 bg-red-500/5 text-red-300';
+		return 'border-sky-500/20 bg-sky-500/5 text-sky-300';
+	}
+
+	function planStateLabel(state: string): string {
+		if (state === 'ready') return 'Ready';
+		if (state === 'blocked') return 'Blocked';
+		return 'Next';
+	}
+
 	async function copyText(id: string, text: string) {
 		await navigator.clipboard.writeText(text);
 		copied = id;
@@ -146,6 +158,28 @@ jobs:
 					</span>
 				</div>
 				<p class="mt-4 text-sm leading-6 text-zinc-400">{result.nextAction}</p>
+			</section>
+
+			<section class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+				<h2 class="mb-3 font-semibold text-white">Release gate rollout</h2>
+				<ol class="space-y-3">
+					{#each result.releasePlan as step, index (step.id)}
+						<li class="rounded-lg border p-3 {planStateClass(step.state)}">
+							<div class="flex items-start justify-between gap-3">
+								<div>
+									<p class="text-[10px] font-bold tracking-wider text-zinc-500 uppercase">
+										Step {index + 1}
+									</p>
+									<h3 class="mt-1 text-sm font-semibold text-white">{step.title}</h3>
+								</div>
+								<span class="rounded bg-zinc-950/70 px-2 py-1 text-[10px] font-bold uppercase">
+									{planStateLabel(step.state)}
+								</span>
+							</div>
+							<p class="mt-2 text-xs leading-5 text-zinc-300">{step.description}</p>
+						</li>
+					{/each}
+				</ol>
 			</section>
 
 			<section class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">

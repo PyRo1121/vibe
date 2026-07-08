@@ -38,6 +38,29 @@ describe('GitHub Actions hardening tool analyzer', () => {
 		expect(result.repairPrompt).toContain('Fix this GitHub Actions workflow');
 		expect(result.repairPrompt).toContain('pull_request_target');
 		expect(result.nextAction).toContain('use advisory mode first');
+		expect(result.releasePlan).toEqual([
+			expect.objectContaining({
+				id: 'fix-blockers',
+				state: 'blocked',
+				title: 'Fix blocking workflow risk'
+			}),
+			expect.objectContaining({
+				id: 'close-warnings',
+				state: 'blocked'
+			}),
+			expect.objectContaining({
+				id: 'install-advisory',
+				state: 'blocked'
+			}),
+			expect.objectContaining({
+				id: 'workspace-history',
+				state: 'blocked'
+			}),
+			expect.objectContaining({
+				id: 'promote-gate',
+				state: 'blocked'
+			})
+		]);
 	});
 
 	it('passes least-privilege workflows with full quality gates', () => {
@@ -60,6 +83,30 @@ describe('GitHub Actions hardening tool analyzer', () => {
 			'actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0'
 		);
 		expect(result.hardenedWorkflow).not.toContain('actions/checkout v6');
+		expect(result.releasePlan).toEqual([
+			expect.objectContaining({
+				id: 'fix-blockers',
+				state: 'ready',
+				title: 'Blocking workflow risk clear'
+			}),
+			expect.objectContaining({
+				id: 'close-warnings',
+				state: 'ready',
+				title: 'Hardening warnings clear'
+			}),
+			expect.objectContaining({
+				id: 'install-advisory',
+				state: 'next'
+			}),
+			expect.objectContaining({
+				id: 'workspace-history',
+				state: 'next'
+			}),
+			expect.objectContaining({
+				id: 'promote-gate',
+				state: 'next'
+			})
+		]);
 	});
 
 	it('marks least-privilege workflows with missing hardening as needs-work', () => {
@@ -85,5 +132,12 @@ jobs:
 		expect(result.score).toBeGreaterThanOrEqual(60);
 		expect(result.score).toBeLessThan(100);
 		expect(result.nextAction).toContain('Patch the warnings');
+		expect(result.releasePlan.map((step) => [step.id, step.state])).toEqual([
+			['fix-blockers', 'ready'],
+			['close-warnings', 'next'],
+			['install-advisory', 'next'],
+			['workspace-history', 'next'],
+			['promote-gate', 'blocked']
+		]);
 	});
 });

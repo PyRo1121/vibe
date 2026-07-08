@@ -37,6 +37,7 @@ const DEPLOYLINT_WORKFLOW_PATH_FILTERS = [
 	'svelte.config.js',
 	'.github/dependabot.yml',
 	'.nvmrc',
+	'scripts/assert-deploylint-coverage.mjs',
 	'scripts/assert-unlighthouse.mjs',
 	'scripts/benchmark-lighthouse.mjs',
 	'.github/workflows/preflight-gate.yml',
@@ -448,6 +449,10 @@ function hasVitestJUnitArtifacts(configSource: string): boolean {
 	);
 }
 
+function hasCoverageSummaryReporter(configSource: string): boolean {
+	return configSource.includes("'json-summary'");
+}
+
 function pushCheck(checked: string[], failures: string[], label: string, pass: boolean) {
 	if (pass) {
 		checked.push(label);
@@ -771,6 +776,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const deploylintSharedTsconfigPath = join(deploylintSharedRoot, 'tsconfig.json');
 	const deploylintSharedViteConfigPath = join(deploylintSharedRoot, 'vitest.config.ts');
 	const d1MigrationCheckScriptPath = join(preflightRoot, 'scripts/check-d1-migrations.mjs');
+	const coverageAssertScriptPath = join(rootDir, 'scripts/assert-deploylint-coverage.mjs');
 	const localGateScriptPath = join(preflightRoot, 'scripts/gate.ts');
 	const remoteGateScriptPath = join(preflightRoot, 'scripts/gate-remote.mjs');
 	const oxlintPath = join(rootDir, '.oxlintrc.jsonc');
@@ -809,6 +815,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		deploylintSharedTsconfigPath,
 		deploylintSharedViteConfigPath,
 		d1MigrationCheckScriptPath,
+		coverageAssertScriptPath,
 		localGateScriptPath,
 		remoteGateScriptPath,
 		oxlintPath,
@@ -863,6 +870,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const viteConfigSource = readFileSync(viteConfigPath, 'utf8');
 	const mcpViteConfigSource = readFileSync(mcpViteConfigPath, 'utf8');
 	const deploylintSharedViteConfigSource = readFileSync(deploylintSharedViteConfigPath, 'utf8');
+	const coverageAssertScriptSource = readFileSync(coverageAssertScriptPath, 'utf8');
 	const localGateScriptSource = readFileSync(localGateScriptPath, 'utf8');
 	const remoteGateScriptSource = readFileSync(remoteGateScriptPath, 'utf8');
 	const rootSvelteConfigSource = readFileSync(rootSvelteConfigPath, 'utf8');
@@ -1145,6 +1153,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			'npm run verify -w apps/deploylint-shared',
 			'npm run verify -w preflight',
 			'npm run verify -w preflight-mcp',
+			'npm run assert:deploylint:coverage',
 			'npm run test:e2e:install -w preflight',
 			'npm run test:e2e -w preflight -- --forbid-only'
 		])
@@ -1174,6 +1183,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			'npm run verify -w apps/deploylint-shared',
 			'npm run verify -w preflight',
 			'npm run verify -w preflight-mcp',
+			'npm run assert:deploylint:coverage',
 			'npm run test:e2e -w preflight -- --forbid-only'
 		]) &&
 			!rootPackage.scripts['verify:deploylint:local']?.includes('npm audit') &&
@@ -1199,9 +1209,28 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			'.github/workflows/tcg-vault-gate.yml',
 			'.github/actions/deploylint-gate/action.yml',
 			'.github/actions/deploylint-gate/gate-remote.mjs',
+			'scripts/assert-deploylint-coverage.mjs',
 			'scripts/assert-unlighthouse.mjs',
 			'scripts/benchmark-lighthouse.mjs'
 		]) && rootPackage.scripts['verify:deploylint:ci']?.includes('npm run format:deploylint:check')
+	);
+	pushCheck(
+		checked,
+		failures,
+		'root deploylint coverage assertion reads package coverage summaries after unit gates',
+		hasScriptCommand(rootPackage.scripts, 'assert:deploylint:coverage', [
+			'node scripts/assert-deploylint-coverage.mjs'
+		]) &&
+			rootPackage.scripts['verify:deploylint:ci']?.includes('npm run assert:deploylint:coverage') &&
+			rootPackage.scripts['verify:deploylint:local']?.includes(
+				'npm run assert:deploylint:coverage'
+			) &&
+			[
+				'apps/deploylint-shared/coverage/coverage-summary.json',
+				'apps/preflight/coverage/coverage-summary.json',
+				'apps/preflight-mcp/coverage/coverage-summary.json',
+				'Deploylint coverage summaries meet configured floors.'
+			].every((fragment) => coverageAssertScriptSource.includes(fragment))
 	);
 	pushCheck(
 		checked,
@@ -1298,6 +1327,14 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 		failures,
 		'vitest coverage thresholds meet enterprise minimums',
 		coverageThresholdsMeet(configuredCoverageThresholds, ENTERPRISE_COVERAGE_MINIMUMS)
+	);
+	pushCheck(
+		checked,
+		failures,
+		'vitest coverage emits machine-readable summary reports for deploylint gates',
+		[viteConfigSource, mcpViteConfigSource, deploylintSharedViteConfigSource].every(
+			hasCoverageSummaryReporter
+		)
 	);
 	pushCheck(
 		checked,

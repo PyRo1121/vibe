@@ -190,6 +190,9 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(toolsPage).toContain('Create monitored project');
 		expect(toolsPage).toContain('Add repo checks to CI');
 		expect(workflowToolPage).toContain("href={resolve('/app#project')}");
+		expect(workflowToolPage).toContain('Release gate rollout');
+		expect(workflowToolPage).toContain('planStateLabel');
+		expect(workflowToolPage).toContain('result.releasePlan');
 		expect(reportPage).toContain('Readiness brief');
 		expect(reportSummary).toContain('Copy readiness brief');
 		expect(reportSummary).toContain('Project evidence reviewed');

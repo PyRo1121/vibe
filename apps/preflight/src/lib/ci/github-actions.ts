@@ -98,6 +98,13 @@ export interface GithubActionsToolFinding {
 	snippet: string;
 }
 
+export interface GithubActionsReleasePlanStep {
+	id: string;
+	title: string;
+	description: string;
+	state: 'blocked' | 'ready' | 'next';
+}
+
 export interface GithubActionsToolResult {
 	score: number;
 	pass: number;
@@ -108,6 +115,7 @@ export interface GithubActionsToolResult {
 	findings: GithubActionsToolFinding[];
 	repairPrompt: string;
 	nextAction: string;
+	releasePlan: GithubActionsReleasePlanStep[];
 	hardenedWorkflow: string;
 }
 
@@ -175,6 +183,60 @@ function buildNextAction(resultVerdict: GithubActionsToolResult['verdict']): str
 	return 'Fix the failed security finding before production deploys; use advisory mode first when you add Deploylint to CI.';
 }
 
+function buildReleasePlan(
+	findings: GithubActionsToolFinding[],
+	resultVerdict: GithubActionsToolResult['verdict']
+): GithubActionsReleasePlanStep[] {
+	const failedFindings = findings.filter((finding) => finding.status === 'fail');
+	const warningFindings = findings.filter((finding) => finding.status === 'warn');
+	const hardeningState =
+		failedFindings.length > 0 ? 'blocked' : warningFindings.length > 0 ? 'next' : 'ready';
+	const deployGateState = resultVerdict === 'hardened' ? 'next' : 'blocked';
+
+	return [
+		{
+			id: 'fix-blockers',
+			title:
+				failedFindings.length > 0 ? 'Fix blocking workflow risk' : 'Blocking workflow risk clear',
+			description:
+				failedFindings.length > 0
+					? `Address ${failedFindings.map((finding) => finding.shortTitle).join(', ')} before this workflow protects a deploy.`
+					: 'No failing workflow control is blocking the advisory rollout.',
+			state: failedFindings.length > 0 ? 'blocked' : 'ready'
+		},
+		{
+			id: 'close-warnings',
+			title: warningFindings.length > 0 ? 'Close hardening warnings' : 'Hardening warnings clear',
+			description:
+				warningFindings.length > 0
+					? `Tighten ${warningFindings.map((finding) => finding.shortTitle).join(', ')} so the first advisory run is useful.`
+					: 'The workflow already has least-privilege, pinned dependencies, code scanning, dependency review, and quality gates.',
+			state: hardeningState
+		},
+		{
+			id: 'install-advisory',
+			title: 'Install the advisory CI report',
+			description:
+				'Add Deploylint in advisory mode first so pull requests collect launch-risk evidence without blocking active work.',
+			state: resultVerdict === 'risky' ? 'blocked' : 'next'
+		},
+		{
+			id: 'workspace-history',
+			title: 'Attach reports to workspace history',
+			description:
+				'Create a monitored project so CI reports write to project history, billing context, and gate status instead of a one-off run.',
+			state: resultVerdict === 'risky' ? 'blocked' : 'next'
+		},
+		{
+			id: 'promote-gate',
+			title: 'Promote clean signal to a deploy gate',
+			description:
+				'After a clean advisory report meets the minimum score, switch the project workflow to gate mode and make the status check required.',
+			state: deployGateState
+		}
+	];
+}
+
 export function analyzeGithubActionsYaml(
 	yaml: string,
 	path = '.github/workflows/workflow.yml'
@@ -198,6 +260,7 @@ export function analyzeGithubActionsYaml(
 		findings,
 		repairPrompt: buildRepairPrompt(findings),
 		nextAction: buildNextAction(resultVerdict),
+		releasePlan: buildReleasePlan(findings, resultVerdict),
 		hardenedWorkflow: HARDENED_GITHUB_ACTIONS_WORKFLOW
 	};
 }

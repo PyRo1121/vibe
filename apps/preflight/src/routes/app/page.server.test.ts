@@ -98,6 +98,58 @@ function gateActionEvent(db: FakeD1, projectId = 'proj_live-123') {
 	} as Parameters<NonNullable<typeof actions.enableGate>>[0];
 }
 
+function gateActionEventWithoutDb(projectId = 'proj_live-123') {
+	return {
+		locals: {
+			session: null,
+			user
+		},
+		platform: {
+			env: {
+				PUBLIC_APP_URL: 'https://deploylint.com'
+			}
+		},
+		request: new Request('https://deploylint.com/app?/enableGate', {
+			method: 'POST',
+			body: new URLSearchParams({ projectId })
+		}),
+		url: new URL('https://deploylint.com/app')
+	} as Parameters<NonNullable<typeof actions.enableGate>>[0];
+}
+
+function anonymousGateActionEvent() {
+	return {
+		locals: {
+			session: null,
+			user: null
+		},
+		platform: {
+			env: {
+				PUBLIC_APP_URL: 'https://deploylint.com'
+			}
+		},
+		request: new Request('https://deploylint.com/app?/enableGate', {
+			method: 'POST',
+			body: new URLSearchParams({ projectId: 'proj_live-123' })
+		}),
+		url: new URL('https://deploylint.com/app')
+	} as Parameters<NonNullable<typeof actions.enableGate>>[0];
+}
+
+class ThrowingD1 {
+	prepare(): {
+		bind: () => { first: () => Promise<never> };
+	} {
+		return {
+			bind: () => ({
+				first: async () => {
+					throw new Error('D1 unavailable');
+				}
+			})
+		};
+	}
+}
+
 describe('/app server load', () => {
 	it('redirects anonymous users to login', async () => {
 		await expect(loadApp()).rejects.toMatchObject({
@@ -497,5 +549,58 @@ describe('/app server load', () => {
 			}
 		});
 		expect(db.calls.some((call) => call.method === 'run')).toBe(false);
+	});
+
+	it('redirects anonymous gate promotion attempts to login', async () => {
+		await expect(actions.enableGate?.(anonymousGateActionEvent())).rejects.toMatchObject({
+			status: 303,
+			location: '/login?redirectTo=%2Fapp'
+		});
+	});
+
+	it('returns a form error when gate storage is unavailable', async () => {
+		await expect(actions.enableGate?.(gateActionEventWithoutDb())).resolves.toMatchObject({
+			status: 400,
+			data: {
+				enableGateError: 'Workspace storage is not available in this environment.'
+			}
+		});
+	});
+
+	it('returns a form error when gate promotion receives an invalid project id', async () => {
+		const db = new FakeD1();
+
+		await expect(actions.enableGate?.(gateActionEvent(db, ''))).resolves.toMatchObject({
+			status: 400,
+			data: {
+				enableGateError: 'Select a valid project before enabling gate mode.'
+			}
+		});
+		expect(db.calls).toEqual([]);
+	});
+
+	it('returns a form error when gate promotion cannot find the owned project', async () => {
+		const db = new FakeD1();
+		db.firstRows = [null];
+
+		await expect(actions.enableGate?.(gateActionEvent(db))).resolves.toMatchObject({
+			status: 400,
+			data: {
+				enableGateError: 'This project was not found in your workspace.'
+			}
+		});
+		expect(db.calls.some((call) => call.method === 'run')).toBe(false);
+	});
+
+	it('returns a form error when gate promotion storage throws', async () => {
+		await expect(
+			actions.enableGate?.(gateActionEvent(new ThrowingD1() as unknown as FakeD1, 'proj_live-123'))
+		).resolves.toMatchObject({
+			status: 400,
+			data: {
+				enableGateError:
+					'Gate mode could not be enabled right now. Try again after refreshing the workspace.'
+			}
+		});
 	});
 });

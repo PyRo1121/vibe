@@ -53,6 +53,7 @@ describe('quality standards guard', () => {
 				'root preflight verify alias runs full unit, build, and E2E gate',
 				'root deploylint local verify runs offline format, dead-code, unit, build, and E2E gates',
 				'root deploylint format gate checks root dependency configs and workflows',
+				'root deploylint coverage assertion reads package coverage summaries after unit gates',
 				'root dead-code gate runs knip against Deploylint workspaces',
 				'Deploylint dead-code gate uses workspace-scoped SvelteKit config',
 				'root SvelteKit tooling shim is dependency-free for Knip',
@@ -61,6 +62,7 @@ describe('quality standards guard', () => {
 				'oxlint config enables correctness, suspicious, TypeScript, Vitest, Promise, and Unicorn guards',
 				'oxfmt config enforces deterministic imports, Tailwind sorting, Svelte formatting, and LF endings',
 				'vitest coverage thresholds meet enterprise minimums',
+				'vitest coverage emits machine-readable summary reports for deploylint gates',
 				'vitest scoped coverage thresholds protect critical Deploylint folders',
 				'vitest coverage includes SvelteKit server route entrypoints',
 				'vitest coverage includes client funnel telemetry',
@@ -103,6 +105,10 @@ describe('quality standards guard', () => {
 				})
 			);
 			writeFixtureFile(join(root, 'package-lock.json'), JSON.stringify({ lockfileVersion: 3 }));
+			writeFixtureFile(
+				join(root, 'scripts/assert-deploylint-coverage.mjs'),
+				'console.log("coverage not checked");\n'
+			);
 			writeFixtureFile(join(root, '.nvmrc'), '24\n');
 			writeFixtureFile(
 				join(root, 'apps/preflight/wrangler.jsonc'),
@@ -402,6 +408,7 @@ jobs:
 					'root preflight verify alias runs full unit, build, and E2E gate',
 					'root deploylint local verify runs offline format, dead-code, unit, build, and E2E gates',
 					'root deploylint format gate checks root dependency configs and workflows',
+					'root deploylint coverage assertion reads package coverage summaries after unit gates',
 					'root dead-code gate runs knip against Deploylint workspaces',
 					'Deploylint dead-code gate uses workspace-scoped SvelteKit config',
 					'root SvelteKit tooling shim is dependency-free for Knip',
@@ -410,6 +417,7 @@ jobs:
 					'oxlint config enables correctness, suspicious, TypeScript, Vitest, Promise, and Unicorn guards',
 					'oxfmt config enforces deterministic imports, Tailwind sorting, Svelte formatting, and LF endings',
 					'vitest coverage thresholds meet enterprise minimums',
+					'vitest coverage emits machine-readable summary reports for deploylint gates',
 					'vitest scoped coverage thresholds protect critical Deploylint folders',
 					'vitest coverage includes SvelteKit server route entrypoints',
 					'vitest coverage includes client funnel telemetry',
