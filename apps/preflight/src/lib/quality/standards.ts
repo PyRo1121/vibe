@@ -825,7 +825,9 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const nvmrcMajor = Number.parseInt(readFileSync(nvmrcPath, 'utf8').trim(), 10);
 	const preflightTypeAwareLint = preflightPackage.scripts['lint:type-aware'] ?? '';
 	const mcpTypeAwareLint = preflightMcpPackage.scripts['lint:type-aware'] ?? '';
+	const mcpProdTypeAwareLint = preflightMcpPackage.scripts['lint:type-aware:prod'] ?? '';
 	const sharedTypeAwareLint = deploylintSharedPackage.scripts['lint:type-aware'] ?? '';
+	const sharedProdTypeAwareLint = deploylintSharedPackage.scripts['lint:type-aware:prod'] ?? '';
 
 	pushCheck(
 		checked,
@@ -905,6 +907,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			'check',
 			'lint',
 			'lint:type-aware',
+			'lint:type-aware:prod',
 			'build',
 			'test:coverage'
 		]) &&
@@ -914,11 +917,23 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
+		'preflight-mcp production type-aware Oxlint rejects unsafe type assertions',
+		hasScriptCommand(preflightMcpPackage.scripts, 'lint:type-aware:prod', [
+			'oxlint',
+			'--type-aware',
+			'--deny typescript/no-unsafe-type-assertion',
+			'--ignore-pattern "**/*.test.ts"'
+		]) && !hasRuleLevelOxlintAllowance(mcpProdTypeAwareLint)
+	);
+	pushCheck(
+		checked,
+		failures,
 		'deploylint-shared verify runs typecheck, lint, type-aware lint, coverage, and syntax checks',
 		hasScriptCommand(deploylintSharedPackage.scripts, 'verify', [
 			'check',
 			'lint',
 			'lint:type-aware',
+			'lint:type-aware:prod',
 			'test:coverage'
 		]) &&
 			hasScriptCommand(deploylintSharedPackage.scripts, 'check', [
@@ -935,6 +950,18 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 			deploylintSharedPackage.devDependencies.vitest !== undefined &&
 			deploylintSharedPackage.devDependencies['@vitest/coverage-v8'] !== undefined &&
 			deploylintSharedPackage.devDependencies.typescript !== undefined
+	);
+	pushCheck(
+		checked,
+		failures,
+		'deploylint-shared production type-aware Oxlint rejects unsafe type assertions',
+		hasScriptCommand(deploylintSharedPackage.scripts, 'lint:type-aware:prod', [
+			'oxlint',
+			'--type-aware',
+			'--deny typescript/no-unsafe-type-assertion',
+			'--ignore-pattern "**/*.test.js"',
+			'--ignore-pattern "**/*.test.ts"'
+		]) && !hasRuleLevelOxlintAllowance(sharedProdTypeAwareLint)
 	);
 	pushCheck(
 		checked,
