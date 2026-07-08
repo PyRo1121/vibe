@@ -66,6 +66,17 @@ const user = {
 	updatedAt: new Date('2026-07-07T00:00:00.000Z')
 };
 
+const setupProjectRow = {
+	id: 'proj_setup-123',
+	name: 'First deploy target',
+	deploy_url: 'https://your-app.com',
+	repo_label: 'github.com/your-org/your-app',
+	workflow_path: '.github/workflows/deploylint.yml',
+	install_state: 'not_installed',
+	gate_mode: 'advisory',
+	min_score: 80
+};
+
 function gateActionEvent(db: FakeD1, projectId = 'proj_live-123') {
 	return {
 		locals: {
@@ -216,6 +227,90 @@ describe('/app server load', () => {
 		expect(pageData.projectDraftApplied).toBe(true);
 		expect(pageData.advisoryWorkflow).toContain('DEPLOYLINT_URL: https://app.acme.com');
 		expect(pageData.advisoryWorkflow).toContain("DEPLOYLINT_MIN_SCORE: '92'");
+	});
+
+	it('updates an existing setup project from workspace draft query params', async () => {
+		const db = new FakeD1();
+		db.firstRows = [{ id: 'wks_live', name: 'Olen workspace' }, null, { count: 0 }];
+		db.allRows = [[setupProjectRow], []];
+
+		const data = await loadApp({
+			locals: {
+				session: null,
+				user
+			},
+			platform: {
+				env: {
+					AUTH_DB: db as unknown as D1Database,
+					PUBLIC_APP_URL: 'https://deploylint.com'
+				}
+			} as unknown as App.Platform,
+			url: new URL(
+				'https://deploylint.com/app?name=Acme&repo=https%3A%2F%2Fgithub.com%2Facme%2Fapp&deploy=https%3A%2F%2Fapp.acme.com%2F&minScore=92'
+			)
+		});
+
+		const pageData = data as Exclude<Awaited<ReturnType<typeof load>>, void>;
+
+		expect(pageData.workspace.projects[0]).toMatchObject({
+			id: 'proj_setup-123',
+			name: 'Acme',
+			repoLabel: 'github.com/acme/app',
+			deployUrl: 'https://app.acme.com',
+			minScore: 92
+		});
+		expect(pageData.projectDraftApplied).toBe(true);
+		expect(pageData.advisoryWorkflow).toContain('DEPLOYLINT_URL: https://app.acme.com');
+		expect(
+			db.calls.some((call) => call.method === 'run' && call.sql.includes('UPDATE project'))
+		).toBe(true);
+	});
+
+	it('does not report draft applied when an installed project keeps its existing target', async () => {
+		const db = new FakeD1();
+		db.firstRows = [{ id: 'wks_live', name: 'Olen workspace' }, null, { count: 0 }];
+		db.allRows = [
+			[
+				{
+					...setupProjectRow,
+					name: 'Installed deploy gate',
+					deploy_url: 'https://installed.example.com',
+					repo_label: 'github.com/acme/installed',
+					install_state: 'advisory_installed',
+					min_score: 88
+				}
+			],
+			[]
+		];
+
+		const data = await loadApp({
+			locals: {
+				session: null,
+				user
+			},
+			platform: {
+				env: {
+					AUTH_DB: db as unknown as D1Database,
+					PUBLIC_APP_URL: 'https://deploylint.com'
+				}
+			} as unknown as App.Platform,
+			url: new URL(
+				'https://deploylint.com/app?name=Acme&repo=https%3A%2F%2Fgithub.com%2Facme%2Fapp&deploy=https%3A%2F%2Fapp.acme.com%2F&minScore=92'
+			)
+		});
+
+		const pageData = data as Exclude<Awaited<ReturnType<typeof load>>, void>;
+
+		expect(pageData.workspace.projects[0]).toMatchObject({
+			name: 'Installed deploy gate',
+			repoLabel: 'github.com/acme/installed',
+			deployUrl: 'https://installed.example.com',
+			minScore: 88
+		});
+		expect(pageData.projectDraftApplied).toBe(false);
+		expect(
+			db.calls.some((call) => call.method === 'run' && call.sql.includes('UPDATE project'))
+		).toBe(false);
 	});
 
 	it('normalizes checkout return status query params for dashboard notices', async () => {

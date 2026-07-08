@@ -112,6 +112,10 @@ function isCountRow(value: unknown): value is CountRow {
 	return isRecord(value) && typeof value.count === 'number';
 }
 
+function hasProjectDraft(opts: WorkspaceStoreOptions): boolean {
+	return Object.keys(opts.projectDraft ?? {}).length > 0;
+}
+
 function installState(value: string): ProjectInstallState {
 	if (value === 'advisory_installed' || value === 'gate_enabled') return value;
 	return 'not_installed';
@@ -270,6 +274,67 @@ async function createProjectRow(
 	return row;
 }
 
+async function applyProjectDraftToSetupProject(
+	db: D1Database,
+	row: ProjectRow,
+	opts: WorkspaceStoreOptions
+): Promise<ProjectRow> {
+	if (!hasProjectDraft(opts) || installState(row.install_state) !== 'not_installed') {
+		return row;
+	}
+
+	const draft = opts.projectDraft ?? {};
+	const nextRow = {
+		...row,
+		name: draft.name ?? row.name,
+		deploy_url: draft.deployUrl ?? row.deploy_url,
+		repo_label: draft.repoLabel ?? row.repo_label,
+		min_score: draft.minScore ?? row.min_score
+	};
+	if (
+		nextRow.name === row.name &&
+		nextRow.deploy_url === row.deploy_url &&
+		nextRow.repo_label === row.repo_label &&
+		nextRow.min_score === row.min_score
+	) {
+		return row;
+	}
+
+	await db
+		.prepare(
+			`UPDATE project
+			SET name = ?,
+				deploy_url = ?,
+				repo_label = ?,
+				min_score = ?,
+				updated_at = ?
+			WHERE id = ?`
+		)
+		.bind(
+			nextRow.name,
+			nextRow.deploy_url,
+			nextRow.repo_label,
+			nextRow.min_score,
+			Date.now(),
+			row.id
+		)
+		.run();
+	return nextRow;
+}
+
+async function resolveProjectRows(
+	db: D1Database,
+	workspaceId: string,
+	opts: WorkspaceStoreOptions
+): Promise<ProjectRow[]> {
+	const loadedProjects = await loadProjectRows(db, workspaceId);
+	if (loadedProjects.length === 0) return [await createProjectRow(db, workspaceId, opts)];
+	if (loadedProjects.length === 1) {
+		return [await applyProjectDraftToSetupProject(db, loadedProjects[0], opts)];
+	}
+	return loadedProjects;
+}
+
 async function loadSubscriptionRow(
 	db: D1Database,
 	workspaceId: string
@@ -357,9 +422,7 @@ export async function loadOrCreateWorkspaceState(
 	try {
 		const workspace =
 			(await loadWorkspaceRow(db, opts.ownerUserId)) ?? (await createWorkspaceRow(db, opts));
-		const loadedProjects = await loadProjectRows(db, workspace.id);
-		const projectRows =
-			loadedProjects.length > 0 ? loadedProjects : [await createProjectRow(db, workspace.id, opts)];
+		const projectRows = await resolveProjectRows(db, workspace.id, opts);
 		const projects = await Promise.all(projectRows.map((row) => projectFromRow(db, row)));
 		const subscription = await loadSubscriptionRow(db, workspace.id);
 		const reportsThisMonth = await countReportsThisMonth(db, workspace.id);

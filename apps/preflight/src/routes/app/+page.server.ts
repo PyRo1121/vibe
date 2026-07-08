@@ -3,7 +3,9 @@ import {
 	buildAdvisoryWorkflow,
 	buildProjectDraftFromSearchParams,
 	buildWorkspaceGatePolicy,
-	buildWorkspaceActivation
+	buildWorkspaceActivation,
+	type DeploylintProject,
+	type ProjectDraft
 } from '$lib/product/workspace';
 import { buildLoginRedirect } from '$lib/server/auth-config';
 import { loadOrCreateWorkspaceState, promoteProjectToGate } from '$lib/server/workspace-store';
@@ -16,6 +18,20 @@ type CheckoutReturnStatus = 'cancel' | 'success';
 function checkoutReturnStatus(value: string | null): CheckoutReturnStatus | null {
 	if (value === 'success' || value === 'cancel') return value;
 	return null;
+}
+
+function projectReflectsDraft(
+	project: DeploylintProject | undefined,
+	projectDraft: ProjectDraft
+): boolean {
+	if (!project) return false;
+	return (
+		Object.keys(projectDraft).length > 0 &&
+		(projectDraft.name === undefined || project.name === projectDraft.name) &&
+		(projectDraft.repoLabel === undefined || project.repoLabel === projectDraft.repoLabel) &&
+		(projectDraft.deployUrl === undefined || project.deployUrl === projectDraft.deployUrl) &&
+		(projectDraft.minScore === undefined || project.minScore === projectDraft.minScore)
+	);
 }
 
 export const load: PageServerLoad = async ({ locals, platform, url }) => {
@@ -36,7 +52,7 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
 	});
 	const project = workspace.projects[0];
 	const activation = buildWorkspaceActivation(workspace);
-	const projectDraftApplied = project != null && Object.keys(projectDraft).length > 0;
+	const projectDraftApplied = projectReflectsDraft(project, projectDraft);
 
 	return {
 		appUrl: appUrl.replace(/\/$/, ''),

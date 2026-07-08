@@ -70,6 +70,17 @@ const projectRow = {
 	min_score: 88
 };
 
+const setupProjectRow = {
+	id: 'proj_setup-123',
+	name: 'First deploy target',
+	deploy_url: 'https://your-app.com',
+	repo_label: 'github.com/your-org/your-app',
+	workflow_path: '.github/workflows/deploylint.yml',
+	install_state: 'not_installed',
+	gate_mode: 'advisory',
+	min_score: 80
+};
+
 describe('workspace D1 store', () => {
 	it('hydrates workspace, subscription, project, metrics, and latest report from D1', async () => {
 		const db = new FakeD1();
@@ -186,6 +197,51 @@ describe('workspace D1 store', () => {
 			expect.stringContaining('INSERT INTO workspace'),
 			expect.stringContaining('INSERT INTO project')
 		]);
+	});
+
+	it('applies a real project draft to an existing single setup project', async () => {
+		const db = new FakeD1();
+		db.firstRows = [{ id: 'wks_live', name: 'Acme workspace' }, null, { count: 0 }];
+		db.allRows = [[setupProjectRow], []];
+
+		const workspace = await loadOrCreateWorkspaceState(db as unknown as D1Database, {
+			alphaFreeUnlock: false,
+			ownerLabel: "Olen's workspace",
+			ownerUserId: 'user_123',
+			projectDraft: {
+				name: 'Acme launch',
+				deployUrl: 'https://app.acme.com',
+				repoLabel: 'github.com/acme/app',
+				minScore: 92
+			}
+		});
+
+		expect(workspace.projects[0]).toMatchObject({
+			id: 'proj_setup-123',
+			name: 'Acme launch',
+			deployUrl: 'https://app.acme.com',
+			repoLabel: 'github.com/acme/app',
+			minScore: 92
+		});
+		expect(db.calls).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					method: 'run',
+					sql: expect.stringContaining('UPDATE project'),
+					values: [
+						'Acme launch',
+						'https://app.acme.com',
+						'github.com/acme/app',
+						92,
+						expect.any(Number),
+						'proj_setup-123'
+					]
+				})
+			])
+		);
+		expect(
+			db.calls.some((call) => call.method === 'run' && call.sql.includes('INSERT INTO project'))
+		).toBe(false);
 	});
 
 	it('only counts installed blocking gates as enabled', async () => {
