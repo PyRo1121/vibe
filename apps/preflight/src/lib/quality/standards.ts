@@ -109,6 +109,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	const preflightRoot = join(rootDir, 'apps/preflight');
 	const preflightMcpRoot = join(rootDir, 'apps/preflight-mcp');
 	const rootPackagePath = join(rootDir, 'package.json');
+	const rootLockPath = join(rootDir, 'package-lock.json');
 	const preflightPackagePath = join(preflightRoot, 'package.json');
 	const preflightMcpPackagePath = join(preflightMcpRoot, 'package.json');
 	const oxlintPath = join(rootDir, '.oxlintrc.jsonc');
@@ -127,6 +128,7 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	};
 	const expectedFiles = [
 		rootPackagePath,
+		rootLockPath,
 		preflightPackagePath,
 		preflightMcpPackagePath,
 		oxlintPath,
@@ -212,8 +214,15 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
-		'root deploylint CI verify runs preflight, mcp, Playwright install, and e2e',
+		'root dependency audit fails on any known vulnerability',
+		hasScriptCommand(rootPackage.scripts, 'audit:security', ['npm audit', '--audit-level=low'])
+	);
+	pushCheck(
+		checked,
+		failures,
+		'root deploylint CI verify runs audit, preflight, mcp, Playwright install, and e2e',
 		hasScriptCommand(rootPackage.scripts, 'verify:deploylint:ci', [
+			'npm run audit:security',
 			'npm run verify -w preflight',
 			'npm run verify -w preflight-mcp',
 			'npm run test:e2e:install -w preflight',
