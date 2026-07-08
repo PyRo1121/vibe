@@ -633,6 +633,18 @@ export function inspectQualityStandards(rootDir = repoRoot): QualityStandardsRep
 	pushCheck(
 		checked,
 		failures,
+		'GitHub workflows use lockfile installs and npm dependency caching',
+		[preflightGateWorkflow, dogfoodWorkflow].every(
+			(workflow) =>
+				workflow.includes('actions/setup-node@v6') &&
+				workflow.includes('node-version-file: .nvmrc') &&
+				workflow.includes('cache: npm') &&
+				workflow.includes('run: npm ci')
+		)
+	);
+	pushCheck(
+		checked,
+		failures,
 		'GitHub workflows declare least-privilege token permissions',
 		hasLeastPrivilegeWorkflowPermissions(preflightGateWorkflow) &&
 			hasLeastPrivilegeWorkflowPermissions(dogfoodWorkflow)
