@@ -23,6 +23,12 @@ describe('/app workspace source', () => {
 		expect(pageSource).toContain('Next action');
 		expect(pageSource).toContain('Install in GitHub Actions');
 		expect(pageSource).toContain('Report history');
+		expect(pageSource).toContain('Preview the workspace value');
+		expect(pageSource).toContain('Sample state');
+		expect(pageSource).toContain('Next fix');
+		expect(pageSource).toContain('Persistent score history');
+		expect(pageSource).toContain('reportIsPreview');
+		expect(pageSource).toContain('latestReport');
 		expect(pageSource).toContain('Gate status');
 		expect(pageSource).toContain('Gate policy');
 		expect(pageSource).toContain('data.gatePolicy');

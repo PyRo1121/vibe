@@ -5,6 +5,7 @@
 		workspaceGateHardeningSteps,
 		type ActivationStepStatus,
 		type ProjectInstallState,
+		type ProjectReportSummary,
 		type WorkspaceBillingState
 	} from '$lib/product/workspace';
 	import { buildPageJsonLd, buildSeoTitle, defaultSeoImage } from '$lib/site/seo-metadata';
@@ -21,6 +22,23 @@
 	const project = $derived(data.workspace.projects[0]);
 	const activation = $derived(data.activation);
 	const gatePolicy = $derived(data.gatePolicy);
+	const sampleReport: ProjectReportSummary = {
+		id: 'report_preview',
+		score: 86,
+		verdict: 'review',
+		scannedAt: 'After first CI run',
+		fixedCount: 5,
+		regressedCount: 1
+	};
+	const latestReport = $derived(project?.latestReport ?? sampleReport);
+	const reportIsPreview = $derived(!project?.latestReport);
+	const reportNextFix =
+		'Tighten checkout verification and branch protection before switching DEPLOYLINT_MODE to gate.';
+	const reportProofPoints = [
+		'Persistent score history for the project, not a one-off URL result.',
+		'Regression count so the next PR shows what got worse.',
+		'Stakeholder-ready summary that explains the next fix.'
+	] as const;
 	const progressLabel = $derived(
 		`${activation.progress.completed}/${activation.progress.total} complete`
 	);
@@ -291,12 +309,56 @@
 
 	<section class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
 		<div id="reports" class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">
-			<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Report history</p>
-			<h2 class="mt-2 text-xl font-semibold text-white">No CI reports yet</h2>
-			<p class="mt-2 text-sm leading-6 text-zinc-400">
-				Install the advisory workflow and open a pull request. This area becomes the project report
-				history with scores, blockers, regressions, and the recommended next fix.
-			</p>
+			<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+				<div>
+					<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
+						Report history
+					</p>
+					<h2 class="mt-2 text-xl font-semibold text-white">
+						{reportIsPreview ? 'Preview the workspace value' : 'Latest CI report'}
+					</h2>
+					<p class="mt-2 text-sm leading-6 text-zinc-400">
+						{reportIsPreview
+							? 'Install the advisory workflow and this becomes live project history with scores, regressions, and the recommended next fix.'
+							: 'Deploylint keeps the last project report attached to the workspace so every PR can prove what changed.'}
+					</p>
+				</div>
+				<span
+					class="w-fit rounded-full border border-sky-500/40 bg-sky-950/30 px-3 py-1 text-xs font-semibold text-sky-200"
+				>
+					{reportIsPreview ? 'Sample state' : latestReport.scannedAt}
+				</span>
+			</div>
+
+			<div class="mt-5 grid gap-3 sm:grid-cols-4">
+				<div class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+					<p class="text-[10px] font-semibold tracking-widest text-zinc-500 uppercase">Score</p>
+					<p class="mt-1 text-2xl font-semibold text-white">{latestReport.score}</p>
+				</div>
+				<div class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+					<p class="text-[10px] font-semibold tracking-widest text-zinc-500 uppercase">Verdict</p>
+					<p class="mt-2 text-sm font-semibold text-amber-200 uppercase">{latestReport.verdict}</p>
+				</div>
+				<div class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+					<p class="text-[10px] font-semibold tracking-widest text-zinc-500 uppercase">Fixed</p>
+					<p class="mt-1 text-2xl font-semibold text-emerald-300">{latestReport.fixedCount}</p>
+				</div>
+				<div class="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+					<p class="text-[10px] font-semibold tracking-widest text-zinc-500 uppercase">Regressed</p>
+					<p class="mt-1 text-2xl font-semibold text-rose-300">{latestReport.regressedCount}</p>
+				</div>
+			</div>
+
+			<div class="mt-5 rounded-lg border border-amber-500/30 bg-amber-950/10 p-4">
+				<p class="text-xs font-semibold tracking-widest text-amber-200 uppercase">Next fix</p>
+				<p class="mt-2 text-sm leading-6 text-zinc-300">{reportNextFix}</p>
+			</div>
+
+			<ul class="mt-5 grid gap-2 text-sm leading-6 text-zinc-400 sm:grid-cols-3">
+				{#each reportProofPoints as point (point)}
+					<li class="rounded-lg border border-zinc-800 bg-zinc-950/40 p-3">{point}</li>
+				{/each}
+			</ul>
 		</div>
 
 		<aside class="space-y-6">

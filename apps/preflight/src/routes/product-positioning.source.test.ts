@@ -134,6 +134,9 @@ describe('Deploylint CI workspace positioning', () => {
 		expect(loginPage).toMatch(/monitored\s+workspace/);
 		expect(homePage).toContain('Readiness evidence');
 		expect(homePage).toMatch(/Run a project readiness review/);
+		expect(homePage).toContain('Subscription loop');
+		expect(homePage).toContain('What stays alive after the first check');
+		expect(homePage).toContain('Monitored projects');
 		expect(reportPage).toContain('Readiness brief');
 		expect(reportSummary).toContain('Copy readiness brief');
 		expect(preflightSession).toContain('Add Deploylint to CI');

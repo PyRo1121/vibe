@@ -287,6 +287,24 @@
 	const description =
 		'Review CI risk, repo hygiene, license and sell-rights evidence, payment readiness, and public deploy blockers before production.';
 	const jsonLd = $derived(buildDeploylintJsonLd({ base: appOrigin, description, price: '0.00' }));
+	const subscriptionLoop = [
+		{
+			label: 'Monitored projects',
+			value: 'Keep each deploy target, repo, and policy in one workspace.'
+		},
+		{
+			label: 'PR advisory reports',
+			value: 'Start non-blocking so every risky change gets a readable CI brief.'
+		},
+		{
+			label: 'Readiness history',
+			value: 'Track score movement, fixed blockers, and regressions across scans.'
+		},
+		{
+			label: 'Deploy gates',
+			value: 'Turn trusted signal into a required check when the project is clean.'
+		}
+	] as const;
 	const quickInstallYaml = $derived(`name: Deploylint advisory report
 
 on:
@@ -364,6 +382,27 @@ jobs:
 			</div>
 		</div>
 		<CiReportPreview compact />
+	</section>
+
+	<section class="mb-8 rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 print:hidden">
+		<div class="grid gap-5 md:grid-cols-[220px_minmax(0,1fr)] md:items-start">
+			<div>
+				<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
+					Subscription loop
+				</p>
+				<h2 class="mt-2 text-xl font-semibold text-white">
+					What stays alive after the first check
+				</h2>
+			</div>
+			<div class="grid gap-3 sm:grid-cols-2">
+				{#each subscriptionLoop as item (item.label)}
+					<article class="rounded-lg border border-zinc-800 bg-zinc-950/50 p-4">
+						<p class="text-sm font-semibold text-white">{item.label}</p>
+						<p class="mt-2 text-sm leading-6 text-zinc-400">{item.value}</p>
+					</article>
+				{/each}
+			</div>
+		</div>
 	</section>
 
 	<section class="mb-8 grid gap-4 md:grid-cols-3 print:hidden">

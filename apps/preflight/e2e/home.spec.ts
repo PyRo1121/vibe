@@ -15,6 +15,9 @@ test.describe('home', () => {
 		).toBeVisible();
 		await expect(page.getByRole('link', { name: /Check workflow YAML/i })).toBeVisible();
 		await expect(page.getByText('Sample PR report')).toBeVisible();
+		await expect(page.getByText('Subscription loop')).toBeVisible();
+		await expect(page.getByText('What stays alive after the first check')).toBeVisible();
+		await expect(page.getByText('Monitored projects')).toBeVisible();
 		await expect(page.getByText('Install path')).toBeVisible();
 		await expect(page.getByText('Copy into CI')).toBeVisible();
 		await expect(page.getByText('Block bad deploys in CI')).toBeVisible();
