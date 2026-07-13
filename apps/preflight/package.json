@@ -55,7 +55,7 @@
 	"dependencies": {
 		"@vibe/deploylint-shared": "file:../deploylint-shared",
 		"better-auth": "^1.6.23",
-		"resend": "^6.17.1"
+		"resend": "^6.17.2"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^5.20260705.1",
