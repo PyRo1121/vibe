@@ -44,7 +44,7 @@
 	},
 	"devDependencies": {
 		"github-actionlint": "1.7.12",
-		"knip": "^5.72.1",
+		"knip": "^6.0.0",
 		"oxfmt": "^0.57.0",
 		"oxlint": "^1.72.0",
 		"oxlint-tsgolint": "^0.24.0",
